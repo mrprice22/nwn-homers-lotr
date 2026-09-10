@@ -7573,3 +7573,33 @@ ideas:
         status: open
         kind: uat
         tester: "any"
+  - id: clone-dupe-disarm
+    title: "Flame Twin clone duplication: close the disarm half, and verify the pickpocket half"
+    group: items-gear
+    status: soon
+    hidden: true
+    type: Exploit
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-10"
+    notes: "<div>An item that creates a temporary <b>clone of you</b> gives that clone copies of your real gear. The clone can then be robbed or disarmed, and what comes off it is a genuine duplicate of your equipment.</div><div><br></div><div>The pickpocket half is fixed and needs verifying in game. The disarm half is still open.</div>"
+    impl_notes: "<div><b>The vector.</b> Item property \"Flame twin\" is <code>iprp_spells</code> row <b>442</b> (<code>Twinfists</code>) -&gt; <code>spells.2da</code> row <b>615</b> -&gt; ImpactScript <b><code>x0_s3_clonefist</code></b>, the stock BioWare script. It builds the clone with <code>CopyObject(oPC, ...)</code>, which copies <b>inventory and equipment</b>. Plot does not stop pickpocket, and <code>disarm_catch.nss</code> only reconciles disarms where the victim is a <b>PC</b>, so both routes off the clone yield real duplicates. Resolved against the module's own hak stack, not assumed.</div><div><br></div><div><b>Reachability today is admin-only</b>, which is why this is not an emergency: the only source of <code>item068</code> (Homer's Touch) is <code>hm_cheat_chest.nss:26</code>, behind the <code>can_chest</code> tier, and <code>flametwincloak</code> has no source at all. The two live season 2 vault copies are the admin's own characters. It still matters because the property can land on any future item.</div><div><br></div><div><b>Already shipped (commit 72e41b2ad36, dev realm):</b> <code>unpacked/x0_s3_clonefist.nss</code> is now a module override of the stock script. After the CopyObject it destroys the clone's <b>carried inventory</b> outright and locks its <b>equipped slots</b> (<code>SetDroppableFlag</code> off, <code>SetPickpocketableFlag</code> off, plot on), then destroys those copies when the clone expires. Every piece of stock behaviour is preserved: fire VFX, commoner faction, the master link, the 6-tick timer, the goodbye fireball and the caster's 3.5s fire immunity.</div><div><br></div><div><b>Still open: disarm.</b> Disarm is an engine action, and <code>disarm_catch.nss</code> returns early on <code>!GetIsPC(oPC)</code> -- a scope that was deliberate and requester-confirmed on <a href=\"#idea-npc-disarm-despawn\">npc-disarm-despawn</a> (players only; PvP untouched). So a clone that is disarmed can still put a weapon on the ground. <code>CloneFistStrip()</code> bounds the window to the clone's ~3 round life but does not close it.</div><div><br></div><div><b>Options for closing it</b>, cheapest first:</div><ul><li><b>Strip the clone instead of locking it.</b> Destroy the equipped copies too, not just carried inventory. Airtight, needs no change to shared disarm code, and costs only the clone's armed appearance. The admin previously chose lock-not-strip specifically so the clone still looks like the caster.</li><li><b>Teach <code>disarm_catch.nss</code> about NPC victims</b> whose weapon is flagged non-droppable: destroy rather than ground it. Fixes this and any future clone, but edits a script on the live combat path that currently has a narrow, deliberate scope -- so it wants its own testing pass, not a party-eve change.</li><li><b>Verify first.</b> It is not certain the engine will ground a plot, non-droppable weapon off an NPC at all. If it will not, there is nothing to fix and the residual note comes out.</li></ul><div><br></div><div>Rule this established, recorded in <a>CLAUDE-gotchas.md</a>: <b>any clone, copy or duplicate of a player must carry nothing real</b> -- no inventory and no equipment, or failing that everything on it plot + non-droppable + non-pickpocketable and destroyed with the clone. It is also why the Crash Party's Mirror Shield of Narcissus idea was deferred rather than built.</div>"
+    manual_steps:
+      - step: "UAT reproduce first, on a build WITHOUT the override, so the fix is demonstrated rather than assumed: take item068 from the Castle Homeless cheat chest, equip it, activate Flame Twin, and pickpocket the clone. You should get a real duplicate of your own gear."
+        status: open
+        kind: uat
+        tester: "admin (can_chest); a second client or a high Pick Pocket skill"
+      - step: "UAT the shipped fix: same setup on the current dev build. Pickpocketing the clone must find an EMPTY pack, and its equipped items must not be stealable."
+        status: open
+        kind: uat
+        tester: "admin (can_chest); a second client or a high Pick Pocket skill"
+      - step: "UAT the open half: DISARM the clone. Note whether a weapon hits the ground and whether it is a real duplicate. This is the check that decides which of the three options above is needed - if the engine refuses to ground a plot, non-droppable weapon, there is nothing left to fix."
+        status: open
+        kind: uat
+        tester: "anyone with Improved Disarm, or a disarming NPC"
+      - step: "UAT no stock behaviour was lost: let the clone run its full ~3 rounds and confirm it still explodes in the goodbye fireball and that the caster still gets the 3.5s fire immunity."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Decide, once the disarm UAT has answered it: strip the clone's equipment outright (loses the armed look), extend disarm_catch.nss to NPC victims (touches the live combat path, wants its own testing pass), or close as not-an-issue."
+        status: open
+        kind: admin
