@@ -257,6 +257,18 @@ item, which is why they are spread across miscsmall/medium/large/thin (24/29/34/
 already in a player's pack keep the appearance they were minted with; opting out
 and back in at Bartholomew is what re-mints them.
 
+**A smashed container leaves a BAG, not a floor full of items.** The item dial's
+ale barrels are meant to be smashed, and every one of them left a container
+placeable tagged `BodyBag` standing in the Well afterwards. The Trash Fairy --
+the hub's litter picker, `trashfairy.nss` on her heartbeat -- only ever looked at
+`OBJECT_TYPE_ITEM`, so she walked past all of them and the hub stayed knee-deep
+until a reboot. She now clears bags too (after a grace period, so nobody is
+robbed mid-loot), and switches from strolling to clearing in bulk once the room
+is past fifteen pieces of litter. She will not touch anything tagged `cp_load*`:
+the dials are a measurement, and a fairy deleting the thing being measured makes
+the number a lie. `CT_DISABLED` on the module stands her down entirely, which is
+the flag to set before a measured run.
+
 **Mind the on-hit hot path.** BioWare's own header on `x2_s3_onhitcast` warns the
 property "can be a major performance hog... especially at higher levels, with
 each player having multiple attacks". At level 60 with four-plus attacks a round
