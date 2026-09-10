@@ -164,11 +164,16 @@
   * in game that reads as *"no such table: cp_crasher"* from the scripts that
     read it -- pointing at the readers, when the writer was the stale one.
 
-  Diagnosing it: compiled scripts embed their string constants, so
-  `nwn_erf -x -f <module.mod> foo.ncs && strings -a foo.ncs | grep <new string>`
-  tells you directly whether a given `.ncs` was built from current source. That
-  is the check to run whenever in-game behaviour disagrees with the source you
-  are reading.
+  Diagnosing it: **`python3 bin/check-stale-ncs.py --include cp_db.nss`**. It
+  extracts each consumer's `.ncs` from the built module, recompiles that script
+  from current source, and byte-compares. Run it whenever in-game behaviour
+  disagrees with the source you are reading.
+
+  (A string search over the `.ncs` looks like a cheaper version of the same
+  check and is **not** one -- the first cut of that tool did exactly that and
+  reported a clean bill of health on the broken build, because the new string
+  lived in the *include* and the stale consumer's own source never mentioned it.
+  Compare bytes.)
 
 - **A clone of a player must carry NOTHING REAL.** `CopyObject(oPC, ...)` copies the
   player's **inventory and equipment**, so a "cosmetic double" is really a creature
