@@ -71,6 +71,13 @@ const string CP_INIT_VAR = "CP_USES_INIT";
 // Every DM-spawned load object carries this tag, and cleanup keys on it alone.
 const string CP_LOAD_TAG = "cp_load";
 
+// Barrels get their own tag so the penguins' rummage can search for a BARREL
+// rather than for "anything the dials made" -- GetNearestObjectByTag on the
+// shared tag returns another penguin nearly every time in a crowd. Cleanup and
+// counting match the cp_load PREFIX so both tags are still covered by one
+// filter; see CP_IsLoadTag.
+const string CP_KEG_TAG  = "cp_load_keg";
+
 const int CP_ITEM_COUNT = 10;
 const int CP_WAVE_MAX   = 3;
 
@@ -86,9 +93,12 @@ int    CP_ItemWave(int nIndex);
 int    CP_ItemCharges(int nIndex);
 int    CP_GrantUpToWave(object oPC);
 int    CP_ReclaimItems(object oPC);
+void   CP_VenueOpen(int bOpen);
+void   CP_PenguinCheer();
 object CP_FindItem(object oPC, string sResRef);
 object CP_Target(object oPC);
 int    CP_OnlineCount();
+int    CP_IsLoadTag(object oObj);
 string CP_BelchSound(int nTipsy);
 
 // ------------------------------------------------------------ state
@@ -112,6 +122,7 @@ void CP_Broadcast(string sMsg, string sColor = "")
 void CP_SetMode(int bOn)
 {
     SetLocalInt(GetModule(), CP_MODE_VAR, bOn);
+    CP_VenueOpen(bOn);
     if (bOn)
     {
         CP_Broadcast("*** THE CRASH PARTY HAS BEGUN! Head to the Well of Eru. ***",
@@ -134,6 +145,7 @@ void CP_SetWave(int nWave)
     CP_Broadcast("*** CRASH PARTY -- WAVE " + IntToString(nWave)
                  + " RELEASED! New party favours at the Well of Eru. ***",
                  COLOR_YELLOW);
+    CP_PenguinCheer();
 }
 
 // ------------------------------------------------------------ guards
@@ -360,6 +372,95 @@ int CP_ReclaimItems(object oPC)
     }
 
     return nTaken;
+}
+
+// Every penguin in the venue cheers when a wave drops.
+//
+// Three cheers rather than one, chosen per penguin, so a crowd produces a MIX
+// rather than a chorus -- twenty five voices saying the identical thing in the
+// same instant reads as a bug, not a party.
+//
+// Each is delayed by a random fraction of a second for the same reason it is
+// staggered elsewhere: firing twenty five SpeakStrings inside one frame is a
+// spike on the exact object whose purpose is to make load measurable.
+void CP_PenguinCheer()
+{
+    object oArea = GetObjectByTag("TheWellofEru");
+    if (!GetIsObjectValid(oArea)) return;
+
+    object oObj = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oObj))
+    {
+        if (GetObjectType(oObj) == OBJECT_TYPE_CREATURE
+            && !GetIsPC(oObj)
+            && (GetTag(oObj) == CP_LOAD_TAG || GetTag(oObj) == "cp_penguin"))
+        {
+            string sCheer;
+            switch (Random(4))
+            {
+                case 0:  sCheer = "PaRtY TiMe!!";              break;
+                case 1:  sCheer = "WAAAAUGH! MORE GROG!";      break;
+                case 2:  sCheer = "HOORAY FOR THE PENGUINS!";  break;
+                default: sCheer = "*honks ecstatically*";      break;
+            }
+            float fWhen = IntToFloat(Random(25)) / 10.0;
+            AssignCommand(oObj, DelayCommand(fWhen, SpeakString(sCheer)));
+            AssignCommand(oObj, DelayCommand(fWhen,
+                PlayAnimation(ANIMATION_FIREFORGET_VICTORY3, 1.0)));
+        }
+        oObj = GetNextObjectInArea(oArea);
+    }
+}
+
+// ------------------------------------------------------------ the venue
+//
+// Bartholomew and the scoreboard are CREATED when the party starts and destroyed
+// when it stops. They are deliberately NOT permanent placements: the Well of Eru
+// is the module's hub and every player passes through it constantly, so a
+// penguin and a chalkboard standing there year-round advertising an event that
+// is not running is just clutter -- and worse, a reboot re-created them whether
+// or not anybody had scheduled anything.
+//
+// Their positions live on waypoints (cp_penguin_wp, cp_board_wp) so the admin
+// can still move them in the toolset, which is the whole reason this is not
+// hardcoded coordinates.
+//
+// Idempotent in both directions: spawning checks for an existing one by tag
+// first (the MWSpawnAtWaypoint pattern), so a double-press cannot produce two
+// penguins, and closing is a no-op when nothing is there.
+void CP_VenueOpen(int bOpen)
+{
+    object oPeng  = GetObjectByTag("cp_penguin");
+    object oBoard = GetObjectByTag("cp_board");
+
+    if (!bOpen)
+    {
+        if (GetIsObjectValid(oPeng))  { SetPlotFlag(oPeng, FALSE);  DestroyObject(oPeng); }
+        if (GetIsObjectValid(oBoard)) { SetPlotFlag(oBoard, FALSE); DestroyObject(oBoard); }
+        return;
+    }
+
+    if (!GetIsObjectValid(oPeng))
+    {
+        object oWP = GetWaypointByTag("cp_penguin_wp");
+        if (GetIsObjectValid(oWP))
+            CreateObject(OBJECT_TYPE_CREATURE, "cp_penguin", GetLocation(oWP), FALSE);
+    }
+    if (!GetIsObjectValid(oBoard))
+    {
+        object oWP = GetWaypointByTag("cp_board_wp");
+        if (GetIsObjectValid(oWP))
+            CreateObject(OBJECT_TYPE_PLACEABLE, "cp_board", GetLocation(oWP), FALSE);
+    }
+}
+
+// One filter for everything the stress dials create, whatever its specific tag.
+// Keep this a PREFIX test: a new kind of load object should be collected by
+// CLEAR ALL the moment it is added, without anyone having to remember to update
+// a list of exact tags.
+int CP_IsLoadTag(object oObj)
+{
+    return GetStringLeft(GetTag(oObj), GetStringLength(CP_LOAD_TAG)) == CP_LOAD_TAG;
 }
 
 // ------------------------------------------------------------ tankard shared

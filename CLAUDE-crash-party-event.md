@@ -24,6 +24,22 @@ the precedent for the pattern).
 whether the party is on, off, or three months finished. This is not an
 oversight — see "Charges" below.
 
+## The venue is built when the party starts, not baked into the area
+
+Bartholomew and the Roll of the Revellers are **created at waypoints** when the
+master switch is thrown (`CP_VenueOpen` in `cp_inc.nss`) and destroyed when it is
+thrown off. They are deliberately not permanent placements: the Well of Eru is
+the hub every player walks through constantly, and a penguin plus a chalkboard
+standing there year-round advertising an event that is not running is clutter --
+and a reboot re-created them whether or not anything was scheduled.
+
+Their positions live on `cp_penguin_wp` and `cp_board_wp`, so they are still
+moved the normal way, in the toolset. **Move the waypoint, not the object.**
+`cp_venue_wp` is the third one: where the stress dials put their load.
+
+`cp_board.utp` exists only because a runtime spawn needs a blueprint; it is the
+stock `plc_placard6` with the tag, the OnUsed and `Useable`/`Static` set.
+
 ## One crasher per ACCOUNT, opt-in, reversible
 
 Grants are per character (`cp_grant`, keyed on the UUID) because "you have already
@@ -115,6 +131,15 @@ filters on nothing else. Keep that filter exactly as narrow as it is.
 | `cp_crown` (+`cp_crowntick`), `cp_cloak` (+`cp_cloaktick`) | The two worn items |
 | `cp_gloves` | On-hit. No dispatcher of its own -- see below |
 | `cp_crashmob` + `cp_dial_fight` | The hostile gatecrasher wave |
+| `cp_pengspawn` + `cp_pengai` | What an idle penguin does: wander, rummage, drink, belch, fall over |
+| `cp_board.utp`, `cp_penguin_wp`, `cp_board_wp` | The venue, built on demand |
+
+**The rest menu mirrors the control room.** Every placard has a twin under
+Admin Options -> *[Admin] Crash Party controls* (`emotewand.dlg` entry 18), and
+both run the **same script**: `CP_DmUser()` in `cp_dm_inc.nss` resolves the
+operator from `GetLastUsedBy()` (placard) or `GetPCSpeaker()` (conversation), so
+there is one implementation per lever rather than two that drift. The menu text
+points at the placards, which carry the long descriptions.
 | `cp_eru_enter.nss` | Well of Eru OnEnter wrapper: catch-up grant + souvenir for crashers, one throttled nudge for everyone else |
 | `cp_penguin` (.utc/.dlg) | Bartholomew: the opt-in/opt-out conversation |
 | `sc_cp_isme/other/canjoin/on` | the conversation's StartingConditionals |

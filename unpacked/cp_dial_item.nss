@@ -17,7 +17,7 @@
 
 void main()
 {
-    object oPC = GetLastUsedBy();
+    object oPC = CP_DmUser();   // placard OR rest menu
     if (!CP_DmGate(oPC)) return;
 
     object oArea = CP_Venue();
@@ -52,8 +52,17 @@ void main()
         // pressure without minting anything a player could pick up, sell or
         // duplicate. Load testing must never put loot on the floor.
         object o = CreateObject(OBJECT_TYPE_PLACEABLE, "plc_barrel", CP_ScatterNear(lAt), FALSE,
-                                CP_LOAD_TAG);
-        if (GetIsObjectValid(o)) nMade++;
+                                CP_KEG_TAG);
+        if (!GetIsObjectValid(o)) continue;
+        nMade++;
+
+        // Stock it. The penguins' rummage behaviour (cp_pengai.nss) walks to the
+        // nearest cp_load placeable and drinks, so an empty barrel makes the
+        // whole performance look broken. nw_it_mpotion021 is stock Ale -- the
+        // same item the module's own Keg of Ale hands out, so no new blueprint.
+        int nDrinks = Random(3) + 1;
+        int d;
+        for (d = 0; d < nDrinks; d++) CreateItemOnObject("nw_it_mpotion021", o);
     }
 
     SendMessageToPC(oPC, "Item dial +" + IntToString(nMade)

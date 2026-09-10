@@ -23,10 +23,24 @@
 const int CP_DIAL_STEP = 25;    // objects added per press
 const int CP_DIAL_CAP  = 400;   // total live cp_load objects, all dials combined
 
+object   CP_DmUser();
 int      CP_DmGate(object oPC);
 object   CP_Venue();
 int      CP_LoadCount();
 location CP_ScatterNear(location lAt, float fRadius = 6.0);
+
+// Who is working the console, whichever surface they used.
+//
+// Every lever exists twice: as a placard in the control room (OnUsed, so
+// GetLastUsedBy) and as a line in the rest menu's Admin Options (a conversation
+// action, so GetPCSpeaker). One resolver means one script per lever instead of
+// two that can drift apart. Same shape wm_report.nss uses.
+object CP_DmUser()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsObjectValid(oPC)) oPC = GetPCSpeaker();
+    return oPC;
+}
 
 // TRUE means "allowed"; sends the refusal itself when not.
 int CP_DmGate(object oPC)
@@ -68,7 +82,7 @@ int CP_LoadCount()
     object oObj = GetFirstObjectInArea(oArea);
     while (GetIsObjectValid(oObj))
     {
-        if (GetTag(oObj) == CP_LOAD_TAG) n++;
+        if (CP_IsLoadTag(oObj)) n++;
         oObj = GetNextObjectInArea(oArea);
     }
     return n;

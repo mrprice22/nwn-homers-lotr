@@ -34,7 +34,7 @@
   },
   "Comment": {
     "type": "cexostring",
-    "value": "Crash Party STRESS DIAL object (cp_dial_mob). Deliberately inert and deliberately EMPTY: no inventory, no equipment, Lootable=0, Disarmable=0, Plot=1. A spawned NPC carrying anything real is the classic pickpocket duplication bug, so this one carries nothing at all. NO_LEASH=1 because it is spawned at runtime and has no home to be sent back to; that is also what satisfies tests/check_spawn_leash.py. Tag is cp_load so cp_sweep.nss collects it."
+    "value": "Crash Party STRESS DIAL object (cp_dial_mob). Deliberately inert and deliberately EMPTY: no inventory, no equipment, Lootable=0, Disarmable=0, Plot=1. A spawned NPC carrying anything real is the classic pickpocket duplication bug, so this one carries nothing at all. NO_LEASH=1 because it is spawned at runtime and has no home to be sent back to; that is also what satisfies tests/check_spawn_leash.py. Tag is cp_load so cp_sweep.nss collects it. OnSpawn starts cp_pengai.nss (wander / rummage / drink / belch / fall over). NO_LEASH=1 still satisfies tests/check_spawn_leash.py, so adding an OnSpawn does not change what that gate sees."
   },
   "Con": {
     "type": "byte",
@@ -123,6 +123,10 @@
   "IsPC": {
     "type": "byte",
     "value": 0
+  },
+  "ItemList": {
+    "type": "list",
+    "value": []
   },
   "LastName": {
     "type": "cexolocstring",
@@ -218,7 +222,7 @@
   },
   "ScriptSpawn": {
     "type": "resref",
-    "value": ""
+    "value": "cp_pengspawn"
   },
   "ScriptSpellAt": {
     "type": "resref",
@@ -303,9 +307,5 @@
   "Wis": {
     "type": "byte",
     "value": 10
-  },
-  "ItemList": {
-    "type": "list",
-    "value": []
   }
 }

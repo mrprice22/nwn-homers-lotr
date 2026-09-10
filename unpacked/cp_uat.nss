@@ -28,7 +28,7 @@ const int CP_UAT_LEFT = 3;
 
 void main()
 {
-    object oPC = GetLastUsedBy();
+    object oPC = CP_DmUser();   // placard OR rest menu
     if (!CP_DmGate(oPC)) return;
 
     string sOut = COLOR_YELLOW + "-- CRASH PARTY UAT: your own cp_* items --" + COLOR_END + "\n";

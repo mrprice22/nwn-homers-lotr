@@ -1688,7 +1688,18 @@ because there is nowhere for an item to have gone.
 A player who has not opted in gets a single nudge on entering the Well (throttled
 to once every ten minutes) and nothing else.
 
-### Everything is a placard in the DM control room
+### The venue only exists during a party
+
+Bartholomew and the scoreboard are **created when you throw the master switch**
+and removed when you throw it off. They are not permanent fixtures of the Well of
+Eru, so between parties the hub looks normal and a reboot does not put them back.
+
+They spawn at waypoints, so you still move them in the toolset the usual way --
+**move `cp_penguin_wp` / `cp_board_wp`, not the objects themselves**, since the
+objects are not there to move unless a party is running. `cp_venue_wp` is where
+the stress dials drop their load.
+
+### Everything is a placard in the DM control room -- or the rest menu
 
 **There is no console, no chat command and no DM client involved.** The event is
 driven by ten physical placards standing in a row in the control room. Get there
@@ -1707,6 +1718,11 @@ a player who somehow reached the room can't touch any of them.
 | **STRESS DIAL - VFX / CREATURES / OBJECTS** | Each press adds **25** objects of that kind, scattered within ~6m of the `cp_venue_wp` waypoint in the Well of Eru, capped at **400** live objects across all three dials. Step size and cap are `CP_DIAL_STEP` / `CP_DIAL_CAP` in `unpacked/cp_dm_inc.nss`. If the waypoint is missing the dial refuses rather than spawning somewhere else. |
 | **CLEAR ALL SPAWNED** | Deletes every object the dials made, everywhere, instantly. |
 | **UAT - SHOW + BURN DOWN MY OWN CHARGES** | Testing aid — see below. |
+
+**Every one of these is also in the rest menu**, under *Admin Options ->
+[Admin] Crash Party controls*, for when you cannot be bothered to walk to the
+control room. They run the same scripts. The placards carry the full
+descriptions, so the menu is the shortcut and the room is the documentation.
 
 ### The ten party items
 

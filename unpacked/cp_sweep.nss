@@ -29,7 +29,7 @@ void main()
         {
             object oNext = GetNextObjectInArea(oArea);   // step before destroying
 
-            if (GetTag(oObj) == CP_LOAD_TAG)
+            if (CP_IsLoadTag(oObj))
             {
                 int nType = GetObjectType(oObj);
                 if (nType == OBJECT_TYPE_CREATURE || nType == OBJECT_TYPE_PLACEABLE)

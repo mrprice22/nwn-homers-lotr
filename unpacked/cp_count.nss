@@ -12,7 +12,7 @@
 
 void main()
 {
-    object oPC = GetLastUsedBy();
+    object oPC = CP_DmUser();   // placard OR rest menu
     if (!CP_DmGate(oPC)) return;
 
     int nPeak = CP_GetPeak();
