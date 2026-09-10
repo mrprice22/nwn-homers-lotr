@@ -130,8 +130,9 @@ whenever you identify another one — that is the point of the file.
 | 3 | broom |
 | 4 | pickaxe |
 | 5 | shovel |
+| 7 | **rocket tube** — a rod wrapped in coloured paper bands |
 | 9 | gold sceptre |
-| 21 | **tall gilded staff** |
+| 21 | tall gilded staff |
 | 22 | golden idol |
 
 ### `it_glove` (base 36, gloves)
@@ -168,11 +169,16 @@ grey-blue, 14 a shaggy orange. The CEP models above 50 that the module uses wide
 | `cp_popper` Party Popper | 29 | 12 | bomb with a lit fuse |
 | `cp_strings` Puppet Strings of Bard's Folly | 24 | 6 | puppet doll |
 | `cp_drum` Drum of the Marching Band | 29 | 2 | banded drum |
-| `cp_fireworks` Fireworks Finale Staff | 34 | 21 | tall gilded staff |
+| `cp_fireworks` Fireworks Finale Staff | 34 | 7 | paper-wrapped rocket tube |
 | `cp_crown` Crown of Cacophony | 17 | 30 | spiked crown |
 | `cp_gloves` Gloves of a Great Many Punches | 36 | 2 | plated gauntlets |
 | `cp_cloak` Cloak of a Thousand Faces | 80 | 8 | pale shifting cloak |
 
-Nothing in the game data is a marching drum, a party popper or a firework rocket, so
-those three are the nearest honest reads rather than exact matches. If a CEP class
-turns up something better, this table is the place to record it.
+Nothing in the game data is a marching drum, so that one is the nearest honest read
+rather than an exact match. If a CEP class turns up something better, this table is
+the place to record it.
+
+**Read the description while you are choosing.** Five of these had prose that
+described the OLD appearance — a mask "of blank porcelain" that is now visibly
+two-faced, "a tangle of silver wire on a crossbar" that is now a rag puppet. The
+description and the icon are the same promise made twice; change them together.
