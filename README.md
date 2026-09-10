@@ -1562,6 +1562,23 @@ bin/perf-report --tickrate        # the engine's own tick rate
 bin/perf-report --counts          # AI list size, queued events
 ```
 
+**`bin/perf-report` is a post-mortem tool, not a live one — budget minutes per
+query.** `iter_records` reads and `json.loads` *every* line of every daily file
+and filters by timestamp afterwards, so `--window 10m` still parses the whole
+day: on season 2 that was **944 MB and 4.6M records by 05:38**, and a
+`--window 10m --tickrate` run had not finished after ten minutes at `nice -19`
+(measured 2026-09-10). The files are the coarse profile's normal output, not a
+misconfiguration — `NWNX_PROFILER_ENABLE_SCRIPTS` is correctly commented out;
+`ENABLE_OBJECT_AI_UPDATES` alone accounts for it (33% `RunScript`, 16%
+`PlotPath`, 10% `AIUpdateListObjects`). Disk sits around **13 GB for season 2 and
+4.7 GB for dev** under the 7-day retention.
+
+So during an event, watch **`bin/perfmon`** — that reads one small JSON status
+file and is instant. Save `perf-report` for afterwards, and expect it to take
+longer the later in the day you ask. (If it ever needs to be fast, the fix is to
+read the files backwards and stop at `since`, since records are appended in time
+order.)
+
 ### There is no `perf` on this box, and none is needed
 
 `perf`, `gdb` and `strace` are absent from both the (image-based) host and the
@@ -1624,7 +1641,105 @@ are both in `csharp/PerfMonitor.Nwn` via Anvil's `OnActivateItem`, so there is n
 where the profiler reads ~96/s on the same idle realm. Read it relatively;
 `bin/perf-report --tickrate` is the authority.
 
-Running a stress event: [CLAUDE-crash-party.md](CLAUDE-crash-party.md).
+Running a stress event: [CLAUDE-crash-party.md](CLAUDE-crash-party.md) for the
+ops side, and the section below for the in-game side.
+
+## Crash party: the in-game event
+
+The chaos-item event that runs *during* a crash party. Design notes and the
+traps it fell into are in
+[CLAUDE-crash-party-event.md](CLAUDE-crash-party-event.md); this is the
+operating manual.
+
+### Everything is a placard in the DM control room
+
+**There is no console, no chat command and no DM client involved.** The event is
+driven by ten physical placards standing in a row in the control room. Get there
+the usual way — **rest -> Admin Options -> Teleports -> "To. The Control Room"** —
+then walk up to one and click it. Each checks `Admin_CanAdmin` on your CD key, so
+a player who somehow reached the room can't touch any of them.
+
+| Placard | What clicking it does |
+|---|---|
+| **MASTER SWITCH** | Turns the party on/off and announces it server-wide. Gates **only** the dispenser — see the warning below. |
+| **RELEASE NEXT WAVE** | Unlocks the next wave of items for **everyone at once**, and immediately tops up every player already standing in the Well of Eru. |
+| **STEP WAVE BACK** | Lowers the wave. Only affects what gets handed out *next*; it cannot un-give anything. |
+| **READ CONSOLE** | Party state, current wave, live spawned-object count, players online, record to beat. |
+| **SEND NEXT ANNOUNCEMENT** | Fires the next line of the countdown (T-60, T-30, T-10, go, then a generic "still going"). One press per line. |
+| **STRESS DIAL - VFX / CREATURES / OBJECTS** | Each adds 25 more of that kind of load to the Well of Eru, up to 400 total. |
+| **CLEAR ALL SPAWNED** | Deletes every object the dials made, everywhere, instantly. |
+| **UAT - SHOW + BURN DOWN MY OWN CHARGES** | Testing aid — see below. |
+
+**Turning the party off never takes anything away from anyone.** Party items are
+the player's permanently: no expiry clock, no reclaim button, and no code path
+anywhere that removes one. The only thing that ever destroys a party item is that
+item running out of charges in its owner's own hands. The master switch closes the
+*dispenser*, nothing else.
+
+### The stress dials are the actual load test
+
+Player items will not stress this box — ten people with wands is an ordinary
+evening. Load has to come from the dials, because they are the only version of it
+you can add in attributable steps and switch off in one click. Step them up one
+press at a time with `bin/perfmon watch` on a second screen, exactly as
+[CLAUDE-crash-party.md](CLAUDE-crash-party.md) says.
+
+**Step the OBJECTS dial most carefully.** `AIUpdateItem` measured ~92 ms/s on the
+live realm against 0.8 ms/s empty, against an AI update list already ~23,400
+objects — items are a disproportionate share of this module's AI cost.
+
+### `bin/crash-party-db.py` — the host-side view
+
+Reads the `crashpartydb` campaign database. It picks the realm from the
+`server.env` of whatever repo you run it in, so running it in the dev repo touches
+the dev realm and nothing else; `--realm DIR` overrides that.
+
+```
+bin/crash-party-db.py                      # status (the default)
+bin/crash-party-db.py --top 10             # the drinking leaderboard
+bin/crash-party-db.py --grants             # who has been issued what
+bin/crash-party-db.py --reset-grants NAME  # let one character be re-issued the set
+bin/crash-party-db.py --reset-grants ALL   # ...everyone (refused on a live realm)
+bin/crash-party-db.py --set-peak N         # correct the record-to-beat
+bin/crash-party-db.py --clear-sips         # wipe the drinking contest
+```
+
+**`--reset-grants NAME` exists because the dispenser is once-per-character-ever.**
+That rule is what stops somebody re-logging to farm a second tankard, and it is
+remembered in the database rather than on the character, so a relog cannot clear
+it. The side effect is that you cannot test the dispenser twice on one character.
+Deleting that character's rows makes the dispenser treat them as new, and they get
+the full set again next time they walk into the Well of Eru. Use it on your own
+test character; on a player's, it just means they can collect a second set.
+
+**`--set-peak N` sets the number the in-game scoreboard tells people to beat.**
+It seeds itself from the wiki's peak-concurrent figure (8, as of 2026-09-07) and
+then tracks any higher count it sees, announcing each new record server-wide. It
+is a motivational mirror of the wiki, not the authority — the wiki's Player
+Activity page still decides what the record officially is, from the real log
+join/leave events, at its next refresh. Use `--set-peak` when the two drift apart.
+
+The tool deliberately **cannot** touch charges or take an item back. Charges are
+not in the database — they live on the item object, inside the player's `.bic` —
+and "nothing server-side removes a player's charges" is a promise the event makes.
+
+### Testing it without burning 500 clicks
+
+Two problems make this hard to test, and there is one answer to each.
+
+**Charges are invisible and there are hundreds of them.** The
+**UAT - SHOW + BURN DOWN MY OWN CHARGES** placard prints how many charges are left
+on every party item **in your own pack**, then knocks each down to 3 — so you can
+click an item four times and watch it break, instead of four hundred. It only ever
+reads and writes your own inventory; it cannot be pointed at another player.
+
+**The dispenser only ever gives you the set once.** `--reset-grants <your
+character>` puts you back to new, so you can re-run the hand-out as many times as
+you like.
+
+A full pass is: reset your grants, walk into the Well, check you got the set,
+press the UAT placard, activate each item four times to see it break, then check
+the scoreboard.
 
 ## Crash reporting
 

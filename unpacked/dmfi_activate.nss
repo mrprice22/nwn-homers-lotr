@@ -38,6 +38,29 @@ void main()
    object oItem=GetItemActivated();
    object oActivator=GetItemActivator();
 
+   // Crash Party: one prefix branch covers every cp_* item, so no event item
+   // ever needs to touch this shared dispatcher again.
+   //
+   // ABOVE the X2 tag-based hook ON PURPOSE. That hook dispatches on the
+   // item TAG too, and every cp_* item deliberately has Tag == ResRef ==
+   // script name -- so left below it, each cp_* script would run TWICE: once
+   // from the hook with OBJECT_SELF as the MODULE (where its GetIsPC guard
+   // bails), then again here with OBJECT_SELF as the PC. Harmless but wasteful,
+   // and it would silently break the moment a cp_ script stopped guarding.
+   //
+   // The item and its target are stashed on the activator first because the
+   // module convention for an ExecuteScript-dispatched item script is to
+   // re-find them rather than trust the OnActivateItem getters
+   // (ammorep_open.nss, dye_nui_open.nss).
+   if(GetStringLeft(GetTag(oItem), 3) == "cp_")
+   {
+      SetLocalObject(oActivator, "cp_item", oItem);
+      SetLocalObject(oActivator, "cp_target", GetItemActivatedTarget());
+      SetLocalLocation(oActivator, "cp_targloc", GetItemActivatedTargetLocation());
+      ExecuteScript(GetTag(oItem), oActivator);
+      return;
+   }
+
    // Tag-based scripting: execute item's tag script if enabled
    if (GetModuleSwitchValue(MODULE_SWITCH_ENABLE_TAGBASED_SCRIPTS) == TRUE)
    {

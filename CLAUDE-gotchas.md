@@ -143,6 +143,23 @@
   int** (raw 7 = 1d6, raw 10 = 2d6), which is how Legendary Reaping's top stacks
   became dice — the ledger converts once, on the total.
 
+- **A clone of a player must carry NOTHING REAL.** `CopyObject(oPC, ...)` copies the
+  player's **inventory and equipment**, so a "cosmetic double" is really a creature
+  standing there wearing duplicates of live gear. **Plot does not stop pickpocket**, and
+  `disarm_catch.nss` only reconciles disarms where the **victim is a PC** -- so the
+  clone's pack can be robbed and its weapon can be disarmed onto the ground, both of
+  which are genuine item duplication. This is not hypothetical: the stock BioWare
+  `x0_s3_clonefist` (item property "Flame twin" = `iprp_spells` 442 `Twinfists` ->
+  `spells.2da` 615) does exactly this, and it reaches this module through `item068`
+  ("Homer's Touch") and `flametwincloak`. `unpacked/x0_s3_clonefist.nss` is a module
+  override that destroys the clone's carried inventory outright, locks its equipped
+  slots (`SetDroppableFlag`/`SetPickpocketableFlag` off, plot on), and destroys those
+  copies when the clone expires. **Any future clone/copy/double feature must do the
+  same** -- or, better, spawn a blank mannequin blueprint and copy appearance only. The
+  Mirror Shield of Narcissus idea is deferred for precisely this reason.
+  Note the ordering trap when cleaning up: **clear the plot flag before
+  `DestroyObject`** -- plot items resist destroy (`kalrist_gems.nss:72`).
+
 - **Don't invent NWScript builtins.** A fabricated identifier in a
   heavily-included header produces one `UNDEFINED IDENTIFIER` error per
   consumer script. Verify every engine function in the Lexicon

@@ -668,6 +668,14 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
   `tests/check_creature_respawn.py` fails the repack on any placed creature with no respawn
   path that is not allowlisted, with a reason, in `tests/respawn_ignore.json`
 - [CLAUDE-devcrit-immunity-audit.md](CLAUDE-devcrit-immunity-audit.md) — the full immunity-to-critical-hits audit (creature → item → droppable) that shipped with the `devcrit-roll` Devastating Critical rework, plus the recipe for keeping immunity on a hand-picked boss without hand-editing instances. **Generated** by `bin/audit-crit-immunity.py` — re-run it rather than hand-editing the tables
+- [CLAUDE-crash-party-event.md](CLAUDE-crash-party-event.md) — the **in-game** half of a crash
+  party: the `cp_*` chaos-item event (DM master switch, globally-unlocked waves with
+  late-joiner catch-up, six activated items whose charges are generous, undisclosed and
+  the player's to keep forever), the ten-lever DM console in `dmcontrolroom`, the stress
+  dials that are the actual load test, and `bin/crash-party-db.py`. The **ops** half —
+  tick rate, profiler, crash capture, which realm — stays in
+  [CLAUDE-crash-party.md](CLAUDE-crash-party.md); the two do not overlap. Read the
+  "Traps" section before adding any item that leaves state on a character
 - [CLAUDE-autopilot.md](CLAUDE-autopilot.md) — Autopilot runbook: the unattended roadmap loop (`/autopilot` skill) — item selection + tier rebalancing quotas, waypoint-instead-of-placement rule, the `design_questions`/`manual_steps` hand-off fields, test-build/ship/commit procedure, hard never-rules
 - [QuestGuide-DM-Notes.md](QuestGuide-DM-Notes.md) — admin half of the quest guide: per-quest scripts, blueprints, campaign DBs, `AP_*` waypoints, roadmap ids, open points and UAT notes. The public `docs.manual/QuestGuide.html` carries none of that — keep the split when editing either.
 - [season-cutover-guide.md](season-cutover-guide.md) + [season-cutover-prereqs.md](season-cutover-prereqs.md) — repeatable season cutover: the 3-phase per-season runbook (early access → go live → retire), and the one-time engineering it depends on

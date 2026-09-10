@@ -36,6 +36,7 @@
 #include "fat_inc"
 #include "graf_inc"
 #include "mw_db"
+#include "cp_inc"
 
 
 void main()
@@ -336,6 +337,16 @@ FAT_WipeAll();
 // which no reboot preserves. Recreate the schema, then repaint whatever the
 // easel was last displaying - a pick is meant to survive everything short of a
 // DM setting it in stone. See CLAUDE-graffiti.md.
+// Crash Party (event). Schema first -- DDL belongs here, never on the login
+// frame. Then clear any DM-spawned load objects a crash or restart left lying
+// around: CP_MODE is deliberately non-persistent, so a reboot always ends the
+// party, and the debris should not outlive it.
+//
+// The sweep takes DM-spawned objects tagged cp_load ONLY. Party items in a
+// player's pack are theirs to keep and nothing here removes them.
+CP_InitDb();
+ExecuteScript("cp_sweep", OBJECT_SELF);
+
 Graf_InitDb();
 Graf_RestoreCanvas();
 

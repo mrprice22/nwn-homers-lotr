@@ -260,4 +260,18 @@ void main()
     // inventory a chunk at a time, so let it finish before items are swapped.
     // See fb_horn_fix.nss.
     DelayCommand(10.0, ExecuteScript("fb_horn_fix", oPC));
+
+    // Crash Party: per-login hygiene. Un-sticks anyone who logged out wearing
+    // the Mask of a Thousand Faces (Appearance_Type is saved in the .bic, but
+    // the mask's revert is a DelayCommand that dies on logout - without this a
+    // player stays a penguin permanently), and sobers up anyone who logged out
+    // drunk. Early in the queue: two local reads on the overwhelmingly common
+    // no-op path. See cp_login.nss.
+    DelayCommand(2.0, ExecuteScript("cp_login", oPC));
+
+    // Crash Party: a new peak-concurrent record can only be set by somebody
+    // ARRIVING, so this is the exact moment to check -- no heartbeat, no poll.
+    // Last in the queue and deliberately cheap: one player-list walk and, on a
+    // miss, a single indexed read. See cp_peak.nss.
+    DelayCommand(11.0, ExecuteScript("cp_peak", oPC));
 }

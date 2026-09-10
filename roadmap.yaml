@@ -7549,3 +7549,27 @@ ideas:
         status: open
         kind: uat
         tester: "-Methonash- (or any account with 2+ characters)"
+  - id: divergent-stores-backlog
+    title: "Five placed stores disagree with their blueprints (check_divergent_stores is red)"
+    group: economy
+    status: later
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-10"
+    notes: "<div>Five shops in the module have drifted from the blueprints they were made from. Because a player shops from the <b>placed instance</b>, not the blueprint, editing the <code>.utm</code> alone changes nothing in game -- and the two halves have now diverged far enough that it is not obvious which side is the intended stock.</div>"
+    impl_notes: "<div><b>Found 2026-09-10</b> while building the crash-party event; not caused by it. <code>python3 tests/check_divergent_stores.py</code> exits 1 on a clean checkout of <code>222c3692349</code> as well, verified in a detached worktree, so it predates that work.</div><div><br></div><div><b>It is not a repack gate.</b> <code>tests/check_divergent_stores.py</code> is deliberately absent from <code>tests/smoke-test</code> -- the commit that added it (<code>c19121e3a82</code>) says \"not yet wired into the smoke gate\" in its own subject line. So the repack passes 35/35 with this red, and nothing is currently blocked by it. That is why this is a backlog chore rather than a build break.</div><div><br></div><div><b>The five, with difference counts:</b></div><ul><li><code>methmart@area042</code> -- 33</li><li><code>minasarctower@minastiritharcto</code> -- 27</li><li><code>gondortemplestor@minastirithtemp</code> -- 23</li><li><code>cirithmerch@orcarmory</code> -- 50</li><li><code>wellshop@thewelloferu</code> -- 35</li></ul><div><br></div><div>Divergences are not only stock lists: <code>methmart</code> also differs on <code>BlackMarket</code> (0 vs 1), <code>MarkUp</code> (100 vs 500) and <code>OnStoreClosed</code> ('' vs <code>clean_store2</code>), so a blind sync in either direction would change shop <i>behaviour</i>, not just inventory.</div><div><br></div><div><b>Default direction is placement -&gt; blueprint</b> (sync the blueprint FROM the placement), because the placement is the live stock players already shop from and rewriting it from the blueprint would change what is for sale. The gate's own failure text says the same. Each store still needs a human decision, which is why this is not scripted.</div>"
+    manual_steps:
+      - step: "Decide per store which side is the truth. Default is blueprint <- placement (the placement is what players already buy from); the exception is a store whose placement drift looks accidental, e.g. methmart's MarkUp 100 -> 500 and BlackMarket 0 -> 1, which change behaviour rather than stock and may not have been intended."
+        status: open
+        kind: admin
+      - step: "Re-run python3 tests/check_divergent_stores.py until it exits 0."
+        status: open
+        kind: admin
+      - step: "Once clean, add check_divergent_stores.py to tests/smoke-test so it cannot silently drift again. It was left out on purpose while it was red - wiring it in early would have blocked every repack."
+        status: open
+        kind: admin
+      - step: "UAT: open each of the five shops in game and confirm the stock and prices are what you expect after the reconcile - especially the Well of Eru shop, which every player uses."
+        status: open
+        kind: uat
+        tester: "any"
