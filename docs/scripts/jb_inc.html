@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script jb_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>jb_inc</code></h1><pre class="nss-source"><code>// jb_inc.nss -- the jukebox: per-area custom background music.
+//
+// The jukebox item (tag jb_jukebox, handed out only by the Castle Homeless
+// cheat chest) opens jb_conv, which lists the custom tracks in
+// ambientmusic.2da rows 138+ and overrides the CURRENT AREA&#x27;s music with the
+// chosen one. It loops until the player picks another track or stops it, at
+// which point the area&#x27;s own music comes back.
+//
+// SCOPE, deliberately:
+//   * AREA-WIDE, not per-player. Everyone standing in the area hears it. The
+//     NWNX_Player_MusicBackground* family would give a per-listener override,
+//     but &quot;the song stays in the room I started it in&quot; is the point.
+//   * NOT PERSISTENT. State is area local variables, so a reboot restores every
+//     area&#x27;s default music. There is no campaign DB behind this.
+//
+// THE OFF-BY-ONE -- the one thing to get right here:
+//   MusicBackgroundGetDayTrack()  returns the raw ambientmusic.2da row.
+//   MusicBackgroundChangeDay()    expects that row PLUS ONE.
+// So a track at row 138 is played by passing 139, and a saved track must be
+// stored already-incremented so it can be handed straight back on restore.
+// Precedent in this module: dmfi_execute.nss:549-553 does exactly this.
+//
+// Custom token range: 7010-7018 (7010-7017 slot labels, 7018 status line).
+// Adjacent claims: mw_quiz_inc.nss 7000-7005, merit 5001-5078, tele 5089-5096.
+// SetCustomToken is MODULE-GLOBAL, so the tokens are (re)built immediately
+// before the node that reads them -- never earlier.
+
+#include &quot;jb_tracks&quot;
+
+// ---------------------------------------------------------------- area state
+const string JB_ON       = &quot;JB_ON&quot;;        // TRUE while this area is overridden
+const string JB_TRACK    = &quot;JB_TRACK&quot;;     // index into the jb_tracks table
+const string JB_ORIG_DAY = &quot;JB_ORIG_DAY&quot;;  // all three stored ALREADY +1&#x27;d
+const string JB_ORIG_NGT = &quot;JB_ORIG_NGT&quot;;
+const string JB_ORIG_BAT = &quot;JB_ORIG_BAT&quot;;
+
+// ------------------------------------------------------------- menu plumbing
+const int    JB_TOKEN_BASE = 7010;         // 7010..7017 slots, 7018 status
+const int    JB_SLOTS      = 8;            // track options per page
+const string JB_PAGE       = &quot;jb_page&quot;;    // on the PC, not the area
+
+int  JB_IsOn(object oArea);
+int  JB_GetCurrent(object oArea);
+void JB_Start(object oArea, int nIndex);
+void JB_Stop(object oArea);
+void JB_BuildMenu(object oPC);
+int  JB_SlotIndex(object oPC, int nSlot);
+void JB_TurnPage(object oPC, int nDelta);
+
+
+int JB_IsOn(object oArea)
+{
+    return GetLocalInt(oArea, JB_ON);
+}
+
+int JB_GetCurrent(object oArea)
+{
+    return GetLocalInt(oArea, JB_TRACK);
+}
+
+void JB_Start(object oArea, int nIndex)
+{
+    if (!GetIsObjectValid(oArea)) return;
+
+    int nRow = JB_GetTrackRow(nIndex);
+    if (nRow &lt; 0) return;              // index outside the generated table
+
+    // Snapshot the area&#x27;s own music the FIRST time only. Switching tracks while
+    // the jukebox is already running must NOT re-snapshot -- otherwise &quot;stop&quot;
+    // would restore the previous jukebox pick instead of the area&#x27;s default.
+    if (!GetLocalInt(oArea, JB_ON))
+    {
+        SetLocalInt(oArea, JB_ORIG_DAY, MusicBackgroundGetDayTrack(oArea)    + 1);
+        SetLocalInt(oArea, JB_ORIG_NGT, MusicBackgroundGetNightTrack(oArea)  + 1);
+        SetLocalInt(oArea, JB_ORIG_BAT, MusicBackgroundGetBattleTrack(oArea) + 1);
+        SetLocalInt(oArea, JB_ON, TRUE);
+    }
+    SetLocalInt(oArea, JB_TRACK, nIndex);
+
+    MusicBackgroundStop(oArea);
+    MusicBackgroundChangeDay(oArea, nRow + 1);
+    MusicBackgroundChangeNight(oArea, nRow + 1);
+
+    // Silence battle music for the duration, so a fight does not cut the track
+    // off. 0 is the &quot;no track&quot; value (row N is passed as N+1, so nothing maps
+    // to 0), the same sentinel an area with no battle music carries.
+    MusicBattleStop(oArea);
+    MusicBattleChange(oArea, 0);
+
+    MusicBackgroundPlay(oArea);
+}
+
+void JB_Stop(object oArea)
+{
+    if (!GetIsObjectValid(oArea)) return;
+    if (!GetLocalInt(oArea, JB_ON)) return;
+
+    MusicBackgroundStop(oArea);
+    MusicBackgroundChangeDay(oArea,   GetLocalInt(oArea, JB_ORIG_DAY));
+    MusicBackgroundChangeNight(oArea, GetLocalInt(oArea, JB_ORIG_NGT));
+    MusicBattleChange(oArea,          GetLocalInt(oArea, JB_ORIG_BAT));
+
+    DeleteLocalInt(oArea, JB_ON);
+    DeleteLocalInt(oArea, JB_TRACK);
+    DeleteLocalInt(oArea, JB_ORIG_DAY);
+    DeleteLocalInt(oArea, JB_ORIG_NGT);
+    DeleteLocalInt(oArea, JB_ORIG_BAT);
+
+    MusicBackgroundPlay(oArea);
+}
+
+// Populate the tokens and per-PC slot flags for the page the PC is on.
+// Idempotent -- it runs from the entry node&#x27;s StartingConditional, which the
+// engine may evaluate more than once before the node renders.
+void JB_BuildMenu(object oPC)
+{
+    object oArea = GetArea(oPC);
+    int nTotal = JB_GetTrackCount();
+    int nPages = (nTotal + JB_SLOTS - 1) / JB_SLOTS;
+    if (nPages &lt; 1) nPages = 1;
+
+    int nPage = GetLocalInt(oPC, JB_PAGE);
+    if (nPage &lt; 0 || nPage &gt;= nPages)
+    {
+        nPage = 0;
+        SetLocalInt(oPC, JB_PAGE, 0);
+    }
+
+    int nOff = nPage * JB_SLOTS;
+    int nOn  = GetLocalInt(oArea, JB_ON);
+    int nNow = GetLocalInt(oArea, JB_TRACK);
+
+    int i;
+    for (i = 0; i &lt; JB_SLOTS; i++)
+    {
+        int nIndex = nOff + i;
+        string sVar = &quot;jb_slot_&quot; + IntToString(i);
+        if (nIndex &lt; nTotal)
+        {
+            // Stored +1 so that 0 unambiguously means &quot;this slot is empty&quot;.
+            SetLocalInt(oPC, sVar, nIndex + 1);
+            string sLabel = JB_GetTrackName(nIndex);
+            if (nOn &amp;&amp; nNow == nIndex) sLabel += &quot;   [playing]&quot;;
+            SetCustomToken(JB_TOKEN_BASE + i, sLabel);
+        }
+        else
+        {
+            DeleteLocalInt(oPC, sVar);
+            SetCustomToken(JB_TOKEN_BASE + i, &quot;&quot;);
+        }
+    }
+
+    SetLocalInt(oPC, &quot;jb_hasprev&quot;, nPage &gt; 0);
+    SetLocalInt(oPC, &quot;jb_hasnext&quot;, nPage &lt; nPages - 1);
+    SetLocalInt(oPC, &quot;jb_ison&quot;, nOn);
+
+    string sStatus;
+    if (nOn)
+        sStatus = &quot;Now playing: &quot; + JB_GetTrackName(nNow);
+    else
+        sStatus = &quot;Idle. This area is playing its own music.&quot;;
+    if (nPages &gt; 1)
+        sStatus += &quot;  (page &quot; + IntToString(nPage + 1) + &quot; of &quot; + IntToString(nPages) + &quot;)&quot;;
+    SetCustomToken(JB_TOKEN_BASE + JB_SLOTS, sStatus);
+}
+
+// The absolute track index behind a visible slot, or -1 if the slot is empty.
+int JB_SlotIndex(object oPC, int nSlot)
+{
+    return GetLocalInt(oPC, &quot;jb_slot_&quot; + IntToString(nSlot)) - 1;
+}
+
+void JB_TurnPage(object oPC, int nDelta)
+{
+    int nPage = GetLocalInt(oPC, JB_PAGE) + nDelta;
+    if (nPage &lt; 0) nPage = 0;
+    SetLocalInt(oPC, JB_PAGE, nPage);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

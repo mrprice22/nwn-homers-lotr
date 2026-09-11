@@ -67,12 +67,13 @@
 //
 // Dispatched by tag from dmfi_activate.nss; OBJECT_SELF is the activating PC.
 //
-// Flip it and take what you get: a 10-entry table, half generous, half a joke at
-// your expense. Everything is TEMPORARY and SELF-ONLY, and the downside rows are
-// embarrassing rather than dangerous -- no damage that can kill, no ability
-// drain, nothing that persists after the effect runs out. A party item that can
-// leave someone worse off for the rest of the evening is a party item people stop
-// using.
+// Flip it and take what you get: a 4% chance it simply kills you, and otherwise a
+// 10-entry table, half generous, half a joke at your expense. Every table row is
+// TEMPORARY and SELF-ONLY, and the downside rows are embarrassing rather than
+// dangerous -- no ability drain, nothing that persists after the effect runs out.
+// A party item that can leave someone worse off for the rest of the EVENING is a
+// party item people stop using; death, in a module that charges nothing for one,
+// costs a respawn click and is over. See CP_COIN_DEATH_PCT.
 //
 // ## Why the coin grants no attack or damage bonus at all
 //
@@ -99,6 +100,24 @@
 
 const float CP_COIN_DUR = 60.0;
 
+// The one outcome that is not temporary and not a joke: the coin kills you.
+// Rolled BEFORE the table, so the table&#x27;s ten rows keep their even odds among
+// themselves.
+//
+// It is affordable here and nowhere else: this module charges NOTHING for a
+// death -- no XP, no gold, nothing dropped (respawn_inc.nss says so in its own
+// header) -- so the whole cost is a respawn click and the walk back. At a party
+// held in the Well of Eru, which is where respawn puts you, that walk is about
+// four steps.
+//
+// A character with outright immunity to death magic shrugs it off and gets the
+// message without the funeral. That is the same rare, accepted corner
+// fat_inc.nss documents for soul-fatigue, and it is accepted for the same
+// reason: the alternative is draining the player to 1 hit point first, which
+// leaves an immune character standing in a crowded room one stray hit from a
+// real death. A joke item must not do that.
+const int CP_COIN_DEATH_PCT = 4;
+
 void main()
 {
     object oPC = OBJECT_SELF;
@@ -113,6 +132,19 @@ void main()
         return;
 
     AssignCommand(oPC, ActionPlayAnimation(ANIMATION_FIREFORGET_TAUNT, 1.0));
+
+    if (Random(100) &lt; CP_COIN_DEATH_PCT)
+    {
+        FloatingTextStringOnCreature(GetName(oPC) + &quot; flips a Wishing Coin.&quot;, oPC, TRUE);
+        SendMessageToPC(oPC, &quot;The coin lands, wobbles, and stops dead on its edge. So do you.&quot;);
+        ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_FNF_IMPLOSION), GetLocation(oPC));
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectDeath(TRUE, TRUE), oPC);
+        CP_Broadcast(GetName(oPC) + &quot; wished for something the coin did not like.&quot;,
+            COLOR_YELLOW);
+        return;
+    }
 
     string sMsg;
     effect e;

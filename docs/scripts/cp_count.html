@@ -77,7 +77,7 @@
 
 void main()
 {
-    object oPC = GetLastUsedBy();
+    object oPC = CP_DmUser();   // placard OR rest menu
     if (!CP_DmGate(oPC)) return;
 
     int nPeak = CP_GetPeak();
@@ -86,8 +86,17 @@ void main()
     string s = COLOR_YELLOW + &quot;-- CRASH PARTY CONSOLE --&quot; + COLOR_END + &quot;\n&quot;;
     s += &quot;Party:   &quot; + (CP_IsOn() ? &quot;RUNNING&quot; : &quot;off&quot;) + &quot;\n&quot;;
     s += &quot;Wave:    &quot; + IntToString(CP_Wave()) + &quot; of &quot; + IntToString(CP_WAVE_MAX) + &quot;\n&quot;;
-    s += &quot;Load:    &quot; + IntToString(CP_LoadCount()) + &quot; / &quot; + IntToString(CP_DIAL_CAP)
+    // Counted where the dials would spawn from THIS surface, so the console
+    // reports the venue and the rest menu reports the venue plus the room the
+    // admin is standing in -- the same pair the cap is measured against.
+    object oAnchor = CP_DialAnchor(oPC);
+    s += &quot;Load:    &quot; + IntToString(CP_LoadCountFor(oAnchor)) + &quot; / &quot; + IntToString(CP_DIAL_CAP)
        + &quot; spawned objects\n&quot;;
+    object oHere = GetArea(oAnchor);
+    if (GetIsObjectValid(oHere) &amp;&amp; oHere != CP_Venue())
+        s += &quot;Dials:   spawning at YOUR position in &quot; + GetName(oHere) + &quot;\n&quot;;
+    else
+        s += &quot;Dials:   spawning at the venue waypoint\n&quot;;
     s += &quot;Online:  &quot; + IntToString(CP_OnlineCount()) + &quot; (record &quot; + IntToString(nPeak) + &quot;)\n&quot;;
     SendMessageToPC(oPC, s);
 }

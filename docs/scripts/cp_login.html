@@ -95,8 +95,7 @@
 
 #include &quot;cp_inc&quot;
 
-const string CP_MASK_TRUE = &quot;CP_MASK_TRUEFORM&quot;;
-const string CP_MASK_SEQ  = &quot;CP_MASK_SEQ&quot;;
+const string CP_MASK_SEQ = &quot;CP_MASK_SEQ&quot;;
 
 void main()
 {
@@ -115,23 +114,38 @@ void main()
         DeleteLocalInt(oPC, &quot;CP_TIPSY_NEXT&quot;);
     }
 
-    // (1) The mask.
-    if (!GetLocalInt(oPC, CP_MASK_TRUE + &quot;_SET&quot;)) return;
+    // (3) The penguin nudge throttle. CP_Spam parks a LocalInt and deletes it on
+    // a DelayCommand -- and the local is saved into the .bic while the delete is
+    // not. A player who logged out within ten minutes of their first visit would
+    // otherwise never be nudged again. Same mismatch as the mask and the
+    // tipsiness counter above; harmless here, but it costs one delete to be
+    // right rather than nearly right.
+    DeleteLocalInt(oPC, &quot;cp_nudge&quot;);
 
-    int nTrue = GetLocalInt(oPC, CP_MASK_TRUE);
-
-    // Clear the bookkeeping first, so a restore that somehow fails cannot leave
-    // a stale stash that would overwrite a legitimate appearance next login.
-    DeleteLocalInt(oPC, CP_MASK_TRUE);
-    DeleteLocalInt(oPC, CP_MASK_TRUE + &quot;_SET&quot;);
+    // (1) The borrowed face -- the Mask&#x27;s, the Cloak&#x27;s, or both at once.
     DeleteLocalInt(oPC, CP_MASK_SEQ);
     DeleteLocalInt(oPC, &quot;CP_MASK_SEQ_SEEN&quot;);
+    DeleteLocalInt(oPC, &quot;CP_CLOAK_ON&quot;);
+    DeleteLocalInt(oPC, &quot;CP_CLOAK_NEXT&quot;);
 
-    if (GetAppearanceType(oPC) == nTrue) return;   // already fine
+    // Not an early return when there is nothing to restore: the cloak re-arm
+    // below has to run either way.
+    if (CP_FaceRestoreAll(oPC))
+        SendMessageToPC(oPC,
+            &quot;The mask you fell asleep in has been prised off. You look like yourself again.&quot;);
 
-    SetCreatureAppearanceType(oPC, nTrue);
-    SendMessageToPC(oPC,
-        &quot;The mask you fell asleep in has been prised off. You look like yourself again.&quot;);
+    // The Cloak keeps rerolling on a DelayCommand chain, which died with the
+    // logout, and NWN does not fire an equip event for gear the player logs in
+    // already wearing -- so a still-worn cloak would hang there doing nothing
+    // until it was taken off and put back on. Re-arm it instead.
+    object oCloak = GetItemInSlot(INVENTORY_SLOT_CLOAK, oPC);
+    if (GetIsObjectValid(oCloak) &amp;&amp; GetResRef(oCloak) == &quot;cp_cloak&quot;)
+    {
+        SetLocalInt(oPC, &quot;CP_CLOAK_ON&quot;, TRUE);
+        CP_FaceClaim(oPC, CP_FACE_CLOAK);
+        SetLocalInt(oPC, &quot;CP_CLOAK_NEXT&quot;, CP_Now() + 5);
+        DelayCommand(6.0, ExecuteScript(&quot;cp_cloaktick&quot;, oPC));
+    }
 }
 </code></pre>
   </main>

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_gloves</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_gloves</code></h1><pre class="nss-source"><code>// cp_gloves -- Crash Party: Gloves of a Great Many Punches. Wave 3. ON-HIT item.
+//
+// The only item in the set that fires during COMBAT rather than on activation,
+// which is why it is worth having at all -- everything else is something you
+// stop and do.
+//
+// ## How it is reached, without a single line of dispatcher glue
+//
+// The gloves carry item property OnHitCastSpell -&gt; ONHIT_UniquePower
+// (iprp_onhitspell row 125 -&gt; spells.2da 700 -&gt; ImpactScript X2_S3_OnHitCast).
+// That stock script already runs the item&#x27;s TAG as a script when the module&#x27;s
+// tag-based scripting switch is on, and onmoduleload.nss turns it on. Tag ==
+// ResRef == this file, so the chain completes with nothing overridden and no
+// shared file touched.
+//
+// This script is therefore entered from three directions and has to tell them
+// apart: an on-hit proc, and the equip/unequip pair (cp_equip.nss dispatches any
+// cp_ item, and gloves are equippable).
+//
+// ## The BioWare performance warning is real, and is handled here
+//
+// x2_s3_onhitcast&#x27;s own header says the property &quot;can be a major performance hog
+// when used extensively in a multi player module. Especially in higher levels,
+// with each player having multiple attacks.&quot; At level 60 with four-plus attacks
+// a round, this script runs several times per round per wearer.
+//
+// So the NON-PROC PATH IS THE HOT PATH and is kept to two reads and a die roll:
+// event number, random, return. Nothing is looked up, no item is searched for,
+// no string is built unless the proc actually fires. Do not add work above the
+// roll.
+
+#include &quot;cp_inc&quot;
+#include &quot;x2_inc_switches&quot;
+
+const int CP_PUNCH_CHANCE = 20;   // percent of hits that do anything at all
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+
+    // --- equip / unequip: flavour only, never a charge -------------------
+    if (GetLocalInt(oPC, &quot;cp_worn_on&quot;))
+    {
+        SendMessageToPC(oPC, &quot;You pull on the gloves. Your knuckles feel lucky.&quot;);
+        return;
+    }
+    if (GetUserDefinedItemEventNumber() != X2_ITEM_EVENT_ONHITCAST)
+    {
+        // Unequip, or any other path that is not a punch.
+        return;
+    }
+
+    // --- HOT PATH: several times a round, per wearer ---------------------
+    if (Random(100) &gt;= CP_PUNCH_CHANCE) return;
+
+    object oTarget = GetSpellTargetObject();
+    if (!GetIsObjectValid(oTarget)) return;
+
+    object oItem = CP_FindItem(oPC, &quot;cp_gloves&quot;);
+    if (!GetIsObjectValid(oItem)) return;
+
+    if (!CP_ConsumeUse(oItem, CP_ItemCharges(9),
+            &quot;The gloves finally give out, seams bursting, and slide off your hands.&quot;))
+        return;
+
+    // Every row is cosmetic. Nothing here disables, damages or debuffs: an
+    // on-hit item that could stun would be a pocket crowd-control device with
+    // hundreds of charges, which is the trap Puppet Strings was restricted for.
+    int nVfx = VFX_COM_HIT_SONIC;
+    string sMsg = &quot;lands one!&quot;;
+    switch (Random(20))
+    {
+        case  0: nVfx = VFX_IMP_HEAD_SONIC;    sMsg = &quot;rings like a gong!&quot;; break;
+        case  1: nVfx = VFX_COM_HIT_ELECTRICAL;sMsg = &quot;gets a static shock!&quot;; break;
+        case  2: nVfx = VFX_IMP_PULSE_HOLY;    sMsg = &quot;is briefly sanctified!&quot;; break;
+        case  3: nVfx = VFX_IMP_MAGBLUE;       sMsg = &quot;sees stars!&quot;; break;
+        case  4: nVfx = VFX_COM_HIT_FIRE;      sMsg = &quot;is singed!&quot;; break;
+        case  5: nVfx = VFX_COM_HIT_FROST;     sMsg = &quot;gets a chill!&quot;; break;
+        case  6: nVfx = VFX_IMP_HEAD_ODD;      sMsg = &quot;looks deeply confused!&quot;; break;
+        case  7: nVfx = VFX_IMP_HEALING_S;     sMsg = &quot;is punched better!&quot;; break;
+        case  8: nVfx = VFX_COM_BLOOD_SPARK_LARGE; sMsg = &quot;takes a proper wallop!&quot;; break;
+        case  9: nVfx = VFX_IMP_DUST_EXPLOSION;sMsg = &quot;vanishes in a puff of dust!&quot;; break;
+        case 10: nVfx = VFX_IMP_SILENCE;       sMsg = &quot;is left speechless!&quot;; break;
+        case 11: nVfx = VFX_IMP_HEAD_MIND;     sMsg = &quot;has second thoughts!&quot;; break;
+        case 12: nVfx = VFX_COM_HIT_ACID;      sMsg = &quot;is thoroughly pickled!&quot;; break;
+        case 13: nVfx = VFX_IMP_KNOCK;         sMsg = &quot;hears a distant door open!&quot;; break;
+        case 14: nVfx = VFX_IMP_GREASE;        sMsg = &quot;slips on absolutely nothing!&quot;; break;
+        case 15: nVfx = VFX_IMP_HEAD_HOLY;     sMsg = &quot;has a religious experience!&quot;; break;
+        case 16: nVfx = VFX_IMP_LIGHTNING_M;   sMsg = &quot;is briefly electrified!&quot;; break;
+        case 17: nVfx = VFX_IMP_FLAME_S;       sMsg = &quot;smoulders gently!&quot;; break;
+        case 18: nVfx = VFX_IMP_FROST_S;       sMsg = &quot;frosts over!&quot;; break;
+    }
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(nVfx), oTarget);
+    FloatingTextStringOnCreature(GetName(oTarget) + &quot; &quot; + sMsg, oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

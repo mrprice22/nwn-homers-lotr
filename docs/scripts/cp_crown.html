@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_crown</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_crown</code></h1><pre class="nss-source"><code>// cp_crown -- Crash Party: Crown of Cacophony. Wave 2. WORN item.
+//
+// Dispatched by cp_equip.nss / cp_unequip.nss, which set CP_WORN_ON before
+// calling; OBJECT_SELF is the wearer.
+//
+// While it is on your head it makes a random noise every few seconds. That is
+// the whole feature.
+//
+// ## Charges are spent per EQUIP, not per noise
+//
+// A charge per pulse would burn a generous-looking 300 down to fifteen minutes
+// of wear, and players are never told the count, so the item would feel like it
+// broke at random. One charge per time you put it on is predictable, survives
+// the &quot;use it until it breaks&quot; promise, and makes 150 an enormous number rather
+// than a stingy one.
+//
+// The noise chain is self-scheduling and guarded exactly like the tankard&#x27;s:
+// ONE chain per wearer, keyed on a timestamp rather than a flag, because
+// creature locals are saved into the .bic while the DelayCommand that would
+// clear a flag is not.
+
+#include &quot;cp_inc&quot;
+
+const string CP_CROWN_ON   = &quot;CP_CROWN_ON&quot;;
+const string CP_CROWN_NEXT = &quot;CP_CROWN_NEXT&quot;;
+
+string CP_CrownNoise()
+{
+    switch (Random(8))
+    {
+        case 0: return &quot;as_an_rooster1&quot;;
+        case 1: return &quot;as_an_cow1&quot;;
+        case 2: return &quot;as_an_dogbark6&quot;;
+        case 3: return &quot;as_an_catscrech2&quot;;
+        case 4: return &quot;as_an_crow1&quot;;
+        case 5: return &quot;as_pl_belchingm1&quot;;
+        case 6: return &quot;as_an_owlhoot1&quot;;
+    }
+    return &quot;as_an_ratssqeak1&quot;;
+}
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
+
+    // --- taken off -------------------------------------------------------
+    if (!GetLocalInt(oPC, &quot;cp_worn_on&quot;))
+    {
+        if (GetLocalInt(oPC, CP_CROWN_ON))
+        {
+            DeleteLocalInt(oPC, CP_CROWN_ON);
+            DeleteLocalInt(oPC, CP_CROWN_NEXT);
+            SendMessageToPC(oPC, &quot;The crown comes off and a merciful silence falls.&quot;);
+        }
+        return;
+    }
+
+    // --- put on ----------------------------------------------------------
+    object oItem = CP_FindItem(oPC, &quot;cp_crown&quot;);
+    if (!GetIsObjectValid(oItem)) return;
+
+    if (!CP_ConsumeUse(oItem, CP_ItemCharges(7),
+            &quot;The crown gives one last strangled honk and falls to pieces.&quot;))
+        return;
+
+    SetLocalInt(oPC, CP_CROWN_ON, TRUE);
+    SendMessageToPC(oPC, &quot;The crown settles onto your head and begins, quietly, to make noises.&quot;);
+
+    if (CP_Now() &gt;= GetLocalInt(oPC, CP_CROWN_NEXT))
+    {
+        int nDelay = Random(4) + 3;
+        SetLocalInt(oPC, CP_CROWN_NEXT, CP_Now() + nDelay + 5);
+        DelayCommand(IntToFloat(nDelay), ExecuteScript(&quot;cp_crowntick&quot;, oPC));
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_cloak</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_cloak</code></h1><pre class="nss-source"><code>// cp_cloak -- Crash Party: Cloak of a Thousand Faces. Wave 2. WORN item.
+//
+// Dispatched by cp_equip.nss / cp_unequip.nss; OBJECT_SELF is the wearer.
+//
+// While worn it rerolls your appearance every half minute or so. Cosmetic only:
+// SetCreatureAppearanceType changes the model and not one stat, and it is not
+// EffectPolymorph -- so it cannot interact with the module&#x27;s shapeshift
+// item-merge machinery (shape_merge_inc.nss) and cannot be used to launder gear
+// through a form change.
+//
+// ## It shares the Mask&#x27;s true-form stash on purpose
+//
+// Both items change the same field, so they must agree on what &quot;your real face&quot;
+// is or one will restore the other&#x27;s borrowed one. The stash is written once, by
+// whichever item got there first, and REFERENCE COUNTED (CP_FaceClaim /
+// CP_FaceRelease in cp_inc.nss): the real face goes back when the last holder
+// lets go, never before.
+//
+// That counting is not decoration. Before it existed, using the Mask while the
+// Cloak was on meant the Mask&#x27;s 90s revert deleted the shared stash -- and then
+// taking the Cloak off restored nothing, leaving the player as whatever the last
+// reroll made them with no item and no timer that could ever put it right.
+//
+// cp_login.nss restores unconditionally at login, which is what stops a player
+// who logged out mid-swap from being stuck as a penguin forever: Appearance_Type
+// is a SAVED .bic field while every timer that would undo it dies at logout, and
+// that asymmetry is the whole reason cp_login exists.
+
+#include &quot;cp_inc&quot;
+
+const string CP_CLOAK_ON   = &quot;CP_CLOAK_ON&quot;;
+const string CP_CLOAK_NEXT = &quot;CP_CLOAK_NEXT&quot;;
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
+
+    // --- taken off: put the wearer&#x27;s own face back -----------------------
+    if (!GetLocalInt(oPC, &quot;cp_worn_on&quot;))
+    {
+        if (!GetLocalInt(oPC, CP_CLOAK_ON)) return;
+        DeleteLocalInt(oPC, CP_CLOAK_ON);
+        DeleteLocalInt(oPC, CP_CLOAK_NEXT);
+
+        // Release rather than restore: if a Mask is still counting down, IT is
+        // holding the real face and the player stays masked until it expires.
+        // Either way the message only claims what actually happened.
+        if (CP_FaceRelease(oPC, CP_FACE_CLOAK))
+            SendMessageToPC(oPC, &quot;You shrug the cloak off and settle back into yourself.&quot;);
+        else
+            SendMessageToPC(oPC, &quot;You shrug the cloak off, but the mask has not finished with you.&quot;);
+        return;
+    }
+
+    // --- put on ----------------------------------------------------------
+    object oItem = CP_FindItem(oPC, &quot;cp_cloak&quot;);
+    if (!GetIsObjectValid(oItem)) return;
+
+    if (!CP_ConsumeUse(oItem, CP_ItemCharges(8),
+            &quot;The cloak&#x27;s colours run together into grey and the whole thing falls apart.&quot;))
+        return;
+
+    // Stash the true form once, and only if nothing else already has -- the Mask
+    // may have got there first, and overwriting would strand the player wearing
+    // whatever face they happened to have on.
+    CP_FaceClaim(oPC, CP_FACE_CLOAK);
+
+    SetLocalInt(oPC, CP_CLOAK_ON, TRUE);
+    SendMessageToPC(oPC, &quot;The cloak settles over your shoulders and your edges go soft.&quot;);
+
+    if (CP_Now() &gt;= GetLocalInt(oPC, CP_CLOAK_NEXT))
+    {
+        SetLocalInt(oPC, CP_CLOAK_NEXT, CP_Now() + 5);
+        DelayCommand(1.0, ExecuteScript(&quot;cp_cloaktick&quot;, oPC));
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

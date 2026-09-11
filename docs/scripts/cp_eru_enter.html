@@ -69,12 +69,23 @@
 // welloferuenter) unchanged, then does the party&#x27;s two per-arrival jobs. Same
 // wrapper pattern as prsg_enter / q_maz_ent1 / q_brn_ent1.
 //
-//   1. The commemorative souvenir, once per character, ever.
-//   2. The wave catch-up grant -- everything released so far that this character
-//      has not already had. This is what makes a late arrival whole: walk in
-//      during wave 3 and you leave with waves 0-3.
+//   1. The wave catch-up grant, for players who have already opted in --
+//      everything released so far that this character has not had. This is what
+//      makes a late arrival whole: walk in during wave 3 and you leave with
+//      waves 0-3 together.
+//   2. The commemorative souvenir, once per character.
+//   3. A nudge toward the penguin for anyone who has not opted in.
 //
-// Both are no-ops when CP_MODE is off, so outside the event this costs one
+// ## Why nothing is handed out unprompted any more
+//
+// The party is opt-in, ONE CHARACTER PER ACCOUNT, and Bartholomew the penguin
+// holds that conversation. Handing gear to whoever walked through the door would
+// let an account claim a set on every alt it cared to roll -- the items are
+// undroppable so they could not be pooled, but the souvenir is meant to mean
+// something. CP_GrantUpToWave enforces it; this script just calls it, so a
+// non-crasher silently gets nothing and is pointed at the penguin instead.
+//
+// All of it is a no-op when CP_MODE is off, so outside the event this costs one
 // LocalInt read on the module.
 
 #include &quot;cp_inc&quot;
@@ -88,7 +99,19 @@ void main()
     if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
     if (!CP_IsOn()) return;
 
-    // Souvenir: no properties, no charges, no expiry, and no sweep touches it.
+    // Not signed up: one nudge, then leave them alone. Throttled so it is not
+    // repeated every time somebody crosses the area boundary.
+    if (!CP_IsCrasher(oPC))
+    {
+        if (!CP_Spam(oPC, &quot;cp_nudge&quot;, 600.0))
+            SendMessageToPC(oPC,
+                &quot;Bartholomew the Party Penguin is handing out party favours by the &quot;
+                + &quot;Well. One character per account can sign up.&quot;);
+        return;
+    }
+
+    // Souvenir: no properties, no charges, no expiry. Reclaimed only if this
+    // character opts out, which also clears the grant so it can be re-issued.
     if (!CP_HasGrant(oPC, &quot;cp_souvenir&quot;))
     {
         // One at a time -- CreateItemOnObject&#x27;s stack argument is clamped to the

@@ -78,6 +78,25 @@
 // precedent). Per-PC grant flags are the opposite -- they live in the campaign DB
 // (cp_db.nss) so a relog cannot re-trigger a grant.
 //
+// ## One party crasher per ACCOUNT, and it is opt-in
+//
+// Grants are per character, but the ENTITLEMENT to them is per account: each CD
+// key nominates exactly one character as its &quot;party crasher&quot;, by talking to a
+// penguin. Without that, an account could roll alt after alt and claim the whole
+// set on each -- the items are undroppable so they could not be pooled, but the
+// souvenir is meant to mean something and alt-farming it cheapens it.
+//
+// Opting out is offered by the same penguin, releases the slot, RECLAIMS every
+// party item the character is holding (CP_ReclaimItems) and clears their grant
+// flags -- so opting back in, on that character or a different one, issues a
+// fresh set. Losing an item to its last charge and then re-opting is therefore a
+// legitimate way to get another, and that is deliberate: the items are toys, and
+// the rule being enforced is &quot;one character at a time per account&quot;, not scarcity.
+//
+// This is only possible because every party item is Plot + Cursed and so cannot
+// be dropped, traded, sold or banked. Reclaim can be complete precisely because
+// there is nowhere for an item to have gone.
+//
 // ## Waves are global, and late joiners are caught up
 //
 // Raising CP_WAVE unlocks that wave for EVERYONE at once. A player who logs in
@@ -117,8 +136,35 @@ const string CP_INIT_VAR = &quot;CP_USES_INIT&quot;;
 // Every DM-spawned load object carries this tag, and cleanup keys on it alone.
 const string CP_LOAD_TAG = &quot;cp_load&quot;;
 
-const int CP_ITEM_COUNT = 6;
+// Barrels get their own tag so the penguins&#x27; rummage can search for a BARREL
+// rather than for &quot;anything the dials made&quot; -- GetNearestObjectByTag on the
+// shared tag returns another penguin nearly every time in a crowd. Cleanup and
+// counting match the cp_load PREFIX so both tags are still covered by one
+// filter; see CP_IsLoadTag.
+const string CP_KEG_TAG  = &quot;cp_load_keg&quot;;
+
+const int CP_ITEM_COUNT = 10;
 const int CP_WAVE_MAX   = 3;
+
+// ------------------------------------------------------------ borrowed faces
+//
+// The Mask and the Cloak both write Appearance_Type, so they must agree on what
+// the player&#x27;s real face is -- but &quot;one stash, whoever finishes first puts it
+// back&quot; strands the other item: use the Mask while the Cloak is on and the
+// Mask&#x27;s 90s revert DELETES the stash, after which taking the Cloak off has
+// nothing to restore from and the player is left as a badger with no item and
+// no timer that will ever fix it. That is what these three functions exist to
+// prevent.
+//
+// One stash, a bitmask of who is currently borrowing a face, and the real face
+// goes back only when the LAST holder lets go. The variable names are the
+// mask-era ones on purpose: they are already serialised into live .bic files,
+// and renaming them would strand exactly the players this is meant to rescue.
+const string CP_FACE_TRUE  = &quot;CP_MASK_TRUEFORM&quot;;
+const string CP_FACE_SET   = &quot;CP_MASK_TRUEFORM_SET&quot;;
+const string CP_FACE_HOLD  = &quot;CP_FACE_HOLD&quot;;
+const int    CP_FACE_MASK  = 1;
+const int    CP_FACE_CLOAK = 2;
 
 int    CP_IsOn();
 int    CP_Wave();
@@ -131,10 +177,19 @@ string CP_ItemResRef(int nIndex);
 int    CP_ItemWave(int nIndex);
 int    CP_ItemCharges(int nIndex);
 int    CP_GrantUpToWave(object oPC);
+int    CP_ReclaimItems(object oPC);
+void   CP_VenueOpen(int bOpen);
+void   CP_PenguinCheer();
+void   CP_AnnounceFire();
+void   CP_AnnounceSchedule();
 object CP_FindItem(object oPC, string sResRef);
 object CP_Target(object oPC);
 int    CP_OnlineCount();
+int    CP_IsLoadTag(object oObj);
 string CP_BelchSound(int nTipsy);
+void   CP_FaceClaim(object oPC, int nWho);
+int    CP_FaceRelease(object oPC, int nWho);
+int    CP_FaceRestoreAll(object oPC);
 
 // ------------------------------------------------------------ state
 
@@ -157,6 +212,7 @@ void CP_Broadcast(string sMsg, string sColor = &quot;&quot;)
 void CP_SetMode(int bOn)
 {
     SetLocalInt(GetModule(), CP_MODE_VAR, bOn);
+    CP_VenueOpen(bOn);
     if (bOn)
     {
         CP_Broadcast(&quot;*** THE CRASH PARTY HAS BEGUN! Head to the Well of Eru. ***&quot;,
@@ -179,6 +235,7 @@ void CP_SetWave(int nWave)
     CP_Broadcast(&quot;*** CRASH PARTY -- WAVE &quot; + IntToString(nWave)
                  + &quot; RELEASED! New party favours at the Well of Eru. ***&quot;,
                  COLOR_YELLOW);
+    CP_PenguinCheer();
 }
 
 // ------------------------------------------------------------ guards
@@ -245,6 +302,10 @@ string CP_ItemResRef(int nIndex)
         case 3: return &quot;cp_mask&quot;;
         case 4: return &quot;cp_coin&quot;;
         case 5: return &quot;cp_fireworks&quot;;
+        case 6: return &quot;cp_drum&quot;;
+        case 7: return &quot;cp_crown&quot;;
+        case 8: return &quot;cp_cloak&quot;;
+        case 9: return &quot;cp_gloves&quot;;
     }
     return &quot;&quot;;
 }
@@ -259,6 +320,10 @@ int CP_ItemWave(int nIndex)
         case 3: return 1;   // Mask of a Thousand Faces
         case 4: return 2;   // Wishing Coin
         case 5: return 3;   // Fireworks Finale Staff
+        case 6: return 1;   // Drum of the Marching Band
+        case 7: return 2;   // Crown of Cacophony      (worn)
+        case 8: return 2;   // Cloak of a Thousand Faces (worn)
+        case 9: return 3;   // Gloves of a Great Many Punches (on-hit)
     }
     return 99;
 }
@@ -273,6 +338,15 @@ int CP_ItemCharges(int nIndex)
         case 3: return 300;
         case 4: return 240;
         case 5: return 120;
+        case 6: return 300;
+        // The two WORN items spend a charge per time they are PUT ON, not per
+        // pulse. A charge per pulse would burn a generous-looking number down to
+        // a quarter of an hour, and since players are never told the count the
+        // item would just seem to break at random.
+        case 7: return 150;
+        case 8: return 150;
+        // On-hit, so a charge is spent per PROC (20% of hits), not per swing.
+        case 9: return 400;
     }
     return 0;
 }
@@ -289,6 +363,10 @@ int CP_GrantUpToWave(object oPC)
 {
     if (!CP_IsOn()) return 0;
     if (!GetIsPC(oPC)) return 0;
+
+    // The account has to have nominated THIS character. Everything else about
+    // the hand-out is per character; this one check is per account.
+    if (!CP_IsCrasher(oPC)) return 0;
 
     int nWave = CP_Wave();
     int nGranted = 0;
@@ -343,6 +421,210 @@ object CP_Target(object oPC)
     return GetLocalObject(oPC, &quot;cp_target&quot;);
 }
 
+// Take back every party item this character is holding, and return how many.
+//
+// Used by the opt-out path only. It is thorough on purpose: the whole promise of
+// &quot;one crasher per account&quot; rests on opting out actually emptying your hands,
+// and a leftover tankard would let somebody cycle the slot to accumulate a set
+// per alt after all.
+//
+// The souvenir goes too. It is the one item with no charges and no expiry, which
+// makes it exactly the thing worth alt-farming, so it cannot be the exception.
+//
+// SetPlotFlag(FALSE) before DestroyObject -- plot items resist destroy, and
+// every cp_* item is plot (kalrist_gems.nss:72 is the precedent).
+int CP_ReclaimItems(object oPC)
+{
+    int nTaken = 0;
+
+    // ONE pass over the inventory, stepping to the next item BEFORE destroying
+    // the current one. Do not be tempted to re-fetch by tag in a loop instead:
+    // DestroyObject is deferred to the end of the script, so the item stays
+    // valid and a re-fetch would hand back the same object forever.
+    //
+    // Matching on the resref prefix rather than the item table also catches the
+    // souvenir and anything a future wave adds, without a second list to keep in
+    // step. Every cp_* item is non-equippable (base item 29), so inventory is
+    // the only place one can be.
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        object oNext = GetNextItemInInventory(oPC);
+
+        if (GetStringLeft(GetResRef(oItem), 3) == &quot;cp_&quot;)
+        {
+            SetPlotFlag(oItem, FALSE);   // plot resists destroy
+            DestroyObject(oItem);
+            nTaken++;
+        }
+
+        oItem = oNext;
+    }
+
+    return nTaken;
+}
+
+// Every penguin in the venue cheers when a wave drops.
+//
+// Three cheers rather than one, chosen per penguin, so a crowd produces a MIX
+// rather than a chorus -- twenty five voices saying the identical thing in the
+// same instant reads as a bug, not a party.
+//
+// Each is delayed by a random fraction of a second for the same reason it is
+// staggered elsewhere: firing twenty five SpeakStrings inside one frame is a
+// spike on the exact object whose purpose is to make load measurable.
+void CP_PenguinCheer()
+{
+    object oArea = GetObjectByTag(&quot;TheWellofEru&quot;);
+    if (!GetIsObjectValid(oArea)) return;
+
+    object oObj = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oObj))
+    {
+        if (GetObjectType(oObj) == OBJECT_TYPE_CREATURE
+            &amp;&amp; !GetIsPC(oObj)
+            &amp;&amp; (GetTag(oObj) == CP_LOAD_TAG || GetTag(oObj) == &quot;cp_penguin&quot;))
+        {
+            string sCheer;
+            switch (Random(4))
+            {
+                case 0:  sCheer = &quot;PaRtY TiMe!!&quot;;              break;
+                case 1:  sCheer = &quot;WAAAAUGH! MORE GROG!&quot;;      break;
+                case 2:  sCheer = &quot;HOORAY FOR THE PENGUINS!&quot;;  break;
+                default: sCheer = &quot;*honks ecstatically*&quot;;      break;
+            }
+            float fWhen = IntToFloat(Random(25)) / 10.0;
+            AssignCommand(oObj, DelayCommand(fWhen, SpeakString(sCheer)));
+            AssignCommand(oObj, DelayCommand(fWhen,
+                PlayAnimation(ANIMATION_FIREFORGET_VICTORY3, 1.0)));
+        }
+        oObj = GetNextObjectInArea(oArea);
+    }
+}
+
+// ------------------------------------------------------------ the countdown
+//
+// The countdown runs itself once started, and can still be pushed by hand.
+//
+// Deliberately NOT gated on CP_IsOn: the whole countdown happens BEFORE the
+// party is switched on (&quot;starts in one hour&quot;), so a mode check here would stop
+// it firing at all.
+//
+// Superseding: every schedule bumps CP_ANN_GEN and every tick bumps
+// CP_ANN_SEEN, so a tick that is not the newest returns without firing. That is
+// what makes a manual press safe -- pressing the placard early fires the line
+// AND re-schedules, and the older pending tick quietly retires instead of
+// double-announcing. Same generation guard as the Mask&#x27;s revert.
+
+const string CP_ANN_STEP = &quot;CP_ANN_STEP&quot;;
+const string CP_ANN_GEN  = &quot;CP_ANN_GEN&quot;;
+const string CP_ANN_SEEN = &quot;CP_ANN_SEEN&quot;;
+
+// Minutes from each line to the next. The last entry ends the chain: past the
+// doors opening there is nothing to count down to, and a party that nags every
+// half hour is worse than one that does not.
+int CP_AnnounceGap(int nStep)
+{
+    switch (nStep)
+    {
+        case 0: return 30;   // &quot;one hour&quot;     -&gt; &quot;thirty minutes&quot;
+        case 1: return 20;   // &quot;thirty&quot;       -&gt; &quot;ten minutes&quot;
+        case 2: return 10;   // &quot;ten minutes&quot;  -&gt; doors open
+    }
+    return 0;                // doors open: chain ends, manual only from here
+}
+
+void CP_AnnounceFire()
+{
+    int nStep = GetLocalInt(GetModule(), CP_ANN_STEP);
+    string sMsg;
+    switch (nStep)
+    {
+        case 0:
+            sMsg = &quot;The Crash Party starts in ONE HOUR. Come to the Well of Eru -- &quot; +
+                   &quot;we are trying to break the server&#x27;s all-time record for players online.&quot;;
+            break;
+        case 1:
+            sMsg = &quot;THIRTY MINUTES to the Crash Party. Drag a friend along; every &quot; +
+                   &quot;single body counts toward the record.&quot;;
+            break;
+        case 2:
+            sMsg = &quot;TEN MINUTES. Head to the Well of Eru now.&quot;;
+            break;
+        case 3:
+            sMsg = &quot;The Crash Party begins NOW! Free party favours at the Well of Eru, &quot; +
+                   &quot;and they are yours to keep afterwards.&quot;;
+            break;
+        default:
+            sMsg = &quot;The Crash Party is still going at the Well of Eru. Everyone welcome.&quot;;
+            break;
+    }
+    CP_Broadcast(&quot;*** &quot; + sMsg + &quot; ***&quot;, COLOR_YELLOW);
+    SetLocalInt(GetModule(), CP_ANN_STEP, nStep + 1);
+}
+
+// Queue the next line, if there is one. Safe to call after every fire.
+void CP_AnnounceSchedule()
+{
+    int nGap = CP_AnnounceGap(GetLocalInt(GetModule(), CP_ANN_STEP) - 1);
+    if (nGap &lt;= 0) return;
+
+    int nGen = GetLocalInt(GetModule(), CP_ANN_GEN) + 1;
+    SetLocalInt(GetModule(), CP_ANN_GEN, nGen);
+    DelayCommand(IntToFloat(nGap) * 60.0, ExecuteScript(&quot;cp_anntick&quot;, GetModule()));
+}
+
+// ------------------------------------------------------------ the venue
+//
+// Bartholomew and the scoreboard are CREATED when the party starts and destroyed
+// when it stops. They are deliberately NOT permanent placements: the Well of Eru
+// is the module&#x27;s hub and every player passes through it constantly, so a
+// penguin and a chalkboard standing there year-round advertising an event that
+// is not running is just clutter -- and worse, a reboot re-created them whether
+// or not anybody had scheduled anything.
+//
+// Their positions live on waypoints (cp_penguin_wp, cp_board_wp) so the admin
+// can still move them in the toolset, which is the whole reason this is not
+// hardcoded coordinates.
+//
+// Idempotent in both directions: spawning checks for an existing one by tag
+// first (the MWSpawnAtWaypoint pattern), so a double-press cannot produce two
+// penguins, and closing is a no-op when nothing is there.
+void CP_VenueOpen(int bOpen)
+{
+    object oPeng  = GetObjectByTag(&quot;cp_penguin&quot;);
+    object oBoard = GetObjectByTag(&quot;cp_board&quot;);
+
+    if (!bOpen)
+    {
+        if (GetIsObjectValid(oPeng))  { SetPlotFlag(oPeng, FALSE);  DestroyObject(oPeng); }
+        if (GetIsObjectValid(oBoard)) { SetPlotFlag(oBoard, FALSE); DestroyObject(oBoard); }
+        return;
+    }
+
+    if (!GetIsObjectValid(oPeng))
+    {
+        object oWP = GetWaypointByTag(&quot;cp_penguin_wp&quot;);
+        if (GetIsObjectValid(oWP))
+            CreateObject(OBJECT_TYPE_CREATURE, &quot;cp_penguin&quot;, GetLocation(oWP), FALSE);
+    }
+    if (!GetIsObjectValid(oBoard))
+    {
+        object oWP = GetWaypointByTag(&quot;cp_board_wp&quot;);
+        if (GetIsObjectValid(oWP))
+            CreateObject(OBJECT_TYPE_PLACEABLE, &quot;cp_board&quot;, GetLocation(oWP), FALSE);
+    }
+}
+
+// One filter for everything the stress dials create, whatever its specific tag.
+// Keep this a PREFIX test: a new kind of load object should be collected by
+// CLEAR ALL the moment it is added, without anyone having to remember to update
+// a list of exact tags.
+int CP_IsLoadTag(object oObj)
+{
+    return GetStringLeft(GetTag(oObj), GetStringLength(CP_LOAD_TAG)) == CP_LOAD_TAG;
+}
+
 // ------------------------------------------------------------ tankard shared
 
 // Real belches exist in the base game data (as_pl_belchingm1/2); the tavern
@@ -352,6 +634,59 @@ string CP_BelchSound(int nTipsy)
     if (nTipsy &gt;= 6 &amp;&amp; Random(2) == 0)
         return &quot;as_pl_tavdrunkm&quot; + IntToString(Random(4) + 1);
     return &quot;as_pl_belchingm&quot; + IntToString(Random(2) + 1);
+}
+
+// ------------------------------------------------------------ borrowed faces
+
+// Take a face. Stashes the real one the FIRST time only, so stacking a Mask on
+// top of a Cloak can never record an already-borrowed face as the real one.
+void CP_FaceClaim(object oPC, int nWho)
+{
+    if (!GetLocalInt(oPC, CP_FACE_SET))
+    {
+        SetLocalInt(oPC, CP_FACE_TRUE, GetAppearanceType(oPC));
+        SetLocalInt(oPC, CP_FACE_SET, TRUE);
+    }
+    SetLocalInt(oPC, CP_FACE_HOLD, GetLocalInt(oPC, CP_FACE_HOLD) | nWho);
+}
+
+// Give a face back. Returns TRUE only if this was the last holder and the real
+// face actually went back on -- callers use that to decide whether to say so,
+// since &quot;your own face returns&quot; is a lie while the Cloak is still rerolling.
+//
+// A character carrying pre-fix state (stash set, no holder bits) releases to
+// zero on the first call and self-heals.
+int CP_FaceRelease(object oPC, int nWho)
+{
+    int nHold = GetLocalInt(oPC, CP_FACE_HOLD) &amp; ~nWho;
+    SetLocalInt(oPC, CP_FACE_HOLD, nHold);
+    if (nHold != 0) return FALSE;
+
+    DeleteLocalInt(oPC, CP_FACE_HOLD);
+    return CP_FaceRestoreAll(oPC);
+}
+
+// Unconditional: put the real face back and drop every holder. This is the
+// login path (every timer that would have released died at logout) and the
+// get-me-out-of-here path.
+int CP_FaceRestoreAll(object oPC)
+{
+    DeleteLocalInt(oPC, CP_FACE_HOLD);
+    if (!GetLocalInt(oPC, CP_FACE_SET)) return FALSE;
+
+    int nTrue = GetLocalInt(oPC, CP_FACE_TRUE);
+
+    // Clear the bookkeeping FIRST, so a restore that somehow fails cannot leave
+    // a stale stash to overwrite a legitimate appearance later.
+    DeleteLocalInt(oPC, CP_FACE_TRUE);
+    DeleteLocalInt(oPC, CP_FACE_SET);
+
+    if (GetAppearanceType(oPC) == nTrue) return TRUE;
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_POLYMORPH), oPC);
+    SetCreatureAppearanceType(oPC, nTrue);
+    return TRUE;
 }
 
 // ------------------------------------------------------------ misc

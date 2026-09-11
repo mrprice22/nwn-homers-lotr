@@ -68,6 +68,7 @@
 // Campaign DB &quot;crashpartydb&quot;. Three tables, all created idempotently by
 // CP_InitDb(), which is called ONCE from onmoduleload.nss.
 //
+//   cp_crasher ONE opted-in character per ACCOUNT (the anti-alt-farm slot)
 //   cp_player  per-character tankard sip count (the drinking leaderboard)
 //   cp_grant   per-character &quot;already received this item&quot; flags for the wave dispenser
 //   cp_state   scalar world state; currently just the peak-concurrent record
@@ -79,6 +80,18 @@
 // its guard into questcddb (see quest_cd_inc.nss). Same reasoning, own database:
 // the party&#x27;s data stays self-contained and can be wiped without touching quest
 // cooldowns.
+//
+// ## Why cp_crasher is keyed on the CD KEY and everything else on the character
+//
+// Grants are per character (cp_grant, keyed on the UUID) because that is what
+// &quot;you have already been given a tankard&quot; means. But per character is exactly
+// the wrong unit for deciding WHO MAY BE GIVEN ONE: an account can roll as many
+// characters as it likes, and each would be a fresh claim on the whole set.
+//
+// So the entitlement lives one level up, on GetPCPublicCDKey, and admits exactly
+// one character at a time. cp_grant stays per character underneath it, because
+// once a character is the account&#x27;s crasher the &quot;once ever&quot; rule still has to
+// apply to that character.
 //
 // ## DDL runs at module load, never on the login frame
 //
@@ -92,6 +105,11 @@ const string CP_DB = &quot;crashpartydb&quot;;
 
 void   CP_InitDb();
 string CP_Ident(object oPC);
+int    CP_IsCrasher(object oPC);
+int    CP_HasCrasher(object oPC);
+string CP_CrasherName(object oPC);
+void   CP_OptIn(object oPC);
+void   CP_OptOut(object oPC);
 int    CP_HasGrant(object oPC, string sItem);
 void   CP_MarkGrant(object oPC, string sItem);
 int    CP_AddSips(object oPC, int nHowMany = 1);
@@ -121,6 +139,15 @@ void CP_InitDb()
         &quot;PRIMARY KEY (ident, item))&quot;);
     SqlStep(q);
 
+    // One row per ACCOUNT. The primary key IS the entitlement rule.
+    q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;CREATE TABLE IF NOT EXISTS cp_crasher (&quot; +
+        &quot;cdkey TEXT PRIMARY KEY,&quot; +
+        &quot;ident TEXT NOT NULL,&quot; +
+        &quot;char_name TEXT,&quot; +
+        &quot;opted_in_at INTEGER NOT NULL DEFAULT 0)&quot;);
+    SqlStep(q);
+
     q = SqlPrepareQueryCampaign(CP_DB,
         &quot;CREATE TABLE IF NOT EXISTS cp_state (&quot; +
         &quot;k TEXT PRIMARY KEY,&quot; +
@@ -137,6 +164,69 @@ string CP_Ident(object oPC)
     string sUuid = GetObjectUUID(oPC);
     if (sUuid != &quot;&quot;) return sUuid;
     return &quot;k:&quot; + GetPCPublicCDKey(oPC) + &quot;|&quot; + GetName(oPC);
+}
+
+// Is THIS character the one its account signed up?
+int CP_IsCrasher(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT 1 FROM cp_crasher WHERE cdkey=@k AND ident=@i&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@i&quot;, CP_Ident(oPC));
+    return SqlStep(q);
+}
+
+// Has this account signed ANY character up (this one or another)?
+int CP_HasCrasher(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT 1 FROM cp_crasher WHERE cdkey=@k&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    return SqlStep(q);
+}
+
+// Which character holds this account&#x27;s slot; &quot;&quot; when none does. Used to tell a
+// player WHICH of their characters they have to go and opt out on, because
+// &quot;some other character&quot; is a genuinely infuriating error message.
+string CP_CrasherName(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT char_name FROM cp_crasher WHERE cdkey=@k&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    return SqlStep(q) ? SqlGetString(q, 0) : &quot;&quot;;
+}
+
+// Claim the account&#x27;s slot for this character. Caller checks CP_HasCrasher
+// first; the INSERT ... DO NOTHING is belt and braces against a double click.
+void CP_OptIn(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;INSERT INTO cp_crasher (cdkey, ident, char_name, opted_in_at) &quot; +
+        &quot;VALUES (@k, @i, @n, CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)) &quot; +
+        &quot;ON CONFLICT(cdkey) DO NOTHING&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@i&quot;, CP_Ident(oPC));
+    SqlBindString(q, &quot;@n&quot;, GetName(oPC));
+    SqlStep(q);
+}
+
+// Release the slot AND forget this character&#x27;s grants, so opting back in later
+// -- on this character or a different one -- issues a fresh set. Destroying the
+// items themselves is the caller&#x27;s job (CP_ReclaimItems in cp_inc.nss): this
+// layer only owns the database.
+void CP_OptOut(object oPC)
+{
+    string sIdent = CP_Ident(oPC);
+
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;DELETE FROM cp_crasher WHERE cdkey=@k AND ident=@i&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@i&quot;, sIdent);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(CP_DB, &quot;DELETE FROM cp_grant WHERE ident=@i&quot;);
+    SqlBindString(q, &quot;@i&quot;, sIdent);
+    SqlStep(q);
 }
 
 int CP_HasGrant(object oPC, string sItem)
