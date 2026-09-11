@@ -62,3 +62,11 @@ unpacked/nwnmgr_bstamp.nss
 auth.sqlite3
 auth.sqlite3-*
 tunnel.env
+
+# Custom music: the generated .bmu tracks (MP3 bytes behind a BMU V1.0 header).
+# Multi-megabyte binaries, rebuilt from the MP3 masters in
+# ~/OneDrive/Games/NWNHomersLOTR/music/mp3/ by bin/gen-music-tracks.py, and
+# shipped to clients inside lotr_music.hak (itself covered by *.hak above).
+# music/tracks.json and hak_music/ambientmusic.2da ARE tracked — they are text,
+# and tracks.json is what keeps a track's resref and 2DA row stable forever.
+/music/bmu/

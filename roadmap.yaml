@@ -7603,3 +7603,45 @@ ideas:
       - step: "Decide, once the disarm UAT has answered it: strip the clone's equipment outright (loses the armed look), extend disarm_catch.nss to NPC victims (touches the live combat path, wants its own testing pass), or close as not-an-issue."
         status: open
         kind: admin
+  - id: custom-music-jukebox
+    title: "Custom music pipeline, and a jukebox that plays it in the room you are standing in"
+    group: qol
+    status: manual
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-10"
+    notes: "<div>The server can play <b>custom music</b>. Five tracks are in, and adding more is now a two-command job.</div><div><br></div><div>A new <b>Jukebox</b> lets you pick one of those tracks and play it in the area you are standing in. It loops until you choose another or switch it off, and the area's own music comes back when you stop. Battle music is held back while it plays, so a fight will not cut your song off.</div><div><br></div><div>It plays on the music channel, so the Music slider in your sound options is the volume knob. The music stays in the room -- walk away and it keeps playing there, and you come back to that room to change it. The Jukebox is admin-only for now, from the Castle Homeless chest.</div>"
+    impl_notes: "<div><b>Pipeline.</b> <code>bin/gen-music-tracks.py --apply</code> reads the MP3 masters in <code>~/OneDrive/Games/NWNHomersLOTR/music/mp3/</code>, re-encodes each to 44.1 kHz stereo CBR 128k with ffmpeg, and writes <code>music/bmu/&lt;resref&gt;.bmu</code>. Then <code>bin/build-lotr-music-hak --install</code> packs those plus <code>hak_music/ambientmusic.2da</code> into <b>lotr_music.hak</b>, installs it, and drops a copy at the OneDrive root for the Windows toolset.</div><div><br></div><div><b>A .bmu is an MP3 behind the 8 ASCII bytes <code>BMU V1.0</code></b> -- verified by hexdumping the stock files, not taken from a guide. nwn.wiki's table says music needs no header and is wrong; the header is also case-sensitive, which is how hand-renamed files fail silently.</div><div><br></div><div><b>Track numbering -- two functions, two conventions.</b> <code>MusicBackgroundChangeDay(oArea, n)</code> plays ambientmusic.2da <b>row n, raw</b>; <code>MusicBackgroundGetDayTrack()</code> returns that row <b>minus one</b>. So the play path passes the raw row and the snapshot path +1s before handing the value back. <b>UAT 2026-09-11 caught this:</b> the first build passed row+1 on the play path and every pick played the next song in the list. The trap is <code>dmfi_execute.nss:549-553</code>, whose <code>GetDayTrack()+1</code> is correct for a <i>restore</i> but reads like proof that <code>Change()</code> is 1-based. Fixed in <code>jb_inc.nss</code> <code>JB_Start()</code>; module-only change, the hak is byte-identical so no NWSync was needed.</div><div><br></div><div><b>Row allocation is append-only.</b> Custom tracks start at row 138 (stock is 0-137; CEP ships no ambientmusic.2da). <code>music/tracks.json</code> is the committed manifest and a row is never reused -- areas store the row number in their <code>.git.json</code>, so renumbering would silently repoint them. <code>hak_music/ambientmusic.stock.2da</code> is a committed snapshot of the stock table; the generator builds on that rather than re-reading the resman, which would feed our own hak back in.</div><div><br></div><div><b>Jukebox.</b> Item <code>jb_jukebox</code> (base 29 miscmedium so it cannot be equipped; Unique Power property) dispatches via X2 tag-based scripting -- no <code>dmfi_activate.nss</code> edit. <code>jb_conv</code> is a paged 8-per-page list on custom tokens <b>7010-7018</b>. State is area locals, so it is area-wide and dies at reboot by design. Battle music is set to 0 while active and restored on stop.</div>"
+    manual_steps:
+      - step: "Copy lotr_music.hak from the OneDrive root into the Windows toolset PC's hak folder, open the module, and confirm the five tracks appear in an area's Music Day/Night dropdown under their friendly names. They will NOT appear in the Battle dropdown -- that list is filtered to mus_bat_ prefixed resrefs, which is expected and not a fault."
+        status: open
+        kind: toolset
+      - step: "BLOCKER FOR EVERYTHING ELSE -- verify the off-by-one. Open the cheat chest in Castle Homeless, take the Jukebox, activate it and pick the FIRST track. Confirm the track that plays is the one named, not its neighbour. Check a second track too. If it is off by one, the +1 in JB_Start (jb_inc.nss) is the only thing to change."
+        status: open
+        kind: uat
+        tester: "admin (can_chest)"
+      - step: "Confirm the song loops cleanly and that the client's Music volume slider controls and mutes it -- that is what proves it is on the music channel rather than a sound effect."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Switch to another track while one is playing, then Stop. The area's OWN music must come back (Castle Homeless ground floor is MusicDay 50 / MusicNight 50 / MusicBattle 41), not the previously selected jukebox track."
+        status: open
+        kind: uat
+        tester: "admin (can_chest)"
+      - step: "Start a fight in the area while a track plays: the track must keep playing and battle music must not cut in. Then Stop and fight again -- battle music must be back."
+        status: open
+        kind: uat
+        tester: "admin (can_chest)"
+      - step: "Walk to another area: the jukebox music must NOT follow, and that area plays its own. Walk back: the track is still looping there."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Have a second character stand in the area and confirm they hear the change too -- the override is area-wide by design, not per-player."
+        status: open
+        kind: uat
+        tester: "any (two clients)"
+      - step: "Client download path: join from a machine that has never held lotr_music.hak and confirm NWSync pulls it and the music plays there. This is the half that cannot be tested from the server box."
+        status: open
+        kind: uat
+        tester: "any (clean client)"

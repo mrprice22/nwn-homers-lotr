@@ -682,6 +682,11 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
 - [season-cutover-guide.md](season-cutover-guide.md) + [season-cutover-prereqs.md](season-cutover-prereqs.md) — repeatable season cutover: the 3-phase per-season runbook (early access → go live → retire), and the one-time engineering it depends on
 - [CLAUDE-llm-harness.md](CLAUDE-llm-harness.md) — the local-LLM harness (`bin/llm/`): a Gemma 4 box on the LAN does the module's bulk prose work (item and creature descriptions) and mechanical triage. Task recipes hold all the logic so running one costs an agent nothing; every generated field write lands in the `llm-changes/` ledger and is revertible from the roadmap editor's **LLM Changes** panel. Read it before writing a new task recipe, before running `bin/llm/autopilot.py`, or when wondering why a description you did not write appeared in `unpacked/`
 - [CLAUDE-graffiti.md](CLAUDE-graffiti.md) — Merit reward 301 "Graffiti the Well of Eru", end to end: the pedestal/canvas split that exists because NWScript has no `SetPlaceableAppearance`, the `placeappdb` appearance catalogue built by `bin/gen-placeable-appearances.py` + `bin/publish-placeable-db.py` (and the inverted hak-priority trap in it), the paged easel conversation, and the `redemptions.note` column the choice lands in
+- [CLAUDE-music.md](CLAUDE-music.md) — Custom music + the jukebox: the MP3 -> `.bmu`
+  pipeline (`bin/gen-music-tracks.py`, `bin/build-lotr-music-hak`), why a `.bmu` is an MP3
+  behind the case-sensitive bytes `BMU V1.0`, why `ambientmusic.2da` rows are append-only
+  (areas store the row number, so renumbering repoints them), why music gets its own hak,
+  and the `MusicBackgroundChangeDay()` row+1 off-by-one the jukebox turns on
 - [CLAUDE-merit.md](CLAUDE-merit.md) — Merit award + redemption system: `meritdb` schema (earned vs escrowed `merit_spent`), the `merit_redeem.nss` catalogue, how to add/graduate a redemption option, custom-token ranges, and the Barliman NPC + DM EmoteWand flow
 
 ## Useful references

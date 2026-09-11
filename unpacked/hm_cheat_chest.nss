@@ -35,6 +35,7 @@ void main()
     if (GetItemPossessedBy(oPC, "ElrondsWrit")       == OBJECT_INVALID) CreateItemOnObject("elrondswrit",      oPC);
     if (GetItemPossessedBy(oPC, "Forgekey")          == OBJECT_INVALID) CreateItemOnObject("forgekey",         oPC);
     if (GetItemPossessedBy(oPC, "ammoreplicator")    == OBJECT_INVALID) CreateItemOnObject("ammoreplicator",   oPC);
+    if (GetItemPossessedBy(oPC, "jb_jukebox")        == OBJECT_INVALID) CreateItemOnObject("jb_jukebox",       oPC);
 
     // Two Keys of the Hidden Court, unconditionally rather than guarded:
     // the sealed door under Amon Sul is AutoRemoveKey and eats one key per
