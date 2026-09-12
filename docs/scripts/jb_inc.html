@@ -78,12 +78,19 @@
 //   * NOT PERSISTENT. State is area local variables, so a reboot restores every
 //     area&#x27;s default music. There is no campaign DB behind this.
 //
-// THE OFF-BY-ONE -- the one thing to get right here:
-//   MusicBackgroundGetDayTrack()  returns the raw ambientmusic.2da row.
-//   MusicBackgroundChangeDay()    expects that row PLUS ONE.
-// So a track at row 138 is played by passing 139, and a saved track must be
-// stored already-incremented so it can be handed straight back on restore.
-// Precedent in this module: dmfi_execute.nss:549-553 does exactly this.
+// THE TRACK NUMBERING -- two functions, TWO DIFFERENT CONVENTIONS:
+//
+//   MusicBackgroundChangeDay(oArea, n)   plays ambientmusic.2da ROW n  (raw row)
+//   MusicBackgroundGetDayTrack(oArea)    returns that row MINUS ONE
+//
+// So a track is played with its raw row, but a snapshot taken with Get() must be
+// +1&#x27;d before it can be handed back to Change(). Both halves are needed and they
+// are NOT the same adjustment -- getting this wrong in either direction is silent.
+//
+// dmfi_execute.nss:549-553 does the +1 on its restore path, and reading that as
+// &quot;Change() is 1-based&quot; is exactly the mistake that shipped here first: every
+// pick played the NEXT song in the list. Verified in game 2026-09-11 -- passing
+// 139 played row 139, not row 138.
 //
 // Custom token range: 7010-7018 (7010-7017 slot labels, 7018 status line).
 // Adjacent claims: mw_quiz_inc.nss 7000-7005, merit 5001-5078, tele 5089-5096.
@@ -133,6 +140,8 @@ void JB_Start(object oArea, int nIndex)
     // Snapshot the area&#x27;s own music the FIRST time only. Switching tracks while
     // the jukebox is already running must NOT re-snapshot -- otherwise &quot;stop&quot;
     // would restore the previous jukebox pick instead of the area&#x27;s default.
+    // The +1 here is the Get()-side adjustment described at the top of this file,
+    // and it is correct: these values go back to Change() untouched in JB_Stop().
     if (!GetLocalInt(oArea, JB_ON))
     {
         SetLocalInt(oArea, JB_ORIG_DAY, MusicBackgroundGetDayTrack(oArea)    + 1);
@@ -142,13 +151,15 @@ void JB_Start(object oArea, int nIndex)
     }
     SetLocalInt(oArea, JB_TRACK, nIndex);
 
+    // Raw row -- Change() is NOT 1-based. See the header note.
     MusicBackgroundStop(oArea);
-    MusicBackgroundChangeDay(oArea, nRow + 1);
-    MusicBackgroundChangeNight(oArea, nRow + 1);
+    MusicBackgroundChangeDay(oArea, nRow);
+    MusicBackgroundChangeNight(oArea, nRow);
 
     // Silence battle music for the duration, so a fight does not cut the track
-    // off. 0 is the &quot;no track&quot; value (row N is passed as N+1, so nothing maps
-    // to 0), the same sentinel an area with no battle music carries.
+    // off. Row 0 of ambientmusic.2da is the blank reserved row (Resource ****),
+    // so this is silence either way -- as &quot;no track&quot;, or as a track with no
+    // audio behind it.
     MusicBattleStop(oArea);
     MusicBattleChange(oArea, 0);
 

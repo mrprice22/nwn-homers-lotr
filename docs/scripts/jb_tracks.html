@@ -72,9 +72,9 @@
 // 2DA, so the table is baked out here; music/tracks.json is the source of
 // truth and guarantees a row is never reassigned to another song.
 //
-// NOTE the off-by-one: MusicBackgroundChangeDay() wants ROW + 1, while
-// MusicBackgroundGetDayTrack() returns the raw row. jb_inc.nss handles it;
-// these are raw rows.
+// These are RAW ambientmusic.2da rows, and MusicBackgroundChangeDay() takes
+// them as-is. (MusicBackgroundGetDayTrack() is the odd one out -- it returns
+// row MINUS ONE. jb_inc.nss documents both conventions.)
 
 int JB_GetTrackCount();
 int JB_GetTrackRow(int nIndex);
