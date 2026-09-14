@@ -4266,6 +4266,7 @@ PAGE = r"""<!doctype html>
   .chip.merit { background:#1e3a2b; color:#9fe8c0; border-color:#2c6b4e; }
   /* An idea carrying a manual_step someone RAN and it did not pass. */
   .chip.failed { background:#4a2626; color:#f0b8b8; border-color:#7a3a3a; }
+  .chip.missing { background:#4a3a1a; color:#f5d08a; border-color:#7a6128; }
   /* Which realm the idea's code is actually in. Computed server-side from the
      commit: field vs the last promoted sha -- see environment_map(). Colours
      match _REALM_COLORS, which the server monitor already uses for the realms. */
@@ -4961,7 +4962,7 @@ const $ = s => document.querySelector(s);
 // values from one bar to the other and hoping they never diverge.
 const FILTERS = {q:'', status:'', type:'', player:'', group:'', epic:'',
                  env:'', hidden:'', sort:'status', showAwarded:false,
-                 showTriage:false};
+                 showTriage:false, onlyIncomplete:false};
 const FILTER_KEYS = Object.keys(FILTERS);
 const FILTERS_LS = 'roadmap.filters';
 
@@ -5005,6 +5006,8 @@ function filterBarHTML(which){
       Show awarded (done)</label>` : ''}
     <label class="chk"><input type="checkbox" data-f="showTriage">
       Show in triage</label>
+    <label class="chk"><input type="checkbox" data-f="onlyIncomplete">
+      Only missing data</label>
     ${which==='board' ? `<label class="chk" data-cap="edit"><input type="checkbox"
       data-f="cardDropdowns"> Card status dropdowns</label>` : ''}
     <span class="spacer"></span>
@@ -5093,8 +5096,12 @@ function setCount(n){
   // come to believe a report was never filed -- and these are exactly the rows
   // nobody has looked at yet.
   const triaged = (DATA.ideas||[]).filter(i=>i.triage).length;
-  const note = (!FILTERS.showTriage && triaged)
+  let note = (!FILTERS.showTriage && triaged)
     ? ` · ${triaged} in triage hidden` : '';
+  // Shown whether or not the filter is on: the point is to notice, and an
+  // idea missing its type is invisible precisely because nothing complains.
+  const gaps = (DATA.ideas||[]).filter(i=>missingFields(i).length).length;
+  if (gaps && !FILTERS.onlyIncomplete) note += ` · ${gaps} missing data`;
   const txt = `${n}/${DATA.ideas.length} ideas${note}`;
   allBars().forEach(b=>{ const c=b.querySelector('.fcount'); if (c) c.textContent=txt; });
 }
@@ -5482,6 +5489,7 @@ function visibleRows(which){
     // accepted work. The Pending approval tab is where it belongs until it is
     // approved -- this checkbox is for when you want to see it anyway.
     if (!FILTERS.showTriage && it.triage) return false;
+    if (FILTERS.onlyIncomplete && !missingFields(it).length) return false;
     if (fs && it.status!==fs) return false;
     if (ft){ if (ft===BLANK){ if (it.type) return false; } else if ((it.type||'')!==ft) return false; }
     if (fp){ if (fp===BLANK){ if (it.player) return false; } else if ((it.player||'')!==fp) return false; }
@@ -5512,6 +5520,28 @@ function visibleRows(which){
   return rows;
 }
 
+// The fields an idea needs before it can do its job, and what breaks without
+// each one. Deliberately NOT "every empty field":
+//
+//   title, group, status  gen-roadmap.py refuses to build the page without
+//                         them -- these are fatal, not untidy.
+//   type                  picks the Discord forum an idea's thread opens in
+//                         AND its merit value (Defect 1, Enhancement 2,
+//                         Exploit 3). Without it the bot silently cannot open
+//                         a thread at all, which is how two ideas sat in
+//                         `soon` and `wip` with nobody watching them.
+//   player                nobody gets the submitter credit, and merit has no
+//                         one to pay.
+//
+// `date` is blank on ~30 ideas ON PURPOSE (a thread the backfill opened is
+// not a report date) and `notes` on ~80 more. Flagging those would make this
+// filter noise, and a filter that cries wolf is one nobody opens twice.
+const REQUIRED_FIELDS = ['title', 'group', 'status', 'type', 'player'];
+
+function missingFields(it){
+  return REQUIRED_FIELDS.filter(f => !String(it[f] == null ? '' : it[f]).trim());
+}
+
 // Publishing-state chips shown on list rows and board cards.
 function hasFailedStep(it){
   return (it.manual_steps||[]).some(s=>s && typeof s==='object' && s.status==='failed');
@@ -5524,6 +5554,12 @@ function chips(it){
   // Flag only — a failed step never rewrites the idea's status; moving it back
   // to `manual` stays the admin's call.
   if (hasFailedStep(it)) out+='<span class="chip failed">failed</span> ';
+  // Naming the field is the whole value: "incomplete" would send you into the
+  // form to find out what, which is the work this is meant to save.
+  const gaps = missingFields(it);
+  if (gaps.length) out+=`<span class="chip missing" title="This idea cannot `
+               + `be fully used until these are set">no ${esc(gaps.join(', '))}`
+               + `</span> `;
   const env = envOf(it);
   if (env) out+=`<span class="chip env-${env.state}" title="${esc(env.why)}">`
                + `${esc(env.label)}</span> `;
