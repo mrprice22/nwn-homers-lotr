@@ -25,6 +25,7 @@
           <a href="../creatures/search.html">Search</a>
           <a href="../creatures/bosses.html">Bosses</a>
           <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -100,9 +101,10 @@
 // A DelayCommand assigned to the AREA survives the caster&#x27;s death, which is
 // what makes the cooldown the court&#x27;s rather than the creature&#x27;s.
 //
-// Mummy Dust: x2_s2_mumdust.nss branches on GetIsPC, so an NPC cast creates
-// wtop_mreaper (FactionID 1) rather than the player&#x27;s Commoner-faction
-// henchman, capped at 2 live in the area.
+// Mummy Dust: x2_s2_mumdust.nss branches on GetIsPC, so an NPC cast creates the
+// creature outright rather than using the player&#x27;s henchman slot. A wtop_
+// caster gets wtop_mreaper in this Magus&#x27;s own (hostile) faction, capped at 2
+// live per area AND 2 live per Magus.
 
 const float WTOP_MAGE_REFRESH = 60.0;
 
