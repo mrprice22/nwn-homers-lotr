@@ -168,6 +168,11 @@ IDEA_FIELDS = {
     # Internal, append-only per-idea notes. Nothing here renders them: they are
     # how a tester (who has no `edit`) adds information to an item.
     "comments",
+    # Set by nwnbot on a Discord-filed idea and cleared by the admin when they
+    # approve it. "Waiting for a human to look at this", which `hidden` alone
+    # cannot say: an admin may hide an approved item for their own reasons, and
+    # that must not put it back in the approval queue or re-announce it.
+    "triage",
     # Ids this idea needs built first. Two uses, one field: it records real
     # build order, and it marks ideas as SIBLINGS rather than duplicates --
     # twelve prestige quests all waiting on the same Halmir fix are twelve
@@ -300,6 +305,9 @@ def validate(data: dict) -> list[str]:
         if idea.get("hidden") is not None and not isinstance(idea.get("hidden"), bool):
             errors.append(f"'{iid}': hidden must be true/false, got "
                           f"{idea.get('hidden')!r}")
+        if idea.get("triage") is not None and not isinstance(idea.get("triage"), bool):
+            errors.append(f"'{iid}': triage must be true/false, got "
+                          f"{idea.get('triage')!r}")
         # manual_steps carry two reporting keys the queues filter on. A typo in
         # `kind` would silently drop the step out of both queues, so it is fatal.
         for step in (idea.get("manual_steps") or []):
@@ -441,13 +449,18 @@ def merge_dupes(ideas: list[dict]) -> list[dict]:
 
 
 def publishable(ideas: list[dict]) -> list[dict]:
-    """Drop `hidden` ideas — internal items that must never reach the public page.
+    """Drop `hidden` and `triage` ideas — never public.
 
     Dropped before merge_dupes() so a hidden row's title AND its submitter credit
     both stay off the page. A visible idea whose dupe_of target was hidden loses
     the link (it renders standalone) with a warning, rather than crashing.
     """
-    kept = [i for i in ideas if not i.get("hidden")]
+    # `triage` as well as `hidden`: belt and braces. Approving clears both
+    # together, so the two normally agree -- but an item that lost `hidden`
+    # while still awaiting approval would otherwise appear on the public page
+    # with its reporter named, which is the one outcome the queue exists to
+    # prevent. Cheaper to check twice than to publish a report nobody triaged.
+    kept = [i for i in ideas if not i.get("hidden") and not i.get("triage")]
     live = {i.get("id") for i in kept}
     for idea in kept:
         dof = idea.get("dupe_of")

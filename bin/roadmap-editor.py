@@ -83,7 +83,7 @@ FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "merit_awarded", "type",
                "player", "date", "commit", "discord",
                "notes", "notes_h", "impl_notes", "impl_notes_h",
-               "dupe_of", "depends_on", "design_questions", "manual_steps",
+               "triage", "dupe_of", "depends_on", "design_questions", "manual_steps",
                "uat_credits", "comments"]
 # `merit_awarded` records that meritdb was really credited for this idea, which
 # `status: awarded` alone cannot: status can bounce back to `implemented` and
