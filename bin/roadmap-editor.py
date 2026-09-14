@@ -3607,12 +3607,35 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
             if self.path == "/api/thread-links":
-                # nwnbot uploading a fresh set of proposals.
+                # nwnbot uploading a fresh set of proposals. MERGED, never
+                # replaced: a verdict is the admin's work and lives only here,
+                # so a wholesale overwrite silently discards every "none of
+                # these" they have given. (It did exactly that once: a re-run
+                # mid-review threw away sixteen dismissals, which had to be
+                # rebuilt from the audit log.) A link survives an overwrite
+                # because it is recomputed from `discord` in roadmap.yaml; a
+                # dismissal has nowhere else to live.
+                fresh = list(payload.get("proposals") or [])
+                kept = {str(r.get("thread_id")): r
+                        for r in (read_links().get("proposals") or [])
+                        if r.get("verdict")}
+                merged = 0
+                for row in fresh:
+                    old_row = kept.get(str(row.get("thread_id")))
+                    if not old_row:
+                        continue
+                    for key in ("verdict", "verdict_by", "verdict_at"):
+                        if old_row.get(key) is not None:
+                            row[key] = old_row[key]
+                    merged += 1
                 write_links({"generated": str(payload.get("generated") or ""),
                              "model": str(payload.get("model") or ""),
-                             "proposals": list(payload.get("proposals") or [])})
-                self._audit_write(f"thread-links x{len(payload.get('proposals') or [])}")
-                return self._json({"ok": True, "message": "proposals stored."})
+                             "proposals": fresh})
+                self._audit_write(f"thread-links x{len(fresh)} "
+                                  f"({merged} verdict(s) kept)")
+                return self._json({"ok": True, "kept": merged,
+                                   "message": f"proposals stored; {merged} "
+                                              f"existing verdict(s) kept."})
             self._audit_write(f"{payload.get('thread_id')} link "
                               f"{payload.get('action')} {payload.get('idea_id') or ''}")
             return self._links_write(payload)
