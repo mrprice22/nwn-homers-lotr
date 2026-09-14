@@ -2164,6 +2164,18 @@ AUDITED = {
 }
 # A save posts the whole document, so these three are the routes that need the
 # field-level check as well as the route-level one.
+#: The lanes an untriaged report may be approved into, in board order. These
+#: are exactly the open statuses: the three shipped ones are reached through
+#: promote_shipped and the merit flow, never from the approval queue, and
+#: `unlikely` is what Reject already does.
+APPROVE_STATUSES = ("confirmed", "wip", "soon", "later", "planned")
+
+#: Label per status, so the confirmation reads the way the board does.
+#: "Up next" is `wip` and "In progress" is `confirmed` -- worth stating,
+#: because both read the other way round.
+STATUS_LABEL = {"confirmed": "In progress", "wip": "Up next", "soon": "Soon",
+                "later": "Later", "planned": "Under consideration"}
+
 DOCUMENT_WRITES = ("/api/save", "/api/regenerate", "/api/publish")
 MAX_BODY = 8 * 1024 * 1024   # the ideas array is large; unbounded is a weapon
 # Caps on the two free-text fields a tester can write. Generous enough for a
@@ -2794,9 +2806,21 @@ class Handler(BaseHTTPRequestHandler):
                 f"'{iid}' is not awaiting approval any more - reload."]}, 409)
 
         if action == "approve":
+            # Approving IS the triage decision, so the lane is part of it: a
+            # single "approve" that always landed in `planned` meant every
+            # accepted report needed a second visit to say where it actually
+            # sits. Restricted to the open lanes -- a shipped status is
+            # promote_shipped's own business and merit's, and arriving there
+            # straight from an untriaged report would skip both.
+            status = str(payload.get("status") or "planned")
+            if status not in APPROVE_STATUSES:
+                return self._json({"ok": False, "errors": [
+                    f"cannot approve straight into {status!r}"]}, 400)
             idea.pop("triage", None)
             idea.pop("hidden", None)
-            message = f"'{iid}' is on the roadmap."
+            idea["status"] = status
+            message = (f"'{iid}' is on the roadmap as "
+                       f"{STATUS_LABEL.get(status, status)}.")
         elif action == "reject":
             idea.pop("triage", None)
             idea["status"] = "unlikely"
@@ -4646,7 +4670,9 @@ PAGE = r"""<!doctype html>
   #pending .acmeta{ display:flex; gap:8px; align-items:center; }
   #pending .acmeta .score{ font-variant-numeric:tabular-nums; opacity:.7; }
   #pending .actitle{ margin:2px 0 6px; }
-  #pending .pbar{ display:flex; gap:8px; align-items:center; margin-top:8px; }
+  #pending .pbar{ display:flex; gap:8px; align-items:center; margin-top:8px;
+                  flex-wrap:wrap; }
+  #pending .plabel{ margin-top:10px; margin-bottom:-4px; }
   #pending .dlink{ font-size:12px; }
   /* Thread links. Same reading rhythm as #pending and #dupes. */
   #links .lrow{ border:1px solid var(--line); border-radius:8px; padding:10px;
@@ -7469,6 +7495,22 @@ async function linkAct(threadId, action, ideaId){
 //
 // No read endpoint: the rows come straight out of DATA.ideas, the way the
 // toolset and UAT queues do. Only the three writes go to the server.
+// The open lanes, board order, matching STATUS in gen-roadmap.py. Approving is
+// the triage decision, so the lane is chosen with it rather than in a second
+// visit to the idea form.
+const APPROVE_LANES = [
+  {id:'confirmed', label:'In progress'},
+  {id:'wip',       label:'Up next'},
+  {id:'soon',      label:'Soon'},
+  {id:'later',     label:'Later'},
+  {id:'planned',   label:'Under consideration'},
+];
+
+//: How many duplicate suggestions a pending row shows. The scorer stores five;
+//: three is what is worth reading before deciding, and a longer list makes the
+//: queue harder to work through rather than more accurate.
+const APPROVAL_CANDIDATES = 3;
+
 function pendingRows(){
   return (DATA.ideas || []).filter(i => i.triage);
 }
@@ -7497,8 +7539,10 @@ function approvalCandidate(iid, c){
 
 function approvalCard(it){
   const d = it.discord || {};
-  const cands = it.dupe_candidates || [];
+  const all = it.dupe_candidates || [];
+  const cands = all.slice(0, APPROVAL_CANDIDATES);
   const mergeable = cands.filter(c => c.kind !== 'echo').length;
+  const hidden = all.length - cands.length;
   return `<div class="pend" data-id="${esc(it.id)}">
     <div class="phead">
       <b style="flex:1">${esc(it.title || it.id)}</b>
@@ -7513,11 +7557,16 @@ function approvalCard(it){
     <div class="pnotes">${it.notes || '<span class="small">No description.</span>'}</div>
     ${cands.length ? `<div class="acands">
         <div class="small">${mergeable} possible duplicate${mergeable === 1 ? '' : 's'}
-          &mdash; open one to compare, or approve as new if none match.</div>
+          &mdash; open one to compare, or approve as new if none match.${
+          hidden > 0 ? ` (${hidden} lower-scoring one${hidden === 1 ? '' : 's'} not shown)` : ''}</div>
         ${cands.map(c => approvalCandidate(it.id, c)).join('')}
       </div>` : '<p class="small">No similar ideas were suggested.</p>'}
+    <div class="pbar plabel"><span class="small">Approve as a new idea, into:</span></div>
     <div class="pbar">
-      <button class="ok" data-act="approve" data-id="${esc(it.id)}">Approve as new idea</button>
+      ${APPROVE_LANES.map(l => `<button class="ok" data-act="approve"
+         data-id="${esc(it.id)}" data-status="${l.id}">${esc(l.label)}</button>`).join('')}
+    </div>
+    <div class="pbar">
       <button data-act="reject" data-id="${esc(it.id)}">Reject (unlikely)</button>
       <span class="spacer"></span><span class="msg" data-msg="${esc(it.id)}"></span>
     </div>
@@ -7551,12 +7600,13 @@ function openApprovals(){
   root.onclick = ev => {
     const btn = ev.target.closest('[data-act]');
     if (btn && !btn.disabled)
-      approveAct(btn.dataset.id, btn.dataset.act, btn.dataset.dupe || '');
+      approveAct(btn.dataset.id, btn.dataset.act, btn.dataset.dupe || '',
+                 btn.dataset.status || '');
   };
   renderApprovals();
 }
 
-async function approveAct(id, action, dupeOf){
+async function approveAct(id, action, dupeOf, status){
   const el = document.querySelector(`#pending .pend[data-id="${CSS.escape(id)}"]`);
   const msg = document.querySelector(`#pending [data-msg="${CSS.escape(id)}"]`);
   if (el) el.classList.add('busy');
@@ -7564,6 +7614,7 @@ async function approveAct(id, action, dupeOf){
   try {
     const body = {id, action};
     if (action === 'merge') body.dupe_of = dupeOf;
+    if (action === 'approve' && status) body.status = status;
     const r = await api('/api/idea-approve', {method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(body)});
