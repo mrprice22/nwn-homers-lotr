@@ -4667,6 +4667,16 @@ PAGE = r"""<!doctype html>
   #links .lwhy{ opacity:.8; margin-bottom:6px; }
   #links .lbar{ display:flex; gap:8px; align-items:center; margin-top:8px; }
   #links .dlink{ font-size:12px; }
+  /* The link out to a linked forum thread, on the idea form. Deliberately a
+     button rather than a bare url: it is the one place the roadmap and the
+     forum meet, and it is looked for rather than read past. */
+  .discordbar{ display:flex; gap:10px; align-items:center; margin:10px 0; }
+  /* Styled to match the editor's own buttons rather than reusing a class:
+     it is an <a> because it navigates, and there is no shared .btn here. */
+  .discordlink{ padding:8px 13px; border:1px solid var(--line); border-radius:6px;
+                background:var(--panel); color:var(--ink); text-decoration:none;
+                white-space:nowrap; font:inherit; }
+  .discordlink:hover{ border-color:var(--accent); }
   #links .lmanual{ border-top:1px dashed var(--line); margin-top:8px;
                    padding-top:8px; }
   #links .lmanualrow{ display:flex; gap:6px; margin-top:4px; }
@@ -5827,6 +5837,13 @@ function select(i){
       <div><label>Commit (optional git ref)</label>
         <input id="f_commit" value="${esc(it.commit||'')}"></div>
     </div>
+    ${(it.discord && it.discord.url) ? `
+    <div class="discordbar">
+      <a class="discordlink" href="${esc(it.discord.url)}" target="_blank"
+         rel="noopener noreferrer">Open the Discord thread</a>
+      <span class="small">This idea is linked to a forum thread; replies there
+        reach it, and status changes are posted back.</span>
+    </div>` : ''}
     <label>id (stable key; lowercase-hyphen)</label>
     <input id="f_id" value="${esc(it.id||'')}">
     <label>Notes <span class="small">&mdash; player-facing release note, shown on
