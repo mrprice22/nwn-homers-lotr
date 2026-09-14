@@ -18,7 +18,19 @@ void main()
     object oPC = GetPCSpeaker();
     MW_MigrateLegacy(oPC);
 
-    if (MW_GetFlag(oPC, "mixtape_consumed")) return;
+    // One consumption per character, forever - the flag is keyed on
+    // GetObjectUUID(oPC) in mw_db.nss, so a second Mixtape (the Donations
+    // Chest restocks one on the test realm) can never grant the +1 again.
+    // The spare ring is deliberately NOT destroyed: worn, it is still a
+    // +2-to-all-abilities ring, which is the "keep it" branch of this very
+    // conversation.
+    if (MW_GetFlag(oPC, "mixtape_consumed"))
+    {
+        FloatingTextStringOnCreature(
+            "You have already taken the Mixtape's wisdom into yourself. " +
+            "This one can only be worn.", oPC, FALSE);
+        return;
+    }
 
     // Anti-exploit: verify item is still in inventory before committing anything.
     // Dropping the ring mid-conversation then clicking Consume would otherwise
