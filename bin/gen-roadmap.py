@@ -168,6 +168,14 @@ IDEA_FIELDS = {
     # Internal, append-only per-idea notes. Nothing here renders them: they are
     # how a tester (who has no `edit`) adds information to an item.
     "comments",
+    # Ids this idea needs built first. Two uses, one field: it records real
+    # build order, and it marks ideas as SIBLINGS rather than duplicates --
+    # twelve prestige quests all waiting on the same Halmir fix are twelve
+    # separate pieces of work, not one idea submitted twelve times. The
+    # duplicate scorer reads it and never proposes a merge between related
+    # ideas. Declared by hand, never inferred: that is what makes it safe to
+    # suppress a suggestion on.
+    "depends_on",
 }
 
 PLAYER_LABEL = {"community": "Community"}
@@ -317,6 +325,59 @@ def validate(data: dict) -> list[str]:
         dof = idea.get("dupe_of")
         if dof and dof not in seen:
             errors.append(f"'{idea.get('id')}': dupe_of points to unknown id '{dof}'")
+
+    # depends_on: a list of real ids, no self-reference, and no cycles. A cycle
+    # is an error rather than a warning because every consumer of this field
+    # walks it, and "what do I build first" has no answer inside one.
+    graph: dict[str, list[str]] = {}
+    for idea in ideas:
+        iid = idea.get("id")
+        dep = idea.get("depends_on")
+        if dep is None:
+            continue
+        if not isinstance(dep, list):
+            errors.append(f"'{iid}': depends_on must be a list of ids")
+            continue
+        clean: list[str] = []
+        for d in dep:
+            if not isinstance(d, str) or not d.strip():
+                errors.append(f"'{iid}': depends_on entries must be non-empty ids")
+            elif d == iid:
+                errors.append(f"'{iid}': depends_on cannot point at itself")
+            elif d not in seen:
+                errors.append(f"'{iid}': depends_on points to unknown id '{d}'")
+            else:
+                clean.append(d)
+        graph[iid] = clean
+
+    # Iterative DFS with an explicit stack: the chains are short today, but a
+    # recursive walk would blow up on exactly the malformed input this is here
+    # to catch.
+    WHITE, GREY, BLACK = 0, 1, 2
+    colour: dict[str, int] = {}
+    reported: set[tuple[str, str]] = set()
+    for root in graph:
+        if colour.get(root, WHITE) != WHITE:
+            continue
+        stack = [(root, iter(graph.get(root, ())))]
+        colour[root] = GREY
+        while stack:
+            node, kids = stack[-1]
+            nxt = next(kids, None)
+            if nxt is None:
+                colour[node] = BLACK
+                stack.pop()
+                continue
+            state = colour.get(nxt, WHITE)
+            if state == GREY:
+                pair = tuple(sorted((node, nxt)))
+                if pair not in reported:
+                    reported.add(pair)
+                    errors.append(f"'{node}': depends_on forms a cycle with "
+                                  f"'{nxt}'")
+            elif state == WHITE:
+                colour[nxt] = GREY
+                stack.append((nxt, iter(graph.get(nxt, ()))))
 
     # Similar-title warning among non-merged ideas (duplicate-idea guard).
     # Still every pair, but norm_title() (two regexes + a set build) is computed
