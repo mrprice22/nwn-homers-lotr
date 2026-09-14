@@ -59,6 +59,12 @@ YAML_PATH = REPO / "roadmap.yaml"
 #: nothing downstream of the roadmap should ever read a guess. Absent is fine --
 #: the page then says there is nothing to review.
 DUPES_PATH = REPO / "dupe-suggestions.json"
+# Thread-matching proposals from nwnbot: which existing Discord thread each
+# roadmap idea is probably already tracking. A sidecar for the same reason
+# DUPES_PATH is one - it holds a machine's guesses plus your verdicts on them,
+# which is the half roadmap.yaml cannot hold. Confirming a row writes the
+# `discord` field on the idea and the row is then done.
+LINKS_PATH = REPO / "thread-links.json"
 GEN_PATH = REPO / "bin" / "gen-roadmap.py"
 PUBLISH_PATH = REPO / "bin" / "roadmap_publish.py"
 # Palette Finder: standalone map of blueprint -> toolset-palette location. Built
@@ -1356,6 +1362,27 @@ def normalize_ideas(ideas, groups=None) -> None:
             it["notes"] = sanitize_notes(it["notes"])
 
 
+def read_links() -> dict:
+    """The thread-matching proposals, or an empty set when nwnbot has not run."""
+    try:
+        with open(LINKS_PATH, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (FileNotFoundError, ValueError):
+        return {"generated": "", "model": "", "proposals": []}
+    if not isinstance(data, dict):
+        return {"generated": "", "model": "", "proposals": []}
+    data.setdefault("proposals", [])
+    return data
+
+
+def write_links(data: dict) -> None:
+    """Replace the proposals file atomically, like read_dupes' writer."""
+    tmp = LINKS_PATH.with_suffix(".json.tmp")
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=2, ensure_ascii=False)
+    os.replace(tmp, LINKS_PATH)
+
+
 def validate_document(ideas, groups=None, players=None,
                       epics=None) -> tuple[list[str], list[str]]:
     """Run gen-roadmap's validate() plus our structural checks."""
@@ -2099,6 +2126,11 @@ ROUTE_CAPS: dict[str, str] = {
     # the same capability as promoting to a shipped status. `dm` and `bot`
     # deliberately lack it: neither a DM nor the sync bot can approve an idea.
     "/api/idea-approve": "promote_shipped",
+    # Linking is not approving: it records that a thread and an idea are the
+    # same work, which `edit` already covers, and which nwnbot itself must be
+    # able to do to upload its proposals.
+    "/api/thread-links": "edit",
+    "/api/thread-links/action": "edit",
     "/api/regenerate": "publish",
     "/api/publish": "publish",
     "/api/award": "merit",
@@ -2118,6 +2150,8 @@ AUDITED = {
     "/api/uat-result": "uat.result",
     "/api/idea-comment": "idea.comment",
     "/api/idea-approve": "idea.approve",
+    "/api/thread-links": "links.upload",
+    "/api/thread-links/action": "links.act",
     "/api/regenerate": "roadmap.regenerate",
     "/api/publish": "roadmap.publish",
     "/api/award": "merit.award",
@@ -2629,6 +2663,105 @@ class Handler(BaseHTTPRequestHandler):
         write_dupes(doc)
         return self._json({"ok": True, "message": message,
                            "version": yaml_version()})
+
+    def _links_payload(self):
+        """The proposals, re-joined against live roadmap.yaml.
+
+        Like _dupes_payload: the file is a snapshot of what nwnbot saw, and an
+        idea may have been renamed, linked or deleted since. Resolving here
+        means the page never shows a button that cannot work.
+        """
+        data = read_links()
+        ideas = {i.get("id"): i for i in (read_yaml().get("ideas") or [])}
+        linked_threads = {
+            str((i.get("discord") or {}).get("thread_id") or "")
+            for i in ideas.values() if isinstance(i.get("discord"), dict)}
+        rows = []
+        for row in data.get("proposals") or []:
+            row = dict(row)
+            row["done"] = str(row.get("thread_id") or "") in linked_threads
+            cands = []
+            for c in row.get("candidates") or []:
+                c = dict(c)
+                live = ideas.get(c.get("id"))
+                c["gone"] = live is None
+                if live is not None:
+                    c["title"] = live.get("title") or c.get("title")
+                    c["status"] = live.get("status")
+                    c["taken"] = bool(live.get("discord"))
+                cands.append(c)
+            row["candidates"] = cands
+            rows.append(row)
+        data["proposals"] = rows
+        return data
+
+    def _links_write(self, payload):
+        """Confirm or dismiss one thread-to-idea match.
+
+        Confirming writes `discord` onto the idea, which is all it takes: both
+        planners fall back to that field, so one write links the pair in both
+        directions. Narrow, like _dupes_write -- re-read, touch one item, save.
+
+        A wrong link would post one player's status updates and merit
+        announcements into another player's thread, so the refusals below are
+        the point of the endpoint, not decoration.
+        """
+        thread_id = str(payload.get("thread_id") or "")
+        action = str(payload.get("action") or "")
+        if action not in ("link", "dismiss"):
+            return self._json({"ok": False,
+                               "errors": [f"bad action {action!r}"]}, 400)
+
+        doc = read_links()
+        row = next((r for r in doc.get("proposals") or []
+                    if str(r.get("thread_id")) == thread_id), None)
+        if row is None:
+            return self._json({"ok": False,
+                               "errors": [f"no proposal for thread {thread_id}"]}, 404)
+
+        if action == "dismiss":
+            row["verdict"] = "none"
+            row["verdict_by"] = getattr(self.user, "label", "")
+            row["verdict_at"] = datetime.now(timezone.utc).isoformat(
+                timespec="seconds")
+            write_links(doc)
+            return self._json({"ok": True,
+                               "message": f"thread {thread_id} left unlinked."})
+
+        idea_id = str(payload.get("idea_id") or "")
+        data = read_yaml()
+        ideas = data.get("ideas") or []
+        idea = next((i for i in ideas if i.get("id") == idea_id), None)
+        if idea is None:
+            return self._json({"ok": False, "stale": True, "errors": [
+                f"'{idea_id}' is not in the roadmap - reload."]}, 409)
+        existing = idea.get("discord")
+        if isinstance(existing, dict) and existing.get("thread_id"):
+            if str(existing["thread_id"]) == thread_id:
+                return self._json({"ok": False, "stale": True, "errors": [
+                    f"'{idea_id}' is already linked to that thread."]}, 409)
+            return self._json({"ok": False, "errors": [
+                f"'{idea_id}' is already linked to thread "
+                f"{existing['thread_id']}. Clear that first if you want it "
+                f"pointed at this one."]}, 409)
+        # One thread, one idea: linking a thread twice would duplicate every
+        # future status post into it.
+        clash = next((i for i in ideas
+                      if isinstance(i.get("discord"), dict)
+                      and str(i["discord"].get("thread_id")) == thread_id), None)
+        if clash is not None:
+            return self._json({"ok": False, "errors": [
+                f"that thread is already linked to '{clash.get('id')}'."]}, 409)
+
+        idea["discord"] = {"thread_id": thread_id,
+                           "channel_id": str(row.get("channel_id") or ""),
+                           "url": str(row.get("url") or "")}
+        row["verdict"] = idea_id
+        row["verdict_by"] = getattr(self.user, "label", "")
+        row["verdict_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        write_links(doc)
+        return self._finish_tester_write(ideas, idea, idea_id,
+                                         f"linked '{idea_id}' to that thread.")
 
     def _approve_write(self, payload):
         """Answer one pending idea: approve it, merge it, or reject it.
@@ -3172,6 +3305,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Location", "/#dupes")
             self.send_header("Content-Length", "0")
             self.end_headers()
+        elif self.path.startswith("/api/thread-links"):
+            self._json(self._links_payload())
         elif self.path.startswith("/api/dupes"):
             self._json(self._dupes_payload())
         elif self.path.startswith("/api/serverlog"):
@@ -3466,6 +3601,21 @@ class Handler(BaseHTTPRequestHandler):
             self._audit_write(f"{payload.get('id')} step #{payload.get('index')} "
                               f"-> {payload.get('status')}")
             return self._step_write(payload)
+        if self.path in ("/api/thread-links", "/api/thread-links/action"):
+            try:
+                payload = self._read_body()
+            except Exception as e:
+                return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
+            if self.path == "/api/thread-links":
+                # nwnbot uploading a fresh set of proposals.
+                write_links({"generated": str(payload.get("generated") or ""),
+                             "model": str(payload.get("model") or ""),
+                             "proposals": list(payload.get("proposals") or [])})
+                self._audit_write(f"thread-links x{len(payload.get('proposals') or [])}")
+                return self._json({"ok": True, "message": "proposals stored."})
+            self._audit_write(f"{payload.get('thread_id')} link "
+                              f"{payload.get('action')} {payload.get('idea_id') or ''}")
+            return self._links_write(payload)
         if self.path == "/api/idea-approve":
             try:
                 payload = self._read_body()
@@ -4475,6 +4625,25 @@ PAGE = r"""<!doctype html>
   #pending .actitle{ margin:2px 0 6px; }
   #pending .pbar{ display:flex; gap:8px; align-items:center; margin-top:8px; }
   #pending .dlink{ font-size:12px; }
+  /* Thread links. Same reading rhythm as #pending and #dupes. */
+  #links .lrow{ border:1px solid var(--line); border-radius:8px; padding:10px;
+                margin-bottom:12px; }
+  #links .lrow.busy{ opacity:.5; pointer-events:none; }
+  #links .lrow.done{ opacity:.6; }
+  #links .lhead{ display:flex; gap:8px; align-items:baseline; }
+  #links .lmeta{ display:flex; gap:10px; align-items:center; margin:4px 0 8px; }
+  #links .lcand{ border:1px solid var(--line); border-radius:6px; padding:8px;
+                 margin:6px 0; }
+  /* The model agreeing is the strongest signal on the page, so it is the one
+     thing given colour. */
+  #links .lcand.agrees{ border-color:var(--ok); }
+  #links .lcmeta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  #links .lcmeta .score{ font-variant-numeric:tabular-nums; opacity:.7; }
+  #links .lctitle{ margin:2px 0 4px; }
+  #links .lwhy{ opacity:.8; margin-bottom:6px; }
+  #links .lbar{ display:flex; gap:8px; align-items:center; margin-top:8px; }
+  #links .dlink{ font-size:12px; }
+
 
   /* Rehosted Discord screenshots inside an internal comment. Bounded so a
      1600px capture does not push the rest of the panel off screen; click
@@ -4586,6 +4755,7 @@ PAGE = r"""<!doctype html>
         <button class="navlink" data-route="list">List</button>
         <button class="navlink" data-route="dupes" data-cap="edit">Duplicates</button>
         <button class="navlink" data-route="approvals" data-cap="promote_shipped">Pending approval</button>
+        <button class="navlink" data-route="thread-links" data-cap="edit">Thread links</button>
       </div>
       <div class="navsec"><h3>Queues</h3>
         <button class="navlink" data-route="queue-toolset" data-cap="edit">Toolset Queue</button>
@@ -4995,6 +5165,7 @@ const TAB_DEFS = {
   list:   {title:'List',  kind:'list',  fixed:true, render:renderListPane},
   dupes:  {title:'Duplicates',          render:()=>openDupes()},
   approvals: {title:'Pending approval', render:()=>openApprovals()},
+  'thread-links': {title:'Thread links', render:()=>openLinks()},
   'queue-toolset': {title:'Toolset Queue', render:()=>openQueue('toolset')},
   'queue-uat':     {title:'UAT Queue',     render:()=>openQueue('uat')},
   review:  {title:'UAT Review',          render:()=>openReview()},
@@ -7039,6 +7210,151 @@ function panelHTML(html){
 // modal when it is one.
 function closePanel(){
   if (RENDER_TARGET) closeTab(activeKey); else closeModal();
+}
+
+
+// ---- Thread links ---------------------------------------------------------
+// Which existing Discord thread is each roadmap idea already tracking?
+//
+// Both sides predate the bot: 37 forum threads, 423 ideas, and not one idea
+// carried a `discord` field. Until they do, both directions duplicate - a
+// backfill opens a second thread for work that already has one, and an inbound
+// sync mints a second idea for a report already logged.
+//
+// Proposals come from nwnbot (token shortlist, then the local model judges it)
+// and land in thread-links.json. Confirming writes `discord` onto the idea,
+// which is all it takes: both planners fall back to that field.
+//
+// Nothing here is automatic. A wrong link posts one player's status updates and
+// merit announcements into another player's thread.
+let LINKS = null;
+let linkFilter = 'open';
+
+function linkCandidate(row, c){
+  const agrees = c.llm === 'same';
+  const blocked = c.gone || c.taken;
+  const why = c.why ? `<div class="small lwhy">${esc(c.why)}</div>` : '';
+  return `<div class="lcand${agrees ? ' agrees' : ''}">
+    <div class="lcmeta">
+      <a class="id" href="#idea-${esc(c.id)}">${esc(c.id)}</a>
+      <span class="score">${(typeof c.score === 'number' ? c.score.toFixed(2) : '')}</span>
+      ${c.llm ? `<span class="chip ${agrees ? 'ok' : ''}">model: ${esc(c.llm)}</span>` : ''}
+      ${c.status ? `<span class="chip">${esc(c.status)}</span>` : ''}
+      ${c.shipped ? '<span class="chip">shipped</span>' : ''}
+      ${c.gone ? '<span class="chip warn">no longer in the roadmap</span>' : ''}
+      ${c.taken ? '<span class="chip warn">already linked elsewhere</span>' : ''}
+    </div>
+    <div class="lctitle">${esc(c.title || '')}</div>
+    ${why}
+    <button class="pick" data-act="link" data-thread="${esc(row.thread_id)}"
+      data-idea="${esc(c.id)}" ${blocked ? 'disabled' : ''}>
+      <b>This is it</b> &mdash; link the thread to ${esc(c.id)}</button>
+  </div>`;
+}
+
+function linkCard(row){
+  const marks = [];
+  if (row.marked_created) marks.push('<span class="chip">\u{1FAE1} idea created</span>');
+  if (row.marked_shipped) marks.push('<span class="chip">✅ shipped</span>');
+  if (row.archived) marks.push('<span class="chip">archived</span>');
+  const cands = row.candidates || [];
+  return `<div class="lrow${row.done ? ' done' : ''}" data-id="${esc(row.thread_id)}">
+    <div class="lhead">
+      <b style="flex:1">${esc(row.title || row.thread_id)}</b>
+      ${marks.join(' ')}
+      ${row.done ? '<span class="chip verdict">linked</span>' : ''}
+    </div>
+    <div class="lmeta">
+      ${row.url ? `<a class="dlink" href="${esc(row.url)}" target="_blank"
+                     rel="noopener noreferrer">open the thread</a>` : ''}
+      <span class="small">${cands.length} candidate${cands.length === 1 ? '' : 's'}</span>
+    </div>
+    ${row.done ? '' : cands.map(c => linkCandidate(row, c)).join('')}
+    ${row.done ? '' : `<div class="lbar">
+      <button data-act="dismiss" data-thread="${esc(row.thread_id)}">
+        None of these &mdash; leave it unlinked</button>
+      <span class="spacer"></span><span class="msg" data-msg="${esc(row.thread_id)}"></span>
+    </div>`}
+  </div>`;
+}
+
+function renderLinks(){
+  const all = (LINKS && LINKS.proposals) || [];
+  const shown = all.filter(r =>
+    linkFilter === 'all' ? true :
+    linkFilter === 'done' ? (r.done || r.verdict) : !(r.done || r.verdict));
+  const count = $('#l_count');
+  if (count) count.textContent =
+    `${all.filter(r => !(r.done || r.verdict)).length} to review, ${all.length} total`;
+  const intro = $('#l_intro');
+  if (intro) intro.textContent = LINKS && LINKS.generated
+    ? `Proposed ${LINKS.generated}${LINKS.model ? ' by ' + LINKS.model : ''}.`
+    : 'No proposals yet - run `python -m nwnbot link --upload`.';
+  const list = $('#l_list');
+  if (list) list.innerHTML = shown.length
+    ? shown.map(linkCard).join('')
+    : '<p class="small">Nothing here.</p>';
+}
+
+function loadLinks(){
+  return api('/api/thread-links').then(r => r.json()).then(d => {
+    LINKS = d;
+    renderLinks();
+  });
+}
+
+function openLinks(){
+  panelHTML(`<h2>Thread links</h2>
+    <div id="links">
+      <div class="dbar">
+        <span id="l_count">loading&hellip;</span>
+        <button class="dtab" data-lfilter="open">To review</button>
+        <button class="dtab" data-lfilter="done">Done</button>
+        <button class="dtab" data-lfilter="all">All</button>
+        <span class="spacer"></span>
+      </div>
+      <p class="intro" id="l_intro">Loading&hellip;</p>
+      <div class="dlist" id="l_list"></div>
+    </div>
+    <div class="bar"><span class="spacer"></span><button id="l_close">Close</button></div>`);
+  const close = $('#l_close'); if (close) close.onclick = closePanel;
+  const root = $('#links'); if (!root) return;
+  root.onclick = ev => {
+    const tab = ev.target.closest('.dtab');
+    if (tab){ linkFilter = tab.dataset.lfilter; return renderLinks(); }
+    const btn = ev.target.closest('[data-act]');
+    if (btn && !btn.disabled)
+      linkAct(btn.dataset.thread, btn.dataset.act, btn.dataset.idea || '');
+  };
+  loadLinks();
+}
+
+async function linkAct(threadId, action, ideaId){
+  const el = document.querySelector(`#links .lrow[data-id="${CSS.escape(threadId)}"]`);
+  const msg = document.querySelector(`#links [data-msg="${CSS.escape(threadId)}"]`);
+  if (el) el.classList.add('busy');
+  if (msg){ msg.textContent = 'Saving…'; msg.className = 'msg'; }
+  try {
+    const r = await api('/api/thread-links/action', {method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({thread_id: threadId, action, idea_id: ideaId})});
+    const out = await r.json();
+    if (!out.ok){
+      if (msg){
+        msg.className = 'msg err';
+        msg.textContent = (out.errors || [out.message || 'Refused.']).join(' ');
+      }
+      if (el) el.classList.remove('busy');
+      if (out.stale) await loadLinks();
+      return;
+    }
+    // Linking writes `discord` into roadmap.yaml, so the board is stale too.
+    await loadLinks();
+    await load();
+  } catch (e){
+    if (msg){ msg.className = 'msg err'; msg.textContent = 'Could not reach the editor: ' + e; }
+    if (el) el.classList.remove('busy');
+  }
 }
 
 // ---- Pending approval -----------------------------------------------------
