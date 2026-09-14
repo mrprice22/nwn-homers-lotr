@@ -4369,6 +4369,12 @@ PAGE = r"""<!doctype html>
   #dupes .chip.merit  { color:var(--warn); border-color:var(--warn); }
   #dupes .chip.gone   { color:var(--err); border-color:var(--err); }
   #dupes .chip.verdict{ color:var(--ok); border-color:var(--ok); }
+  /* Rehosted Discord screenshots inside an internal comment. Bounded so a
+     1600px capture does not push the rest of the panel off screen; click
+     opens the full image. */
+  .ho-cimg{ max-width:100%; max-height:260px; border-radius:6px;
+            border:1px solid var(--line); margin-top:6px; display:block;
+            cursor:zoom-in; }
   #dupes .dbody { display:grid; grid-template-columns:1fr 1fr; gap:1px;
                   background:var(--line); }
   #dupes .side { background:var(--panel); padding:12px 13px; display:flex;
@@ -6141,12 +6147,39 @@ before paying the merit)">${esc(s.result||'')}</textarea>
 // Append-only per-idea notes. Rendered for everyone, writable by anyone with
 // `uat` (which is every role) -- it is how a tester, who has no `edit`, adds
 // information to an item at all. There is no edit or delete: see _comment_write.
+// Comments are escaped, never sanitized: testers and the sync bot both write
+// them, and un-escaping to allow markup would be an injection hole in a field
+// several roles can append to. So escape EVERYTHING first, then re-introduce
+// exactly one thing: an <img> for a url on the rehosting host. Nothing else can
+// come back, because nothing else survives esc().
+//
+// The host allowlist is the security property, not a convenience. Discord CDN
+// urls are deliberately NOT on it: they are signed and expire within a day, so
+// an <img> pointing at one shows a broken image a day later. nwnbot rehosts to
+// IMAGE_HOSTS instead, which is why those links are durable.
+// The single allowed host. Hardcoded on purpose -- this allowlist IS the
+// security property. Discord CDN urls are deliberately absent: they are signed
+// and expire within a day, so an <img> pointing at one is a broken image
+// tomorrow. nwnbot rehosts here instead, which is what makes these durable.
+//
+// Safe against esc(): a rehosted key is hex, slashes and ".webp", so it
+// contains nothing esc() rewrites. A url with & or " would not survive
+// escaping intact and simply would not match, which fails closed.
+const IMAGE_RE = /(^|\s)(https:\/\/img\.homerslotr\.com\/[^\s<>"']+?\.(?:webp|png|jpe?g|gif))(?=$|\s)/gi;
+
+function commentText(text){
+  const safe = esc(text || '');
+  return safe.replace(IMAGE_RE, (m, lead, url) =>
+    lead + '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
+    '<img src="' + url + '" alt="" loading="lazy" class="ho-cimg"></a>');
+}
+
 function commentsHTML(){
   const rows = (HO.comments||[]).map(c=>`
     <div class="ho-item">
       <div class="ho-row"><b style="flex:1">${esc(c.author||'—')}</b>
         <span class="small">${esc(c.date||'')}</span></div>
-      <div class="ho-ctext">${esc(c.text)}</div>
+      <div class="ho-ctext">${commentText(c.text)}</div>
     </div>`).join('');
   return `
     <label style="margin-top:10px">Notes &amp; findings
