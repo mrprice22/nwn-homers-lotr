@@ -7192,8 +7192,9 @@ function move(dir){
   banner('warn','Moved in the editor. Click Save to write the new file order.');
 }
 
-function del(){
+async function del(){
   const i = curIdx(); if (i<0) return;
+  const title = (DATA.ideas[i] || {}).title || (DATA.ideas[i] || {}).id || '';
   if (!confirm('Delete this idea from the backlog?')) return;
   DATA.ideas.splice(i,1);
   sel = -1; selRef = null; formSnapshot = null;
@@ -7201,7 +7202,24 @@ function del(){
   // The tab was a view onto an idea that no longer exists, so it goes too.
   const t = activeTab();
   if (t && t.kind === 'idea'){ t.fixed = false; forceCloseTab(t.key); }
-  banner('warn','Deleted in the editor. Click Save to write it to roadmap.yaml.');
+  // ...and then SAVE, rather than asking for a second click.
+  //
+  // This used to stop here and say "Click Save to write it to roadmap.yaml".
+  // Save lives on the idea form, which the two lines above just closed, so the
+  // instruction named a button that was no longer on the page: the only way to
+  // persist the delete was to open some unrelated idea and save from there.
+  // The confirm above IS the confirmation; a second, unreachable one is not a
+  // safeguard. commit() skips the form-folding when no idea form is open, so
+  // this posts the array exactly as it now stands.
+  if (await commit('/api/save')){
+    banner('ok', 'Deleted "' + title + '" from roadmap.yaml.');
+  } else {
+    // commit() has already explained why. Say what it means for the page: the
+    // browser's copy no longer matches the file, so a reload is the honest fix
+    // rather than leaving a half-applied state to be saved later by accident.
+    banner('bad', 'Not deleted — the save failed. Reload the page; the item is '
+      + 'still in roadmap.yaml.');
+  }
 }
 
 // closeTab() routes through guard(); this is the path for a tab whose idea is
