@@ -4630,6 +4630,7 @@ PAGE = r"""<!doctype html>
                 margin-bottom:12px; }
   #links .lrow.busy{ opacity:.5; pointer-events:none; }
   #links .lrow.done{ opacity:.6; }
+  #links .lrow.moved{ opacity:.7; border-style:dashed; }
   #links .lhead{ display:flex; gap:8px; align-items:baseline; }
   #links .lmeta{ display:flex; gap:10px; align-items:center; margin:4px 0 8px; }
   #links .lcand{ border:1px solid var(--line); border-radius:6px; padding:8px;
@@ -7258,6 +7259,25 @@ function linkCard(row){
   if (row.marked_shipped) marks.push('<span class="chip">✅ shipped</span>');
   if (row.archived) marks.push('<span class="chip">archived</span>');
   const cands = row.candidates || [];
+  // The admin moves an idea between #bugs and #feature-requests by opening a
+  // new thread and closing the old one, leaving a link behind. When that link
+  // is there the answer is already written down: this thread is not the one to
+  // link, and there is nothing to decide beyond dismissing it.
+  if (row.superseded_by) {
+    return `<div class="lrow moved" data-id="${esc(row.thread_id)}">
+      <div class="lhead"><b style="flex:1">${esc(row.title || row.thread_id)}</b>
+        <span class="chip">moved</span></div>
+      <div class="lmeta">
+        <span class="small">Closed, with a link to
+          <a href="#" data-act="noop">another thread</a> &mdash; that one carries
+          the roadmap link, not this.</span>
+      </div>
+      ${row.done ? '' : `<div class="lbar">
+        <button data-act="dismiss" data-thread="${esc(row.thread_id)}">Dismiss</button>
+        <span class="spacer"></span>
+        <span class="msg" data-msg="${esc(row.thread_id)}"></span></div>`}
+    </div>`;
+  }
   return `<div class="lrow${row.done ? ' done' : ''}" data-id="${esc(row.thread_id)}">
     <div class="lhead">
       <b style="flex:1">${esc(row.title || row.thread_id)}</b>
