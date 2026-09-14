@@ -83,7 +83,8 @@ FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "merit_awarded", "type",
                "player", "date", "commit", "discord",
                "notes", "notes_h", "impl_notes", "impl_notes_h",
-               "triage", "dupe_of", "depends_on", "design_questions", "manual_steps",
+               "triage", "dupe_candidates", "dupe_of", "depends_on",
+               "design_questions", "manual_steps",
                "uat_credits", "comments"]
 # `merit_awarded` records that meritdb was really credited for this idea, which
 # `status: awarded` alone cannot: status can bounce back to `implemented` and
@@ -2094,6 +2095,10 @@ ROUTE_CAPS: dict[str, str] = {
     "/api/uat-claim": "uat",
     "/api/uat-result": "uat",
     "/api/idea-comment": "uat",
+    # Approving puts a player's report on the PUBLIC roadmap, so it is gated on
+    # the same capability as promoting to a shipped status. `dm` and `bot`
+    # deliberately lack it: neither a DM nor the sync bot can approve an idea.
+    "/api/idea-approve": "promote_shipped",
     "/api/regenerate": "publish",
     "/api/publish": "publish",
     "/api/award": "merit",
@@ -2112,6 +2117,7 @@ AUDITED = {
     "/api/uat-claim": "uat.claim",
     "/api/uat-result": "uat.result",
     "/api/idea-comment": "idea.comment",
+    "/api/idea-approve": "idea.approve",
     "/api/regenerate": "roadmap.regenerate",
     "/api/publish": "roadmap.publish",
     "/api/award": "merit.award",
@@ -2623,6 +2629,79 @@ class Handler(BaseHTTPRequestHandler):
         write_dupes(doc)
         return self._json({"ok": True, "message": message,
                            "version": yaml_version()})
+
+    def _approve_write(self, payload):
+        """Answer one pending idea: approve it, merge it, or reject it.
+
+        Narrower than /api/save on purpose, like _dupes_write and
+        _comment_write: re-read roadmap.yaml, touch one item, write. Gated on
+        `promote_shipped` in ROUTE_CAPS -- approving is what puts a player's
+        report on the PUBLIC roadmap, which is the same kind of decision `dm`
+        and `bot` are already denied for shipped statuses.
+
+        nwnbot sets `triage: true` and can never clear it: its planner refuses
+        to plan the write and its client refuses to send it. Clearing it is
+        this endpoint, and this endpoint is the admin.
+        """
+        iid = str(payload.get("id") or "")
+        action = str(payload.get("action") or "")
+        if action not in ("approve", "merge", "reject"):
+            return self._json({"ok": False,
+                               "errors": [f"bad action {action!r}"]}, 400)
+        data = read_yaml()
+        ideas = data.get("ideas") or []
+        idea = next((i for i in ideas if i.get("id") == iid), None)
+        if idea is None:
+            return self._json({"ok": False,
+                               "errors": [f"no such idea '{iid}'"]}, 404)
+        if not idea.get("triage"):
+            # Answered already, in another tab or by someone else. Refusing is
+            # kinder than silently re-approving something already merged.
+            return self._json({"ok": False, "stale": True, "errors": [
+                f"'{iid}' is not awaiting approval any more - reload."]}, 409)
+
+        if action == "approve":
+            idea.pop("triage", None)
+            idea.pop("hidden", None)
+            message = f"'{iid}' is on the roadmap."
+        elif action == "reject":
+            idea.pop("triage", None)
+            idea["status"] = "unlikely"
+            message = f"'{iid}' marked unlikely."
+        else:
+            canon_id = str(payload.get("dupe_of") or "")
+            canon = next((i for i in ideas if i.get("id") == canon_id), None)
+            if canon is None:
+                return self._json({"ok": False, "stale": True, "errors": [
+                    f"'{canon_id}' is not in the roadmap - reload."]}, 409)
+            # A dupe row must never point at another dupe row: walk to whatever
+            # governs, exactly as _dupes_write and the roadmap reader do.
+            seen, cursor = set(), canon
+            while cursor.get("dupe_of") and cursor["dupe_of"] not in seen:
+                seen.add(cursor["dupe_of"])
+                nxt = next((i for i in ideas
+                            if i.get("id") == cursor["dupe_of"]), None)
+                if nxt is None:
+                    break
+                cursor = nxt
+            canon_id = cursor.get("id", canon_id)
+            if canon_id == iid:
+                return self._json({"ok": False, "errors": [
+                    "that would point an item at itself."]}, 400)
+            # The admin's rule: an idea is not reopened once awarded or
+            # deployed. A report matching shipped work is a story of its own --
+            # most likely a regression -- so it is never merged INTO one.
+            if cursor.get("merit_awarded") or cursor.get("status") in (
+                    "awarded", "implemented"):
+                return self._json({"ok": False, "errors": [
+                    f"'{canon_id}' has already shipped - a report that matches "
+                    f"it is a new story, not a duplicate. Approve it instead."]},
+                    400)
+            idea.pop("triage", None)
+            idea["dupe_of"] = canon_id
+            message = f"'{iid}' merged into '{canon_id}'."
+
+        return self._finish_tester_write(ideas, idea, iid, message)
 
     def _step_write(self, payload):
         """Tick one manual_step's status/kind/tester from a queue panel.
@@ -3387,6 +3466,15 @@ class Handler(BaseHTTPRequestHandler):
             self._audit_write(f"{payload.get('id')} step #{payload.get('index')} "
                               f"-> {payload.get('status')}")
             return self._step_write(payload)
+        if self.path == "/api/idea-approve":
+            try:
+                payload = self._read_body()
+            except Exception as e:
+                return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
+            self._audit_write(f"{payload.get('id')} {payload.get('action')}"
+                              + (f" -> {payload.get('dupe_of')}"
+                                 if payload.get("dupe_of") else ""))
+            return self._approve_write(payload)
         if self.path in ("/api/uat-claim", "/api/uat-result", "/api/idea-comment"):
             try:
                 payload = self._read_body()
@@ -4369,6 +4457,25 @@ PAGE = r"""<!doctype html>
   #dupes .chip.merit  { color:var(--warn); border-color:var(--warn); }
   #dupes .chip.gone   { color:var(--err); border-color:var(--err); }
   #dupes .chip.verdict{ color:var(--ok); border-color:var(--ok); }
+  /* Pending approval. Deliberately close to #dupes: the two are read the same
+     way, one after the other, and should not feel like different products. */
+  #pending .pend{ border:1px solid var(--line); border-radius:8px; padding:10px;
+                  margin-bottom:12px; }
+  #pending .pend.busy{ opacity:.5; pointer-events:none; }
+  #pending .phead{ display:flex; gap:8px; align-items:baseline; }
+  #pending .pmeta{ display:flex; gap:10px; align-items:center; margin:4px 0 8px; }
+  #pending .pnotes{ border-left:3px solid var(--line); padding-left:10px;
+                    margin-bottom:10px; max-height:320px; overflow:auto; }
+  #pending .pnotes img{ max-width:100%; max-height:260px; border-radius:6px; }
+  #pending .acand{ border:1px solid var(--line); border-radius:6px; padding:8px;
+                   margin:6px 0; }
+  #pending .acand.echo{ opacity:.72; border-style:dashed; }
+  #pending .acmeta{ display:flex; gap:8px; align-items:center; }
+  #pending .acmeta .score{ font-variant-numeric:tabular-nums; opacity:.7; }
+  #pending .actitle{ margin:2px 0 6px; }
+  #pending .pbar{ display:flex; gap:8px; align-items:center; margin-top:8px; }
+  #pending .dlink{ font-size:12px; }
+
   /* Rehosted Discord screenshots inside an internal comment. Bounded so a
      1600px capture does not push the rest of the panel off screen; click
      opens the full image. */
@@ -4478,6 +4585,7 @@ PAGE = r"""<!doctype html>
         <button class="navlink" data-route="board">Board</button>
         <button class="navlink" data-route="list">List</button>
         <button class="navlink" data-route="dupes" data-cap="edit">Duplicates</button>
+        <button class="navlink" data-route="approvals" data-cap="promote_shipped">Pending approval</button>
       </div>
       <div class="navsec"><h3>Queues</h3>
         <button class="navlink" data-route="queue-toolset" data-cap="edit">Toolset Queue</button>
@@ -4886,6 +4994,7 @@ const TAB_DEFS = {
   board:  {title:'Board', kind:'board', fixed:true, render:renderBoardPane},
   list:   {title:'List',  kind:'list',  fixed:true, render:renderListPane},
   dupes:  {title:'Duplicates',          render:()=>openDupes()},
+  approvals: {title:'Pending approval', render:()=>openApprovals()},
   'queue-toolset': {title:'Toolset Queue', render:()=>openQueue('toolset')},
   'queue-uat':     {title:'UAT Queue',     render:()=>openQueue('uat')},
   review:  {title:'UAT Review',          render:()=>openReview()},
@@ -6931,6 +7040,133 @@ function panelHTML(html){
 function closePanel(){
   if (RENDER_TARGET) closeTab(activeKey); else closeModal();
 }
+
+// ---- Pending approval -----------------------------------------------------
+// Reports nwnbot filed from Discord, waiting for a human answer. They carry
+// `triage: true` and are hidden, so nothing here is on the public roadmap yet;
+// approving is what puts it there, which is why the route is gated on
+// `promote_shipped` rather than `edit`.
+//
+// No read endpoint: the rows come straight out of DATA.ideas, the way the
+// toolset and UAT queues do. Only the three writes go to the server.
+function pendingRows(){
+  return (DATA.ideas || []).filter(i => i.triage);
+}
+
+function approvalCandidate(iid, c){
+  const echo = c.kind === 'echo';
+  const score = typeof c.score === 'number' ? c.score.toFixed(2) : '';
+  // An `#idea-<id>` anchor: the delegated router turns it into a workspace tab,
+  // so a candidate opens BESIDE the queue for comparison instead of navigating
+  // away from it. That is the whole reason this is a tab and not a page.
+  return `<div class="acand${echo ? ' echo' : ''}">
+    <div class="acmeta">
+      <a class="id" href="#idea-${esc(c.id)}">${esc(c.id)}</a>
+      <span class="score">${esc(score)}</span>
+      ${echo ? '<span class="chip echo">already shipped</span>' : ''}
+    </div>
+    <div class="actitle">${esc(c.title || '')}</div>
+    ${echo
+      ? `<p class="small">Delivered already, so this is not a duplicate: a report
+         that matches shipped work is its own story, most likely a regression.
+         Shown for context.</p>`
+      : `<button class="pick" data-act="merge" data-id="${esc(iid)}"
+           data-dupe="${esc(c.id)}"><b>This one</b> is the duplicate</button>`}
+  </div>`;
+}
+
+function approvalCard(it){
+  const d = it.discord || {};
+  const cands = it.dupe_candidates || [];
+  const mergeable = cands.filter(c => c.kind !== 'echo').length;
+  return `<div class="pend" data-id="${esc(it.id)}">
+    <div class="phead">
+      <b style="flex:1">${esc(it.title || it.id)}</b>
+      <span class="small">${esc(it.group || '')} &middot; ${esc(it.type || '')}</span>
+    </div>
+    <div class="pmeta">
+      <a class="id" href="#idea-${esc(it.id)}">${esc(it.id)}</a>
+      <span class="small">${esc(it.player || 'unmatched reporter')}</span>
+      ${d.url ? `<a class="dlink" href="${esc(d.url)}" target="_blank"
+                   rel="noopener noreferrer">open the Discord thread</a>` : ''}
+    </div>
+    <div class="pnotes">${it.notes || '<span class="small">No description.</span>'}</div>
+    ${cands.length ? `<div class="acands">
+        <div class="small">${mergeable} possible duplicate${mergeable === 1 ? '' : 's'}
+          &mdash; open one to compare, or approve as new if none match.</div>
+        ${cands.map(c => approvalCandidate(it.id, c)).join('')}
+      </div>` : '<p class="small">No similar ideas were suggested.</p>'}
+    <div class="pbar">
+      <button class="ok" data-act="approve" data-id="${esc(it.id)}">Approve as new idea</button>
+      <button data-act="reject" data-id="${esc(it.id)}">Reject (unlikely)</button>
+      <span class="spacer"></span><span class="msg" data-msg="${esc(it.id)}"></span>
+    </div>
+  </div>`;
+}
+
+function renderApprovals(){
+  const rows = pendingRows();
+  const count = $('#p_count'); if (count) count.textContent =
+    rows.length ? `${rows.length} awaiting approval` : 'nothing awaiting approval';
+  const list = $('#p_list'); if (!list) return;
+  list.innerHTML = rows.length
+    ? rows.map(approvalCard).join('')
+    : `<p class="small">Nothing is waiting. Reports arrive here when nwnbot
+       files them from #bugs and #feature-requests.</p>`;
+}
+
+function openApprovals(){
+  panelHTML(`<h2>Pending approval</h2>
+    <div id="pending">
+      <div class="dbar"><span id="p_count">loading&hellip;</span><span class="spacer"></span></div>
+      <p class="intro">Nothing here is on the public roadmap yet. Approving publishes
+        it and tells the reporter in their Discord thread; merging credits them on
+        the original instead; rejecting marks it unlikely. All three reply in-thread.</p>
+      <div class="dlist" id="p_list"></div>
+    </div>
+    <div class="bar"><span class="spacer"></span><button id="p_close">Close</button></div>`);
+  const close = $('#p_close'); if (close) close.onclick = closePanel;
+  const root = $('#pending'); if (!root) return;
+  // Scoped to the pane, like openDupes: this is one tab among several.
+  root.onclick = ev => {
+    const btn = ev.target.closest('[data-act]');
+    if (btn && !btn.disabled)
+      approveAct(btn.dataset.id, btn.dataset.act, btn.dataset.dupe || '');
+  };
+  renderApprovals();
+}
+
+async function approveAct(id, action, dupeOf){
+  const el = document.querySelector(`#pending .pend[data-id="${CSS.escape(id)}"]`);
+  const msg = document.querySelector(`#pending [data-msg="${CSS.escape(id)}"]`);
+  if (el) el.classList.add('busy');
+  if (msg){ msg.textContent = 'Saving…'; msg.className = 'msg'; }
+  try {
+    const body = {id, action};
+    if (action === 'merge') body.dupe_of = dupeOf;
+    const r = await api('/api/idea-approve', {method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)});
+    const out = await r.json();
+    if (!out.ok){
+      if (msg){
+        msg.className = 'msg err';
+        msg.textContent = (out.errors || [out.message || 'Refused.']).join(' ');
+      }
+      if (el) el.classList.remove('busy');
+      if (out.stale) await load();
+      return;
+    }
+    // roadmap.yaml changed underneath: reload before re-rendering, or the row
+    // just answered would still be sitting in the queue.
+    await load();
+    renderApprovals();
+  } catch (e){
+    if (msg){ msg.className = 'msg err'; msg.textContent = 'Could not reach the editor: ' + e; }
+    if (el) el.classList.remove('busy');
+  }
+}
+
 // ---- Duplicate review -----------------------------------------------------
 // Ported in from the standalone /dupes document, which was reachable only by
 // typing the URL — nothing in this page linked to it — and whose per-idea

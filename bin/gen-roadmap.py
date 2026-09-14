@@ -168,6 +168,12 @@ IDEA_FIELDS = {
     # Internal, append-only per-idea notes. Nothing here renders them: they are
     # how a tester (who has no `edit`) adds information to an item.
     "comments",
+    # Ranked "this might already exist" suggestions, written by nwnbot when it
+    # files a report and read by the approval tab so the admin can compare
+    # without re-running a scorer in the browser. Advisory only: the bot never
+    # writes `dupe_of`, and an entry marked kind: echo names work that has
+    # already SHIPPED and is therefore never a merge target at all.
+    "dupe_candidates",
     # Set by nwnbot on a Discord-filed idea and cleared by the admin when they
     # approve it. "Waiting for a human to look at this", which `hidden` alone
     # cannot say: an admin may hide an approved item for their own reasons, and
@@ -308,6 +314,17 @@ def validate(data: dict) -> list[str]:
         if idea.get("triage") is not None and not isinstance(idea.get("triage"), bool):
             errors.append(f"'{iid}': triage must be true/false, got "
                           f"{idea.get('triage')!r}")
+        cands = idea.get("dupe_candidates")
+        if cands is not None:
+            if not isinstance(cands, list):
+                errors.append(f"'{iid}': dupe_candidates must be a list")
+            else:
+                for c in cands:
+                    if not isinstance(c, dict) or not str(c.get("id") or "").strip():
+                        errors.append(f"'{iid}': each dupe_candidate needs an 'id'")
+                    elif c["id"] not in seen:
+                        errors.append(f"'{iid}': dupe_candidate points to unknown "
+                                      f"id '{c['id']}'")
         # manual_steps carry two reporting keys the queues filter on. A typo in
         # `kind` would silently drop the step out of both queues, so it is fatal.
         for step in (idea.get("manual_steps") or []):

@@ -886,6 +886,21 @@ def enforce_idea_permissions(caps, posted_ideas, disk_ideas,
                     f"{'into' if now else 'out of'} “{label(new if now else old)}”. "
                     f"Everything up to “{label('confirmed')}” is yours to set, "
                     f"and the item's steps and notes stay editable either way.")
+        # Approval. Clearing `triage` is what puts a player's report on the
+        # public roadmap, so it belongs to the same capability as promoting to
+        # a shipped status. /api/idea-approve is already gated in ROUTE_CAPS;
+        # this is the half that matters, because /api/save posts the WHOLE
+        # ideas array and would otherwise let any `edit` role clear the flag
+        # without ever touching that endpoint. Setting it is unrestricted --
+        # nwnbot marks a new report as pending and that is its job.
+        for iid, idea in posted.items():
+            was = _truthy((disk.get(iid) or {}).get("triage"))
+            now = _truthy(idea.get("triage"))
+            if was and not now:
+                errors.append(
+                    f"'{iid}': only an administrator can approve an idea onto "
+                    f"the roadmap. Use the Pending approval tab.")
+
         # Deleting a shipped item would erase it from the public roadmap and the
         # in-game sign just as effectively as demoting it.
         for iid, idea in disk.items():
