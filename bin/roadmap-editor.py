@@ -4960,7 +4960,8 @@ const $ = s => document.querySelector(s);
 // is what keeps the two bars in sync BY CONSTRUCTION, rather than by copying
 // values from one bar to the other and hoping they never diverge.
 const FILTERS = {q:'', status:'', type:'', player:'', group:'', epic:'',
-                 env:'', hidden:'', sort:'status', showAwarded:false};
+                 env:'', hidden:'', sort:'status', showAwarded:false,
+                 showTriage:false};
 const FILTER_KEYS = Object.keys(FILTERS);
 const FILTERS_LS = 'roadmap.filters';
 
@@ -5002,6 +5003,8 @@ function filterBarHTML(which){
     </select>
     ${which==='list' ? `<label class="chk"><input type="checkbox" data-f="showAwarded">
       Show awarded (done)</label>` : ''}
+    <label class="chk"><input type="checkbox" data-f="showTriage">
+      Show in triage</label>
     ${which==='board' ? `<label class="chk" data-cap="edit"><input type="checkbox"
       data-f="cardDropdowns"> Card status dropdowns</label>` : ''}
     <span class="spacer"></span>
@@ -5086,7 +5089,13 @@ function allBars(){
 
 // Both bars carry the "N/M ideas" readout, so it is set on all of them.
 function setCount(n){
-  const txt = `${n}/${DATA.ideas.length} ideas`;
+  // Say what is being left out. A filter that quietly removes rows is how you
+  // come to believe a report was never filed -- and these are exactly the rows
+  // nobody has looked at yet.
+  const triaged = (DATA.ideas||[]).filter(i=>i.triage).length;
+  const note = (!FILTERS.showTriage && triaged)
+    ? ` · ${triaged} in triage hidden` : '';
+  const txt = `${n}/${DATA.ideas.length} ideas${note}`;
   allBars().forEach(b=>{ const c=b.querySelector('.fcount'); if (c) c.textContent=txt; });
 }
 
@@ -5467,6 +5476,12 @@ function visibleRows(which){
   const showAwarded=(which==='board') || !!FILTERS.showAwarded, sort=FILTERS.sort;
   let rows = DATA.ideas.map((it,idx)=>({it,idx})).filter(({it})=>{
     if (!showAwarded && it.status==='awarded') return false;
+    // An idea in triage is a REPORT, not a decision. It carries whatever
+    // status it was filed with rather than one anybody chose, so on the board
+    // it sits in a lane it was never put in, and in the list it reads as
+    // accepted work. The Pending approval tab is where it belongs until it is
+    // approved -- this checkbox is for when you want to see it anyway.
+    if (!FILTERS.showTriage && it.triage) return false;
     if (fs && it.status!==fs) return false;
     if (ft){ if (ft===BLANK){ if (it.type) return false; } else if ((it.type||'')!==ft) return false; }
     if (fp){ if (fp===BLANK){ if (it.player) return false; } else if ((it.player||'')!==fp) return false; }
