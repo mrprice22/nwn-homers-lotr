@@ -4644,6 +4644,10 @@ PAGE = r"""<!doctype html>
   #links .lwhy{ opacity:.8; margin-bottom:6px; }
   #links .lbar{ display:flex; gap:8px; align-items:center; margin-top:8px; }
   #links .dlink{ font-size:12px; }
+  #links .lmanual{ border-top:1px dashed var(--line); margin-top:8px;
+                   padding-top:8px; }
+  #links .lmanualrow{ display:flex; gap:6px; margin-top:4px; }
+  #links .lmanualid{ flex:1; max-width:420px; }
 
 
   /* Rehosted Discord screenshots inside an internal comment. Bounded so a
@@ -7287,9 +7291,20 @@ function linkCard(row){
     <div class="lmeta">
       ${row.url ? `<a class="dlink" href="${esc(row.url)}" target="_blank"
                      rel="noopener noreferrer">open the thread</a>` : ''}
+      ${row.author ? `<span class="small">reported by <b>${esc(row.author)}</b></span>` : ''}
       <span class="small">${cands.length} candidate${cands.length === 1 ? '' : 's'}</span>
     </div>
     ${row.done ? '' : cands.map(c => linkCandidate(row, c)).join('')}
+    ${row.done ? '' : `<div class="lmanual">
+      <label class="small">Or link it to an idea the scorer did not suggest
+        &mdash; wording can diverge far enough that it never reaches the
+        shortlist:</label>
+      <div class="lmanualrow">
+        <input list="l_ideaids" class="lmanualid" placeholder="idea id"
+               data-for="${esc(row.thread_id)}">
+        <button data-act="link-manual" data-thread="${esc(row.thread_id)}">Link</button>
+      </div>
+    </div>`}
     ${row.done ? '' : `<div class="lbar">
       <button data-act="dismiss" data-thread="${esc(row.thread_id)}">
         None of these &mdash; leave it unlinked</button>
@@ -7335,16 +7350,27 @@ function openLinks(){
       </div>
       <p class="intro" id="l_intro">Loading&hellip;</p>
       <div class="dlist" id="l_list"></div>
+      <datalist id="l_ideaids"></datalist>
     </div>
     <div class="bar"><span class="spacer"></span><button id="l_close">Close</button></div>`);
   const close = $('#l_close'); if (close) close.onclick = closePanel;
+  const dl = $('#l_ideaids');
+  if (dl && DATA && DATA.vocab && DATA.vocab.ids)
+    dl.innerHTML = DATA.vocab.ids.map(id => `<option value="${esc(id)}">`).join('');
   const root = $('#links'); if (!root) return;
   root.onclick = ev => {
     const tab = ev.target.closest('.dtab');
     if (tab){ linkFilter = tab.dataset.lfilter; return renderLinks(); }
     const btn = ev.target.closest('[data-act]');
-    if (btn && !btn.disabled)
-      linkAct(btn.dataset.thread, btn.dataset.act, btn.dataset.idea || '');
+    if (!btn || btn.disabled) return;
+    if (btn.dataset.act === 'link-manual'){
+      const input = root.querySelector(
+        `.lmanualid[data-for="${CSS.escape(btn.dataset.thread)}"]`);
+      const id = (input && input.value || '').trim();
+      if (!id) return;
+      return linkAct(btn.dataset.thread, 'link', id);
+    }
+    linkAct(btn.dataset.thread, btn.dataset.act, btn.dataset.idea || '');
   };
   loadLinks();
 }
