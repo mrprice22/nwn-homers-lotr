@@ -45,7 +45,7 @@
   },
   "Comment": {
     "type": "cexostring",
-    "value": "Hostile court variant of mummyreaper, summoned by a Weathertop Royal Magus casting Mummy Dust (x2_s2_mumdust.nss). Script-spawned only - never place this. roadmap wtop-court-combat-defects."
+    "value": "Hostile court variant of mummyreaper, summoned by a Weathertop Royal Magus casting Mummy Dust (x2_s2_mumdust.nss). Script-spawned only - never place this, and never create it without SetLocalInt(SE_NO_RESPAWN): its ScriptDeath chains into SE_DoCreatureRespawn and it would come back forever. Only a wtop_-prefixed caster gets this one; every other NPC caster gets plain mummyreaper in its own faction. roadmap wtop-court-combat-defects, gandalfs-mummys."
   },
   "Con": {
     "type": "byte",
