@@ -458,7 +458,8 @@ ideas:
   - id: teleport-to-weathertop-doesnt-work-on-the-test-server
     title: "teleport to weathertop doesn't work on the test server."
     group: travel
-    status: confirmed
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-08-30"
@@ -565,6 +566,13 @@ ideas:
     date: "2026-08-20"
     discord: {'thread_id': '1549146839696015471', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549146839696015471'}
     notes: "<div>\n<span><span>Sync: </span></span><span> it would be nice if dragon shape was not so big.... Have to unshift everytime i go through a door or small places :0 (even tho im only playing it for fun lol)</span></div><div><span><br></span></div><div>\n<div><div><span><span>HomelessSon</span><span><span> [MW], </span></span></span><span><span><i> — </i>8/21/26, 9:51 AM</span></span><div><span>yeah those large ass dragons lol.. I looked into resizing those once, I think it's possible.. we were having issues with some area transitions only working when you're not a giant dragon.  I could start with a small change like 80% of normal size I suppose </span><span><img src=\"https://discord.com/assets/0424e06a82d250e2.svg\" alt=\"🙂\"></span></div></div></div><div><div><span><span><br></span></span></div><div><span><span>Sync</span></span><span><span><i> — </i>8/21/26, 9:52 AM</span></span><div><span>Yeah, i like being a big dragon.... But they can really be annoying in a party or small areas </span><span><img src=\"https://discord.com/assets/e5bddb2a9171637d.svg\" alt=\"🤣\"></span></div></div></div><div><div> <div><span>Think theres a cep dragon which is like human size (unless it was just a regular one resized)</span></div></div></div><div><div><div> <div><span>Other server where I also played a dragon build, they had an extra feat you needed to take for unlimited uses of dragon shape</span></div></div></div><br></div><div><div><div><span><span>HomelessSon</span><span><span> [MW], </span></span></span><span><span><i> — </i>8/21/26, 9:54 AM</span></span><div><span>that sounds fun</span></div></div></div><br></div><div><div><div><span><span>Sync</span></span><span><span><i> — </i>8/21/26, 9:54 AM</span></span><div><span>So you could just shift and unshift to go through tight areas and doors</span></div></div><div><div><span></span></div></div></div>\n\n<br></div>\n\n<br></div>"
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-14"
+        text: "Discord — MΞЯLIИ in Resize Dragonshape so it can fit through doors/transitions easier (https://discord.com/channels/514343293761486848/1549146839696015471):\n\nI'm pretty sure there is a way to make the dragon shape humanoid. I don't remember the server but I have seen it a few times."
+      - author: "Sync Bot"
+        date: "2026-09-14"
+        text: "Discord — -Methonash- in Resize Dragonshape so it can fit through doors/transitions easier (https://discord.com/channels/514343293761486848/1549146839696015471):\n\nthere is, you can become a small dragon as 10th RDD level on Homer's 2009 version, should be in the scripts somewhere how it changes you"
   - id: add-a-decay-to-enrage-on-retreat-mechanic
     title: "Add a decay to Enrage-on-retreat mechanic (equal to respawn duration)"
     group: bosses
@@ -1652,7 +1660,8 @@ ideas:
   - id: antidupe_craft_container_invisible
     title: "Odd \"Anti-Duping Craft Container (Invisible)\" Object(s)"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-27"
@@ -1680,6 +1689,10 @@ ideas:
       - step: "Reply to Szescian82 - they spotted it in Balin's Tomb and the Bree crypts, and it turned out to be an openable chest holding unstamped copies of crafting players' items, not just a stray name."
         status: open
         kind: admin
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-14"
+        text: "Discord — HomelessSon in Odd \"Anti-Duping Craft Container (Invisible)\" Object(s) (https://discord.com/channels/514343293761486848/1549087228796477472):\n\nthis one should be resolved.."
   - id: ring-bearer-quest
     title: "Quest of the Ring Bearer"
     group: quests-areas
@@ -7984,12 +7997,35 @@ ideas:
   - id: gandalfs-mummys
     title: "Gandalf's mummys"
     group: bosses
-    status: confirmed
+    status: manual
     type: Defect
     player: "-Methonash-"
-    date: "2026-09-12"
+    date: "2026-09-14"
+    commit: 6749095ff44
     discord: {'thread_id': '1548280584348901437', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1548280584348901437'}
-    notes: "<div>Gandalf's mummy summons are attacking him. When killed, the mummies respawn from their original summon locations.</div>"
+    notes: "<div>Mummies summoned by an NPC now join that NPC's own side and go after whatever it is fighting, instead of turning on their summoner. Only the Weathertop Royal Magus summons the court's own Mummy Reaper of the Court -- Gandalf and every other caster summon a plain Epic Mummy Reaper wherever they stand. A summoned mummy no longer comes back from the dead at the spot it was summoned, and no caster can have more than two of them out at once.</div>"
+    impl_notes: "<div>Root cause was the NPC branch added to <code>x2_s2_mumdust.nss</code> in 4e0a02951ca: it keys on <code>!GetIsPC</code>, i.e. every NPC caster in the module, and always created <code>wtop_mreaper</code> -- FactionID 1 (Hostile), named \"Mummy Reaper of the Court\". <code>gandalf001</code> is FactionID 2 in Hobbiton with four uses of spell 637, so his summon spawned hostile to him under a Weathertop name. <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry the same spell and had the same bug waiting.</div><div>The spell now picks the blueprint by caster (a <code>wtop_</code>-prefixed caster gets <code>wtop_mreaper</code>; anyone else gets <code>mummyreaper</code> under runtime tag <code>NpcMummyReaper</code>, so a player's henchman reaper is never counted or cleaned up with them), calls <code>ChangeFaction(oNew, oCaster)</code> so the summon is always on its summoner's side, and sends it at the caster's current target. Two ceilings are counted in one walk of the tag: 2 live per caster (new) and the existing 2 live per area; five-minute life unchanged.</div><div>The respawn was <code>se_respawn_inc.nss</code>: <code>wtop_mreaper</code>'s ScriptDeath chains <code>x2_def_ondeath</code> -&gt; <code>nw_c2_default7</code> -&gt; <code>SE_DoCreatureRespawn</code>, which bailed only for encounter creatures and <code>_NSP</code> tags and rebuilt the corpse at <code>GetLocalLocation(\"spawn\")</code> -- the location the summon pins for the anti-kiting leash. <code>SE_DoCreatureRespawn</code> now also refuses any creature flagged <code>SE_NO_RESPAWN</code> (set at creation by the summon path) and any creature with a valid master, so no conjured creature can enter the world respawn pool whatever death script its blueprint carries. Placed creatures set neither condition, so <code>tests/check_creature_respawn.py</code> is unaffected. Mummies already looping on dev clear at the next restart.</div>"
+    manual_steps:
+      - step: "Hobbiton (shirehobbiton001): get Gandalf into a fight and let him cast Mummy Dust. The summon must be named 'Epic Mummy Reaper', must not attack Gandalf or the party, and should engage whatever he is fighting."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Kill one of Gandalf's mummies and stay in the area past the world respawn timer: it must NOT reappear at the spot it was summoned."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Let Gandalf keep casting: he must never have more than 2 live mummies at once, and each crumbles on its own after about five minutes."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Weathertop Hidden Court (area028): a Royal Magus summon is still named 'Mummy Reaper of the Court' and still hostile, still capped at 2 per area (now also 2 per Magus), and does not respawn when killed. Leaving the court still clears survivors."
+        status: open
+        kind: uat
+        tester: "level 60 melee"
+      - step: "Regression: a PC casting Mummy Dust still gets the 30-hour henchman-slot Epic Mummy Reaper, and can still have a normal summon out alongside it."
+        status: open
+        kind: uat
+        tester: "wizard 43+"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8557,3 +8593,11 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-14"
         text: "Discord — Rajmund in Greater Sequencer Robe (https://discord.com/channels/514343293761486848/1549116578401091634):\n\nDescription states it is capable of storing 2 apells, but Use says 3 and it can hold 3."
+  - id: wiki-and-boss-list-show-creatures-as-accessible-even-when
+    title: "Wiki (and boss list) show creatures as accessible even when they have no path from Well of Eru"
+    group: wiki-tools
+    status: confirmed
+    type: Defect
+    player: Szescian82
+    date: "2026-09-04"
+    notes: "<div><span>Example: </span>\nMashano, Messenger To The Witch King\n\n<a href=\"https://homerslotr.com/creatures/creature020.html\" target=\"_blank\" rel=\"noreferrer noopener\"><span>https://homerslotr.com/creatures/creature020.html</span></a></div><div>Phase 1: Update wiki detection and boss list/bestiary to remove creatures like this</div><div>Phase 2 (separate idea): review inaccessible bosses and either add player direct access or label them as dm-event only accessible and add them back to boss list (and respawn tracker/beastiary)</div>"
