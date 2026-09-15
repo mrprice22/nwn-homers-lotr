@@ -84,8 +84,6 @@ void main()
     object oPC = GetPCSpeaker();
     MW_MigrateLegacy(oPC);
 
-    if (MW_GetFlag(oPC, &quot;mixtape_consumed&quot;)) return;
-
     // Anti-exploit: verify item is still in inventory before committing anything.
     // Dropping the ring mid-conversation then clicking Consume would otherwise
     // grant stats without consuming the item.
@@ -94,6 +92,22 @@ void main()
     {
         FloatingTextStringOnCreature(
             &quot;The Mixtape must be in your possession to be consumed.&quot;, oPC, FALSE);
+        return;
+    }
+
+    // Consuming ALWAYS destroys the ring, whether or not it pays out. One
+    // consumption per character, forever - the flag is keyed on
+    // GetObjectUUID(oPC) in mw_db.nss, so a second Mixtape (the Donations
+    // Chest restocks one on the test realm) can never grant the +1 again.
+    // A spare is not left in the player&#x27;s pack as a wearable +2-to-all ring:
+    // that would be a second, quieter reward riding on the test-realm chest,
+    // and the chest hands out another copy on demand anyway.
+    if (MW_GetFlag(oPC, &quot;mixtape_consumed&quot;))
+    {
+        DestroyObject(oItem);
+        FloatingTextStringOnCreature(
+            &quot;You have already taken the Mixtape&#x27;s wisdom into yourself. &quot; +
+            &quot;This one crumbles to dust.&quot;, oPC, FALSE);
         return;
     }
 
