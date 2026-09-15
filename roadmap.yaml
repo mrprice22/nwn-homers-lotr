@@ -144,8 +144,9 @@ ideas:
   - id: can-complete-meaningwave-questline-for-free-on-characters
     title: "Can complete meaningwave questline for free on characters with same name"
     group: quests-areas
-    status: manual
+    status: implemented
     hidden: true
+    merit_awarded: true
     type: Exploit
     player: Szescian82
     date: "2026-09-15"
@@ -211,12 +212,31 @@ ideas:
   - id: smoking-pipeweed-to-cure-soul-fatigue
     title: "Smoking Pipeweed to Cure Soul Fatigue"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-09-04"
+    date: "2026-09-15"
+    commit: e8b845d61f0
     discord: {'thread_id': '1549086519971676371', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549086519971676371'}
-    notes: "Make it so when in the smoking chamber and you smoke any kind of pipeweed; if you had any active stacks of soul fatigue from healing, you feel a sense of calm wash over you and everything feels okay -- cleansed of soul fatigue. this is the only cure to soul fatigue besides waiting it out."
+    notes: "<div><b>A pipe clears soul-fatigue.</b> Light any strain of Shire leaf at a water pipe of the <b>Smoking Chamber</b> -- one door from the Well of Eru -- and every stack of <a href=\"Customizations.html#soul-fatigue\">soul-fatigue</a> you are carrying lifts away with the smoke. A sense of calm washes over you, everything is all right again, and the next heal is free.</div><div><br></div><div><b>This is the only cure there is</b>, besides waiting the stacks down three minutes at a time. It works the same whichever leaf you bring -- Longbottom, Old Toby, Southlinch, Hornblower's Garden or Witch Weed -- the pouch is still spent, and the strain's own gift and penalty ride on for the hour as normal. The price of the cure is the leaf and the trip home.</div><div><br></div><div>Full detail on <a href=\"Customizations.html#pipeweed\">Customizations -&gt; Pipe-Weed &amp; the Smoking Chamber</a>.</div>"
+    impl_notes: "<div>New <b>FAT_Cleanse(object oPC, string sReason)</b> in <b>unpacked/fat_inc.nss</b>, returning the number of stacks cleared (0 and silent when there were none). It clears the four fatigue locals via the existing FAT_ClearLocals(), then calls <b>FAT_Save()</b> with the count at zero -- which <i>deletes</i> the fatiguedb row rather than storing an empty queue, so the cure survives a logout. Clearing the locals alone would have been undone by FAT_LoginRestore at the next login, since the campaign DB is authoritative there.</div><div><br></div><div>The in-flight decay ticker is deliberately <b>not</b> chased down. Dropping <i>fat_ticking</i> is exactly the kill switch FAT_Tick() tests first thing, so the delayed chain ends on its next fire, and FAT_Kick() re-arms cleanly on the next heal. VFX is an instant VFX_IMP_HEAD_MIND, the calm counterpart of the VFX_IMP_NEGATIVE_ENERGY the billing path uses; message in COLOR_GREEN to chat and as floating text. sReason is the in-fiction cause (\"with the smoke\") so a second cure, if one is ever added, reads correctly.</div><div><br></div><div><b>unpacked/wg_bong.nss</b> calls it immediately after PW_Light(), i.e. after the leaf check -- the cure costs a pouch -- and unconditionally for all five strains plus the legacy <i>witchbud</i> alias. No area test was needed: the six waterbong placeables in <b>area024</b> are the module's only call site of wg_bong.nss, so \"in the Smoking Chamber\" is structural. The header note in fat_inc.nss that called the reboot wipe \"the one and only way out besides waiting it down\" was updated, and now states the complete list.</div><div><br></div><div>Descriptions updated on the five strain blueprints (pw_longbottom, pw_oldtoby, pw_southlinch, pw_hornblower, item118/Witch Weed) and the legacy <b>witchbud</b> pouch, which had no description at all and is still the only live source of leaf until Concerning Hobbits stamps <i>concern_hob_won</i> and opens Odo's counter. Wiki: both the #soul-fatigue and #pipeweed sections of docs.manual/Customizations.html.</div><div><br></div><div>Test build clean, 35/35 smoke tests; deployed to the dev realm.</div>"
+    manual_steps:
+      - step: "Build stacks and clear them: drink three Heal potions in quick succession to take a soul-fatigue hit, walk through the Well of Eru door into the Smoking Chamber, use a water pipe with any pouch of leaf. Expect the green \"a sense of calm washes over you\" line naming how many stacks lifted, the head VFX, and the strain's own one-hour message. Then drink another Heal potion and confirm it costs nothing."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "The cure must survive a relog: build stacks, smoke, then log out and back in. No \"you return still soul-weary\" message, and the next heal is still free. (This is the half that would silently fail if the fatiguedb row were left behind.)"
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Smoke with zero stacks and confirm the pipe says nothing about soul-fatigue at all -- no message, no VFX -- while still applying the strain normally and consuming the pouch."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Check the leaf in the jar in the Smoking Chamber (legacy witchbud pouches) now shows a description, smokes as Longbottom Leaf, and clears fatigue the same way."
+        status: open
+        kind: uat
+        tester: "any"
   - id: anaralia-spider-queen-second-drop
     title: "Anaralia (spider queen) second drop"
     group: items-gear
