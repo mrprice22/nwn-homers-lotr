@@ -45,7 +45,7 @@
   },
   "Comment": {
     "type": "cexostring",
-    "value": "Hostile court variant of mummyreaper, summoned by a Weathertop Royal Magus casting Mummy Dust (x2_s2_mumdust.nss). Script-spawned only - never place this, and never create it without SetLocalInt(SE_NO_RESPAWN): its ScriptDeath chains into SE_DoCreatureRespawn and it would come back forever. Only a wtop_-prefixed caster gets this one; every other NPC caster gets plain mummyreaper in its own faction. roadmap wtop-court-combat-defects, gandalfs-mummys."
+    "value": "Script-spawned only (x2_s2_mumdust.nss), for any NPC caster that is not a Weathertop Magus - never place this, and never create it without SetLocalInt(SE_NO_RESPAWN): its ScriptDeath chains into SE_DoCreatureRespawn and it would come back forever. Standard x2_def_* AI because an NPC's summon has no master and the henchman AI on mummyreaper.utc (x0_ch_hen_*) leaves it standing idle. Faction 2 is only the resting value; the summon path calls ChangeFaction(oNew, oCaster). npc_mreaper_hb unsummons it when its summoner dies. roadmap gandalfs-mummys."
   },
   "Con": {
     "type": "byte",
@@ -106,7 +106,7 @@
   },
   "FactionID": {
     "type": "word",
-    "value": 1
+    "value": 2
   },
   "FeatList": {
     "type": "list",
@@ -305,7 +305,7 @@
   "FirstName": {
     "type": "cexolocstring",
     "value": {
-      "0": "Mummy Reaper of the Court"
+      "0": "Epic Mummy Reaper"
     }
   },
   "fortbonus": {
@@ -708,7 +708,7 @@
   },
   "Tag": {
     "type": "cexostring",
-    "value": "WtopMummyReaper"
+    "value": "NpcMummyReaper"
   },
   "Tail": {
     "type": "byte",
@@ -720,7 +720,7 @@
   },
   "TemplateResRef": {
     "type": "resref",
-    "value": "wtop_mreaper"
+    "value": "npc_mreaper"
   },
   "WalkRate": {
     "type": "int",

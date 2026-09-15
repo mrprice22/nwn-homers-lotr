@@ -15,6 +15,7 @@
 #include "x2_inc_spellhook"
 #include "epic_summon_inc"
 #include "se_respawn_inc"
+#include "mumdust_inc"
 
 // ---------------------------------------------------------------------------
 // An NPC's mummy fights for the NPC that summoned it.
@@ -27,22 +28,26 @@
 // Saruman) gets one on his side instead of one that turns on him.
 //
 // Only a Weathertop court caster gets the court-named blueprint. Every other
-// NPC gets plain "Epic Mummy Reaper" -- a Mummy Reaper of the Court has no
-// business standing in the Shire.
+// NPC gets npc_mreaper, "Epic Mummy Reaper" -- a Mummy Reaper of the Court has
+// no business standing in the Shire. Both blueprints carry the standard
+// x2_def_* AI: mummyreaper.utc's henchman scripts (x0_ch_hen_*) are driven by
+// GetMaster(), and an NPC's summon has no master, so on that blueprint the
+// reaper spawned and then stood there while the fight went on around it.
+//
+// It has no lifetime. An NPC's reaper stands until it is killed, or until its
+// summoner falls -- npc_mreaper_hb watches MDUST_MASTER for that. The two caps
+// below are what bound it, plus the court's own sweep on leaving Weathertop
+// (wtop_chase.nss). The old five-minute DestroyObject is gone: the admin's call
+// after UAT, a summon the party is fighting must not evaporate mid-swing.
+//
+// Rate limiting is the CASTER's job, not this script's -- the Weathertop court
+// spaces its casts 60s court-wide in wtop_cmage.nss, and Gandalf 300s per
+// caster in npc_dust_er.nss. A cooldown here would collide with both.
 //
 // roadmap wtop-court-combat-defects, gandalfs-mummys.
 // ---------------------------------------------------------------------------
-const string MDUST_WTOP_RESREF = "wtop_mreaper";   // hostile, court-named
-const string MDUST_WTOP_TAG    = "WtopMummyReaper";
-const string MDUST_NPC_RESREF  = "mummyreaper";    // every other NPC caster
-const string MDUST_NPC_TAG     = "NpcMummyReaper"; // NOT "mummyreaper": a PC's
-                                                   // henchman reaper carries
-                                                   // that tag and must not be
-                                                   // counted or cleaned up here
-const string MDUST_MASTER      = "MDUST_MASTER";   // who summoned this one
 const int    MDUST_CASTER_MAX  = 2;      // live reapers per CASTER
 const int    MDUST_NPC_MAX     = 2;      // live reapers per AREA, all casters
-const float  MDUST_NPC_LIFE    = 300.0;  // five minutes, then it crumbles
 
 void MDustSummonForNpc(object oCaster, location lLoc)
 {
@@ -84,6 +89,11 @@ void MDustSummonForNpc(object oCaster, location lLoc)
     // gandalfs-mummys). se_respawn_inc honours this flag.
     SetLocalInt(oNew, SE_NO_RESPAWN, 1);
 
+    // "The summon path made me" -- npc_mreaper_hb reads this to tell a conjured
+    // reaper from a placed one, and it must outlive the summoner object, which
+    // MDUST_MASTER below does not.
+    SetLocalInt(oNew, MDUST_SUMMONED, 1);
+
     // Its summoner's side, whichever side that is.
     ChangeFaction(oNew, oCaster);
     SetLocalObject(oNew, MDUST_MASTER, oCaster);
@@ -96,15 +106,18 @@ void MDustSummonForNpc(object oCaster, location lLoc)
         EffectVisualEffect(VFX_FNF_SUMMON_UNDEAD), oNew);
 
     // Send it at whatever its summoner is fighting; the default AI takes it
-    // from there. Nothing happens if the caster has no foe of its own.
+    // from there. A caster deep in its own spell rotation has neither an attack
+    // target nor an attacker of its own -- that is Gandalf's whole fight -- so
+    // the last resort is resolved FROM THE MUMMY: the nearest thing standing in
+    // front of it that it counts as an enemy.
     object oFoe = GetAttackTarget(oCaster);
     if (!GetIsObjectValid(oFoe)) oFoe = GetLastHostileActor(oCaster);
+    if (!GetIsObjectValid(oFoe) || !GetIsEnemy(oFoe, oNew))
+        oFoe = GetNearestCreature(CREATURE_TYPE_REPUTATION,
+                                  REPUTATION_TYPE_ENEMY, oNew, 1);
+
     if (GetIsObjectValid(oFoe) && GetIsEnemy(oFoe, oNew))
         AssignCommand(oNew, ActionAttack(oFoe));
-
-    // Timed on the creature's own queue, so it dies with the creature if the
-    // party kills it first.
-    AssignCommand(oNew, DelayCommand(MDUST_NPC_LIFE, DestroyObject(oNew)));
 }
 
 void main()
