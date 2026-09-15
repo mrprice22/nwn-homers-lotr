@@ -43,6 +43,31 @@
 // only ever logged to mw_legacy_pending for the admin to resolve by hand
 // (bin/list-mw-legacy-pending.py to review/apply what the live path found,
 // bin/audit-meaningwave-legacy.py for the richer offline cross-reference).
+//
+// THAT SPLIT WAS NOT SAFE ON ITS OWN, and the correction is the whole reason
+// the two guards below exist (roadmap:
+// can-complete-meaningwave-questline-for-free-on-characters, reported by
+// Szescian82 2026-09-15). Carrying the u_* flags forward while refusing to
+// carry "finale"/"mixtape_consumed" hands a new character the PREREQUISITE
+// for the reward without the ALREADY-CLAIMED marker: mw_finale_chk.nss only
+// asks for 7 unlocks and no "finale", so a freshly rolled character with the
+// SAME NAME as a finished one read that finished character's legacy row,
+// walked to Akira and took the permanent +1 to all six abilities for free -
+// repeatable on every re-roll of the name. (Observed on the live realm:
+// one account collected it seven times in four days.) Two guards, both in
+// MW_MigrateLegacy():
+//
+//   1. A legacy row that carries "finale" or "mixtape_consumed" is a
+//      playthrough that has already paid out. Migrate NOTHING from it - log
+//      the sensitive flags to mw_legacy_pending and stop. The genuine owner
+//      is restored by the admin, which is already the designed route.
+//   2. mw_legacy_claim: each legacy row may be consumed by exactly ONE
+//      character, ever. This covers the residual case guard 1 misses - a
+//      first character that unlocked all 7 guides but never took the
+//      Mixtape, so "finale" is unset and there is nothing for guard 1 to
+//      see. The claim key is GetPCPublicCDKey() + "|" + GetName(), the same
+//      account+character-name domain the engine's legacy key collides in,
+//      but read from the live PC so it is never truncated.
 
 const string MW_FLAG_DB   = "meaningwavedb";
 const string MW_LEGACY_DB = "meaningwave";
@@ -50,6 +75,7 @@ const string MW_LEGACY_DB = "meaningwave";
 void MW_InitDb();
 int  MW_GetFlag(object oPC, string sFlag);
 void MW_SetFlag(object oPC, string sFlag);
+int  MW_ClaimLegacyRow(object oPC);
 
 // Idempotent - safe to call on every module load.
 void MW_InitDb()
@@ -69,6 +95,13 @@ void MW_InitDb()
         "pid TEXT NOT NULL, flag TEXT NOT NULL, cdkey TEXT, name TEXT," +
         "found_at TEXT DEFAULT CURRENT_TIMESTAMP," +
         "PRIMARY KEY(pid, flag))");
+    SqlStep(q);
+
+    // Guard 2 (see the header): one legacy row, one character, forever.
+    q = SqlPrepareQueryCampaign(MW_FLAG_DB,
+        "CREATE TABLE IF NOT EXISTS mw_legacy_claim (" +
+        "claim_key TEXT NOT NULL PRIMARY KEY, pid TEXT NOT NULL," +
+        "claimed_at TEXT DEFAULT CURRENT_TIMESTAMP)");
     SqlStep(q);
 }
 
@@ -91,4 +124,28 @@ void MW_SetFlag(object oPC, string sFlag)
     SqlBindString(q, "@f", sFlag);
     SqlBindString(q, "@k", GetPCPublicCDKey(oPC));
     SqlStep(q);
+}
+
+// Stake oPC's claim on the legacy row for its account+character-name identity.
+// Returns TRUE only if oPC is the character that holds that claim - i.e. it
+// just took it, or it took it on an earlier login. A second character sharing
+// the name loses the race permanently and migrates nothing. INSERT OR IGNORE
+// makes the first writer the winner; the SELECT is what decides, so a repeat
+// call for the same character is still TRUE.
+int MW_ClaimLegacyRow(object oPC)
+{
+    string sKey = GetPCPublicCDKey(oPC) + "|" + GetName(oPC);
+    string sPid = GetObjectUUID(oPC);
+
+    sqlquery q = SqlPrepareQueryCampaign(MW_FLAG_DB,
+        "INSERT OR IGNORE INTO mw_legacy_claim(claim_key, pid) VALUES(@k, @p)");
+    SqlBindString(q, "@k", sKey);
+    SqlBindString(q, "@p", sPid);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(MW_FLAG_DB,
+        "SELECT pid FROM mw_legacy_claim WHERE claim_key=@k LIMIT 1");
+    SqlBindString(q, "@k", sKey);
+    if (!SqlStep(q)) return FALSE;
+    return SqlGetString(q, 0) == sPid;
 }

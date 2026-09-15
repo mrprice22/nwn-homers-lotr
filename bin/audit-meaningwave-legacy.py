@@ -120,6 +120,16 @@ def audit_realm(bicreader, identity, sources, realm):
     rows = list(conn.execute("SELECT varname, playerid FROM db"))
     conn.close()
 
+    # A legacy playerid that carries finale/mixtape_consumed is a playthrough
+    # that already paid out. Its u_*/jq_* rows must NOT be migrated either:
+    # those seven unlocks are the prerequisite Akira's finale conditional
+    # checks, so seeding them onto whichever character currently answers to
+    # that account+name hands out a free permanent +1 to all six abilities.
+    # (This is exactly what happened to ray/'Fireberry' on 2026-09-10 - roadmap:
+    # can-complete-meaningwave-questline-for-free-on-characters.) The in-game
+    # MW_MigrateLegacy() applies the same rule; the two tracks must agree.
+    paid_out = {pid for vn, pid in rows if vn in SENSITIVE_FLAGS}
+
     safe, sensitive, unmatched = [], [], []
     for varname, playerid in rows:
         is_sensitive = varname in SENSITIVE_FLAGS
@@ -154,7 +164,9 @@ def audit_realm(bicreader, identity, sources, realm):
         if is_sensitive:
             sensitive.append(entry)
         else:
-            if len(candidates) == 1:
+            if playerid in paid_out:
+                entry["action"] = "paid-out"
+            elif len(candidates) == 1:
                 entry["action"] = "migrate"
                 entry["uuid"] = candidates[0]["uuid"]
             else:
@@ -230,7 +242,7 @@ def main():
         other = [e for e in result["safe"] if e.get("action") != "migrate"]
         print(f"\n=== {role} ===")
         print(f"u_*/jq_*: {len(migrate)} unambiguous match(es), "
-              f"{len(other)} ambiguous/no-live-character")
+              f"{len(other)} paid-out/ambiguous/no-live-character")
         for e in other:
             names = ", ".join(f"{c['name']}({c['uuid'][:8]})" for c in e["candidates"]) or "(none live)"
             print(f"  {e['action']:16} flag={e['flag']:12} account={e['account']!r:20} "

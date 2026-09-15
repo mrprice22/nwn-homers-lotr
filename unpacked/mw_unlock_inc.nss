@@ -72,24 +72,56 @@ void MW_LogLegacyPending(object oPC, string sFlag)
 // just because an old, possibly-collided row happens to match it. See the
 // header comment in mw_db.nss for why this has to run live rather than as
 // an offline script.
+//
+// TWO GUARDS stop the migration itself becoming the exploit - the legacy
+// lookup is keyed on account+character name, so a RE-ROLL OF THE SAME NAME
+// reads the finished character's row. The full argument is in mw_db.nss's
+// header (roadmap: can-complete-meaningwave-questline-for-free-on-characters).
+//   1. A legacy row that already paid out (finale or mixtape_consumed) is
+//      never migrated at all - not even the low-stakes unlocks, because
+//      those 7 unlocks ARE the prerequisite Akira checks. It is logged for
+//      the admin instead.
+//   2. MW_ClaimLegacyRow() lets exactly one character ever consume a given
+//      account+name legacy row, which covers a first character that
+//      unlocked all 7 guides but never collected the Mixtape (nothing for
+//      guard 1 to see). The claim is staked even when this character has
+//      already migrated, so a character that migrated under the old code
+//      still owns its row against a later re-roll.
 void MW_MigrateLegacy(object oPC)
 {
+    // Once per session. This runs from MW_IsUnlocked(), which MW_UnlockCount()
+    // calls seven times, so without the cache the guards below would mean
+    // dozens of SQLite round-trips per conversation node.
+    if (GetLocalInt(oPC, "mw_legacy_checked")) return;
+    SetLocalInt(oPC, "mw_legacy_checked", TRUE);
+
+    // Guard 2 - before any early return, so an already-migrated character
+    // claims its own row rather than leaving it free for a same-named re-roll.
+    int bClaimIsMine = MW_ClaimLegacyRow(oPC);
+
     if (MW_GetFlag(oPC, "legacy_migrated")) return;
 
-    int i;
-    for (i = 0; i < MW_ROSTER_SIZE; i++)
-    {
-        string sGuide = MW_GuideAt(i);
-        string sKey = "u_" + sGuide;
-        if (!MW_GetFlag(oPC, sKey) && GetCampaignInt(MW_LEGACY_DB, sKey, oPC))
-            MW_SetFlag(oPC, sKey);
+    // Guard 1 - a completed playthrough is never carried forward.
+    int bLegacyPaidOut = GetCampaignInt(MW_LEGACY_DB, "finale", oPC)
+                      || GetCampaignInt(MW_LEGACY_DB, "mixtape_consumed", oPC);
 
-        string sEnc = "jq_enc_" + sGuide;
-        if (!MW_GetFlag(oPC, sEnc) && GetCampaignInt(MW_LEGACY_DB, sEnc, oPC))
-            MW_SetFlag(oPC, sEnc);
+    if (bClaimIsMine && !bLegacyPaidOut)
+    {
+        int i;
+        for (i = 0; i < MW_ROSTER_SIZE; i++)
+        {
+            string sGuide = MW_GuideAt(i);
+            string sKey = "u_" + sGuide;
+            if (!MW_GetFlag(oPC, sKey) && GetCampaignInt(MW_LEGACY_DB, sKey, oPC))
+                MW_SetFlag(oPC, sKey);
+
+            string sEnc = "jq_enc_" + sGuide;
+            if (!MW_GetFlag(oPC, sEnc) && GetCampaignInt(MW_LEGACY_DB, sEnc, oPC))
+                MW_SetFlag(oPC, sEnc);
+        }
+        if (!MW_GetFlag(oPC, "jq_intro") && GetCampaignInt(MW_LEGACY_DB, "jq_intro", oPC))
+            MW_SetFlag(oPC, "jq_intro");
     }
-    if (!MW_GetFlag(oPC, "jq_intro") && GetCampaignInt(MW_LEGACY_DB, "jq_intro", oPC))
-        MW_SetFlag(oPC, "jq_intro");
 
     MW_LogLegacyPending(oPC, "finale");
     MW_LogLegacyPending(oPC, "mixtape_consumed");
