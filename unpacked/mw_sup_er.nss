@@ -1,7 +1,8 @@
 //:: mw_sup_er -- OnEndCombatRound for Campbell (Bard) and McKenna (Druid).
 //::
 //:: MW_STYLE 0 (Balanced, default):
-//::   Heal party at < 25% HP; otherwise let standard AI decide.
+//::   Heal party at < 25% HP; otherwise keep Bard Song up (bards only) and
+//::   let standard AI decide.
 //::
 //:: MW_STYLE 1 (Combat):
 //::   Cast offensive spells at nearest enemy; only emergency-heal at < 15% HP.
@@ -106,7 +107,7 @@ void main()
         return; // Healer does not fall through to standard attack AI
     }
 
-    // Style 0 (Balanced): heal at < 25%, else standard AI
+    // Style 0 (Balanced): heal at < 25%, else sing, else standard AI
     object oHurt = FindHurt(0.25f);
     if (GetIsObjectValid(oHurt))
     {
@@ -114,6 +115,17 @@ void main()
             ActionCastSpellAtObject(SPELL_HEAL_ID, oHurt);
         else if (GetHasSpell(SPELL_CCW, OBJECT_SELF))
             ActionCastSpellAtObject(SPELL_CCW, oHurt);
+    }
+    // Nobody needs healing: keep the party buffed. Same gate and same
+    // don't-re-sing check as Style 2 (see there); no-ops on Druid. We return
+    // rather than fall through because x2_def_endcombat's DetermineCombatRound
+    // clears and re-queues the action list, which would eat the queued song.
+    // Costs at most one non-attacking round per fight, and only when no song
+    // is up. roadmap: meaningwave-bardsong-not-firing
+    else if (GetHasFeat(FEAT_BARD_SONGS) && !GetHasSpellEffect(411))
+    {
+        ActionUseFeat(FEAT_BARD_SONGS, OBJECT_SELF);
+        return;
     }
 
     ExecuteScript("x2_def_endcombat", OBJECT_SELF);
