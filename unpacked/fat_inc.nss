@@ -40,7 +40,12 @@
 //   * A SERVER REBOOT does clear them, for everyone - FAT_WipeAll() from
 //     onmoduleload.nss. No combat survived the restart: every boss and creature
 //     that caused the stacks is reset at load, so the debt resets with them.
-//     This is the one and only way out of the queue besides waiting it down.
+//   * The ONE deliberate cure is a pipe of Shire leaf smoked at the water
+//     pipes of the Smoking Chamber - FAT_Cleanse() below, called from
+//     wg_bong.nss (roadmap: smoking-pipeweed-to-cure-soul-fatigue). It costs a
+//     pouch of leaf and a trip back to the Well of Eru, and that is the whole
+//     price. Nothing else in the module may clear a stack: waiting it down,
+//     the reboot wipe and the pipe are the complete list.
 // The old implementation used one independent DelayCommand per stack and a
 // plain local int. That decayed in real time whether or not you were logged
 // in, and a relog wiped the lot - both are now closed.
@@ -189,6 +194,50 @@ void FAT_ClearTickGuard(object oPC)
 {
     if (!GetIsObjectValid(oPC)) return;
     DeleteLocalInt(oPC, FAT_RUNVAR);
+}
+
+// --- the cure ---------------------------------------------------------------
+
+// Clear every stack a single character is carrying, and say so. Returns how
+// many were cleared (0 if there were none, in which case it is silent).
+//
+// sReason is the in-fiction cause, dropped into the message so a second cure
+// added later reads correctly - "with the smoke" for the water pipes.
+//
+// This is the ONLY per-character way out of the queue. It is deliberately not
+// exposed on rest, death or any consumable: see the header note. Today's one
+// caller is wg_bong.nss, the OnUsed on the six water pipes of the Smoking
+// Chamber (roadmap: smoking-pipeweed-to-cure-soul-fatigue).
+//
+// Two details that matter:
+//   * FAT_Save() with the count at zero DELETES the row rather than storing an
+//     empty queue, so the cure survives a logout - FAT_LoginRestore finds
+//     nothing to restore. Clearing the locals alone would be undone at the
+//     next login.
+//   * The running ticker is not chased down. Dropping FAT_RUNVAR is exactly
+//     the kill switch FAT_Tick() tests first, so the delayed chain stops on
+//     its next fire, and FAT_Kick() re-arms cleanly on the next heal.
+int FAT_Cleanse(object oPC, string sReason)
+{
+    if (!GetIsObjectValid(oPC) || !GetIsPC(oPC) || GetIsDM(oPC)) return 0;
+
+    int nHad = GetLocalInt(oPC, FAT_VAR);
+    if (nHad <= 0) return 0;
+
+    FAT_ClearLocals(oPC);   // stacks, queue, ticker guard and the cached max
+    FAT_Save(oPC);          // ... and with stacks at 0 that drops the DB row
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_HEAD_MIND), oPC);
+
+    string sMsg = "A sense of calm washes over you, and everything is all "
+                + "right again - " + IntToString(nHad) + " stack"
+                + (nHad == 1 ? "" : "s") + " of soul-fatigue lift away "
+                + sReason + ". The next heal is free.";
+    SendMessageToPC(oPC, COLOR_GREEN + sMsg + COLOR_END);
+    FloatingTextStringOnCreature(sMsg, oPC, FALSE);
+
+    return nHad;
 }
 
 // --- the decay ticker -------------------------------------------------------
