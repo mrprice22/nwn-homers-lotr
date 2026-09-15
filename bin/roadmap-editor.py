@@ -8141,8 +8141,9 @@ const RN_TITLES = {
             'What has landed on the test realm since the last promotion to the live '
             + 'season, and which checks still need someone to run them.'],
   players: ['Release notes · Players',
-            'The same changes written as an update announcement. This is what to '
-            + 'publish when the diff is promoted to the live season.'],
+            'The same changes as a Discord post: one line per change, linked to '
+            + 'its forum thread. Copy it and paste it into the announcements '
+            + 'channel when the diff is promoted to the live season.'],
   admin:   ['Release notes · Admin',
             'Everything in the other two, plus hidden items, open publish/toolset '
             + 'steps, and the commits no roadmap item claimed.'],
@@ -8162,9 +8163,14 @@ async function openReleaseNotes(audience){
     <div class="rn-bar">
       <button id="rn_copy">Copy</button>
       <select id="rn_model" title="Which local model does the rewrite"></select>
-      <button id="rn_flavor" title="Rewrite each note in plain language and merge
+      <button id="rn_flavor" title="${audience==='players'
+        ? `Pick up to three emojis for each change. Runs on the LAN LLM box; the
+first run takes a while, after which it is cached. An item the model skips keeps
+the one emoji its type gets.`
+        : `Rewrite each note in plain language and merge
 related items into one bullet. Runs on the LAN LLM box; the first run takes a
-while, after which it is cached.">Rewrite with local model</button>
+while, after which it is cached.`}">${audience==='players'
+        ? 'Pick emojis with local model' : 'Rewrite with local model'}</button>
       <span class="spacer"></span>
       <span class="small" id="rn_meta"></span>
     </div>
@@ -8216,7 +8222,8 @@ async function rnLoad(audience, flavor){
     }
     out.textContent=res.markdown||'(no output)';
     const bits=[];
-    if (res.flavored) bits.push('rewritten by '+model);
+    if (res.flavored) bits.push((audience==='players' ? 'emoji by '
+                                                     : 'rewritten by ')+model);
     if (DATA.environments && DATA.environments.base)
       bits.push('since '+DATA.environments.base);
     meta.textContent=bits.join(' · ');

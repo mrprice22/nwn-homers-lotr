@@ -323,7 +323,7 @@ Markdown. Same dataset, three audiences:
 | `--audience` | for |
 |---|---|
 | `testers` | "here is what just landed on the test realm and what still needs checking" — publish while the diff is open |
-| `players` | "here is what this update contains" — publish when `season-promote.sh` closes it |
+| `players` | **a Discord post** — one line per change, each linked to its forum thread; publish when `season-promote.sh` closes it |
 | `admin` (default) | both, plus `hidden` items, plus open toolset/admin steps, plus **the commits no roadmap item claimed** |
 
 **It is a roadmap join, not a git-log summary.** `roadmap.yaml` already carries the
@@ -332,6 +332,19 @@ exact and the output is byte-reproducible. The corollary: **an item with no `com
 invisible to the notes.** That is what the admin audience's "Unattributed commits"
 section is for — anything there is either a genuinely invisible change or a missing
 `commit:` field.
+
+**The players audience is a Discord post, not a document.** The backlog is mirrored
+into a Discord forum by `nwnbot`, and a linked idea carries
+`discord: {thread_id, channel_id, url}`. That thread is where the detail lives — the
+report, the screenshots, the argument — so the announcement does not restate it. Each
+item is one line, `<emoji> [title](thread) — reporter`, under a bold group heading,
+with the title left **plain when that idea has no thread yet** (unlinked, never
+unannounced). No note bodies, no epic progress, no commit count or hashes, and no
+`<!-- range -->` comment — Discord renders an HTML comment as literal text. It is meant
+to be copied out of the editor and pasted straight into the announcements channel, so
+keep it short: anything a player needs beyond one line belongs in the thread. The
+emoji is one per `type` unless `--flavor` picked better (below), and the footer's wiki
+link is `SEASON_LIVE_WIKI_URL`, not the dev realm's.
 
 **Run it BEFORE promoting.** `season-promote.sh --apply` both force-moves the
 `promote/s<N>/<date>` tag and writes the target's new `Promote from dev @<sha>` — the two
@@ -343,17 +356,25 @@ the `release_notes` / `release_notes_admin` capabilities, and every idea carries
 computed badge saying which realm its code is in. Both are documented in
 [CLAUDE-roadmap.md](CLAUDE-roadmap.md).
 
-`--flavor` sends the item list to the LAN LLM box (`bin/llm/client.py`) to rewrite each
-note as one or two plain sentences **and merge duplicate or related items into a single
-bullet** — the `petrification-…-round-3` + `round-4` case. It is opt-in, and the result
+`--flavor` sends the item list to the LAN LLM box (`bin/llm/client.py`) and asks it for
+the one judgement call each audience still has. For `testers` and `admin` that is the
+prose: rewrite each note as one or two plain sentences **and merge duplicate or related
+items into a single bullet** — the `petrification-…-round-3` + `round-4` case. For
+`players` there is no prose left, so it is the **emoji**: up to three per item, in place
+of the one its `type` gets. (`admin` contains both documents and so runs both passes.)
+Each pass has its own sidecar — the mode is part of the fingerprint, so one can never be
+read back as the other. It is opt-in, and the result
 is cached to a `release-notes/<range>.<fingerprint>.flavor.json` sidecar (gitignored), so
 the same range always renders identically and any bullet can be hand-edited: `text` is
 what renders, `ids` says which items it covers, `null` text falls back to that item's
 roadmap note. `--regen-flavor` re-rolls. The model is `--model` (a `bin/llm/config.py`
-alias or a literal Ollama tag; `--list-models` shows what the box has) and it is part of
+alias or a literal model id; `--list-models` shows what the box serves — one model,
+since llama-server loads exactly one) and it is part of
 the sidecar's identity, so switching models never returns the previous one's text. If the model drops, repeats or invents an id the
 answer is **repaired, not discarded** — every item still ends up in exactly one bullet,
-un-flavored if need be. If the box is unreachable it warns and emits the deterministic
+un-flavored if need be; in emoji mode an id the model skipped, invented or answered with
+words simply falls back to its type emoji, and everything that is not an emoji character
+is stripped out of the ones it did answer. If the box is unreachable it warns and emits the deterministic
 notes, so `--flavor` is never the difference between output and no output.
 
 ### Prod characters on the dev realm
@@ -591,12 +612,18 @@ belong here: `~/.local/share/roadmap-editor/auth.sqlite3` (password hashes and
 live session tokens) and `~/.config/roadmap-editor/tunnel.env` (the Cloudflare
 Tunnel connector token — whoever holds it can serve traffic on
 `roadmap.homerslotr.com`) are secrets under exactly the rules above — never
-committed, never under `unpacked/`, never sent to the LAN Gemma box.
+committed, never under `unpacked/`, never sent to the local LLM box.
 
 ## Working with the local LLM
 
-A Gemma 4 server on the LAN (`http://192.168.1.103:11434`) does the module's bulk
-prose work. Full details in [CLAUDE-llm-harness.md](CLAUDE-llm-harness.md); three
+A local LLM box does the module's bulk prose work — since 2026-09-14 that is
+**llama.cpp's `llama-server`** serving `Qwen3.6-35B-A3B-Q4_K_M`, on the Windows
+machine wired to this host over ethernet, reached at `bin/llm/config.py`'s
+`LLM_URL` (override with the `LLM_URL` env var). The client speaks the
+**OpenAI-compatible API**, so a move is a URL change. Full details in
+[CLAUDE-llm-harness.md](CLAUDE-llm-harness.md) — read its "The box" section
+before debugging a connection, because both common failures (llama-server bound
+to `127.0.0.1`, the Windows firewall) present as a hang, not an error. Three
 rules matter everywhere:
 
 - **Never send secrets to it.** It is unauthenticated plain HTTP on another
@@ -680,7 +707,7 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
 - [CLAUDE-autopilot.md](CLAUDE-autopilot.md) — Autopilot runbook: the unattended roadmap loop (`/autopilot` skill) — item selection + tier rebalancing quotas, waypoint-instead-of-placement rule, the `design_questions`/`manual_steps` hand-off fields, test-build/ship/commit procedure, hard never-rules
 - [QuestGuide-DM-Notes.md](QuestGuide-DM-Notes.md) — admin half of the quest guide: per-quest scripts, blueprints, campaign DBs, `AP_*` waypoints, roadmap ids, open points and UAT notes. The public `docs.manual/QuestGuide.html` carries none of that — keep the split when editing either.
 - [season-cutover-guide.md](season-cutover-guide.md) + [season-cutover-prereqs.md](season-cutover-prereqs.md) — repeatable season cutover: the 3-phase per-season runbook (early access → go live → retire), and the one-time engineering it depends on
-- [CLAUDE-llm-harness.md](CLAUDE-llm-harness.md) — the local-LLM harness (`bin/llm/`): a Gemma 4 box on the LAN does the module's bulk prose work (item and creature descriptions) and mechanical triage. Task recipes hold all the logic so running one costs an agent nothing; every generated field write lands in the `llm-changes/` ledger and is revertible from the roadmap editor's **LLM Changes** panel. Read it before writing a new task recipe, before running `bin/llm/autopilot.py`, or when wondering why a description you did not write appeared in `unpacked/`
+- [CLAUDE-llm-harness.md](CLAUDE-llm-harness.md) — the local-LLM harness (`bin/llm/`): a llama-server box on the LAN does the module's bulk prose work (item and creature descriptions) and mechanical triage. Task recipes hold all the logic so running one costs an agent nothing; every generated field write lands in the `llm-changes/` ledger and is revertible from the roadmap editor's **LLM Changes** panel. Read it before writing a new task recipe, before running `bin/llm/autopilot.py`, or when wondering why a description you did not write appeared in `unpacked/`
 - [CLAUDE-graffiti.md](CLAUDE-graffiti.md) — Merit reward 301 "Graffiti the Well of Eru", end to end: the pedestal/canvas split that exists because NWScript has no `SetPlaceableAppearance`, the `placeappdb` appearance catalogue built by `bin/gen-placeable-appearances.py` + `bin/publish-placeable-db.py` (and the inverted hak-priority trap in it), the paged easel conversation, and the `redemptions.note` column the choice lands in
 - [CLAUDE-music.md](CLAUDE-music.md) — Custom music + the jukebox: the MP3 -> `.bmu`
   pipeline (`bin/gen-music-tracks.py`, `bin/build-lotr-music-hak`), why a `.bmu` is an MP3

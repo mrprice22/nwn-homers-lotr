@@ -1,13 +1,22 @@
-"""Ollama client for the local Gemma box.
+"""Client for the local LLM box.
 
 Deliberately stdlib-only (urllib + threads) to match the rest of bin/, which
 depends on nothing but PyYAML.
 
+**It speaks the OpenAI-compatible API (`/v1/...`), not a server's native one.**
+The box ran Ollama until 2026-09-14 and runs llama.cpp's `llama-server` now;
+both implement `/v1/chat/completions` and `/v1/models`, so one transport serves
+either and a move is a `config.LLM_URL` edit. What is NOT portable is anything
+under `/api/` -- `/api/chat`, `/api/tags`, and above all `options.num_ctx`, which
+is why `num_ctx` below is advisory here in a way it was not on Ollama.
+
 Three things every call gets, because they were all needed in practice:
-  * think=False   -- Gemma 4 otherwise emits a `<|channel>thought` preamble that
-                     is not valid output and not separable from the answer.
-  * a JSON schema -- structured output is honoured, so responses are parsed,
-                     never scraped out of prose.
+  * thinking off  -- a reasoning model (Qwen3) otherwise emits a `<think>` block
+                     that is not valid output; asked off via the chat template,
+                     and stripped defensively if one arrives anyway.
+  * a JSON schema -- structured output is honoured (llama.cpp compiles it to a
+                     GBNF grammar), so responses are parsed, never scraped out
+                     of prose.
   * a disk cache  -- keyed on model+prompt+schema+prompt_version, so re-runs and
                      retries after a crash cost nothing, and editing a prompt
                      invalidates exactly the entries it should.
@@ -17,6 +26,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 import threading
 import time
 import urllib.error
@@ -40,7 +50,12 @@ class LLMError(RuntimeError):
 
 
 class LLMUnavailable(LLMError):
-    """The box is off, unreachable, or not running Ollama."""
+    """The box is off, unreachable, or not serving an OpenAI-compatible API.
+
+    Note that the common failure is a HANG, not a refusal: llama-server binds
+    127.0.0.1 unless told otherwise, and a firewall on that machine DROPs rather
+    than rejects, so both look like a timeout from here. See config.LLM_URL.
+    """
 
 
 @dataclass
@@ -58,8 +73,11 @@ class Usage:
             if cached:
                 self.cached += 1
                 return
-            self.prompt_tokens += int(resp.get("prompt_eval_count") or 0)
-            self.eval_tokens += int(resp.get("eval_count") or 0)
+            usage = resp.get("usage") or {}
+            self.prompt_tokens += int(usage.get("prompt_tokens")
+                                      or resp.get("prompt_eval_count") or 0)
+            self.eval_tokens += int(usage.get("completion_tokens")
+                                    or resp.get("eval_count") or 0)
             self.seconds += elapsed
 
     def summary(self, wall: float | None = None) -> str:
@@ -79,23 +97,58 @@ class Usage:
 
 def _post(path: str, payload: dict, timeout: float) -> dict:
     req = urllib.request.Request(
-        config.OLLAMA_URL.rstrip("/") + path,
+        config.LLM_URL.rstrip("/") + path,
         data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json"},
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as fh:
             return json.load(fh)
+    except urllib.error.HTTPError as exc:
+        # llama-server puts the real complaint in the body ("the request exceeds
+        # the available context size", a schema it could not compile); the
+        # status line alone is never enough to act on.
+        detail = ""
+        try:
+            detail = exc.read().decode("utf-8", "replace")[:400]
+        except Exception:                                  # noqa: BLE001
+            pass
+        raise LLMError(f"{config.LLM_URL}{path}: {exc}{' -- ' + detail if detail else ''}") from exc
     except urllib.error.URLError as exc:
-        raise LLMUnavailable(f"{config.OLLAMA_URL}{path}: {exc}") from exc
+        raise LLMUnavailable(f"{config.LLM_URL}{path}: {exc}") from exc
 
 
 def _get(path: str, timeout: float = 10.0) -> dict:
     try:
-        with urllib.request.urlopen(config.OLLAMA_URL.rstrip("/") + path, timeout=timeout) as fh:
+        with urllib.request.urlopen(config.LLM_URL.rstrip("/") + path, timeout=timeout) as fh:
             return json.load(fh)
     except urllib.error.URLError as exc:
-        raise LLMUnavailable(f"{config.OLLAMA_URL}{path}: {exc}") from exc
+        raise LLMUnavailable(f"{config.LLM_URL}{path}: {exc}") from exc
+
+
+_UNSET = object()
+
+_THINK_RE = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+
+
+def _strip_think(content: str) -> str:
+    """Drop a reasoning block the model emitted anyway.
+
+    `chat_template_kwargs.enable_thinking=False` is the real control, but it
+    only works if the model's chat template honours that name, and a model swap
+    is exactly when nobody remembers to check. An unstripped block makes the
+    content fail to parse as JSON, which reads as "the model is broken".
+    """
+    return _THINK_RE.sub("", content).strip()
+
+
+def _wire(payload: dict) -> dict:
+    """The payload as sent: local-only keys (leading underscore) removed.
+
+    They exist to take part in the cache key without being fields the server
+    would reject -- `_num_ctx_hint` is the one.
+    """
+    return {k: v for k, v in payload.items() if not k.startswith("_")}
 
 
 class Client:
@@ -103,17 +156,46 @@ class Client:
         self.model = config.MODELS.get(model or "default", model or config.MODELS["default"])
         self.use_cache = use_cache
         self.usage = Usage()
+        self._ctx: Any = _UNSET
+        self._ctx_warned = False
         self._cache_dir = config.CACHE_DIR / hashlib.sha256(self.model.encode()).hexdigest()[:12]
 
     @property
     def short_name(self) -> str:
-        """"gemma:12B" from the full hf.co/... ref, for ledger `source` fields."""
+        """A name fit for a ledger `source` field or a sidecar.
+
+        "gemma:12B" from the old hf.co/... refs, so historic ledger entries stay
+        greppable; otherwise the model id with any path and .gguf trimmed off,
+        which is what a llama-server `--alias` or model filename gives.
+        """
         match = re.search(r"gemma-\d+-([0-9A-Za-z]+)", self.model)
-        return f"gemma:{match.group(1)}" if match else self.model
+        if match:
+            return f"gemma:{match.group(1)}"
+        name = self.model.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+        return name[:-5] if name.lower().endswith(".gguf") else name
 
     # -- health -----------------------------------------------------------
     def available_models(self) -> list[str]:
-        return [m["name"] for m in _get("/api/tags").get("models", [])]
+        """What the box serves. One entry on llama-server, many on Ollama."""
+        return [m["id"] for m in _get("/v1/models").get("data", []) if m.get("id")]
+
+    def context_size(self) -> int | None:
+        """The served model's context window, or None if the box did not say.
+
+        llama-server reports it in /v1/models as `meta.n_ctx` -- the value it was
+        launched with (`-c`), not the model's trained maximum. It is the number a
+        too-long prompt is rejected against, and the only way to see it from here.
+        """
+        if self._ctx is _UNSET:
+            self._ctx = None
+            try:
+                rows = _get("/v1/models").get("data", [])
+                mine = [r for r in rows if r.get("id") == self.model] or rows
+                if len(mine) == 1:
+                    self._ctx = int((mine[0].get("meta") or {}).get("n_ctx") or 0) or None
+            except (LLMUnavailable, ValueError, TypeError):
+                self._ctx = None
+        return self._ctx
 
     def health(self) -> tuple[bool, str]:
         """(ok, message). Never raises -- the box is legitimately off sometimes."""
@@ -121,12 +203,25 @@ class Client:
             names = self.available_models()
         except LLMUnavailable as exc:
             return False, str(exc)
-        if self.model not in names:
-            return False, f"model {self.model!r} not installed on the box (have: {len(names)})"
-        return True, f"{config.OLLAMA_URL} ok, {len(names)} models"
+        if not names:
+            return False, f"{config.LLM_URL} answered but serves no model"
+        ctx = self.context_size()
+        suffix = f", {ctx} ctx" if ctx else ""
+        if self.model in names:
+            return True, f"{config.LLM_URL} ok, {len(names)} model(s){suffix}"
+        if len(names) == 1:
+            # llama-server serves the one model it was started with and ignores
+            # the `model` field entirely, so a name mismatch is cosmetic -- but
+            # it is still worth saying out loud, because config.MODELS is part
+            # of every cache key: leave it stale and a new model on the box
+            # quietly returns the previous one's cached answers.
+            return True, (f"{config.LLM_URL} ok, serving {names[0]!r}{suffix} "
+                          f"(config.MODELS says {self.model!r})")
+        return False, (f"model {self.model!r} is not one of the {len(names)} "
+                       f"this box serves")
 
     def embed_model(self) -> str | None:
-        """First installed embedding model, or None. See config.EMBED_MODELS."""
+        """First served embedding model, or None. See config.EMBED_MODELS."""
         try:
             names = self.available_models()
         except LLMUnavailable:
@@ -138,15 +233,23 @@ class Client:
         return None
 
     def embed(self, inputs: Sequence[str], model: str | None = None) -> list[list[float]] | None:
-        """Embeddings, or None when the box has no embedding model installed."""
+        """Embeddings, or None when the box serves no embedding model.
+
+        A llama-server needs `--embeddings` and a second server for the
+        embedding model, so None is the normal answer here now; every caller
+        has a non-embedding fallback path.
+        """
         model = model or self.embed_model()
         if not model:
             return None
         try:
-            resp = _post("/api/embed", {"model": model, "input": list(inputs)}, config.TIMEOUT)
-        except LLMUnavailable:
+            resp = _post("/v1/embeddings", {"model": model, "input": list(inputs)},
+                         config.TIMEOUT)
+        except LLMError:
             return None
-        return resp.get("embeddings")
+        rows = resp.get("data") or []
+        out = [r.get("embedding") for r in rows if r.get("embedding")]
+        return out or None
 
     # -- cache ------------------------------------------------------------
     def _cache_key(self, payload: dict, prompt_version: int) -> str:
@@ -191,31 +294,52 @@ class Client:
         `nonce` is what makes a re-roll possible. Temperature alone cannot do it:
         the disk cache is keyed on the request, so asking the same question twice
         returns the byte-identical cached answer in 0.0s and the sampler is never
-        reached. A nonce changes the cache key AND becomes Ollama's `seed`, so
+        reached. A nonce changes the cache key AND becomes the sampler `seed`, so
         the second roll is both uncached and genuinely differently sampled.
+
+        `num_ctx` is **advisory**. Ollama's `options.num_ctx` grew the context
+        per request; llama-server's is fixed at startup by `-c`, with no request
+        field that can raise it, so a prompt over that size comes back as an HTTP
+        error naming the limit rather than being silently truncated. It is kept
+        in the cache key so a caller that asks for a bigger window still gets a
+        fresh answer, and it is what the error message quotes back at you.
         """
         payload: dict[str, Any] = {
             "model": self.model,
-            "think": False,
             "stream": False,
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            "options": {"temperature": temperature},
+            "temperature": temperature,
+            # Qwen3 and friends think by default and put a <think> block in the
+            # content, which is not the answer and is not separable from it once
+            # a grammar is also in play. This is the chat template's own switch.
+            "chat_template_kwargs": {"enable_thinking": False},
         }
         if num_predict:
-            payload["options"]["num_predict"] = num_predict
+            payload["max_tokens"] = num_predict
         if nonce is not None:
-            payload["options"]["seed"] = int(nonce) % (2 ** 31)
+            payload["seed"] = int(nonce) % (2 ** 31)
         if num_ctx:
-            # The box loads this model at 4096. Anything whose prompt grows as it
-            # runs must ask for more: on overflow Ollama truncates from the FRONT,
-            # which is where the system prompt lives -- so the rules would be
-            # dropped silently and only the tail of the request would survive.
-            payload["options"]["num_ctx"] = num_ctx
+            payload["_num_ctx_hint"] = num_ctx          # cache key only, see above
+            served = self.context_size()
+            if served and num_ctx > served and not self._ctx_warned:
+                # Say it here rather than let the caller read an HTTP 400 out of
+                # a retry loop: the fix is on the box (`llama-server -c`), and
+                # nothing this process does can raise the window.
+                self._ctx_warned = True
+                print(f"[warn] caller asked for a {num_ctx}-token context but "
+                      f"the box serves {served}; restart llama-server with "
+                      f"-c {num_ctx} if this prompt overflows", file=sys.stderr)
         if schema:
-            payload["format"] = schema
+            # llama.cpp compiles this to a GBNF grammar, so the answer really is
+            # constrained rather than merely requested.
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "response", "schema": schema,
+                                "strict": True},
+            }
 
         key = self._cache_key(payload, prompt_version)
         hit = self._cache_read(key)
@@ -227,7 +351,7 @@ class Client:
         for attempt in range(config.RETRIES):
             started = time.monotonic()
             try:
-                resp = _post("/api/chat", payload, config.TIMEOUT)
+                resp = _post("/v1/chat/completions", _wire(payload), config.TIMEOUT)
             except LLMUnavailable:
                 raise
             except Exception as exc:  # noqa: BLE001 - retry anything transient
@@ -249,7 +373,9 @@ class Client:
 
     @staticmethod
     def _parse(resp: dict, schema: dict | None) -> dict | str:
-        content = (resp.get("message") or {}).get("content", "")
+        choices = resp.get("choices") or []
+        message = (choices[0].get("message") or {}) if choices else {}
+        content = _strip_think(message.get("content") or "")
         if schema is None:
             return content
         try:

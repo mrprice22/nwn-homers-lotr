@@ -5,10 +5,26 @@ Two audiences, one dataset:
 
     --audience testers   what just landed on the test realm and what still needs
                          checking — published while the diff is open
-    --audience players   what this update contains — published when
-                         bin/season-promote.sh closes the diff
+    --audience players   a Discord post: one line per change, each linked to its
+                         forum thread — published when bin/season-promote.sh
+                         closes the diff
     --audience admin     both, plus hidden items, plus the commits no roadmap
                          item claimed (the "nothing silently vanished" check)
+
+## The players audience is a Discord post, not a document
+
+The backlog is mirrored into a Discord forum by nwnbot, and an idea that has been
+linked to its thread carries `discord: {thread_id, channel_id, url}`. That thread
+is where the detail lives now — the screenshots, the report, the back and forth —
+so the announcement does not restate the note. It is the shortest thing that still
+says what shipped: a bold group heading, then one line per item,
+
+    <emoji> [title](thread url) — reporter
+
+with the title left plain when that idea has no thread yet. No note bodies, no
+epic progress, no commit counts or hashes, and no `<!-- range -->` comment (Discord
+renders an HTML comment as literal text). It is meant to be copied out of the
+roadmap editor and pasted straight into a message.
 
 ## Why this is deterministic
 
@@ -57,6 +73,7 @@ import json
 import re
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -219,6 +236,23 @@ def one_line(s) -> str:
 
 def type_prefix(idea: dict) -> str:
     return PUB.TYPE_PREFIX.get(idea.get("type"), PUB.DEFAULT_PREFIX)
+
+
+# The players audience is a Discord post, where a marker the eye catches beats
+# the words "Bug fixed: ". This is only the FALLBACK -- --flavor lets the local
+# model pick up to three emojis that actually depict the change. PUB.TYPE_PREFIX
+# is untouched: it is still what the in-game sign and the testers notes use.
+TYPE_EMOJI = {"Defect": "🐛", "Enhancement": "✨", "Exploit": "🛡️"}
+DEFAULT_EMOJI = "🔧"
+
+
+def type_emoji(idea: dict) -> str:
+    return TYPE_EMOJI.get(idea.get("type"), DEFAULT_EMOJI)
+
+
+def discord_url(idea: dict) -> str:
+    d = idea.get("discord")
+    return str(d.get("url") or "") if isinstance(d, dict) else ""
 
 
 def visible(ideas: list[dict]) -> list[dict]:
@@ -422,12 +456,48 @@ FLAVOR_SCHEMA = {
     },
     "required": ["bullets"],
 }
-FLAVOR_PROMPT_VERSION = 2
+FLAVOR_EMOJI_SYSTEM = (
+    "You label release notes for a Lord of the Rings themed Neverwinter Nights "
+    "persistent world. You are given a list of changes that shipped in one "
+    "update, each with an id, a title, a type and a short note.\n\n"
+    "For every id, choose one to three emojis that depict that change — what it "
+    "is about (a forge, a boss, a sword, a map, a bug) and, where it fits, "
+    "whether it is a fix or something new. Prefer one; use three only when they "
+    "really say more than one does.\n\n"
+    "Answer with emoji characters only. No words, no punctuation, no spaces "
+    "between them, no skin tones. Every id you were given must appear exactly "
+    "once. Never invent an id."
+)
+
+FLAVOR_EMOJI_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "emoji": {"type": "string"},
+                },
+                "required": ["id", "emoji"],
+            },
+        }
+    },
+    "required": ["items"],
+}
+FLAVOR_PROMPT_VERSION = 3
 # A roadmap note runs to several paragraphs; the model only needs enough to
 # judge relatedness and write a sentence, and the deterministic fallback still
 # renders the note in full. Keeping the payload small is what keeps a wide
 # range (a whole season's worth of items) inside one context window.
 FLAVOR_NOTE_CHARS = 900
+# Picking an emoji needs the gist, not the note. A quarter of the prose budget
+# keeps a whole season of items inside one context window.
+FLAVOR_EMOJI_NOTE_CHARS = 200
+# At most three, and only the emoji itself survives: the model is asked for
+# emoji only, but a 12B model will hand back "Bug fix 🐛" often enough to matter.
+FLAVOR_EMOJI_MAX = 3
 FLAVOR_CTX_MIN, FLAVOR_CTX_MAX = 8192, 32768
 
 
@@ -447,6 +517,17 @@ def flavor_input(ideas: list[dict]) -> list[dict]:
         "type": i.get("type") or "",
         "group": i.get("group") or "",
         "note": _clip(plain(i.get("notes")), FLAVOR_NOTE_CHARS),
+    } for i in sorted(ideas, key=lambda i: i["id"])]
+
+
+def emoji_input(ideas: list[dict]) -> list[dict]:
+    """What the emoji pass sends — same rule as flavor_input: no server.env."""
+    return [{
+        "id": i["id"],
+        "title": one_line(i.get("title")),
+        "type": i.get("type") or "",
+        "group": i.get("group") or "",
+        "note": _clip(plain(i.get("notes")), FLAVOR_EMOJI_NOTE_CHARS),
     } for i in sorted(ideas, key=lambda i: i["id"])]
 
 
@@ -474,24 +555,26 @@ def _llm_config_models() -> list[str]:
         return ["default"]
 
 
-def flavor_ctx(user: str) -> int:
+def flavor_ctx(user: str, system: str = FLAVOR_SYSTEM) -> int:
     """A context window big enough for this prompt.
 
     Ollama defaults to 4096, which a range of any size overflows with a bare
     HTTP 400 — sized here rather than fixed so a wide --since still works.
     """
-    approx = (len(user) + len(FLAVOR_SYSTEM)) // 3 + 1500
+    approx = (len(user) + len(system)) // 3 + 1500
     return max(FLAVOR_CTX_MIN, min(FLAVOR_CTX_MAX, 1 << (approx - 1).bit_length()))
 
 
-def flavor_fingerprint(payload: list[dict], model: str) -> str:
-    """Identity of a flavor pass: these items, rewritten by this model.
+def flavor_fingerprint(payload: list[dict], model: str, mode: str = "prose") -> str:
+    """Identity of a flavor pass: these items, put through this mode by this model.
 
     The model is in here because switching models must not silently return the
     previous model's cached text -- the whole point of being able to try a new
-    one is seeing what it writes.
+    one is seeing what it writes. The mode is in here because the prose pass and
+    the emoji pass run over the same range and the same items, and a sidecar
+    from one must never be read back as the other.
     """
-    blob = json.dumps([model, payload], sort_keys=True, ensure_ascii=False)
+    blob = json.dumps([mode, model, payload], sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
 
 
@@ -505,13 +588,13 @@ def flavor_path(base: str, head: str, fingerprint: str) -> Path:
     return FLAVOR_DIR / f"{base[:11]}-{head[:11]}.{fingerprint}.flavor.json"
 
 
-def load_flavor(path: Path) -> list[dict] | None:
+def load_flavor(path: Path, key: str = "bullets") -> list[dict] | None:
     """A cached flavor pass for this exact item set, if one was written."""
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    return doc.get("bullets")
+    return doc.get(key)
 
 
 def repair_bullets(bullets, ideas: list[dict]) -> tuple[list[dict] | None, list[str]]:
@@ -563,6 +646,40 @@ def repair_bullets(bullets, ideas: list[dict]) -> tuple[list[dict] | None, list[
     return out, warnings
 
 
+def ask_model(model: str, system: str, user: str, schema: dict,
+              regen: bool) -> tuple[dict | None, str]:
+    """(answer, model name) from the LAN box, or (None, "") with a warning.
+
+    Every failure here -- no client, box asleep, bad request -- is a warning and
+    a None, never an exception: --flavor is an embellishment, and must never be
+    the difference between output and no output.
+    """
+    try:
+        from llm.client import Client, LLMError, LLMUnavailable
+    except ImportError as exc:                        # pragma: no cover
+        print(f"[warn] --flavor: cannot import the LLM client ({exc}); "
+              f"writing the deterministic notes instead", file=sys.stderr)
+        return None, ""
+
+    client = Client(model)
+    ok, msg = client.health()
+    if not ok:
+        print(f"[warn] --flavor: the LLM box is unreachable ({msg}); "
+              f"writing the deterministic notes instead", file=sys.stderr)
+        return None, ""
+
+    try:
+        raw = client.chat(system, user, schema,
+                          prompt_version=FLAVOR_PROMPT_VERSION,
+                          temperature=0.2, num_ctx=flavor_ctx(user, system),
+                          nonce=None if not regen else int(_dt.datetime.now().timestamp()))
+    except (LLMError, LLMUnavailable) as exc:
+        print(f"[warn] --flavor: {exc}; writing the deterministic notes instead",
+              file=sys.stderr)
+        return None, ""
+    return raw, client.short_name
+
+
 def run_flavor(ideas: list[dict], base: str, head: str, regen: bool,
                model: str = "default") -> list[dict] | None:
     """Merged, rewritten bullets — or None to fall back to 1:1 rendering.
@@ -581,30 +698,10 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool,
         if cached is not None:
             return cached
 
-    try:
-        from llm.client import Client, LLMError, LLMUnavailable
-    except ImportError as exc:                        # pragma: no cover
-        print(f"[warn] --flavor: cannot import the LLM client ({exc}); "
-              f"writing the deterministic notes instead", file=sys.stderr)
-        return None
-
-    client = Client(model)
-    ok, msg = client.health()
-    if not ok:
-        print(f"[warn] --flavor: the LLM box is unreachable ({msg}); "
-              f"writing the deterministic notes instead", file=sys.stderr)
-        return None
-
     user = ("Changes in this update:\n\n"
             + json.dumps(payload, indent=2, ensure_ascii=False))
-    try:
-        raw = client.chat(FLAVOR_SYSTEM, user, FLAVOR_SCHEMA,
-                          prompt_version=FLAVOR_PROMPT_VERSION,
-                          temperature=0.2, num_ctx=flavor_ctx(user),
-                          nonce=None if not regen else int(_dt.datetime.now().timestamp()))
-    except (LLMError, LLMUnavailable) as exc:
-        print(f"[warn] --flavor: {exc}; writing the deterministic notes instead",
-              file=sys.stderr)
+    raw, short_name = ask_model(model, FLAVOR_SYSTEM, user, FLAVOR_SCHEMA, regen)
+    if raw is None:
         return None
 
     bullets = (raw or {}).get("bullets") if isinstance(raw, dict) else None
@@ -620,7 +717,7 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool,
     path.write_text(json.dumps(
         {"base": base, "head": head, "fingerprint": fp,
          "prompt_version": FLAVOR_PROMPT_VERSION,
-         "model": client.short_name, "model_arg": model,
+         "model": short_name, "model_arg": model,
          "generated": _dt.date.today().isoformat(),
          "warnings": warnings,
          "_comment": ("Hand-edit `bullets` freely: `text` is what renders, "
@@ -636,37 +733,136 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool,
     return bullets
 
 
+# ------------------------------------------------------- flavor (emoji) --
+#
+# The players audience has no prose left to rewrite, so --flavor does the one
+# judgement call that is left there: which emoji depicts this change. Same
+# cache, same repair-don't-reject rule, same "a sleeping box costs you nothing".
+
+# A ZWJ or a variation selector belongs to the emoji before it (a flag, a
+# profession, a family); so does a skin-tone modifier, which is then dropped
+# with its base if the model ignored the instruction not to use one.
+_EMOJI_JOINERS = {0x200D, 0xFE0F, 0xFE0E}
+
+
+def emoji_only(text: str) -> str:
+    """The first FLAVOR_EMOJI_MAX emoji in `text`, with everything else dropped.
+
+    The model is asked for emoji alone and mostly complies, but "Bug fix 🐛" and
+    a comma-separated list both turn up, and a stray word in a Discord post is
+    worse than no emoji at all.
+    """
+    out: list[str] = []
+    for ch in str(text or ""):
+        cp = ord(ch)
+        if cp in _EMOJI_JOINERS or 0x1F3FB <= cp <= 0x1F3FF:
+            if out:
+                out[-1] += ch
+            continue
+        if cp < 0x2000 or unicodedata.category(ch) not in ("So", "Sk"):
+            continue                      # words, digits, punctuation, spaces
+        if out and out[-1].endswith("\u200d"):
+            out[-1] += ch                 # part of the ZWJ sequence before it
+        else:
+            out.append(ch)
+    return "".join(out[:FLAVOR_EMOJI_MAX])
+
+
+def repair_emoji(items, ideas: list[dict]) -> tuple[dict[str, str], list[str]]:
+    """{id: emoji} the renderer can trust, plus what had to be repaired.
+
+    Nothing is rejected wholesale: an id the model forgot, invented or labelled
+    with words simply has no entry, and type_emoji() fills it in. So the worst
+    case of a bad answer is the deterministic post.
+    """
+    valid = {i["id"] for i in ideas}
+    warnings: list[str] = []
+    out: dict[str, str] = {}
+    if not isinstance(items, list) or not items:
+        return {}, ["no emoji returned"]
+
+    for it in items:
+        if not isinstance(it, dict):
+            warnings.append("dropped a malformed entry")
+            continue
+        iid = str(it.get("id") or "")
+        if iid not in valid:
+            warnings.append(f"dropped invented id {iid!r}")
+            continue
+        if iid in out:
+            warnings.append(f"dropped repeated id {iid!r}")
+            continue
+        chosen = emoji_only(it.get("emoji"))
+        if not chosen:
+            warnings.append(f"id {iid!r} came back without a usable emoji")
+            continue
+        out[iid] = chosen
+
+    missing = sorted(valid - set(out))
+    if missing:
+        warnings.append(f"{len(missing)} item(s) got no emoji and fall back to "
+                        f"their type: {', '.join(missing[:5])}"
+                        + (" …" if len(missing) > 5 else ""))
+    return out, warnings
+
+
+def run_emoji_flavor(ideas: list[dict], base: str, head: str, regen: bool,
+                     model: str = "default") -> dict[str, str]:
+    """{id: emoji} for the players post, cached to its own sidecar."""
+    if not ideas:
+        return {}
+    payload = emoji_input(ideas)
+    fp = flavor_fingerprint(payload, model, mode="emoji")
+    path = flavor_path(base, head, fp)
+
+    if not regen:
+        cached = load_flavor(path, "items")
+        if cached is not None:
+            fixed, _ = repair_emoji(cached, ideas)
+            return fixed
+
+    user = ("Changes in this update:\n\n"
+            + json.dumps(payload, indent=2, ensure_ascii=False))
+    raw, short_name = ask_model(model, FLAVOR_EMOJI_SYSTEM, user,
+                                FLAVOR_EMOJI_SCHEMA, regen)
+    if raw is None:
+        return {}
+
+    items = (raw or {}).get("items") if isinstance(raw, dict) else None
+    chosen, warnings = repair_emoji(items, ideas)
+    for w in warnings:
+        print(f"[warn] --flavor: {w}", file=sys.stderr)
+    if not chosen:
+        print("[warn] --flavor: no emoji survived; the post falls back to one "
+              "per type", file=sys.stderr)
+        return {}
+
+    FLAVOR_DIR.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(
+        {"base": base, "head": head, "fingerprint": fp, "mode": "emoji",
+         "prompt_version": FLAVOR_PROMPT_VERSION,
+         "model": short_name, "model_arg": model,
+         "generated": _dt.date.today().isoformat(),
+         "warnings": warnings,
+         "_comment": ("Hand-edit `items` freely: `emoji` is what renders before "
+                      "that item's line, at most three, and an id with none "
+                      "falls back to one emoji per type. Rerun with "
+                      "--regen-flavor to throw this away and re-roll."),
+         "items": [{"id": k, "emoji": v} for k, v in sorted(chosen.items())]},
+        indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"[info] --flavor: emoji for {len(chosen)}/{len(ideas)} item(s), "
+          f"cached in {path.relative_to(REPO)}", file=sys.stderr)
+    return chosen
+
+
 # ------------------------------------------------------------- render --
 
 def md_escape_heading(s: str) -> str:
     return s.replace("\n", " ").strip()
 
 
-def render_item_body(idea: dict, note_override: str | None) -> list[str]:
-    lines = []
-    body = note_override if note_override is not None else plain(idea.get("notes"))
-    for ln in (body or "").split("\n"):
-        lines.append(f"  {ln}".rstrip())
-    return lines
-
-
 def group_titles(doc: dict) -> dict:
     return {g["id"]: plain(g.get("title") or g["id"]) for g in (doc.get("groups") or [])}
-
-
-def epic_progress(doc: dict) -> dict:
-    """epic id -> (title, shipped children, total children) over the WHOLE backlog.
-
-    Computed from every idea, not just the ones in this range — an "x/y" that
-    counted only this update's children would be a lie.
-    """
-    out = {}
-    for ep in (doc.get("epics") or []):
-        kids = [i for i in (doc.get("ideas") or [])
-                if i.get("epic") == ep["id"] and not i.get("hidden")]
-        done = [i for i in kids if PUB.is_shipped(i)]
-        out[ep["id"]] = (plain(ep.get("title") or ep["id"]), len(done), len(kids))
-    return out
 
 
 def bullets_for(ideas: list[dict], flavored: list[dict] | None) -> list[tuple[list[dict], str | None]]:
@@ -683,41 +879,45 @@ def bullets_for(ideas: list[dict], flavored: list[dict] | None) -> list[tuple[li
     return out
 
 
-def render_players(ideas: list[dict], doc: dict, flavored) -> list[str]:
-    """What's new, grouped by roadmap group; epic children nested under the epic."""
+def player_line(idea: dict, emoji: dict[str, str]) -> str:
+    """One item as one Discord line: `<emoji> [title](thread) — reporter`.
+
+    The thread carries the detail, so nothing else from the idea belongs here.
+    An item nobody has linked to a thread yet still appears — unlinked rather
+    than unannounced.
+    """
+    title = one_line(idea.get("title")).replace("[", "(").replace("]", ")")
+    url = discord_url(idea)
+    label = f"[{title}]({url})" if url else title
+    who = PUB.player_label(idea)
+    return (f"{emoji.get(idea['id']) or type_emoji(idea)} {label}"
+            + (f" — {who}" if who else ""))
+
+
+def render_players(ideas: list[dict], doc: dict, emoji: dict[str, str]) -> list[str]:
+    """The update announcement as a Discord post: links, grouped by category.
+
+    Deliberately NOT the roadmap note. Every shipped idea that has been linked
+    to its Discord forum thread points at it, and that thread is where a player
+    reads what changed and argues about it — so restating the note here would
+    only be a second, staler copy of the thread's first post. What is left is
+    the shortest thing that still says what shipped.
+    """
     titles = group_titles(doc)
-    epics = epic_progress(doc)
     vis = visible(ideas)
     if not vis:
         return ["_Nothing player-facing in this range._", ""]
 
     groups: dict[str, list] = {}
-    for members, text in bullets_for(vis, flavored):
-        gid = members[0].get("group") or "other"
-        groups.setdefault(gid, []).append((members, text))
+    for idea in sorted(vis, key=sort_key, reverse=True):
+        groups.setdefault(idea.get("group") or "other", []).append(idea)
 
     order = {g["id"]: g.get("order", 999) for g in (doc.get("groups") or [])}
     lines = []
     for gid in sorted(groups, key=lambda g: (order.get(g, 999), g)):
-        lines.append(f"### {titles.get(gid, gid)}")
+        lines.append(f"**{md_escape_heading(titles.get(gid, gid))}**")
+        lines.extend(player_line(i, emoji) for i in groups[gid])
         lines.append("")
-        for members, text in groups[gid]:
-            head = members[0]
-            title = " / ".join(one_line(m.get("title")) for m in members)
-            lines.append(f"- **{type_prefix(head)}{md_escape_heading(title)}**")
-            lines.append("")
-            body = text if text is not None else plain(head.get("notes"))
-            if len(members) > 1 and text is None:
-                body = "\n\n".join(plain(m.get("notes")) for m in members)
-            lines.extend(render_item_body(head, body))
-            eids = {m.get("epic") for m in members if m.get("epic")}
-            for eid in sorted(e for e in eids if e in epics):
-                t, done, total = epics[eid]
-                lines.append(f"  _Part of **{t}** — {done}/{total} complete._")
-            credits = sorted({PUB.player_label(m) for m in members if PUB.player_label(m)})
-            if credits:
-                lines.append(f"  _Reported by {', '.join(credits)}._")
-            lines.append("")
     return lines
 
 
@@ -793,9 +993,14 @@ def render_admin(ideas: list[dict], doc: dict, commits, claimed: set[str]) -> li
     return lines
 
 
-def render(args, base, prov, head, commits, ideas, claimed, doc, flavored) -> str:
+def render(args, base, prov, head, commits, ideas, claimed, doc, flavored,
+           emoji: dict[str, str] | None = None) -> str:
     today = _dt.date.today().isoformat()
+    emoji = emoji or {}
     wiki = season_env("SEASON_WIKI_URL")
+    # The players post announces the LIVE season, so it must not advertise the
+    # dev realm's wiki -- which is what SEASON_WIKI_URL is in this repo.
+    live_wiki = season_env("SEASON_LIVE_WIKI_URL") or wiki
     host = season_env("SEASON_CONNECT_HOST")
     num = season_env("SEASON_NUM")
     vis = visible(ideas)
@@ -816,9 +1021,16 @@ def render(args, base, prov, head, commits, ideas, claimed, doc, flavored) -> st
                 bits.append(f"Wiki: {wiki}")
             L.append(" · ".join(bits))
     elif args.audience == "players":
-        L.append(f"# Season {num} update — what's new ({today})")
+        # A Discord post, so: no HTML comment (Discord renders it as literal
+        # text), no range, no commit count, no preamble anyone has to read.
+        L.append(f"## Season {num} update — {today}")
         L.append("")
-        L.append("Everything below is now live.")
+        L.extend(render_players(ideas, doc, emoji))
+        L.append("_Click a change to read its thread._"
+                 + (f" · Wiki: {live_wiki}" if live_wiki else ""))
+        while L and not L[-1].strip():
+            L.pop()
+        return "\n".join(L) + "\n"
     else:
         L.append(f"# Dev → Season {num}: release-note working copy ({today})")
 
@@ -830,12 +1042,10 @@ def render(args, base, prov, head, commits, ideas, claimed, doc, flavored) -> st
 
     if args.audience == "testers":
         L.extend(render_testers(ideas, doc, flavored))
-    elif args.audience == "players":
-        L.extend(render_players(ideas, doc, flavored))
     else:
         L.append("## What's new (player-facing)")
         L.append("")
-        L.extend(render_players(ideas, doc, flavored))
+        L.extend(render_players(ideas, doc, emoji))
         L.append("## Still needs testing")
         L.append("")
         L.extend(render_testers(ideas, doc, flavored))
@@ -859,7 +1069,8 @@ def main() -> int:
                     help="the season repo to diff against (default: ../nwn_homers_lotr_s2)")
     ap.add_argument("--since", help="baseline ref, overriding auto-detection")
     ap.add_argument("--flavor", action="store_true",
-                    help="rewrite the notes and merge related items via the LAN model")
+                    help="ask the LAN model to help: rewrite and merge the notes "
+                         "(testers/admin), pick each item's emoji (players)")
     ap.add_argument("--regen-flavor", action="store_true",
                     help="re-run the flavor pass even if a sidecar exists")
     ap.add_argument("--model", default="default",
@@ -899,14 +1110,24 @@ def main() -> int:
               f"Pass --since <the previous base> to re-generate past notes.",
               file=sys.stderr)
 
-    flavored = None
+    # Two different jobs share one flag. The prose pass rewrites and merges the
+    # notes the testers/admin documents render; the players post has no prose
+    # left to rewrite, so there the model only picks the emoji. The admin
+    # audience contains both documents, so it runs both (each cached).
+    flavored, emoji = None, {}
     if args.flavor:
         pool = visible(ideas)
-        if args.audience == "testers":
-            pool = [i for i in pool if GEN.open_uat_steps(i)]
-        flavored = run_flavor(pool, base, head, args.regen_flavor, args.model)
+        if args.audience != "players":
+            prose_pool = ([i for i in pool if GEN.open_uat_steps(i)]
+                          if args.audience == "testers" else pool)
+            flavored = run_flavor(prose_pool, base, head, args.regen_flavor,
+                                  args.model)
+        if args.audience != "testers":
+            emoji = run_emoji_flavor(pool, base, head, args.regen_flavor,
+                                     args.model)
 
-    text = render(args, base, prov, head, commits, ideas, claimed, doc, flavored)
+    text = render(args, base, prov, head, commits, ideas, claimed, doc, flavored,
+                  emoji)
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
         print(f"wrote {args.out} ({len(commits)} commits, {len(visible(ideas))} items, "

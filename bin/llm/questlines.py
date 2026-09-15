@@ -11,11 +11,12 @@ The design is the PowerShell script's and is preserved exactly -- the same
 backlog files, the same checkbox ticking, the same output and synopsis files, in
 the same formats. Only the plumbing changed:
 
-  * **The box is reached over the network** (`llm/config.OLLAMA_URL`), not
+  * **The box is reached over the network** (`llm/config.LLM_URL`), not
     `localhost`. The .ps1 assumed it was running ON the Windows machine.
   * **The model comes from the shared registry.** The .ps1 defaulted to
-    `gemma4:12b-it-qat`, which is not installed there -- only the three
-    `hf.co/unsloth/gemma-4-*` builds are, so that default could only ever fail.
+    `gemma4:12b-it-qat`, which was never what the box served. Since 2026-09-14
+    the box runs llama-server, which serves exactly one model and ignores the
+    name in the request, so the registry entry is a label and a cache key.
   * **It goes through `llm/client.py`**, so it gets the disk cache, retries, the
     health probe and `status.py` visibility like every other task here.
   * **Classes run in parallel.** Quests *within* a line must stay sequential --

@@ -77,6 +77,7 @@ Each entry under `ideas:` is one backlog item:
 | `notes_h` | no | Editor-only: remembered pixel height of that idea's Notes box. Written by the GUI when you resize; ignored by `gen-roadmap.py`. |
 | `impl_notes` | no | **Internal — never player-visible.** The builder's record: root cause, scripts and resrefs touched, DB tables, design deviations. Rich-text HTML, same whitelist as `notes`. This is where the technical half of a fix goes. |
 | `impl_notes_h` | no | Editor-only: remembered pixel height of the Implementation notes box. |
+| `discord` | no | `{thread_id, channel_id, url}` — the forum thread this idea is mirrored to. **Written only by `nwnbot` and by the editor's thread-link approval card; never hand-edit it.** Nothing on the public roadmap page renders it, but the **players release notes link every item to it** (`bin/gen-release-notes.py`), so an idea with no thread is announced as plain text. One thread belongs to exactly one idea. |
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
 | `design_questions` | no | **Internal — never player-visible.** List of `{question, status, answer}`; `status` is `open` or `answered`. See below. |
 | `manual_steps` | no | **Internal — never player-visible.** List of `{step, status, blocker}`: toolset work only the admin can do (waypoint placement, loot placement) and UAT scripts. See below. |
@@ -746,7 +747,7 @@ byte-identical to what gets published later. See the "Release notes" section of
 | Button | Cap | Shows |
 |---|---|---|
 | **Notes · Testers** | `release_notes` | shipped-but-unvalidated items, with each open UAT check and who can run it |
-| **Notes · Players** | `release_notes` | the same changes as an update announcement |
+| **Notes · Players** | `release_notes` | the same changes as a **Discord post**: one bold group heading per category, then one line per change — `<emoji> [title](its forum thread) — reporter` — and nothing else. Hit **Copy** and paste it into the announcements channel. An idea with no `discord` thread yet appears as plain text rather than a link. |
 | **Notes · Admin** | `release_notes_admin` | both, plus `hidden` items, open publish/toolset steps, and the commits no roadmap item claimed |
 
 **Why two capabilities and two routes.** The admin audience is a *different
@@ -764,7 +765,10 @@ information for the same reason `audit_view` is — so `release_notes_admin` is 
 
 **Rewrite with local model** re-runs the generator with `--flavor`, which asks the
 LAN LLM box to rewrite each note in plain language *and merge duplicate or
-related items into one bullet*. The model is chosen from a dropdown listing what
+related items into one bullet*. On the **players** panel the same button reads
+**Pick emojis with local model**, because that post has no prose left to rewrite:
+there the model chooses up to three emojis per change, and anything it skips keeps
+the one emoji its `type` gets. The model is chosen from a dropdown listing what
 that box is actually serving (`/api/release-notes/models`), so switching off
 Gemma is a dropdown change, not a code change; the aliases from
 `bin/llm/config.py` are always offered so the picker still works when the box is

@@ -1,6 +1,6 @@
 # `bin/llm/` — the local-LLM harness
 
-A Gemma 4 server on the LAN does this module's bulk prose work: item and creature
+A local LLM box does this module's bulk prose work: item and creature
 descriptions, dialogue proofreading, quest-line design, backlog triage.
 
 The point of the harness is that **running a task costs an agent nothing.** All
@@ -31,25 +31,40 @@ is revertible from the roadmap editor's **LLM Changes** panel.
 
 ## The box
 
-`http://192.168.1.103:11434` — a **Windows** machine contributing GPU inference
-over HTTP and nothing else. It has no NWN toolchain and no `module-index/`, which
-is why the harness runs *here* and only the inference is remote. That is also
-what lets every batch be gated on `tests/smoke-test` before it is committed.
+A **Windows** machine contributing GPU inference over HTTP and nothing else. It
+has no NWN toolchain and no `module-index/`, which is why the harness runs *here*
+and only the inference is remote. That is also what lets every batch be gated on
+`tests/smoke-test` before it is committed.
 
 **Never send it secrets.** Unauthenticated plain HTTP on the LAN: no
 `server.env`, no CD keys, no `bin/seed-admindb.sh`, no `roadmap-merit-aliases.json`.
 
-| Model | Speed | Use |
-|---|---|---|
-| `gemma-4-31B` Q4 | 2.2 tok/s | **never for bulk** — 4x slower than 12B for a marginal gain |
-| `gemma-4-12B` Q4 | ~8 tok/s | **the default** — ~10s per item at concurrency 4 |
-| `gemma-4-E4B` Q8 | ~12 tok/s | fastest, noticeably purpler prose |
+**Since 2026-09-14 it runs llama.cpp's `llama-server`** (not Ollama) serving
+`Qwen3.6-35B-A3B-Q4_K_M`, wired to this host over ethernet rather than sitting on
+the wifi LAN. The address is `config.LLM_URL`, overridable by the `LLM_URL` env
+var. The client talks the **OpenAI-compatible API** (`/v1/chat/completions`,
+`/v1/models`), which both servers implement.
 
-Concurrency 4 gives ~2.5x throughput on short generations. On long ones (a quest
-outline, ~500 tokens) it buys almost nothing — the box is already saturated by a
-single request. There is **no embedding model installed**; `--embeddings` is a
-llama.cpp flag that does nothing for Ollama, and the fix is
-`ollama pull embeddinggemma`.
+Three Ollama behaviours did not survive the move: `options.num_ctx` (the window
+is now fixed by llama-server's `-c`, and an overflow is an HTTP error rather than
+a silent front-truncation), `think: false` (now
+`chat_template_kwargs.enable_thinking`, plus a defensive `<think>` strip), and
+the model registry (**one model per process**, and the `model` field is ignored —
+so `config.MODELS` is a label and a cache key, not a choice).
+
+**Both common connection failures are hangs, not errors**, and both are on the
+Windows side: llama-server binds `127.0.0.1` unless given `--host 0.0.0.0`, and
+the firewall must allow its port for this subnet. Check with
+`curl http://<box>:<port>/v1/models`.
+
+Measured 2026-09-14 (Ryzen 7 9700X, 61.7 GB RAM, RTX 3060 8 GB): **25.8 tok/s**,
+**~24s cold start**, **16384 context** as launched. **Concurrency is 1** —
+llama-server serializes, so parallel callers only queue; that reverses the
+Ollama-era 4, which really did give ~2.5x on short generations.
+
+There is **no embedding model**, and that is structural now: one model per
+process, so embeddings need a *second* `llama-server --embeddings` on its own
+port.
 
 ---
 
@@ -60,7 +75,7 @@ llama.cpp flag that does nothing for Ollama, and the fix is
 | File | What it does |
 |---|---|
 | `config.py` | Box URL, model registry, concurrency, paths. Everything overridable by env var, so the harness can be relocated. |
-| `client.py` | Ollama client: `think:false`, JSON schemas, thread pool, disk cache, health probe, `num_ctx`. |
+| `client.py` | LLM client over the OpenAI-compatible API: thinking off, JSON schemas, thread pool, disk cache, health probe. |
 | `gff.py` | Byte-exact reads and writes of GFF-as-JSON fields, including list indices. |
 | `wiki.py` | Reads resolved data back out of `docs/` (item properties are numeric in raw GFF). |
 | `itemstats.py` | Where each property sits in the module's own distribution. |
@@ -149,7 +164,7 @@ tasks already run at 0.9, and a re-run returns the identical text in 0.0s
 because the disk cache is keyed on the request — the sampler never sees it.
 A re-roll needs:
 
-- `client.chat(..., nonce=N)` — changes the cache key *and* becomes Ollama's
+- `client.chat(..., nonce=N)` — changes the cache key *and* becomes the sampler's
   `seed`, so the roll is uncached and differently sampled.
 - `Task.item_builder` — rebuilds the prompt for a resref *without* the
   selector's "is this field still empty" filter, which would otherwise exclude
@@ -299,7 +314,7 @@ That labelling matters beyond curiosity: Sonnet's prose is visibly better, so
 unlabelled recoveries would quietly raise your impression of what the local model
 produces and skew every judgement about whether a prompt needs work.
 
-Ollama enforces structure with its `format` parameter; the CLI has no equivalent,
+The server enforces structure with a JSON schema; the CLI has no equivalent,
 so `fallback.schema_instruction()` renders the schema into the system prompt. The
 first live test without it returned perfectly good prose and no JSON at all.
 

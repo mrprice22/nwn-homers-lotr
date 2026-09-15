@@ -14,7 +14,7 @@ afterwards is mechanical.
 | Path | What it is |
 |---|---|
 | `bin/llm/config.py` | The box's URL, the model registry, concurrency, paths. Every value overridable by env var. |
-| `bin/llm/client.py` | Ollama client: `think:false`, JSON schemas, thread pool, disk cache. |
+| `bin/llm/client.py` | LLM client, OpenAI-compatible API: thinking off, JSON schemas, thread pool, disk cache. |
 | `bin/llm/gff.py` | Byte-exact reads and writes of GFF-as-JSON fields. |
 | `bin/llm/wiki.py` | Reads resolved data back out of `docs/` (item properties). |
 | `bin/llm/ledger.py` | The change ledger, and its CLI. |
@@ -28,30 +28,54 @@ afterwards is mechanical.
 
 ## The box
 
-`http://192.168.1.103:11434`, a **Windows** machine (ports 445 and 3389 open, 22
-filtered). It contributes GPU inference over HTTP and nothing else: it has no
-NWN toolchain, no `module-index/` (that directory is gitignored), and no way to
-run the build gates. **The harness therefore runs on this Linux host** and only
-the inference is remote. That is also what lets every batch be gated on
+A **Windows** machine contributing GPU inference over HTTP and nothing else: it
+has no NWN toolchain, no `module-index/` (that directory is gitignored), and no
+way to run the build gates. **The harness therefore runs on this Linux host** and
+only the inference is remote. That is also what lets every batch be gated on
 `tests/smoke-test` before it is committed.
 
 **Never send secrets to it.** It is unauthenticated plain HTTP on the LAN. No
 `server.env`, no CD keys, no `bin/seed-admindb.sh`, no `roadmap-merit-aliases.json`.
 
-Measured on this hardware, 2026-08-23:
+**Since 2026-09-14 it runs llama.cpp's `llama-server`, not Ollama**, serving
+`Qwen3.6-35B-A3B-Q4_K_M`, and it is wired to this host by ethernet rather than
+sitting on the wifi LAN — this host runs the shared connection (`enp1s0`,
+`10.42.0.1/24`) and the box is a DHCP client of it. The address lives in
+`bin/llm/config.py` as `LLM_URL`, overridable by the `LLM_URL` env var (the old
+`LLM_OLLAMA_URL` is still read).
 
-| Model | Speed | Use |
-|---|---|---|
-| `gemma-4-31B` Q4 | 2.2 tok/s | **Never for bulk.** Four times slower than 12B for a marginal gain. |
-| `gemma-4-12B` Q4 | ~8 tok/s | **The default.** ~10s per item at concurrency 4. |
-| `gemma-4-E4B` Q8 | ~12 tok/s | Fastest, noticeably purpler prose. Bulk and low-stakes only. |
+**The client speaks the OpenAI-compatible API (`/v1/chat/completions`,
+`/v1/models`), not a server's native one**, which is what made the switch a URL
+change instead of a rewrite — both servers implement it. Three things did not
+survive the move, and all three are in `client.py`:
 
-Concurrency **4** gives about 2.5x the aggregate throughput of serial. Higher was
-not measured to help. A 944-item batch takes about 2.5 hours.
+| Ollama | llama-server |
+|---|---|
+| `options.num_ctx` grew the window per request | fixed at startup by `-c`; there is **no request field that can raise it**, so an over-long prompt is an HTTP error naming the limit, not a silent front-truncation. `num_ctx` is now advisory — it stays in the cache key and nothing more |
+| `think: false` | the model's own chat template switch, `chat_template_kwargs.enable_thinking: false` — plus a defensive `<think>…</think>` strip, because an unstripped block makes the content fail to parse as JSON and reads as "the model is broken" |
+| many models installed, picked per request | **one model per process**, and the `model` field of a request is ignored. `config.MODELS` is therefore a label, not a choice: switching models means restarting llama-server with a different `-m`. Keep the name in step with what is loaded anyway — it is part of every cache key and flavor fingerprint, so a stale name hands the new model the old one's cached answers |
 
-There is **no embedding model installed**. `--embeddings` is a llama.cpp flag and
-does nothing for Ollama; the fix is `ollama pull embeddinggemma`. `client.embed()`
-returns `None` until then, and callers fall back.
+**Two ways this fails as a hang rather than an error**, both on the Windows side
+and neither visible from here beyond a timeout: `llama-server` binds `127.0.0.1`
+unless started with `--host 0.0.0.0`, and that machine's firewall must allow the
+port for this subnet. `curl http://<box>:<port>/v1/models` is the one-line check.
+
+**Measured 2026-09-14** (Ryzen 7 9700X, 61.7 GB RAM, RTX 3060 8 GB): **25.8
+tok/s** generation, **~24s cold start** (20 GB of weights off NVMe), **16384
+context** as launched — the model trains to 262144, but raising it costs RAM and
+a reload. It is good at bulk language work and bad at latency, so never put it in
+a loop with a human waiting on each turn.
+
+**Concurrency is 1, and that is not a tuning choice.** llama-server processes
+requests in order, so parallel callers serialize and fanning out buys nothing but
+queueing. This reverses the Ollama-era setting, where 4 parallel requests measured
+~2.5x the aggregate throughput of serial — `config.CONCURRENCY` moved from 4 to 1
+with the server. Batch on this side instead.
+
+There is **no embedding model**, and on llama-server that is structural rather
+than a missing pull: one model per process, so embeddings mean a **second**
+`llama-server --embeddings` on its own port. `client.embed()` returns `None`
+until one exists, and every caller falls back.
 
 ## Writing a task recipe
 
@@ -303,7 +327,7 @@ in 0.0s, because the disk cache is keyed on the request and the sampler is never
 reached. Two things were actually needed:
 
 - **A nonce** (`client.chat(..., nonce=N)`): it changes the cache key *and*
-  becomes Ollama's `seed`, so the roll is both uncached and differently sampled.
+  becomes the sampler `seed`, so the roll is both uncached and differently sampled.
 - **`Task.item_builder`**: the selector deliberately skips items whose field is
   filled, which is by definition every item you would want to re-roll. Item
   construction is now split out of the selector so a prompt can be rebuilt for
@@ -335,7 +359,7 @@ python3 bin/llm/run.py <task> --apply --no-fallback
 
 Two things that are easy to get wrong:
 
-- **The schema must be stated in words.** Ollama enforces structure with its
+- **The schema must be stated in words.** The server enforces structure with its
   `format` parameter, so task prompts never had to ask for JSON. The CLI has no
   equivalent — the first live test returned perfectly good prose and no JSON at
   all. `fallback.schema_instruction()` renders the schema into the system prompt.
@@ -489,14 +513,16 @@ changed is only the plumbing:
   request. Concurrency here mainly buys resilience — one slow line does not
   block the rest.
 
-- **Asks for `num_ctx: 8192`**, as the .ps1 did. The box loads this model at
-  4096, and a line's prompt grows as it runs: every finished quest appends a
-  synopsis line to "STORY SO FAR". On overflow Ollama truncates from the *front*
-  — the design brief — so the output format, the reward tiers and the
-  do-not-repeat-yourself rule would silently vanish, worst on the late capstone
-  quests, and the result would still read like a perfectly good quest. The first
-  port of this dropped the setting; restoring it is what makes the long lines
-  trustworthy.
+- **Asks for `num_ctx: 8192`**, as the .ps1 did, because a line's prompt grows as
+  it runs: every finished quest appends a synopsis line to "STORY SO FAR". On
+  Ollama that request was load-bearing — the box loaded the model at 4096 and
+  truncated an overflow from the *front*, the design brief, so the output format,
+  the reward tiers and the do-not-repeat-yourself rule vanished silently and the
+  result still read like a perfectly good quest. **On llama-server the request
+  cannot do anything**: the window is fixed by `-c` at startup and an overflow is
+  an HTTP error rather than a truncation, which is at least loud. So start
+  llama-server with `-c 8192` or more, or the late capstone quests fail outright
+  instead of degrading.
 
 File formats are written back **exactly as found**, BOM and CRLF included.
 Normalising them would be a one-line change and a bad one: PowerShell 5.1's

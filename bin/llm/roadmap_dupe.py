@@ -18,11 +18,12 @@ rarely pick the same nouns. It also cannot see across groups at all.
 Two strategies, in order of preference:
 
   embeddings  cosine similarity over title + notes. One pass over the backlog,
-              no generation. Needs an embedding model on the box -- there is
-              none installed as of 2026-08-23, and `--embeddings` is a llama.cpp
-              flag that does nothing for Ollama. Fix: `ollama pull embeddinggemma`.
+              no generation. Needs an embedding model on the box, and there is
+              none: llama-server serves one model per process, so an embedding
+              model means a SECOND llama-server started with `--embeddings` and
+              its own port. Until that exists this strategy always falls back.
 
-  generative  ask the 12B model to compare one candidate against the titles in
+  generative  ask the served model to compare one candidate against the titles in
               its group. One call, ~30 titles of context. Slower per query but
               needs nothing installed, and it is the sensible default for the
               real use case: checking ONE newly filed idea, not re-scanning 356.
@@ -185,8 +186,9 @@ def main(argv: list[str] | None = None) -> int:
         strategy = "embeddings"
         if hits is None:
             if args.all:
-                print("--all needs an embedding model; none is installed.\n"
-                      "  ollama pull embeddinggemma   (on the Gemma box)\n"
+                print("--all needs an embedding model; the box serves none.\n"
+                      "  Start a second llama-server with --embeddings and an\n"
+                      "  embedding model, and point LLM_URL at it.\n"
                       "Falling back is not possible for a whole-backlog scan: it "
                       "would be one generation per idea.", file=sys.stderr)
                 return 4
