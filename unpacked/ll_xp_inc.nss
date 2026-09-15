@@ -31,6 +31,7 @@
 // above the level-60 threshold, which is already a state characters reach.
 
 #include "boost_inc"
+#include "season_prof_inc"
 
 // THE FORMULA -- a CR-versus-level curve, not a flat CR one.
 //
@@ -64,8 +65,11 @@
 // tier content paying something on the way down instead of dropping straight to
 // the floor the moment you outgrow it.
 //
-// BALANCE, APPROVED BY THE ADMIN 2026-08-13 ("option A"). Roughly 9.9 hours solo
-// unboosted for 41->60, ~5.0 with the 2x boost, at 90 kills/hour.
+// BALANCE, APPROVED BY THE ADMIN 2026-08-13 ("option A"). Roughly 9.9 hours SOLO
+// unboosted for 41->60, ~5.0 with the 2x boost, at 90 kills/hour. Solo is the
+// operative word since 2026-09-14 (see THE PARTY DIVISION below): a two-PC party
+// splits each kill, so the band takes them about twice as long -- exactly as it
+// already did for them below level 41.
 //
 // A 20-hour target was considered first and abandoned as arithmetically
 // impossible alongside the other requirements. 41->60 costs 2,752,200 XP, so at
@@ -120,6 +124,27 @@
 // unchanged, so an optimising player farms CR 200+ and is unaffected. What it
 // changes is that low-CR farming stops being viable.
 //
+// THE PARTY DIVISION (roadmap: gwathdor-snakes, 2026-09-14). This half used to pay
+// every contributor the FULL award, undivided, matching RewardPartyXP semantics
+// (admin's call 2026-08-13). The engine does not do that below level 41: it splits
+// a kill 1/N across the PCs present and docks 10% per associate (summon, henchman,
+// familiar, animal companion) -- Bioware standard, and modelled in this repo at
+// sha_xpsystem.nss's SHA_CalculateXPModifier.
+//
+// So crossing level 40 made a monster pay MORE, not less, to anyone partied or
+// running a summon, which breaks the module's one XP invariant: for a given
+// monster the award may fall as you level, never rise. Measured by a player on a
+// CR 171 Gwathdor snake: 2,700 at level 40 (6,000 / 2 x 0.9) and a flat 6,000 at
+// 41. LlXp_PartyMod below reapplies the engine's own modifier up here, so the
+// boundary is flat under identical party composition.
+//
+// It stays monotonic because LlXp_Award(41, CR) is <= the level-40 engine award at
+// every CR and BOTH sides are now multiplied by the same modifier.
+//
+// WHO IS PAID is still bst_ondeath's damage-contributor set, not the modifier's
+// headcount -- that is what keeps the party-xp-given-to-whole-party-issue fix
+// (f5e3f11072c): an out-of-area party member neither collects nor dilutes.
+
 // RETUNING: LLXP_TIER_STEP is the grind dial. Re-run the calibration against
 // creature_index.json + bosses.json before changing it, and record the new target
 // on the roadmap item; the target is a balance decision, not an implementation
@@ -146,7 +171,8 @@ const int   XP_KILL_CAP    = 6000;
 const int   XP_ENGINE_MAX  = 9000;
 
 const int   LLXP_MIN_LEVEL = 41;      // first level the engine pays nothing at
-const int   LLXP_PEAK      = XP_KILL_CAP;   // per kill, BEFORE the boost
+const int   LLXP_PEAK      = XP_KILL_CAP;   // per kill, before the party
+                                            // division and before the boost
 const int   LLXP_FLOOR     = 60;      // what the level-40 row pays for trash
 const float LLXP_TIER_BASE = 150.0;   // CR paying full value at LLXP_MIN_LEVEL
 const float LLXP_TIER_STEP = 1.03716; // tier growth per level -- THE GRIND DIAL
@@ -154,6 +180,14 @@ const float LLXP_KNEE      = 0.05;    // fraction of tier where the ramp starts.
                                       // Levels 41+ ONLY -- the 1-40 half fades
                                       // this in from ~0 at level 1 (see above).
 const float LLXP_KNEE_EXP  = 1.41;    // >1 keeps on-tier content dominant
+
+// The engine's party division, mirrored up here (see THE PARTY DIVISION above):
+// 1/N across the PCs present, minus 10% per associate. The floor is OURS, not the
+// engine's -- a hero with a stableful of summons should still be paid something,
+// and a zero award reads to a player as "the kill gave me nothing", i.e. as the
+// original defect.
+const float LLXP_NPC_PENALTY   = 0.1;
+const float LLXP_MIN_PARTY_MOD = 0.1;
 
 // The CR that pays the full award at this character level.
 float LlXp_Tier(int nLevel)
@@ -174,16 +208,64 @@ int LlXp_Award(int nLevel, float fCR)
     return LLXP_FLOOR + FloatToInt(IntToFloat(LLXP_PEAK - LLXP_FLOOR) * fF);
 }
 
-// Pay one contributor for one kill. Safe to call for any PC at any level: it is
+// The engine's party modifier for this kill: 1/N over the PCs of oPC's party who
+// are alive and in the creature's area, less LLXP_NPC_PENALTY per associate there.
+// GetFirstFactionMember's FALSE means "include non-PC members", which is how the
+// associates are counted.
+float LlXp_PartyMod(object oPC, object oCre)
+{
+    object oArea = GetArea(oCre);
+    int nPCs   = 0;
+    int nNPCs  = 0;
+
+    object oMember = GetFirstFactionMember(oPC, FALSE);
+    while (GetIsObjectValid(oMember))
+    {
+        if (GetArea(oMember) == oArea && !GetIsDead(oMember) && !GetIsDM(oMember))
+        {
+            if (GetIsPC(oMember)) nPCs++;
+            else                  nNPCs++;
+        }
+        oMember = GetNextFactionMember(oPC, FALSE);
+    }
+
+    // oPC is a living PC by the time we are called, so this is belt and braces --
+    // but a 1/0 would be a divide by zero, not a small number.
+    if (nPCs < 1) nPCs = 1;
+
+    float fMod = 1.0 / IntToFloat(nPCs) - LLXP_NPC_PENALTY * IntToFloat(nNPCs);
+    if (fMod < LLXP_MIN_PARTY_MOD) fMod = LLXP_MIN_PARTY_MOD;
+    return fMod;
+}
+
+// Pay one contributor for one kill. oCre is the dead creature -- its area is what
+// LlXp_PartyMod counts the party in. Safe to call for any PC at any level: it is
 // a no-op below LLXP_MIN_LEVEL, where the engine is still paying.
-void LlXp_GiveKillXP(object oPC, float fCR)
+void LlXp_GiveKillXP(object oPC, float fCR, object oCre)
 {
     if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
 
     int nLevel = GetHitDice(oPC);
     if (nLevel < LLXP_MIN_LEVEL) return;
 
-    int nTotal = LlXp_Award(nLevel, fCR) * Boost_Mult(oPC);
+    // Party division BEFORE the boost, the same order boost_xp_evt.nss uses below
+    // level 41 (it boosts a gain the engine has already split).
+    int   nAward = LlXp_Award(nLevel, fCR);
+    float fMod   = LlXp_PartyMod(oPC, oCre);
+    int   nShare = FloatToInt(IntToFloat(nAward) * fMod);
+    int   nTotal = nShare * Boost_Mult(oPC);
+
+    // Companion to boost_xp_evt.nss's [xpdbg], which only ever sees this path as
+    // "skip:no_xp_flag" and so cannot show the modifier. Dev/test realm only.
+    if (SP_DEV_TOOLS)
+        WriteTimestampedLogEntry("[xpdbg] llxp pc=" + GetName(oPC) +
+            " hd=" + IntToString(nLevel) +
+            " cr=" + FloatToString(fCR, 0, 1) +
+            " award=" + IntToString(nAward) +
+            " mod=" + FloatToString(fMod, 0, 3) +
+            " share=" + IntToString(nShare) +
+            " total=" + IntToString(nTotal));
+
     if (nTotal <= 0) return;
 
     // Boost already applied above -- Boost_GiveXPNoBoost raises the boost_no_xp

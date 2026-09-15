@@ -104,11 +104,16 @@ void main()
         // Legendary-tier kill XP (roadmap: ll-xp-award-balance). The engine pays
         // nothing above level 40 because xptable.2da was never extended, so 41+
         // characters are paid here instead. No-op at level 40 and below, where
-        // the engine is still paying. Full award to each contributor rather than
-        // a split (admin's call 2026-08-13), matching RewardPartyXP semantics --
-        // this loop is already the correct contributor set, with summons,
-        // henchmen, DMs and environmental deaths excluded above.
-        LlXp_GiveKillXP(m, fCR);
+        // the engine is still paying.
+        //
+        // This loop decides WHO is paid -- the damage contributors, with summons,
+        // henchmen, DMs and environmental deaths already excluded above, so an
+        // out-of-area party member neither collects nor dilutes. HOW MUCH is
+        // LlXp_PartyMod's job: it reapplies the engine's own 1/N party split and
+        // per-associate penalty, which used to stop at level 40 and made crossing
+        // it pay MORE rather than less (roadmap: gwathdor-snakes, 2026-09-14).
+        // That replaces the undivided per-contributor award of 2026-08-13.
+        LlXp_GiveKillXP(m, fCR, oCre);
 
         int nTotal = Bst_GetTotal(sUuid, sCan);
         SendMessageToPC(m, "[Bestiary] You have slain " + IntToString(nTotal) + " "
