@@ -8006,16 +8006,28 @@ ideas:
   - id: gandalfs-mummys
     title: "Gandalf's mummys"
     group: bosses
-    status: implemented
+    status: manual
     type: Defect
     player: "-Methonash-"
-    date: "2026-09-14"
-    commit: 6749095ff44
+    date: "2026-09-15"
+    commit: d0cc9c83386
     discord: {'thread_id': '1548280584348901437', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1548280584348901437'}
-    notes: "<div>Mummies summoned by an NPC now join that NPC's own side and go after whatever it is fighting, instead of turning on their summoner. Only the Weathertop Royal Magus summons the court's own Mummy Reaper of the Court -- Gandalf and every other caster summon a plain Epic Mummy Reaper wherever they stand. A summoned mummy no longer comes back from the dead at the spot it was summoned, and no caster can have more than two of them out at once.</div>"
-    impl_notes: "<div>Root cause was the NPC branch added to <code>x2_s2_mumdust.nss</code> in 4e0a02951ca: it keys on <code>!GetIsPC</code>, i.e. every NPC caster in the module, and always created <code>wtop_mreaper</code> -- FactionID 1 (Hostile), named \"Mummy Reaper of the Court\". <code>gandalf001</code> is FactionID 2 in Hobbiton with four uses of spell 637, so his summon spawned hostile to him under a Weathertop name. <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry the same spell and had the same bug waiting.</div><div>The spell now picks the blueprint by caster (a <code>wtop_</code>-prefixed caster gets <code>wtop_mreaper</code>; anyone else gets <code>mummyreaper</code> under runtime tag <code>NpcMummyReaper</code>, so a player's henchman reaper is never counted or cleaned up with them), calls <code>ChangeFaction(oNew, oCaster)</code> so the summon is always on its summoner's side, and sends it at the caster's current target. Two ceilings are counted in one walk of the tag: 2 live per caster (new) and the existing 2 live per area; five-minute life unchanged.</div><div>The respawn was <code>se_respawn_inc.nss</code>: <code>wtop_mreaper</code>'s ScriptDeath chains <code>x2_def_ondeath</code> -&gt; <code>nw_c2_default7</code> -&gt; <code>SE_DoCreatureRespawn</code>, which bailed only for encounter creatures and <code>_NSP</code> tags and rebuilt the corpse at <code>GetLocalLocation(\"spawn\")</code> -- the location the summon pins for the anti-kiting leash. <code>SE_DoCreatureRespawn</code> now also refuses any creature flagged <code>SE_NO_RESPAWN</code> (set at creation by the summon path) and any creature with a valid master, so no conjured creature can enter the world respawn pool whatever death script its blueprint carries. Placed creatures set neither condition, so <code>tests/check_creature_respawn.py</code> is unaffected. Mummies already looping on dev clear at the next restart.</div>"
+    notes: "<div>Mummies summoned by an NPC now join that NPC's own side and go after whatever it is fighting, instead of turning on their summoner. Only the Weathertop Royal Magus summons the court's own Mummy Reaper of the Court -- Gandalf and every other caster summon a plain Epic Mummy Reaper wherever they stand. A summoned mummy no longer comes back from the dead at the spot it was summoned, and no caster can have more than two of them out at once.</div><div>After testing: a summoned mummy no longer crumbles on a timer -- it stands until something kills it, or until the caster who summoned it falls. It also joins the fight straight away instead of waiting for its summoner to run out of spells. Gandalf now paces his summons, roughly five minutes apart, rather than throwing them all in the opening rounds.</div>"
+    impl_notes: "<div>Root cause was the NPC branch added to <code>x2_s2_mumdust.nss</code> in 4e0a02951ca: it keys on <code>!GetIsPC</code>, i.e. every NPC caster in the module, and always created <code>wtop_mreaper</code> -- FactionID 1 (Hostile), named \"Mummy Reaper of the Court\". <code>gandalf001</code> is FactionID 2 in Hobbiton with four uses of spell 637, so his summon spawned hostile to him under a Weathertop name. <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry the same spell and had the same bug waiting.</div><div>The spell now picks the blueprint by caster (a <code>wtop_</code>-prefixed caster gets <code>wtop_mreaper</code>; anyone else gets <code>mummyreaper</code> under runtime tag <code>NpcMummyReaper</code>, so a player's henchman reaper is never counted or cleaned up with them), calls <code>ChangeFaction(oNew, oCaster)</code> so the summon is always on its summoner's side, and sends it at the caster's current target. Two ceilings are counted in one walk of the tag: 2 live per caster (new) and the existing 2 live per area; five-minute life unchanged.</div><div>The respawn was <code>se_respawn_inc.nss</code>: <code>wtop_mreaper</code>'s ScriptDeath chains <code>x2_def_ondeath</code> -&gt; <code>nw_c2_default7</code> -&gt; <code>SE_DoCreatureRespawn</code>, which bailed only for encounter creatures and <code>_NSP</code> tags and rebuilt the corpse at <code>GetLocalLocation(\"spawn\")</code> -- the location the summon pins for the anti-kiting leash. <code>SE_DoCreatureRespawn</code> now also refuses any creature flagged <code>SE_NO_RESPAWN</code> (set at creation by the summon path) and any creature with a valid master, so no conjured creature can enter the world respawn pool whatever death script its blueprint carries. Placed creatures set neither condition, so <code>tests/check_creature_respawn.py</code> is unaffected. Mummies already looping on dev clear at the next restart.</div><div><b>UAT round 2 (2026-09-15).</b> Three findings, three causes. <i>Back-to-back summons:</i> <code>gandalf001</code> carried four uses of spell 637 in its <code>SpecAbilityList</code> with stock <code>x2_def_endcombat</code>, so <code>nw_i0_generic</code> threw them all in the opening rounds. An AI-chosen talent cannot be rate-limited, and a block inside the spell script would not help -- the engine spends the use before the script runs, so three of the four summons would simply have been swallowed. 637 comes off his ability list (blueprint <i>and</i> the <code>shirehobbiton001</code> instance, in step) and is cast from the new <code>npc_dust_er.nss</code> instead: a reusable <code>ScriptEndRound</code> modelled on <code>wtop_cmage.nss</code> that cheat-casts Mummy Dust behind a 300s cooldown. The flag is held on the AREA keyed by the caster's tag, so dying and respawning is not a way to come back with a summon ready, and two casters in one area stay independent (<code>wtop_cmage</code> deliberately does the opposite: one court-wide pool). <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry 637 too and can move onto the same script.</div><div><i>Mummies standing around:</i> the NPC path created <code>mummyreaper.utc</code>, whose entire script set is the HENCHMAN AI (<code>x0_ch_hen_*</code>, <code>x2_hen_death</code>, <code>epic_summon_hb</code>). That AI is driven by <code>GetMaster()</code> and an NPC's summon has no master, so the reaper spawned and then watched the fight. New blueprint <code>npc_mreaper.utc</code> -- <code>wtop_mreaper</code>'s standard <code>x2_def_*</code> AI under the name \"Epic Mummy Reaper\" -- is what a non-Weathertop caster gets now. Target acquisition gained a last resort resolved from the MUMMY rather than the caster (nearest enemy to itself), because a caster deep in its own spell rotation has neither an attack target nor an attacker.</div><div><i>Despawning after five minutes:</i> <code>MDUST_NPC_LIFE</code> and its <code>DestroyObject</code> are gone. What bounds the summons instead is the existing pair of caps (2 per caster, 2 per area), the court's sweep on leaving Weathertop, and the new <code>npc_mreaper_hb.nss</code> -- a heartbeat on both summoned blueprints that unsummons a reaper when its summoner is gone or dead, so a dead caster leaves no conjured bodies walking around Hobbiton. It keys on <code>MDUST_SUMMONED</code>, an int set at creation, because an object local pointing at the summoner does not survive the summoner. <code>mumdust_inc.nss</code> holds the constants the summon and the heartbeat share. The player's own Mummy Dust is untouched: <code>mummyreaper.utc</code> and the 30-hour henchman path in <code>epic_summon_inc.nss</code> are unchanged.</div>"
     manual_steps:
-      - step: "Hobbiton (shirehobbiton001): get Gandalf into a fight and let him cast Mummy Dust. The summon must be named 'Epic Mummy Reaper', must not attack Gandalf or the party, and should engage whatever he is fighting."
+      - step: "Hobbiton (shirehobbiton001): get Gandalf into a fight and let him cast Mummy Dust. The summon must be named 'Epic Mummy Reaper', must not attack Gandalf or the party, and should engage whatever he is fighting -- immediately, while Gandalf is still casting, not once he runs out of spells."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Gandalf's second Mummy Dust must come about FIVE MINUTES after the first, not in the next round or two. He should keep summoning for as long as the fight runs (the cooldown refreshes; his spell uses no longer limit it), and never have more than 2 live mummies at once."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Stay in the fight past five minutes with a mummy alive: it must NOT crumble on its own any more. It stands until something kills it."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Kill Gandalf while his mummies are alive: they must unsummon rather than keep fighting or loiter in Hobbiton afterwards."
         status: open
         kind: uat
         tester: "any"
@@ -8023,11 +8035,7 @@ ideas:
         status: open
         kind: uat
         tester: "any"
-      - step: "Let Gandalf keep casting: he must never have more than 2 live mummies at once, and each crumbles on its own after about five minutes."
-        status: open
-        kind: uat
-        tester: "any"
-      - step: "Weathertop Hidden Court (area028): a Royal Magus summon is still named 'Mummy Reaper of the Court' and still hostile, still capped at 2 per area (now also 2 per Magus), and does not respawn when killed. Leaving the court still clears survivors."
+      - step: "Weathertop Hidden Court (area028): a Royal Magus summon is still named 'Mummy Reaper of the Court' and still hostile, still capped at 2 per area and 2 per Magus, and does not respawn when killed. Leaving the court still clears survivors, and killing a Magus now also clears its own reapers."
         status: open
         kind: uat
         tester: "level 60 melee"
@@ -8544,7 +8552,8 @@ ideas:
   - id: add-a-port-to-the-numenor-forge-in-the-test-server
     title: "add a port to the numenor forge in the test server"
     group: travel
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "Sync (Shync)"
     date: "2026-09-14"
