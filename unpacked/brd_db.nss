@@ -162,7 +162,6 @@ void BRD_InitDb()
     BRD_SeedBoss("anaraliathewidow", "Anaralia, The widow maker", "AnaraliaThewidowmaker", "mirkwoodcentrale", "Mirkwood: Central East", 248.0, 1200, "placed");
     BRD_SeedBoss("kainnatheward001", "Kainna the War Dancer", "ms_isen24", "isengardinnerrim", "Isengard (Innerrim)", 239.0, 1200, "placed");
     BRD_SeedBoss("jester", "Jester", "Jester", "area008", "Helm's Deep: Keep", 236.0, 1200, "placed");
-    BRD_SeedBoss("creature020", "Mashano, Messenger To The Witch King", "MashanoMessengerToTheWitchKing", "nazgulguildhouse", "House of Nazgul", 236.0, 1200, "placed");
     BRD_SeedBoss("shelob001", "Shelob", "ms_shel1", "shelobslair", "Shelob's Lair", 220.0, 1200, "encounter");
     BRD_SeedBoss("adwarfajudica003", "Fifur the Craftsman", "FifurtheCraftsman", "thehallsoftruth", "Temple of Marr", 212.0, 1200, "placed");
     BRD_SeedBoss("arohirrimsold006", "Card Mennard", "ms_edor1", "edoras", "Edoras", 201.0, 1200, "placed");

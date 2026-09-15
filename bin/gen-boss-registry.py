@@ -7,7 +7,8 @@ A "boss" is a creature blueprint that:
     and no encounter slot ("placed"), OR no placement and exactly one
     Max=1 / Respawns=-1 / Reset=1 encounter instance ("encounter"), and
   * is NOT plot or immortal (an unkillable NPC can't sit on a kill tracker), and
-  * is NOT a merchant / utility NPC (see EXCLUDE + the merchant-faction filter).
+  * is NOT curated off the board -- a merchant / utility NPC, or one whose lair
+    no route reaches (see EXCLUDE + the merchant-faction filter).
 
 This rewrites the BRD_SeedBoss / BRD_SeedAlias block between the
   // BEGIN GENERATED REGISTRY  ...  // END GENERATED REGISTRY
@@ -19,6 +20,7 @@ Default is a dry-run report; pass --write to rewrite brd_db.nss.
 """
 import argparse
 import functools
+import json
 import re
 import sys
 
@@ -40,6 +42,11 @@ CR_ARTIFACT = 12000.0  # drop absurd CR (data artifacts); real max ~9540
 EXCLUDE = {
     "methonashforge",   # "The Forger" — store keeper, CR artifact
     "methonashmart",    # "The Well-Mart" — store keeper, CR artifact
+    # House of Nazgul has no inbound transition from the Well of Eru, so this
+    # boss cannot be hunted. Roadmap wiki-and-boss-list-show-creatures-as-
+    # accessible-even-when, phase 1. Put it back if phase 2 builds an entrance;
+    # the UNREACHABLE LAIRS report below is what flags the next one.
+    "creature020",      # "Mashano, Messenger To The Witch King" — unreachable lair
 }
 
 # Curated bosses to force onto the board even though they fall below CR_MIN
@@ -50,6 +57,23 @@ INCLUDE = set()
 MERCHANTISH = re.compile(
     r"\b(mart|forger|smith|smithy|armou?rer|craftsman|merchant|shopkeep|vendor|"
     r"trader|banker|innkeep)", re.I)
+
+def unreachable_lairs():
+    """Area resrefs the last wiki build found no route to, or empty.
+
+    Read from module-index/area_paths.json, which nwn-wiki writes from its BFS
+    over every door, trigger, conversation teleport and teleport script. Only a
+    report here — a boss in one of these is flagged for review, not dropped
+    automatically: the answer is sometimes "build the entrance", and that is a
+    decision, not a regeneration. Missing file (never built, or built without
+    --path-from) just means no report.
+    """
+    p = UNPACKED.parent / "module-index" / "area_paths.json"
+    try:
+        return set(json.loads(p.read_text()).get("unreachable", []))
+    except (OSError, ValueError):
+        return set()
+
 
 RESPAWN_CALL = re.compile(r"\bSE_DoCreatureRespawn\s*\(")
 EXEC_SCRIPT = re.compile(r'ExecuteScript\s*\(\s*"([^"]+)"')
@@ -107,7 +131,7 @@ def classify(placements, enc_slots):
         if bp["cr"] >= CR_ARTIFACT:
             reason = f"CR artifact ({bp['cr']:.0f})"
         elif rr in EXCLUDE:
-            reason = "EXCLUDE denylist (merchant/utility)"
+            reason = "EXCLUDE denylist (see the comments on each entry)"
         elif bp["plot"]:
             reason = "plot NPC (unkillable)"
         elif bp["immortal"]:
@@ -336,6 +360,15 @@ def main():
     dup = [n for n, c in Counter(r["name"] for r in rows).items() if c > 1]
     if dup:
         print(f"\n=== NAME COLLISIONS (identical labels): {dup} ===")
+
+    unreachable = unreachable_lairs()
+    stranded = [r for r in rows if r["area"] in unreachable]
+    if stranded:
+        print("\n=== UNREACHABLE LAIRS among included (review; the board would "
+              "send players somewhere they cannot go) ===")
+        for r in stranded:
+            print(f"  {r['resref']:20s} {r['name'][:36]:36s} "
+                  f"{r['area']} ({r['area_name']})")
 
     merch_ish = [r for r in rows if MERCHANTISH.search(r["name"])]
     if merch_ish:
