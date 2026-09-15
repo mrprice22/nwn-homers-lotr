@@ -8134,12 +8134,43 @@ ideas:
   - id: gwathdor-snakes
     title: "Gwathdor snakes"
     group: economy
-    status: confirmed
+    status: manual
     type: Defect
     player: dormic
-    date: "2026-09-07"
+    date: "2026-09-14"
+    commit: 97d3205abba
     discord: {'thread_id': '1546664015986696242', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1546664015986696242'}
-    notes: "<div>Dormic swordsman (8ft, 2pal, 10wm, 21cleric) received approximately 2700 XP from Gwathdor snakes while below level 40, but began receiving the full 6000 XP after reaching level 40.</div>"
+    notes: "<div>Kill XP above level 40 is now shared the same way it always was below it: a kill is split across the players who fought it and reduced slightly for each summon or henchman helping. Before, crossing level 40 removed that sharing entirely, so a monster could suddenly pay <em>more</em> than it did at the level below — the 2,700 to 6,000 jump on the Gwathdor snakes. Soloing without a summon is unchanged.</div>"
+    impl_notes: "Not a curve defect: hak_2da/xptable.2da is monotone non-increasing in level across all 201 CR columns, and LlXp_Award(41, CR) &lt;= the level-40 engine award at every CR. The jump was the party divisor. Below 41 the ENGINE pays and applies Bioware's standard modifier (1/N over PCs present, -10% per associate); at 41+ the engine pays nothing (no xptable.2da row) so ll_xp_inc.nss pays, and it handed each damage contributor the full undivided award (the 2026-08-13 'matching RewardPartyXP' call). dormic's figures fit exactly: 6000/2*0.9 = 2700 for a cleric soloing with one summon, then 6000 flat at 41. Fix: new LlXp_PartyMod(oPC, oCre) in ll_xp_inc.nss reapplies the engine modifier, counting PCs and associates of the contributor's party that are alive and in the creature's area; LlXp_GiveKillXP takes the creature and scales the award before the boost, the same order boost_xp_evt.nss uses below 41. Who is paid is still bst_ondeath's contributor set, so f5e3f11072c (no cross-area party XP) is preserved. Balance consequence to record: the ~9.9h/~5.0h 41-&gt;60 band targets are now explicitly SOLO -- a two-PC party takes about twice as long, as it already did below 41. Adds an SP_DEV_TOOLS-gated [xpdbg] line on the 41+ path so the modifier is readable in the dev log. Script-only: no 2DA change, so no hak rebuild and no NWSync publish. Dev/test realm only; not promoted to season 2."
+    manual_steps:
+      - step: "Level 41+ character, solo with no summon, kill a Gwathdor snake in the Gwathdor outskirts (CR 171): expect 6000 XP."
+        status: open
+        kind: uat
+        tester: "level 41+ and a level 40, plus a second character or a summon"
+      - step: "Same character, same snake, with one summon active: expect 5400 XP."
+        status: open
+        kind: uat
+        tester: "level 41+ and a level 40, plus a second character or a summon"
+      - step: "Two level 41+ characters in the same area, no summons: expect 3000 XP each."
+        status: open
+        kind: uat
+        tester: "level 41+ and a level 40, plus a second character or a summon"
+      - step: "Two level 41+ characters in the same area with one summon between them: expect 2700 XP each."
+        status: open
+        kind: uat
+        tester: "level 41+ and a level 40, plus a second character or a summon"
+      - step: "Two level 41+ characters partied but the second one in a DIFFERENT area: expect the fighter to get the full 6000 (no dilution, no payout to the absent member)."
+        status: open
+        kind: uat
+        tester: "level 41+ and a level 40, plus a second character or a summon"
+      - step: "Cross-check a level 40 character in each of the setups above -- the numbers must now MATCH the level 41 ones instead of jumping. grep '[xpdbg]' in the dev server log to read the modifier directly."
+        status: open
+        kind: uat
+        tester: "level 41+ and a level 40, plus a second character or a summon"
+      - step: "With an active 2x boost, every figure above doubles and a single kill still tops out at 12000."
+        status: open
+        kind: uat
+        tester: "level 41+ and a level 40, plus a second character or a summon"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8174,6 +8205,12 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-14"
         text: "Discord — dormic in Gwathdor snakes (https://discord.com/channels/514343293761486848/1546664015986696242):\n\nI thought I had read that somewhere, or something referring to that."
+      - author: "Sync Bot"
+        date: "2026-09-14"
+        text: "Discord — HomelessSon in Gwathdor snakes (https://discord.com/channels/514343293761486848/1546664015986696242):\n\nRoot cause found: below level 41 the ENGINE pays the kill (÷ number of PCs in party, −10% per associate/summon);   \nat 41+ `bst_ondeath` → `LlXp_GiveKillXP` pays every contributor the FULL curve value with no division and no summon  penalty. \nSo crossing 40→41 makes XP go UP for anyone partied or running a summon"
+      - author: "Sync Bot"
+        date: "2026-09-14"
+        text: "Discord — HomelessSon in Gwathdor snakes (https://discord.com/channels/514343293761486848/1546664015986696242):\n\nmaking level 41-60 do what engine normally does for party xp penalty"
   - id: anaralias-what
     title: "Anaralia's what"
     group: quests-areas
@@ -8246,10 +8283,12 @@ ideas:
   - id: legendary-feat-again
     title: "Legendary feat again"
     group: combat-classes
-    status: confirmed
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-09-06"
+    commit: 2c33b42e34a, 2c33b42e34a
     discord: {'thread_id': '1546258443927814314', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1546258443927814314'}
     notes: "<div>On the test realm, after porting from Amon Sul to the well without a key, a legendary feat selection window appeared. The player attempted to re-pick their original feat but was informed they already had it, then successfully selected +6 str.</div>"
     comments:
@@ -8304,6 +8343,9 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-14"
         text: "Discord — HomelessSon in Legendary feat again (https://discord.com/channels/514343293761486848/1546258443927814314):\n\nattempted a fix for the AI pushed to test realm, they were all using default scripts that are used module wide but maybe not a lot of enemies use those AA feats"
+      - author: "Sync Bot"
+        date: "2026-09-14"
+        text: "Discord — HomelessSon in Legendary feat again (https://discord.com/channels/514343293761486848/1546258443927814314):\n\nboth of the things mentioned in this thread shipped to dev on 2026-09-06 and then they went out to season 2 in the 2026-09-09 promotion."
   - id: wemic-rdd-no-wings-az-ligon
     title: "Wemic rdd no wings az ligon"
     group: qol
@@ -8502,7 +8544,7 @@ ideas:
   - id: add-a-port-to-the-numenor-forge-in-the-test-server
     title: "add a port to the numenor forge in the test server"
     group: travel
-    status: manual
+    status: implemented
     type: Enhancement
     player: "Sync (Shync)"
     date: "2026-09-14"
