@@ -8502,12 +8502,23 @@ ideas:
   - id: add-a-port-to-the-numenor-forge-in-the-test-server
     title: "add a port to the numenor forge in the test server"
     group: travel
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "Sync (Shync)"
-    date: "2026-09-09"
+    date: "2026-09-14"
+    commit: 2dfc9c5550d4e76b32ad508a47a40f8ad41477f2
     discord: {'thread_id': '1547270130340331590', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1547270130340331590'}
-    notes: "<div>A port is requested for the Numenor Forge on the test server. This feature was requested by user &lt;@139336304784703488&gt; on 9/7/26.</div>"
+    notes: "<div>The rest menu's <em>Options for the Homeless</em> teleport list now includes <strong>To. The Great Forge Of Númenor</strong>, which drops you at the northern entrance of <a href=\"https://homerslotr.com/areas/heavensfoundry\" target=\"_blank\" rel=\"noopener\">the Great Forge of Númenor</a>, facing the forge hall and the armourer's shop.</div>"
+    impl_notes: "New waypoint instance heavensforgewp in heavensfoundry.git.json at (19.94, 28.41, 0.2), YOrientation -1 (facing south down the hall); coordinates copied from the existing \"Great\" waypoint and re-verified clear with bin/place-helper.py (nearest obstacle 8.9m). New script unpacked/_homerheavfrg.nss is a straight copy of _homerkalforge (GetLastSpeaker -&gt; GetWaypointByTag -&gt; JumpToLocation). New ReplyList entry (index 159) in emotewand.dlg.json, linked into EntryList[2] between \"To. Kallrist Crypt Forge\" and \"Exit.\"; RepliesList link struct_ids renumbered 0-10. No new gate: access is already gated by _cdkeyhome on the parent \"[Options of the Homeless]\" link, so on live it needs admins.can_homeless and on a tester realm SP_TesterKit() opens it to everyone."
+    manual_steps:
+      - step: "Rest on the test realm, open Options for the Homeless, pick \"To. The Great Forge Of Númenor\" and confirm you land inside heavensfoundry facing the forge hall (not at the area edge or in a placeable)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Confirm the new entry sits between \"To. Kallrist Crypt Forge\" and \"Exit.\" and that every other teleport in the list still works (the RepliesList link indices were renumbered)."
+        status: open
+        kind: uat
+        tester: "any"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8601,7 +8612,7 @@ ideas:
   - id: meaningwave-ring-on-char-creation-on-test-realm
     title: "MeaningWave ring on char creation on test realm."
     group: items-gear
-    status: manual
+    status: implemented
     type: Enhancement
     player: "-Methonash-"
     date: "2026-09-14"
