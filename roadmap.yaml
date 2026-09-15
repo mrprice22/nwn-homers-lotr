@@ -212,7 +212,7 @@ ideas:
   - id: smoking-pipeweed-to-cure-soul-fatigue
     title: "Smoking Pipeweed to Cure Soul Fatigue"
     group: combat-classes
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-09-15"
@@ -505,12 +505,39 @@ ideas:
   - id: meaningwave-bardsong-not-firing
     title: "Meaningwave Bardsong not firing"
     group: meaningwave
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Fugdish (Try_this)"
-    date: "2026-08-30"
+    date: "2026-09-15"
+    commit: 4032716a05d
     discord: {'thread_id': '1549086675886538763', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549086675886538763'}
-    notes: "<div><span>Has anyone gotten the legendary summon Joseph Campbell to use his Bard song?</span></div>"
+    notes: "<div><b>Joseph Campbell sings.</b> Summon him and he now keeps <i>Inspirational Song</i> up on the party in <b>Balanced</b> (the style he starts in) and in <b>Healer</b>, and opens on the nearest enemy with <b>Curse Song</b> in <b>Combat</b>. He carries twenty performances per summon, and re-summoning him refills them.</div><div><br></div><div>He was a Bard 60 who had Curse Song, Lingering Song, Extra Music and Epic Bard -- everything <i>about</i> bard song -- and not the song itself, so neither song had anything to spend and neither ever fired. He also now has Bardic Knowledge, as a bard of his standing should. Nothing about McKenna changed; he is a Druid and never had a song to sing.</div><div><br></div><div>Style detail on <a href=\"MeaningWave.html#tactics\">MeaningWave -&gt; Combat Styles</a>.</div>"
+    impl_notes: "<div><b>Root cause: a missing feat, not a missing script.</b> <b>unpacked/mw_campbell.utc.json</b> is Class 1 (Bard) / level 60 and its FeatList carried 423 ExtraMusic, 424 LingeringSong, 184/600 (Epic) Skill Focus: Perform, 968 FEAT_EPIC_BARD and 871 FEAT_CURSE_SONG -- but <b>not 257 BardSongs</b>, nor the 355-373 uses/day successor chain, nor 197 BardicKnowledge. A UTC FeatList <i>is</i> the creature's complete feat set; the engine grants class feats at level-up, never at spawn, and MW_ScaleGuide() in mw_unlock_inc.nss only applies effects and item properties. Contrast unpacked/jester.utc.json (Bard 60/Rogue 10), which carries 197 + 257 + 355..373 + 423/424/870/871.</div><div><br></div><div><b>Why both songs were dead code.</b> mw_sup_er.nss gates Curse Song (Style 1) and Bard Song (Style 2) on <i>GetHasFeat(FEAT_BARD_SONGS)</i>, because Curse Song spends the bard-song pool. The stock fallback is gated identically (nw_i0_generic.nss:522 -&gt; TalentBardSong(), and j_inc_generic_ai.nss:3781), so nothing else picked up the slack.</div><div><br></div><div><b>History -- do not re-litigate the gate.</b> Commit <b>e745a3f4c60</b> \"Fix MW-Bardsong-Bug: MW guides spam Bard/Curse Song\" touched only mw_sup_er.nss. The spam it silenced was x2_s2_cursesong.nss:23 printing strref 85587 (\"no more bardsong uses left\") every round -- exactly what a bard with Curse Song and no bard-song pool does. The gate treated the symptom and disabled both songs for good. The gate is the correct out-of-uses check and stays; adding feat 257 is the actual fix.</div><div><br></div><div><b>Feats added.</b> 197, 257 and 355-373 to mw_campbell. hak_2da/feat.2da row 257 is USESPERDAY 1 / SUCCESSOR 355, each successor adding one use up to 20 at row 373 -- so feat 257 alone would have given the legendary summon a single song per summon, shared with Curse Song. A fresh CreateObject starts with full uses, so a re-summon refills. The same feats plus 423/424/871 went onto <b>mw_campbell_w</b>, the world quiz-giver, so the blueprint a player inspects reads the same; it is plot/immortal/Sanctuary'd with every combat script nulled (mw_qg_noop) and is spawned by mw_spawn.nss at waypoint MW_SPAWN_CAMPBELL rather than placed, so check_divergent_creatures.py is not in play.</div><div><br></div><div><b>Style 0 now sings.</b> Added to the Balanced tail of mw_sup_er.nss, after the FindHurt(0.25f) heal check, with the same <i>GetHasFeat(FEAT_BARD_SONGS) &amp;&amp; !GetHasSpellEffect(411)</i> guard Style 2 uses. It <b>returns</b> rather than falling through to x2_def_endcombat, whose DetermineCombatRound() clears and re-queues the action list and would eat the queued ActionUseFeat -- the same reason Style 2 returns early. Costs at most one non-attacking round per fight and only when no song is up. No-op for McKenna, who shares the script and fails the feat test. Styles 1 and 3 untouched.</div><div><br></div><div>Wiki: the #tactics table in docs.manual/MeaningWave.html now names Inspirational Song in Campbell's Balanced and Healer cells and Curse Song in his Combat cell, and McKenna's Balanced cell no longer says \"as Campbell above\" (it would have inherited a bard-only claim).</div><div><br></div><div>Test build clean, 35/35 smoke tests, 0 failing dialogs; deployed to the dev realm.</div>"
+    manual_steps:
+      - step: "Summon Campbell (rest -> EmoteWand -> Summon a Legend) and open his character sheet: Bard Song and Bardic Knowledge should now be listed, with 20 uses of Bard Song remaining."
+        status: open
+        kind: uat
+        tester: "any (must have Campbell unlocked)"
+      - step: "Leave him on the default Balanced style and pull a fight. He should sing Inspirational Song once, the party should get the buff, and he should NOT re-sing while it is still up."
+        status: open
+        kind: uat
+        tester: "any (must have Campbell unlocked)"
+      - step: "\"Let's talk tactics.\" -> Combat. He should hit the nearest enemy with Curse Song and then cast normally, and should not re-curse a target that is already cursed."
+        status: open
+        kind: uat
+        tester: "any (must have Campbell unlocked)"
+      - step: "\"Let's talk tactics.\" -> Healer. He should sing and still heal below 50% and Haste the master when the party is stable."
+        status: open
+        kind: uat
+        tester: "any (must have Campbell unlocked)"
+      - step: "Burn all 20 performances in one summon and keep fighting. The old \"no more bardsong uses left\" spam must NOT come back -- the GetHasFeat gate is what prevents it. Dismiss and re-summon him and confirm the uses are back."
+        status: open
+        kind: uat
+        tester: "any (must have Campbell unlocked)"
+      - step: "Summon McKenna and run him through all three styles: nothing should have changed for him (he shares mw_sup_er.nss but is a Druid)."
+        status: open
+        kind: uat
+        tester: "any (must have McKenna unlocked)"
   - id: teleport-to-weathertop-doesnt-work-on-the-test-server
     title: "teleport to weathertop doesn't work on the test server."
     group: travel
