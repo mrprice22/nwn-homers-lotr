@@ -128,6 +128,14 @@ void DonCheatRestock(object oChest)
         SetLocalInt(oChest, &quot;DCT_&quot; + sRes, nRun);
         object oNew = CreateItemOnObject(sRes, oChest, DonCheatStack(i));
         SetIdentified(oNew, TRUE);
+
+        // Cheat stock is throwaway test gear: a tester has to be able to drop,
+        // sell or destroy it. Some blueprints are plot and/or cursed in their
+        // own right (mw_mixtape is the Meaningwave finale reward, and cursed so
+        // it can&#x27;t be unequipped once worn), so strip both flags off the copy
+        // every time it is restocked - the blueprint keeps them.
+        SetPlotFlag(oNew, FALSE);
+        SetItemCursedFlag(oNew, FALSE);
     }
 }
 </code></pre>

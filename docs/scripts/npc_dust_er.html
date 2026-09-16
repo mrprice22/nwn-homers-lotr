@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script npc_dust_er</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>npc_dust_er</code></h1><pre class="nss-source"><code>// Mummy Dust on a five-minute leash -- ScriptEndRound for an NPC caster
+//:: (roadmap: gandalfs-mummys)
+//
+// Reusable OnCombatRoundEnd for any NPC that should summon Mummy Reapers at a
+// pace the builder chooses rather than at the pace the stock talent AI chooses.
+// Currently wired to gandalf001 (Hobbiton); sarumanthewhi001, ds_gandalf001,
+// ds_saruman and gwathsorcerer002 carry spell 637 too and can be moved onto it
+// the same way.
+//
+// WHY THE SPELL COMES OFF THE CREATURE&#x27;S SpecAbilityList. An AI-chosen talent
+// cannot be rate-limited -- nw_i0_generic picks it whenever it likes, and
+// Gandalf&#x27;s four uses of Epic Mummy Dust went out back to back in the opening
+// rounds, which is what UAT reported. Blocking the cast inside the spell script
+// would not have helped either: the engine spends the use before the script
+// runs, so three of his four summons would simply have been swallowed. Taking
+// 637 off his ability list and casting it from here is the only arrangement
+// where the gap is exactly the gap, and it does not run out.
+//
+// Cast with bCheat = TRUE. The caster does hold the feat (Gandalf has 874), but
+// a special-ability use only comes back on a rest, so a use-based cast would
+// fire a fixed handful of times however long the fight ran. Same reasoning as
+// wtop_cmage.nss, which this script is modelled on.
+//
+// THE COOLDOWN LIVES ON THE AREA, KEYED BY THE CASTER&#x27;S TAG. A DelayCommand
+// assigned to the area survives the caster&#x27;s death and respawn, so dying is not
+// a way to come back with a fresh summon ready. Keying on the tag rather than
+// the object keeps two different casters in one area independent of each other,
+// while wtop_cmage.nss deliberately does the opposite (one court-wide pool).
+//
+// Real seconds, not game hours -- &quot;five minutes&quot; here means five minutes.
+
+const float  NPC_DUST_REFRESH = 300.0;
+const string NPC_DUST_CD      = &quot;NPC_CD_DUST_&quot;;   // + the caster&#x27;s tag
+
+// TRUE if this caster&#x27;s dust is off cooldown, and claims it if so.
+int NpcDustClaim(object oArea, string sFlag)
+{
+    if (GetLocalInt(oArea, sFlag)) return FALSE;
+
+    SetLocalInt(oArea, sFlag, TRUE);
+    AssignCommand(oArea,
+        DelayCommand(NPC_DUST_REFRESH, DeleteLocalInt(oArea, sFlag)));
+    return TRUE;
+}
+
+void main()
+{
+    // The stock combat AI first, untouched -- this script only adds to it.
+    ExecuteScript(&quot;x2_def_endcombat&quot;, OBJECT_SELF);
+
+    object oTarget = GetNearestCreature(CREATURE_TYPE_REPUTATION,
+                                        REPUTATION_TYPE_ENEMY, OBJECT_SELF, 1,
+                                        CREATURE_TYPE_PLAYER_CHAR,
+                                        PLAYER_CHAR_IS_PC);
+    if (!GetIsObjectValid(oTarget)) return;
+    if (GetIsDead(oTarget)) return;
+
+    if (NpcDustClaim(GetArea(OBJECT_SELF), NPC_DUST_CD + GetTag(OBJECT_SELF)))
+    {
+        ActionCastSpellAtLocation(SPELL_EPIC_MUMMY_DUST, GetLocation(oTarget),
+                                  METAMAGIC_ANY, TRUE);
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

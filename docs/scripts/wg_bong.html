@@ -87,9 +87,16 @@
 //    good part -- but they are now assigned to the SMOKER. The original
 //    assigned them to OBJECT_SELF, which in a placeable OnUsed is the water
 //    pipe itself, so the camera move could never reach the player.
+//  * A pipe CLEARS ALL SOUL-FATIGUE (roadmap:
+//    smoking-pipeweed-to-cure-soul-fatigue). Any strain, no exceptions -- this
+//    script is the module&#x27;s only smoking path, so &quot;in the Smoking Chamber&quot;
+//    needs no area test, and it is the only cure soul-fatigue has besides
+//    waiting it down. It sits after the leaf check on purpose: the cure costs
+//    a pouch.
 
 #include &quot;cameraslowmo&quot;
 #include &quot;pw_inc&quot;
+#include &quot;fat_inc&quot;
 
 // Tag of the first strain oSmoker is carrying, or &quot;&quot; if none. Order is the
 // order Odo lists them in; &quot;witchbud&quot; is the legacy Longbottom pouch.
@@ -201,6 +208,10 @@ void main()
 
     // The high itself -- stored, rest-persistent, one strain at a time.
     PW_Light(oSmoker, sStrain);
+
+    // ... and the calm: every stack of soul-fatigue goes with the smoke.
+    // Silent when there were none to clear.
+    FAT_Cleanse(oSmoker, &quot;with the smoke&quot;);
 
     string sLine = PipeLine(sStrain, Random(4));
     if (sLine != &quot;&quot;)
