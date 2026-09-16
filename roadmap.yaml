@@ -212,7 +212,8 @@ ideas:
   - id: smoking-pipeweed-to-cure-soul-fatigue
     title: "Smoking Pipeweed to Cure Soul Fatigue"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-09-15"
@@ -538,6 +539,10 @@ ideas:
         status: open
         kind: uat
         tester: "any (must have McKenna unlocked)"
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-15"
+        text: "Discord — HomelessSon in Meaningwave Bardsong not firing (https://discord.com/channels/514343293761486848/1549086675886538763):\n\n-Methonash-\n — \n9/10/26, 4:57 PM\nSeems Joseph has Curse Song, but not Bard Song or Bardic Knowledge in his feat list, maybe that's why he won't sing? xD"
   - id: teleport-to-weathertop-doesnt-work-on-the-test-server
     title: "teleport to weathertop doesn't work on the test server."
     group: travel
@@ -1248,6 +1253,10 @@ ideas:
         status: open
         kind: uat
         tester: "any"
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-15"
+        text: "Discord — HomelessSon in MW Henchmen to prevent friendly fire with AoE (Area of effect spells) (https://discord.com/channels/514343293761486848/1549086971538710548):\n\n@dormic , I think this was fixed/deployed, lmk if you still see the hellball's hitting you"
   - id: witchking-both-potions-pickpocketable
     title: "both of Witch King's heal pots are pickpocketable"
     group: combat-classes
@@ -8094,12 +8103,25 @@ ideas:
     status: manual
     type: Defect
     player: "-Methonash-"
-    date: "2026-09-15"
-    commit: d0cc9c83386
+    date: "2026-09-16"
+    commit: d97ae924d92
     discord: {'thread_id': '1548280584348901437', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1548280584348901437'}
-    notes: "<div>Mummies summoned by an NPC now join that NPC's own side and go after whatever it is fighting, instead of turning on their summoner. Only the Weathertop Royal Magus summons the court's own Mummy Reaper of the Court -- Gandalf and every other caster summon a plain Epic Mummy Reaper wherever they stand. A summoned mummy no longer comes back from the dead at the spot it was summoned, and no caster can have more than two of them out at once.</div><div>After testing: a summoned mummy no longer crumbles on a timer -- it stands until something kills it, or until the caster who summoned it falls. It also joins the fight straight away instead of waiting for its summoner to run out of spells. Gandalf now paces his summons, roughly five minutes apart, rather than throwing them all in the opening rounds.</div>"
-    impl_notes: "<div>Root cause was the NPC branch added to <code>x2_s2_mumdust.nss</code> in 4e0a02951ca: it keys on <code>!GetIsPC</code>, i.e. every NPC caster in the module, and always created <code>wtop_mreaper</code> -- FactionID 1 (Hostile), named \"Mummy Reaper of the Court\". <code>gandalf001</code> is FactionID 2 in Hobbiton with four uses of spell 637, so his summon spawned hostile to him under a Weathertop name. <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry the same spell and had the same bug waiting.</div><div>The spell now picks the blueprint by caster (a <code>wtop_</code>-prefixed caster gets <code>wtop_mreaper</code>; anyone else gets <code>mummyreaper</code> under runtime tag <code>NpcMummyReaper</code>, so a player's henchman reaper is never counted or cleaned up with them), calls <code>ChangeFaction(oNew, oCaster)</code> so the summon is always on its summoner's side, and sends it at the caster's current target. Two ceilings are counted in one walk of the tag: 2 live per caster (new) and the existing 2 live per area; five-minute life unchanged.</div><div>The respawn was <code>se_respawn_inc.nss</code>: <code>wtop_mreaper</code>'s ScriptDeath chains <code>x2_def_ondeath</code> -&gt; <code>nw_c2_default7</code> -&gt; <code>SE_DoCreatureRespawn</code>, which bailed only for encounter creatures and <code>_NSP</code> tags and rebuilt the corpse at <code>GetLocalLocation(\"spawn\")</code> -- the location the summon pins for the anti-kiting leash. <code>SE_DoCreatureRespawn</code> now also refuses any creature flagged <code>SE_NO_RESPAWN</code> (set at creation by the summon path) and any creature with a valid master, so no conjured creature can enter the world respawn pool whatever death script its blueprint carries. Placed creatures set neither condition, so <code>tests/check_creature_respawn.py</code> is unaffected. Mummies already looping on dev clear at the next restart.</div><div><b>UAT round 2 (2026-09-15).</b> Three findings, three causes. <i>Back-to-back summons:</i> <code>gandalf001</code> carried four uses of spell 637 in its <code>SpecAbilityList</code> with stock <code>x2_def_endcombat</code>, so <code>nw_i0_generic</code> threw them all in the opening rounds. An AI-chosen talent cannot be rate-limited, and a block inside the spell script would not help -- the engine spends the use before the script runs, so three of the four summons would simply have been swallowed. 637 comes off his ability list (blueprint <i>and</i> the <code>shirehobbiton001</code> instance, in step) and is cast from the new <code>npc_dust_er.nss</code> instead: a reusable <code>ScriptEndRound</code> modelled on <code>wtop_cmage.nss</code> that cheat-casts Mummy Dust behind a 300s cooldown. The flag is held on the AREA keyed by the caster's tag, so dying and respawning is not a way to come back with a summon ready, and two casters in one area stay independent (<code>wtop_cmage</code> deliberately does the opposite: one court-wide pool). <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry 637 too and can move onto the same script.</div><div><i>Mummies standing around:</i> the NPC path created <code>mummyreaper.utc</code>, whose entire script set is the HENCHMAN AI (<code>x0_ch_hen_*</code>, <code>x2_hen_death</code>, <code>epic_summon_hb</code>). That AI is driven by <code>GetMaster()</code> and an NPC's summon has no master, so the reaper spawned and then watched the fight. New blueprint <code>npc_mreaper.utc</code> -- <code>wtop_mreaper</code>'s standard <code>x2_def_*</code> AI under the name \"Epic Mummy Reaper\" -- is what a non-Weathertop caster gets now. Target acquisition gained a last resort resolved from the MUMMY rather than the caster (nearest enemy to itself), because a caster deep in its own spell rotation has neither an attack target nor an attacker.</div><div><i>Despawning after five minutes:</i> <code>MDUST_NPC_LIFE</code> and its <code>DestroyObject</code> are gone. What bounds the summons instead is the existing pair of caps (2 per caster, 2 per area), the court's sweep on leaving Weathertop, and the new <code>npc_mreaper_hb.nss</code> -- a heartbeat on both summoned blueprints that unsummons a reaper when its summoner is gone or dead, so a dead caster leaves no conjured bodies walking around Hobbiton. It keys on <code>MDUST_SUMMONED</code>, an int set at creation, because an object local pointing at the summoner does not survive the summoner. <code>mumdust_inc.nss</code> holds the constants the summon and the heartbeat share. The player's own Mummy Dust is untouched: <code>mummyreaper.utc</code> and the 30-hour henchman path in <code>epic_summon_inc.nss</code> are unchanged.</div>"
+    notes: "<div>Mummies summoned by an NPC now join that NPC's own side and go after whatever it is fighting, instead of turning on their summoner. Only the Weathertop Royal Magus summons the court's own Mummy Reaper of the Court -- Gandalf and every other caster summon a plain Epic Mummy Reaper wherever they stand. A summoned mummy no longer comes back from the dead at the spot it was summoned, and no caster can have more than two of them out at once.</div><div>After testing: a summoned mummy no longer crumbles on a timer -- it stands until something kills it, or until the caster who summoned it falls. It also joins the fight straight away instead of waiting for its summoner to run out of spells. Gandalf now paces his summons, roughly five minutes apart, rather than throwing them all in the opening rounds.</div><div><br></div><div>9/16/26 UAT:  gandalf also summons his epic dragon knights, 3 of them, nearly back to back to back, each time unsummoning the previous one. Did not summon a single mummy. </div><div><br></div><div>After round 3: Gandalf now actually summons his mummies -- the cast was being cancelled by his own combat AI every round before it could go off. His Epic Dragon Knights are paced the same way the mummies are, roughly five minutes apart and one at a time, instead of three in a row each banishing the one before it.</div>"
+    notes_h: 185
+    impl_notes: "<div>Root cause was the NPC branch added to <code>x2_s2_mumdust.nss</code> in 4e0a02951ca: it keys on <code>!GetIsPC</code>, i.e. every NPC caster in the module, and always created <code>wtop_mreaper</code> -- FactionID 1 (Hostile), named \"Mummy Reaper of the Court\". <code>gandalf001</code> is FactionID 2 in Hobbiton with four uses of spell 637, so his summon spawned hostile to him under a Weathertop name. <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry the same spell and had the same bug waiting.</div><div>The spell now picks the blueprint by caster (a <code>wtop_</code>-prefixed caster gets <code>wtop_mreaper</code>; anyone else gets <code>mummyreaper</code> under runtime tag <code>NpcMummyReaper</code>, so a player's henchman reaper is never counted or cleaned up with them), calls <code>ChangeFaction(oNew, oCaster)</code> so the summon is always on its summoner's side, and sends it at the caster's current target. Two ceilings are counted in one walk of the tag: 2 live per caster (new) and the existing 2 live per area; five-minute life unchanged.</div><div>The respawn was <code>se_respawn_inc.nss</code>: <code>wtop_mreaper</code>'s ScriptDeath chains <code>x2_def_ondeath</code> -&gt; <code>nw_c2_default7</code> -&gt; <code>SE_DoCreatureRespawn</code>, which bailed only for encounter creatures and <code>_NSP</code> tags and rebuilt the corpse at <code>GetLocalLocation(\"spawn\")</code> -- the location the summon pins for the anti-kiting leash. <code>SE_DoCreatureRespawn</code> now also refuses any creature flagged <code>SE_NO_RESPAWN</code> (set at creation by the summon path) and any creature with a valid master, so no conjured creature can enter the world respawn pool whatever death script its blueprint carries. Placed creatures set neither condition, so <code>tests/check_creature_respawn.py</code> is unaffected. Mummies already looping on dev clear at the next restart.</div><div><b>UAT round 2 (2026-09-15).</b> Three findings, three causes. <i>Back-to-back summons:</i> <code>gandalf001</code> carried four uses of spell 637 in its <code>SpecAbilityList</code> with stock <code>x2_def_endcombat</code>, so <code>nw_i0_generic</code> threw them all in the opening rounds. An AI-chosen talent cannot be rate-limited, and a block inside the spell script would not help -- the engine spends the use before the script runs, so three of the four summons would simply have been swallowed. 637 comes off his ability list (blueprint <i>and</i> the <code>shirehobbiton001</code> instance, in step) and is cast from the new <code>npc_dust_er.nss</code> instead: a reusable <code>ScriptEndRound</code> modelled on <code>wtop_cmage.nss</code> that cheat-casts Mummy Dust behind a 300s cooldown. The flag is held on the AREA keyed by the caster's tag, so dying and respawning is not a way to come back with a summon ready, and two casters in one area stay independent (<code>wtop_cmage</code> deliberately does the opposite: one court-wide pool). <code>sarumanthewhi001</code>, <code>ds_gandalf001</code>, <code>ds_saruman</code> and <code>gwathsorcerer002</code> carry 637 too and can move onto the same script.</div><div><i>Mummies standing around:</i> the NPC path created <code>mummyreaper.utc</code>, whose entire script set is the HENCHMAN AI (<code>x0_ch_hen_*</code>, <code>x2_hen_death</code>, <code>epic_summon_hb</code>). That AI is driven by <code>GetMaster()</code> and an NPC's summon has no master, so the reaper spawned and then watched the fight. New blueprint <code>npc_mreaper.utc</code> -- <code>wtop_mreaper</code>'s standard <code>x2_def_*</code> AI under the name \"Epic Mummy Reaper\" -- is what a non-Weathertop caster gets now. Target acquisition gained a last resort resolved from the MUMMY rather than the caster (nearest enemy to itself), because a caster deep in its own spell rotation has neither an attack target nor an attacker.</div><div><i>Despawning after five minutes:</i> <code>MDUST_NPC_LIFE</code> and its <code>DestroyObject</code> are gone. What bounds the summons instead is the existing pair of caps (2 per caster, 2 per area), the court's sweep on leaving Weathertop, and the new <code>npc_mreaper_hb.nss</code> -- a heartbeat on both summoned blueprints that unsummons a reaper when its summoner is gone or dead, so a dead caster leaves no conjured bodies walking around Hobbiton. It keys on <code>MDUST_SUMMONED</code>, an int set at creation, because an object local pointing at the summoner does not survive the summoner. <code>mumdust_inc.nss</code> holds the constants the summon and the heartbeat share. The player's own Mummy Dust is untouched: <code>mummyreaper.utc</code> and the 30-hour henchman path in <code>epic_summon_inc.nss</code> are unchanged.</div><div>Round 3 had two causes. The cast never fired because <code>npc_dust_er.nss</code> chained <code>x2_def_endcombat</code> first and queued the spell behind it: <code>nw_i0_generic</code>'s <code>DetermineCombatRound</code> clears the action queue whenever it decides to act, and with a book as deep as Gandalf's it acts every round, so the appended cast was wiped before it ever reached the front. Its one guard against interrupting a cast in progress returns early only when <code>GetAttemptedSpellTarget()</code> is valid, which an <code>ActionCastSpellAtLocation</code> never sets. The scripted cast now runs FIRST on its own <code>ClearAllActions()</code>, skips the stock AI for that round only, and targets the OBJECT (<code>x2_s2_mumdust</code> reads <code>GetSpellTargetLocation()</code>, which resolves through it) so the AI's guard applies; a <code>GetCurrentAction() == ACTION_CASTSPELL</code> early return closes the same hole from this side.</div><div>The dragon knights were spell 638 sitting in <code>gandalf001</code>'s <code>SpecAbilityList</code> x4 -- the same un-rate-limitable talent problem 637 had, made worse by Dragon Knight being a genuine summon, so each cast unsummoned the previous dragon. 638 is off the blueprint and the <code>shirehobbiton001</code> instance in step, and is cast from <code>npc_dust_er.nss</code> on its own 300s area/tag cooldown, ordered behind Mummy Dust so at most one scripted cast goes out per round. <code>wtop_cmage.nss</code> still queues its three casts after the AI and at a location -- the court's Ruin and Disjunction target objects so the AI guard covers them, but its Mummy Dust has the same latent flaw and should get the same treatment if the court ever reports a missing summon.</div>"
     manual_steps:
+      - step: "Hobbiton (shirehobbiton001): Gandalf must actually summon a mummy in a long fight. Round 3 UAT saw none at all -- the scripted cast was being wiped out of his action queue by the combat AI every round. Expect the first Epic Mummy Reaper within a round or two of the fight starting."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Gandalf's Epic Dragon Knights must now be paced like the mummies -- roughly five minutes apart, one at a time, never three back to back each unsummoning the last. Spell 638 is off his ability list and cast from npc_dust_er.nss behind Mummy Dust in the same round order."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Regression: Gandalf must still fight normally between scripted casts -- the stock AI is skipped only on a round he summons. Watch for him standing idle or dropping out of his ordinary spell rotation."
+        status: open
+        kind: uat
+        tester: "any"
       - step: "Hobbiton (shirehobbiton001): get Gandalf into a fight and let him cast Mummy Dust. The summon must be named 'Epic Mummy Reaper', must not attack Gandalf or the party, and should engage whatever he is fighting -- immediately, while Gandalf is still casting, not once he runs out of spells."
         status: open
         kind: uat
@@ -8662,6 +8684,9 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-14"
         text: "Discord — HomelessSon in add a port to the numenor forge in the test server (https://discord.com/channels/514343293761486848/1547270130340331590):\n\nrequested by @Sync (Shync) 9/7/26"
+      - author: "Sync Bot"
+        date: "2026-09-15"
+        text: "Discord — HomelessSon in add a port to the numenor forge in the test server (https://discord.com/channels/514343293761486848/1547270130340331590):\n\nthis is working!"
   - id: first-person-shooter-homerslotr
     title: "First Person Shooter HomersLotR"
     group: quests-areas
@@ -8749,7 +8774,7 @@ ideas:
   - id: meaningwave-ring-on-char-creation-on-test-realm
     title: "MeaningWave ring on char creation on test realm."
     group: items-gear
-    status: implemented
+    status: confirmed
     type: Enhancement
     player: "-Methonash-"
     date: "2026-09-14"
@@ -8759,15 +8784,19 @@ ideas:
     impl_notes: "The chest's stock table (unpacked/don_cheat_data.nss) is auto-generated by bin/gen-cheat-chest.py from the per-slot top-value and boss-kit rankings, so a quest-only reward can never be picked and a hand-edit would be wiped by the next regeneration. Added an EXTRAS list to the generator for hand-curated additions; it skips the \"player-obtainable\" test (a quest reward is never obtainable per item_index) but still requires a real .uti and rejects anything on the illicit-donations quarantine list. Test-realm-only comes for free: DON_CHEAT_ENABLED is SP_CHEAT_CHEST, derived from SEASON_ROLE by bin/season-profile.py (off for live and archive), so no branch or hand-flip is needed before a promotion.\n\nOnce-only was already enforced and is unchanged: mw_mixtape_con.nss sets and checks the mixtape_consumed flag in mw_db.nss, keyed on GetObjectUUID(oPC) (per character, never truncating or colliding), and the only code path that raises the six base ability scores is behind that check. What changed is that a second consume used to be a silent no-op that left the ring in the pack; it now destroys the ring and says so. That matters because the ring is a wearable +2-to-all-abilities item, so a spare would have been a second, permanent reward riding on the test-realm chest on top of the one-time +1. Consuming always destroys; the chest hands out another copy on demand.\n\nFollow-up (b3085380a1b): the chest was handing out a Mixtape a tester could not get rid of. mw_mixtape is plot and cursed on the blueprint (it is the Meaningwave finale reward, cursed so it cannot be unequipped once worn), so DonCheatRestock now clears SetPlotFlag and SetItemCursedFlag on each copy it creates. The blueprint is unchanged, so the reward still behaves as designed wherever it is earned properly."
     manual_steps:
       - step: "Roll a new character on the test realm, open the Well of Eru Donations Chest and confirm Akira's Mixtape is in the stock."
-        status: open
+        status: done
         kind: uat
         tester: "any, fresh level 1 character"
       - step: "Activate the Mixtape, choose \"Consume it\" and confirm all six ability scores rise by 1 on the character sheet and the ring is destroyed. Log out and back in to confirm the raise persisted to the .bic."
-        status: open
+        status: failed
         kind: uat
         tester: "any, fresh level 1 character"
+        claimed_by: "HomelessSon (Server Admin)"
+        result: "The stats increase by one, and the ring is destroyed, but, I see server errors in-game:\nScript mw_mixtape_con, sqlite error: no such table mw_legacy_claim\nScript mw_mixtape_con, sqlite error: not prepared"
+        tested_by: "HomelessSon (Server Admin)"
+        tested_on: "2026-09-16"
       - step: "Close and reopen the chest, take the restocked Mixtape and activate it again: the consume option must grant nothing, destroy the ring, and show \"You have already taken the Mixtape's wisdom into yourself. This one crumbles to dust.\" Confirm ability scores are unchanged and no Mixtape is left in the pack."
-        status: open
+        status: done
         kind: uat
         tester: "any, same character as the consume check"
       - step: "Confirm the \"Keep the ring\" branch still leaves the Mixtape intact and wearable (it must not be destroyed by declining)."
@@ -8778,6 +8807,8 @@ ideas:
         status: open
         kind: uat
         tester: "admin"
+    uat_credits:
+      - player: "HomelessSon (Server Admin)"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
