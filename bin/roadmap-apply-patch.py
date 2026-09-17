@@ -22,6 +22,18 @@ Every created entry is forced to `hidden: true` regardless of what the patch
 says: a proposal must cost the admin nothing until they choose to unhide it, and
 hidden keeps it off both the public roadmap page and the in-game Recent Updates
 sign. Ids that already exist are still updated, not duplicated.
+
+An `"epics"` key in the patch writes the `epics:` block by the same route:
+
+    {"epics": {"my-epic": {"title": "My Epic", "group": "wiki-tools"}},
+     "child-idea": {"epic": "my-epic", "status": "planned"}}
+
+Epics are created when unknown (no --new needed — an epic carries no merit and
+no player, so there is nothing to protect) and updated in place otherwise.
+`null` deletes a field there too; an epic itself is never deleted from here,
+because removing one would orphan every idea pointing at it. Only the two
+blocks the patch actually names are rewritten, so the lock/merge story above
+holds for epics as well.
 """
 from __future__ import annotations
 
@@ -62,9 +74,18 @@ def _apply(ed, yaml, path, patch_file, dry, allow_new=False) -> int:
     text = path.read_text(encoding="utf-8")
     doc = yaml.load(text, Loader=ed._YamlLoader)
     ideas = doc["ideas"]
+    # A copy of every title as the file has it, taken before the patch is
+    # applied: the title cap is enforced against a title being WRITTEN, never
+    # against one already there. See roadmap-editor.validate_title_lengths.
+    before = [{"id": i.get("id"), "title": i.get("title")} for i in ideas]
     by_id = {i["id"]: i for i in ideas}
 
     patch = json.loads(Path(patch_file).read_text())
+    # `epics` is a block, not an idea id -- lift it out before anything below
+    # treats it as one.
+    epic_patch = patch.pop("epics", None) or {}
+    epics = doc.get("epics") or []
+
     unknown = [k for k in patch if k not in by_id]
     if unknown and not allow_new:
         print(f"error: unknown idea id(s): {unknown}")
@@ -73,12 +94,31 @@ def _apply(ed, yaml, path, patch_file, dry, allow_new=False) -> int:
 
     for iid in unknown:
         # Minimal skeleton; the patch supplies the rest and validate_document
-        # below refuses anything still missing. hidden is forced, not defaulted.
-        idea = {"id": iid, "title": iid, "group": "qol", "status": "new",
+        # below refuses anything still missing. `planned` because "new" is not a
+        # key of gen-roadmap's STATUS, so it fails validation every time and the
+        # patch would have had to supply a status to undo it. hidden is forced,
+        # not defaulted.
+        idea = {"id": iid, "title": iid, "group": "qol", "status": "planned",
                 "hidden": True, "type": "Enhancement"}
         ideas.append(idea)
         by_id[iid] = idea
         print(f"created {iid}")
+
+    by_epic = {e["id"]: e for e in epics if isinstance(e, dict) and e.get("id")}
+    for eid, fields in epic_patch.items():
+        epic = by_epic.get(eid)
+        if epic is None:
+            epic = {"id": eid, "title": eid, "group": "qol"}
+            epics.append(epic)
+            by_epic[eid] = epic
+            print(f"created epic {eid}")
+        for field, value in (fields or {}).items():
+            if value is None:
+                epic.pop(field, None)
+            else:
+                epic[field] = value
+        if epic.get("notes"):
+            epic["notes"] = ed.sanitize_notes(epic["notes"])
 
     for iid, fields in patch.items():
         idea = by_id[iid]
@@ -96,7 +136,11 @@ def _apply(ed, yaml, path, patch_file, dry, allow_new=False) -> int:
             if idea.get(field):
                 idea[field] = ed.sanitize_notes(idea[field])
 
-    errors, warnings = ed.validate_document(ideas, doc.get("groups"), doc.get("players"))
+    # All four blocks, so the epic checks in extra_validate() actually run --
+    # bin/roadmap-lint.py passes epics for the same reason.
+    errors, warnings = ed.validate_document(ideas, doc.get("groups"),
+                                            doc.get("players"), epics)
+    errors = list(errors) + ed.validate_title_lengths(ideas, before)
     for w in warnings:
         print(f"warning: {w}")
     if errors:
@@ -105,15 +149,23 @@ def _apply(ed, yaml, path, patch_file, dry, allow_new=False) -> int:
         return 1
 
     head, prefixes, trailing = ed.split_head_and_prefixes(text)
-    body = ed.serialize_ideas(ideas, prefixes, trailing)
-    new = ed.replace_block(text, "ideas", body)
+    new = text
+    if patch:
+        body = ed.serialize_ideas(ideas, prefixes, trailing)
+        new = ed.replace_block(new, "ideas", body)
+    if epic_patch:
+        # A roadmap.yaml predating the epics feature has no such line at all.
+        new = ed.ensure_block(new, "epics", "ideas")
+        new = ed.replace_block(new, "epics", ed.serialize_epics(epics))
     yaml.load(new, Loader=ed._YamlLoader)  # hand-rolled emitter; prove it parses
 
+    changed = (f"{len(patch)} idea(s)"
+               + (f" + {len(epic_patch)} epic(s)" if epic_patch else ""))
     if dry:
-        print(f"dry run OK — {len(patch)} idea(s) would change")
+        print(f"dry run OK — {changed} would change")
         return 0
     path.write_text(new, encoding="utf-8")
-    print(f"patched {len(patch)} idea(s) in roadmap.yaml")
+    print(f"patched {changed} in roadmap.yaml")
     return 0
 
 

@@ -54,6 +54,19 @@ def main() -> int:
         data.get("epics") or [],
     )
 
+    # Advisory only, and deliberately not an error: the cap is enforced against
+    # a title being WRITTEN (roadmap-editor.validate_title_lengths), because the
+    # 41 titles that predate it would otherwise block every save in the GUI.
+    # There is no baseline to compare against here, so all this can do is count.
+    long_titles = ED.over_long_titles(data.get("ideas") or [])
+    if long_titles:
+        warnings = list(warnings) + [
+            f"{len(long_titles)} title(s) are over the {ED.MAX_TITLE_LEN}-char "
+            f"Discord thread-name limit and predate it; each has to be trimmed "
+            f"the next time it is edited (longest: "
+            f"{max(long_titles, key=lambda x: x[1])[0]} at "
+            f"{max(n for _, n in long_titles)})"]
+
     if args.warnings:
         for w in warnings:
             print(f"  [warn] {w}", file=sys.stderr)

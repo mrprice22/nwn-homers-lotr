@@ -392,11 +392,19 @@ def vocab(data: dict) -> dict:
     statuses = [{"id": k, "label": v["label"]} for k, v in STATUS.items()]
     types = [{"id": k, "label": v["label"]} for k, v in TYPES.items()]
     ids = [i.get("id") for i in ideas if i.get("id")]
+    # The "Duplicate of" picker. `ids` alone is the id in FILE order, which for
+    # ~600 entries is unsearchable by eye -- knowing the exact id was not enough
+    # to find it in the list. Sorted, and carrying the title so the picker can
+    # be searched by the words the admin actually remembers.
+    dupes = sorted(
+        ({"id": i["id"], "title": str(i.get("title") or ""),
+          "status": i.get("status") or ""} for i in ideas if i.get("id")),
+        key=lambda d: d["id"])
     epics = [{"id": e["id"], "title": e.get("title", ""), "group": e.get("group"),
               "status": e.get("status"), "notes": e.get("notes")}
              for e in (data.get("epics", []) or [])]
     return {"groups": groups, "players": players, "statuses": statuses,
-            "types": types, "ids": ids, "epics": epics,
+            "types": types, "ids": ids, "dupes": dupes, "epics": epics,
             # A new idea's `date:` defaults to this. It has to be the REALM's
             # today (server.env TZ), not the browser's: the editor is reachable
             # through the Cloudflare Tunnel, so a tester's clock can be a day
@@ -1109,6 +1117,49 @@ def write_document(ideas: list[dict], groups: list[dict] | None = None,
         raise
     if pre_ideas is not None:
         _record_audit_diff(pre_ideas, ideas)
+
+
+def over_long_titles(ideas) -> list[tuple[str, int]]:
+    """[(id, length)] for every idea whose title is over MAX_TITLE_LEN."""
+    out: list[tuple[str, int]] = []
+    for idea in ideas or []:
+        title = str(idea.get("title") or "")
+        if len(title) > MAX_TITLE_LEN:
+            out.append((idea.get("id", "?"), len(title)))
+    return out
+
+
+def validate_title_lengths(posted, disk) -> list[str]:
+    """Refuse a NEW or CHANGED title over MAX_TITLE_LEN, grandfathering the rest.
+
+    The cap cannot be applied retroactively. Validation here is whole-file — one
+    bad item blocks every save, including saves of items nobody touched — and 41
+    of the titles already in roadmap.yaml predate the cap (the longest runs to
+    182 characters). An unconditional check would therefore lock the admin out
+    of the editor entirely, which is the exact failure bin/roadmap-lint.py
+    exists to prevent.
+
+    So the rule is "you cannot write one", not "you cannot have one": an
+    untouched over-length title saves exactly as before, and editing one at all
+    forces it under the cap.
+    """
+    was = {i.get("id"): str(i.get("title") or "") for i in (disk or [])
+           if isinstance(i, dict)}
+    errs: list[str] = []
+    for idea in posted or []:
+        if not isinstance(idea, dict):
+            continue
+        iid = idea.get("id", "?")
+        title = str(idea.get("title") or "")
+        if len(title) <= MAX_TITLE_LEN or title == was.get(iid):
+            continue
+        errs.append(
+            f"'{iid}': the title is {len(title)} characters; the limit is "
+            f"{MAX_TITLE_LEN}, because it becomes the name of the idea's "
+            f"Discord forum thread and Discord truncates past that. Trim "
+            f"{len(title) - MAX_TITLE_LEN} character(s) — the detail belongs "
+            f"in the notes.")
+    return errs
 
 
 def validate_internal_fields(ideas) -> list[str]:
@@ -2193,6 +2244,11 @@ MAX_BODY = 8 * 1024 * 1024   # the ideas array is large; unbounded is a weapon
 # stays inside DIFF_MAX_LEN.
 MAX_RESULT_LEN = 3000
 MAX_COMMENT_LEN = 3000
+# An idea's title becomes the name of its Discord forum thread, and Discord caps
+# a thread name at 100 characters. Over that the bot's thread is silently
+# truncated and no longer matches the roadmap, so the cap belongs here, where it
+# can be enforced before the title is ever written.
+MAX_TITLE_LEN = 100
 
 
 def route_key(path: str) -> str:
@@ -3772,6 +3828,14 @@ class Handler(BaseHTTPRequestHandler):
         if self.path in DOCUMENT_WRITES:
             disk_ideas = read_yaml().get("ideas") or []
             normalize_ideas(disk_ideas)
+            # Needs both sides, which is why it is here rather than in
+            # validate_document(): the cap applies to a title being written,
+            # never to one already in the file. See validate_title_lengths.
+            too_long = validate_title_lengths(ideas, disk_ideas)
+            if too_long:
+                return self._json({"ok": False, "errors": too_long,
+                                   "warnings": warnings,
+                                   "version": yaml_version()})
             denied = AUTH.enforce_idea_permissions(
                 self.user.caps, ideas, disk_ideas, status_label=status_label)
             if denied:
@@ -4058,7 +4122,8 @@ def render_page(user) -> str:
     data only -- ROUTE_CAPS still decides what the account may actually call.
     """
     blob = json.dumps(user.public()).replace("<", "\\u003c")
-    return PAGE.replace("/*__ME_JSON__*/null", blob, 1)
+    return (PAGE.replace("/*__ME_JSON__*/null", blob, 1)
+                .replace("/*__MAX_TITLE_LEN__*/100", str(MAX_TITLE_LEN), 1))
 
 
 LOGIN_PAGE = r"""<!doctype html>
@@ -4315,6 +4380,7 @@ PAGE = r"""<!doctype html>
   #banner.warn { display:block; background:#3a3417; color:var(--warn);
                border:1px solid #6b5e2c; }
   .hint { color:var(--warn); font-size:12px; margin-top:3px; min-height:14px; }
+  .hint.bad { color:var(--err); }
   .small { color:var(--mut); font-size:12px; }
 
   /* The dead-link page for `#idea-<id>` with no such id. Deep links get pasted
@@ -4778,7 +4844,10 @@ PAGE = r"""<!doctype html>
      Same shape as the `me` key that response carries (User.public()); nothing
      new is exposed. Substituted server-side -- if that ever fails this stays
      null and the page falls back to the /api/data path, cloaked until then. -->
-<script id="me-boot">window.__ME = /*__ME_JSON__*/null;</script>
+<script id="me-boot">window.__ME = /*__ME_JSON__*/null;
+// Stamped from the Python constant of the same name so the input's
+// maxlength and the server's refusal can never disagree.
+window.__MAX_TITLE_LEN = /*__MAX_TITLE_LEN__*/100;</script>
 </head>
 <!-- Both classes are the fail-closed default: nothing gated is visible
      and the form is inert until applyCapabilities() has said otherwise. -->
@@ -4894,6 +4963,10 @@ let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}, me:{caps:
 // missing. Without this flag a pasted link painted "no idea with that id" on a
 // perfectly good idea and never corrected itself.
 let DATA_READY = false;
+
+// Discord's thread-name cap, stamped from the Python MAX_TITLE_LEN by
+// render_page() so the input and the server's refusal cannot drift apart.
+const MAX_TITLE_LEN = window.__MAX_TITLE_LEN || 100;
 
 // ---- Access control -------------------------------------------------------
 // The server enforces all of this independently; hiding a control here is so
@@ -5239,10 +5312,111 @@ function applyCapabilities(root){
 //
 // Detaching keeps input values and bound handlers, so switching tabs costs no
 // re-render and, crucially, does not throw away unsaved edits in an idea form.
-// The one thing it does lose is scrollTop, which activate() saves and restores
-// by hand.
+// The one thing it does lose is scroll position, which activate() saves and
+// restores by hand — see captureScroll/restoreScroll below.
 const TABS = [];         // [{key, kind, ref, title, fixed, pane, scroll, stale}]
 let activeKey = null;
+
+// ---- Scroll memory --------------------------------------------------------
+// Where you were in a tab is part of that tab, and it survives a reload: coming
+// back to a long list or a wide board and being thrown to the top-left is the
+// single most-repeated annoyance in this app.
+//
+// #panes is not the only scroller. The board scrolls HORIZONTALLY (#board,
+// overflow-x) with each lane scrolling vertically inside it (.lane-cards), and
+// the list has its own #list box. So rather than name them, find every element
+// in the pane that is actually scrolled and remember it by id — falling back to
+// its position among the pane's scrollers for the ones with no id. Anything
+// that has moved since is simply not restored; nothing here can throw.
+const TABS_LS = 'roadmap.tabs';
+let TABS_BOOTING = true;   // don't persist the tab set while building it
+// The last session's saved state, read once at boot. openTab() consumes a
+// tab's offsets out of `.scroll` and deletes them, so reopening a tab you
+// closed in THIS session starts at the top, the way opening it fresh should.
+let SAVED_TABS = {};
+
+function scrollers(pane){
+  const out = [];
+  if (!pane) return out;
+  const all = [pane].concat(Array.prototype.slice.call(pane.querySelectorAll('*')));
+  all.forEach(el=>{
+    if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1)
+      out.push(el);
+  });
+  return out;
+}
+
+function captureScroll(t){
+  if (!t) return;
+  try {
+    const panes = $('#panes');
+    const s = {top: panes ? panes.scrollTop : 0,
+               left: panes ? panes.scrollLeft : 0, inner: {}};
+    scrollers(t.pane).forEach((el, i)=>{
+      if (!el.scrollTop && !el.scrollLeft) return;
+      s.inner[el.id || ('@' + i)] = [el.scrollTop, el.scrollLeft];
+    });
+    t.scroll = s;
+  } catch(e){ /* a scroll position is never worth an exception */ }
+}
+
+function applyScroll(t){
+  const s = t && t.scroll; if (!s) return;
+  try {
+    const panes = $('#panes');
+    if (panes){ panes.scrollTop = s.top || 0; panes.scrollLeft = s.left || 0; }
+    const els = scrollers(t.pane);
+    els.forEach((el, i)=>{
+      const v = s.inner[el.id || ('@' + i)];
+      if (v){ el.scrollTop = v[0]; el.scrollLeft = v[1]; }
+    });
+  } catch(e){}
+}
+
+// A pane that has not painted yet has nothing to scroll, and a panel fills
+// itself from a fetch, so one assignment lands on an empty box and does
+// nothing. Re-apply on the next frame and once more shortly after — but only
+// while this is still the front tab and nothing has scrolled in the meantime,
+// so a late retry can never yank the admin back from somewhere they just went.
+function restoreScroll(t){
+  if (!t || !t.scroll) { const p0 = $('#panes');
+                         if (p0){ p0.scrollTop = 0; p0.scrollLeft = 0; } return; }
+  applyScroll(t);
+  const again = ()=>{
+    if (activeKey !== t.key) return;
+    const panes = $('#panes');
+    if (panes && (panes.scrollTop || panes.scrollLeft)) return;
+    applyScroll(t);
+  };
+  requestAnimationFrame(again);
+  setTimeout(again, 300);
+}
+
+function saveTabs(){
+  if (TABS_BOOTING) return;
+  try {
+    const scroll = {};
+    TABS.slice(0, 30).forEach(t=>{ if (t.scroll) scroll[t.key] = t.scroll; });
+    localStorage.setItem(TABS_LS, JSON.stringify({
+      active: activeKey,
+      order: TABS.slice(0, 30).filter(t=>!t.fixed).map(t=>t.key),
+      scroll: scroll}));
+  } catch(e){ /* private mode, quota: the tabs just don't persist */ }
+}
+function loadTabs(){
+  try { return JSON.parse(localStorage.getItem(TABS_LS) || '{}') || {}; }
+  catch(e){ return {}; }
+}
+
+// scroll does not bubble, but a capturing listener on the document still sees
+// every one of them — which is how the lanes and #list are covered without
+// wiring a handler per pane.
+let scrollSaveTimer = null;
+document.addEventListener('scroll', ()=>{
+  const t = activeTab(); if (!t) return;
+  clearTimeout(scrollSaveTimer);
+  scrollSaveTimer = setTimeout(()=>{ captureScroll(t); saveTabs(); }, 150);
+}, true);
 
 // Panel tabs (everything that used to be a modal) write through panelHTML(),
 // which needs to know where to put its markup. Null means "no panel tab is
@@ -5327,15 +5501,18 @@ function openTab(key){
     title: isIdea ? ideaTitle(key.slice(5)) : def.title,
     fixed: !isIdea && !!def.fixed,
     pane: document.createElement('div'),
-    scroll: 0, stale: false,
+    scroll: (SAVED_TABS.scroll || {})[key] || null, stale: false,
     sel: -1, selRef: null, formSnapshot: null, unresolved: false,
   };
   t.pane.className = 'pane';
+  if (SAVED_TABS.scroll) delete SAVED_TABS.scroll[key];
   TABS.push(t);
   // Attach BEFORE rendering: the idea form and every panel address their own
   // widgets with $(), which only sees the attached pane.
   activate(key, {skipRender:true});
   renderTab(t);
+  restoreScroll(t);        // a tab reopened from the saved set starts where it was
+  saveTabs();
   return t;
 }
 
@@ -5385,7 +5562,7 @@ function activate(key, opts){
     if (prev.kind === 'idea'){
       prev.sel = sel; prev.selRef = selRef; prev.formSnapshot = formSnapshot;
     }
-    prev.scroll = $('#panes').scrollTop;
+    captureScroll(prev);
     prev.pane.remove();
   }
   activeKey = key;
@@ -5397,7 +5574,6 @@ function activate(key, opts){
   // re-render through panelHTML(), so the target has to stay pointed at the
   // visible panel for as long as it is visible.
   RENDER_TARGET = (t.kind === 'panel') ? t.pane : null;
-  $('#panes').scrollTop = t.scroll || 0;
   renderTabBar();
   markNavActive();
   history.replaceState(null, '', keyToRoute(key));
@@ -5409,6 +5585,10 @@ function activate(key, opts){
   // ...and so does an idea tab still holding an unresolved-id placeholder.
   if (!opts.skipRender && (t.kind === 'panel'
       || (t.kind === 'idea' && t.stale))) renderTab(t);
+  // After the render, not before: assigning scrollTop to a pane that has not
+  // painted its content yet is a no-op.
+  if (!opts.skipRender) restoreScroll(t);
+  saveTabs();
   recordVisit(t);
 }
 
@@ -5427,6 +5607,7 @@ function closeTab(key){
       const next = TABS[Math.min(i, TABS.length-1)] || TABS[0];
       if (next) activate(next.key);
     } else { renderTabBar(); }
+    saveTabs();
   });
 }
 
@@ -5890,14 +6071,22 @@ function select(i){
       (DATA.vocab.types||[]).map(t=>opt(t.id, t.label, it.type||''))).join('');
   const players = ['<option value=""></option>'].concat(
       DATA.vocab.players.map(p=>opt(p,p,it.player||''))).join('');
-  const dupes = ['<option value=""></option>'].concat(
-      DATA.vocab.ids.filter(id=>id!==it.id).map(id=>opt(id,id,it.dupe_of||''))).join('');
+  // A datalist, not a select: ~600 ids is past the point where scrolling a
+  // dropdown works, and the browser filters a datalist as you type — on the id
+  // AND on the label, so a half-remembered word out of the title finds it.
+  // Same shape the Player field already uses.
+  const dupeRows = (DATA.vocab.dupes
+      || (DATA.vocab.ids||[]).map(id=>({id:id, title:''})))
+      .filter(d=>d.id!==it.id);
+  const dupes = dupeRows.map(d=>
+      `<option value="${esc(d.id)}" label="${esc(d.title||d.id)}"></option>`).join('');
   const epics = ['<option value="">(none)</option>'].concat(
       (DATA.vocab.epics||[]).map(e=>opt(e.id, e.title||e.id, it.epic||''))).join('');
   $('#form').innerHTML = `
     <div id="formbar">${formbarHTML(it)}</div>
     <label>Title (this IS the public one-line description)</label>
-    <input id="f_title" value="${esc(it.title)}">
+    <input id="f_title" maxlength="${MAX_TITLE_LEN}" value="${esc(it.title)}">
+    <div class="hint" id="title_count"></div>
     <div class="grid2">
       <div><label>Group</label><select id="f_group">${groups}</select></div>
       <div><label>Status</label><select id="f_status">${stats}</select></div>
@@ -5918,8 +6107,13 @@ function select(i){
         <datalist id="players_dl">${players}</datalist>
         <div class="hint" id="player_hint"></div>
       </div>
-      <div><label>Duplicate of (merges credit)</label>
-        <select id="f_dupe">${dupes}</select></div>
+      <div>
+        <label>Duplicate of</label>
+        <input id="f_dupe" list="dupes_dl" value="${esc(it.dupe_of||'')}"
+               placeholder="(not a duplicate) — type an id or a word from a title">
+        <datalist id="dupes_dl">${dupes}</datalist>
+        <div class="hint" id="dupe_hint"></div>
+      </div>
     </div>
     <div class="grid2">
       <div><label>Date (shown on page)</label>
@@ -5953,6 +6147,8 @@ function select(i){
     <div id="merit"></div>
     <div id="merit_ingame"></div>`;
   bindPlayerHint();
+  bindDupeHint();
+  bindTitleCount();
   initEditor('notes', it.notes, it.notes_h, NOTES_DEFAULT_H);
   initHandoff(it);
   initEditor('impl', it.impl_notes, it.impl_notes_h, IMPL_DEFAULT_H);
@@ -6428,6 +6624,47 @@ function bindPlayerHint(){
       ? `“${v}” is not a known submitter — typo? (saving will still work)` : '';
   };
   inp.oninput = check; check();
+}
+
+// Same shape as the player hint, but a typo here is NOT harmless: an unknown
+// dupe_of is a validation error that blocks the whole file's save, so say so
+// in place rather than let the admin discover it from a whole-file refusal.
+function bindDupeHint(){
+  const inp = $('#f_dupe'); const hint = $('#dupe_hint');
+  if (!inp || !hint) return;
+  const rows = DATA.vocab.dupes || [];
+  const titles = new Map(rows.map(d=>[d.id, d.title]));
+  const check = ()=>{
+    const v = inp.value.trim();
+    if (!v){ hint.textContent = ''; hint.classList.remove('bad'); return; }
+    if (!titles.has(v)){
+      hint.textContent = `No idea has the id “${v}” — pick one from the list `
+        + `(saving will be refused).`;
+      hint.classList.add('bad'); return;
+    }
+    hint.classList.remove('bad');
+    hint.textContent = titles.get(v) || '';
+  };
+  inp.oninput = check; check();
+}
+
+// The title becomes the idea's Discord thread name, so it is capped at
+// MAX_TITLE_LEN. The input's own maxlength stops you typing past it; this says
+// how much room is left, and turns red on the titles that predate the cap —
+// those still save untouched, but any edit has to bring them under it.
+function bindTitleCount(){
+  const inp = $('#f_title'); const out = $('#title_count');
+  if (!inp || !out) return;
+  const check = ()=>{
+    const n = inp.value.length, left = MAX_TITLE_LEN - n;
+    const over = n > MAX_TITLE_LEN;
+    out.classList.toggle('bad', over || left <= 10);
+    out.textContent = over
+      ? `${n}/${MAX_TITLE_LEN} — ${n - MAX_TITLE_LEN} over Discord's `
+        + `thread-name limit. It saves as-is, but any edit must bring it under.`
+      : (left <= 20 ? `${n}/${MAX_TITLE_LEN} characters` : '');
+  };
+  inp.addEventListener('input', check); check();
 }
 
 // ---- Admin hand-off panel: design_questions + manual_steps -----------------
@@ -7012,7 +7249,7 @@ function readForm(){
     notes_h: (notes && notes_h && notes_h!==NOTES_DEFAULT_H) ? notes_h : '',
     impl_notes: impl,
     impl_notes_h: (impl && impl_h && impl_h!==IMPL_DEFAULT_H) ? impl_h : '',
-    dupe_of: $('#f_dupe').value,
+    dupe_of: $('#f_dupe').value.trim(),   // free text now, not a <select>
     // Internal admin-only fields, edited in the hand-off panel below Notes.
     design_questions: ho.design_questions,
     manual_steps: ho.manual_steps,
@@ -7121,18 +7358,14 @@ window.addEventListener('beforeunload', e=>{
   if (isDirty()){ e.preventDefault(); e.returnValue=''; }
 });
 
-// opts.stay  — hold the current idea selected instead of advancing to the next
-//              visible row (pipeline buttons and the dirty-state guard: both
-//              are mid-flow, and jumping the selection would be jarring).
+// opts.stay  — accepted and ignored; kept because several call sites pass it.
+//              Save always holds the idea it just saved (see the tail of this
+//              function).
 // opts.extra — extra body fields for the endpoint (/api/award, /api/revoke).
 // Returns true when the save landed.
 async function commit(endpoint, force, opts){
   opts = opts || {};
   let keepId = (sel>=0 && DATA.ideas[sel]) ? DATA.ideas[sel].id : null;
-  // Capture where we are in the *visible* (filtered + sorted) list so we can
-  // advance to the next item there after the save reloads from the file, even
-  // if the edit moved or dropped the current item out of the view.
-  let nextId=null, curPos=-1;
   // In an idea tab, fold the open form's edits into DATA before sending. From
   // the board there is no live form, so skip this (moveToStatus already
   // mutated the idea in place).
@@ -7157,13 +7390,6 @@ async function commit(endpoint, force, opts){
       return false;
     }
     sel = idx;   // re-sync the list highlight with what we are actually writing
-    // Capture the next row from the list *as currently displayed*, BEFORE the
-    // edit is applied — otherwise an edit that changes a sort key (status,
-    // group, title…) re-sorts the current item and "next" is taken relative to
-    // its new position, making the selection jump somewhere unexpected.
-    const vis = visibleRows('list');
-    curPos = vis.findIndex(r=>r.idx===idx);
-    if (curPos>=0 && curPos+1<vis.length) nextId = vis[curPos+1].it.id;
     DATA.ideas[idx] = pruneEmpty(readForm(), DATA.ideas[idx]);
     selRef = DATA.ideas[idx];
     keepId = DATA.ideas[idx].id || keepId;   // follow a renamed id
@@ -7209,7 +7435,15 @@ async function commit(endpoint, force, opts){
   banner(res.warnings&&res.warnings.length ? 'warn':'ok', msg);
   await load();
   if (!inIdeaForm()) return true;
-  if (opts.stay) reselect(keepId); else advanceSelection(nextId, curPos);
+  // Save holds the idea you saved. It used to advance to the next row of the
+  // *filtered, sorted* list instead — behaviour inherited from the old
+  // list+form layout, where the form was a viewport onto a list. In a tabbed
+  // workspace a tab is a document, so that reads as "Save sent me to a random
+  // idea", and on a brand-new idea it really is arbitrary: the fresh row is
+  // unshifted at index 0 with a blank id, so "the next visible row" is
+  // whatever the current filter and sort happen to put after it — or nothing
+  // at all, leaving an empty pane, when the new row is not in the view.
+  reselect(keepId);
   return true;
 }
 
@@ -7222,8 +7456,8 @@ function reselect(id){
          const f=$('#form'); if (f) f.innerHTML=''; }
 }
 
-// Point the ACTIVE idea tab at a different idea: save-and-advance, and a brand
-// new idea getting its real id on its first save. A tab's key is its identity,
+// Point the ACTIVE idea tab at a different idea: a brand new idea getting its
+// real id on its first save, or a rename. A tab's key is its identity,
 // so this re-keys the tab rather than only redrawing inside it — otherwise the
 // tab would answer to the wrong `#idea-…` route and open a duplicate next time.
 function retargetIdeaTab(id){
@@ -7259,18 +7493,6 @@ function conflictBanner(endpoint, conflictMsg){
   forceb.onclick=()=>commit(endpoint, true);
   bar.appendChild(reload); bar.appendChild(forceb);
   b.appendChild(msg); b.appendChild(bar);
-}
-
-function advanceSelection(nextId, curPos){
-  const vis = visibleRows('list');
-  let target = -1;
-  // Prefer the item that followed the one we just edited.
-  if (nextId){ const r = vis.find(x=>x.it.id===nextId); if (r) target = r.idx; }
-  // Otherwise hold the same slot in the (possibly shorter) visible list.
-  if (target<0 && curPos>=0 && vis.length) target = vis[Math.min(curPos, vis.length-1)].idx;
-  if (target>=0 && DATA.ideas[target].id){ retargetIdeaTab(DATA.ideas[target].id); }
-  else { sel=-1; selRef=null; renderList();
-         const f=$('#form'); if (f) f.innerHTML=''; }
 }
 
 function move(dir){
@@ -9362,10 +9584,36 @@ loadNav();
 // re-typing the same URL into an already-loaded page is a hashchange, and the
 // hashchange listener was the only code that ever saw the real fragment.
 const bootKey = routeToKey(location.hash);
+SAVED_TABS = loadTabs();
+const RESTORED_IDEA_TABS = [];
 openTab('list');
 openTab('board');
+// Reopen the tab set from last time. The URL fragment still wins for which one
+// is in front, and a route this account may not use is refused by openTab()
+// exactly as a hand-typed one is.
+(SAVED_TABS.order || []).forEach(key=>{
+  if (typeof key !== 'string' || tabFor(key)) return;
+  const t = openTab(key);
+  if (t && t.kind === 'idea' && t.key === key) RESTORED_IDEA_TABS.push(t);
+});
 if (bootKey !== 'board') openTab(bootKey);
-load().then(fetchHistory);
+else if (SAVED_TABS.active && tabFor(SAVED_TABS.active)
+         && !location.hash) activate(SAVED_TABS.active);
+TABS_BOOTING = false;
+saveTabs();
+load().then(()=>{
+  // An `idea:<id>` restored from localStorage whose id is gone (renamed,
+  // merged as a duplicate, deleted) would sit there accusing the admin of a
+  // bad link they never clicked. The file is loaded now, so it can be told
+  // apart from "not loaded yet" — drop it, unless it is the tab in front.
+  RESTORED_IDEA_TABS.forEach(t=>{
+    if (t.unresolved && t.key !== activeKey && TABS.indexOf(t) >= 0){
+      TABS.splice(TABS.indexOf(t), 1); t.pane.remove();
+    }
+  });
+  renderTabBar(); saveTabs();
+  return fetchHistory();
+});
 </script>
 </body></html>
 """

@@ -67,6 +67,28 @@ class LLMUnavailable(LLMError):
     """
 
 
+class LLMTooLong(LLMError):
+    """The prompt does not fit the served context window.
+
+    Split out from LLMError because it is the one failure that is perfectly
+    deterministic: llama-server's `-c` is fixed at startup and no request field
+    can raise it, so sending the same prompt again gets the same 400. The retry
+    loop therefore skips it, and the caller is told the served size so it can
+    make the prompt smaller -- which is the only thing that can work.
+    """
+
+    def __init__(self, message: str, served: int | None = None) -> None:
+        super().__init__(message)
+        self.served = served
+
+
+#: What llama-server says when the prompt is over `-c`. Matched on the response
+#: body because the status line is a bare 400 and says nothing.
+_TOO_LONG_MARKERS = ("exceeds the available context size",
+                     "exceed the available context size",
+                     "context size exceeded", "n_ctx")
+
+
 @dataclass
 class Usage:
     calls: int = 0
@@ -122,7 +144,11 @@ def _post(path: str, payload: dict, timeout: float) -> dict:
             detail = exc.read().decode("utf-8", "replace")[:400]
         except Exception:                                  # noqa: BLE001
             pass
-        raise LLMError(f"{config.LLM_URL}{path}: {exc}{' -- ' + detail if detail else ''}") from exc
+        msg = f"{config.LLM_URL}{path}: {exc}{' -- ' + detail if detail else ''}"
+        low = detail.lower()
+        if any(m in low for m in _TOO_LONG_MARKERS):
+            raise LLMTooLong(msg) from exc
+        raise LLMError(msg) from exc
     except urllib.error.URLError as exc:
         raise LLMUnavailable(f"{config.LLM_URL}{path}: {exc}") from exc
 
@@ -393,6 +419,16 @@ class Client:
                 resp = _post("/v1/chat/completions", _wire(payload), self.timeout)
             except LLMUnavailable:
                 raise
+            except LLMTooLong as exc:
+                # Deterministic: the window is fixed at the box's startup, so
+                # three identical 400s is three times the wait for the same
+                # answer. Say what the window is; only a smaller prompt helps.
+                served = self.context_size()
+                raise LLMTooLong(
+                    f"{exc} -- the prompt does not fit "
+                    + (f"{self.model}'s {served}-token context window"
+                       if served else f"{self.model}'s context window")
+                    + "; send fewer items per request", served) from exc
             except Exception as exc:  # noqa: BLE001 - retry anything transient
                 last = exc
                 time.sleep(2 ** attempt)

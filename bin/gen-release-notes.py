@@ -61,6 +61,21 @@ the range is empty and you must pass `--since <the previous base>` by hand.
     python3 bin/gen-release-notes.py --audience testers
     python3 bin/gen-release-notes.py --audience players --out notes.md
     python3 bin/gen-release-notes.py --audience admin --since 9103a153141
+
+## --flavor and the model's context window
+
+The flavor pass sizes itself to the model it is talking to: `served_ctx()` asks
+the box what window it will actually serve (qwen36 32K, both DeepSeek models
+16K) and `flavor_chunks()` splits the item list into as few batches as fit. One
+batch is the ideal, because the model can only notice that two items are the
+same change if it sees both in the same request — so **items are merged within
+a batch, never across batches**. The batch count is part of the sidecar
+fingerprint for exactly that reason.
+
+The other half of fitting is the answer: the client only applies a FLOOR to
+`max_tokens` (config.MIN_PREDICT), so the caller sizes the real budget here —
+FLAVOR_OUT_* per item, plus FLAVOR_REASON_ALLOWANCE for the models that always
+emit a reasoning block and would otherwise spend the whole budget thinking.
 """
 from __future__ import annotations
 
@@ -499,6 +514,29 @@ FLAVOR_EMOJI_NOTE_CHARS = 200
 # emoji only, but a 12B model will hand back "Bug fix 🐛" often enough to matter.
 FLAVOR_EMOJI_MAX = 3
 FLAVOR_CTX_MIN, FLAVOR_CTX_MAX = 8192, 32768
+# Output budget, which the caller has to size because the client only applies a
+# FLOOR (config.MIN_PREDICT) and nothing above it. Leaving it at the floor is
+# what made the two DeepSeek models look broken: both always emit a reasoning
+# block, so on a multi-item answer the whole 600/2000-token floor went into
+# thinking and `content` came back empty or truncated -- surfacing as "the model
+# reasoned for N characters and never reached an answer", or as invalid JSON.
+FLAVOR_OUT_BASE = 300              # the JSON framing around the bullets
+FLAVOR_OUT_PER_ITEM = 140          # one or two sentences, plus its ids
+FLAVOR_EMOJI_OUT_BASE = 200
+FLAVOR_EMOJI_OUT_PER_ITEM = 24     # {"id": "...", "emoji": "..."}
+# Room to think, for the models that cannot be told not to (everything outside
+# config.THINKING_OPTIONAL). It scales per item because the reasoning is
+# per-item: deepseek9b spent 11,577 characters of reasoning on FIVE items and
+# still had not started the answer.
+#
+# These two numbers only decide how many items go in a batch. The budget
+# actually granted at request time is everything left in the window
+# (grant_budget), because a grammar-constrained answer stops at its closing
+# brace: a high max_tokens costs nothing when the model behaves and is the only
+# thing that saves the request when it rambles.
+FLAVOR_REASON_BASE = 2000
+FLAVOR_REASON_PER_ITEM = 700
+FLAVOR_CTX_SLACK = 600             # chat template, tokenizer slop, safety
 
 
 def _clip(text: str, limit: int) -> str:
@@ -603,16 +641,117 @@ def flavor_ctx(user: str, system: str = FLAVOR_SYSTEM) -> int:
     return max(FLAVOR_CTX_MIN, min(FLAVOR_CTX_MAX, 1 << (approx - 1).bit_length()))
 
 
-def flavor_fingerprint(payload: list[dict], model: str, mode: str = "prose") -> str:
+def est_tokens(text: str) -> int:
+    """Rough token count. Three characters per token is the usual English
+    ballpark and errs on the high side for JSON, which is what we want here."""
+    return len(text) // 3 + 1
+
+
+def served_ctx(model: str) -> int | None:
+    """The context window the box will actually serve `model`, or None.
+
+    This is the fact the flavor pass used to be missing. FLAVOR_CTX_MAX is
+    32768, which is qwen36's window; deepseek9b and deepseek are both started
+    with `-c 16384`, and llama-server's `-c` is fixed at startup with no request
+    field that can raise it. Asking for more is an HTTP 400 naming the limit,
+    which the client then spent three attempts on. Never raises: a box that
+    cannot be asked falls back to the old constant.
+    """
+    try:
+        from llm.client import Client
+        return Client(model).context_size()
+    except Exception:                                     # noqa: BLE001
+        return None
+
+
+def always_thinks(model: str) -> bool:
+    """True when the model emits a reasoning block whatever we ask of it.
+
+    `chat_template_kwargs.enable_thinking` is honoured by qwen36 alone; both
+    DeepSeek models ignore it silently. See config.THINKING_OPTIONAL.
+    """
+    try:
+        from llm import config as _cfg
+        return _cfg.MODELS.get(model, model) not in _cfg.THINKING_OPTIONAL
+    except Exception:                                     # noqa: BLE001
+        return True                                       # assume the worst
+
+
+def reasoning_allowance(n: int, model: str) -> int:
+    """Tokens to set aside for `n` items' worth of thinking out loud."""
+    if not always_thinks(model):
+        return 0
+    return FLAVOR_REASON_BASE + FLAVOR_REASON_PER_ITEM * n
+
+
+def out_budget(n: int, model: str, base: int, per_item: int) -> int:
+    """The answer budget a batch of `n` items has to be able to fit."""
+    return base + per_item * n + reasoning_allowance(n, model)
+
+
+def grant_budget(chunk: list[dict], system: str, model: str,
+                 base: int, per_item: int) -> int:
+    """`num_predict` to actually send: everything the window has left.
+
+    Sizing this to the estimate instead is what made the DeepSeek models look
+    broken — the estimate is a guess about how long a model will think, and a
+    guess that comes in low produces an empty answer after a full-length
+    generation. Handing over the rest of the window costs nothing (the JSON
+    grammar ends the generation at its closing brace) and is the only thing
+    that rescues a request where the model rambles.
+    """
+    served = served_ctx(model) or FLAVOR_CTX_MAX
+    user = json.dumps(chunk, ensure_ascii=False)
+    room = served - est_tokens(user) - est_tokens(system) - FLAVOR_CTX_SLACK
+    return max(out_budget(len(chunk), model, base, per_item), room)
+
+
+def flavor_chunks(payload: list[dict], system: str, model: str,
+                  base: int, per_item: int) -> list[list[dict]]:
+    """Split the item list into batches that each fit `model`'s window.
+
+    One request for the whole range is the ideal — it is the only way the model
+    can see that two items are the same change and merge them — so this packs
+    greedily and only splits when it has to. A chunk is therefore the whole list
+    on qwen36 and a handful of requests on a 16K model.
+
+    Sorted input in, contiguous slices out, so the same range always chunks the
+    same way; the chunk count goes into the sidecar fingerprint for that reason.
+    """
+    served = served_ctx(model) or FLAVOR_CTX_MAX
+    room = served - est_tokens(system) - FLAVOR_CTX_SLACK
+    chunks: list[list[dict]] = []
+    cur: list[dict] = []
+    cur_in = 0
+    for item in payload:
+        size = est_tokens(json.dumps(item, ensure_ascii=False))
+        n = len(cur) + 1
+        if cur and cur_in + size + out_budget(n, model, base, per_item) > room:
+            chunks.append(cur)
+            cur, cur_in = [], 0
+        cur.append(item)
+        cur_in += size
+    if cur:
+        chunks.append(cur)
+    return chunks or [[]]
+
+
+def flavor_fingerprint(payload: list[dict], model: str, mode: str = "prose",
+                       chunks: int = 1) -> str:
     """Identity of a flavor pass: these items, put through this mode by this model.
 
     The model is in here because switching models must not silently return the
     previous model's cached text -- the whole point of being able to try a new
     one is seeing what it writes. The mode is in here because the prose pass and
     the emoji pass run over the same range and the same items, and a sidecar
-    from one must never be read back as the other.
+    from one must never be read back as the other. The chunk count is in here
+    because batching changes the answer: the model can only merge two items it
+    saw in the same request, so the same items split four ways are a different
+    pass from the same items sent whole.
     """
-    blob = json.dumps([mode, model, payload], sort_keys=True, ensure_ascii=False)
+    blob = json.dumps([mode, model, chunks, payload] if chunks != 1
+                      else [mode, model, payload],
+                      sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
 
 
@@ -685,7 +824,8 @@ def repair_bullets(bullets, ideas: list[dict]) -> tuple[list[dict] | None, list[
 
 
 def ask_model(model: str, system: str, user: str, schema: dict,
-              regen: bool) -> tuple[dict | None, str]:
+              regen: bool, num_predict: int | None = None,
+              quiet: bool = False) -> tuple[dict | None, str]:
     """(answer, model name) from the LAN box, or (None, "") with a warning.
 
     Every failure here -- no client, box asleep, bad request -- is a warning and
@@ -710,9 +850,13 @@ def ask_model(model: str, system: str, user: str, schema: dict,
         raw = client.chat(system, user, schema,
                           prompt_version=FLAVOR_PROMPT_VERSION,
                           temperature=0.2, num_ctx=flavor_ctx(user, system),
+                          num_predict=num_predict,
                           nonce=None if not regen else int(_dt.datetime.now().timestamp()))
     except (LLMError, LLMUnavailable) as exc:
-        print(f"[warn] --flavor: {exc}; writing the deterministic notes instead",
+        # `quiet` is for a chunked pass: one chunk failing is not the end of the
+        # document, so its caller reports it per chunk and keeps going.
+        print(f"[warn] --flavor: {exc}"
+              + ("" if quiet else "; writing the deterministic notes instead"),
               file=sys.stderr)
         return None, ""
     return raw, client.short_name
@@ -728,7 +872,9 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool,
     if not ideas:
         return None
     payload = flavor_input(ideas)
-    fp = flavor_fingerprint(payload, model)
+    chunks = flavor_chunks(payload, FLAVOR_SYSTEM, model,
+                           FLAVOR_OUT_BASE, FLAVOR_OUT_PER_ITEM)
+    fp = flavor_fingerprint(payload, model, chunks=len(chunks))
     path = flavor_path(base, head, fp)
 
     if not regen:
@@ -736,20 +882,44 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool,
         if cached is not None:
             return cached
 
-    user = ("Changes in this update:\n\n"
-            + json.dumps(payload, indent=2, ensure_ascii=False))
-    raw, short_name = ask_model(model, FLAVOR_SYSTEM, user, FLAVOR_SCHEMA, regen)
-    if raw is None:
-        return None
+    if len(chunks) > 1:
+        print(f"[info] --flavor: {len(payload)} item(s) do not fit {model}'s "
+              f"context in one request — sending {len(chunks)} batches "
+              f"(items are only merged within a batch)", file=sys.stderr)
 
-    bullets = (raw or {}).get("bullets") if isinstance(raw, dict) else None
-    bullets, warnings = repair_bullets(bullets, ideas)
+    by_id = {i["id"]: i for i in ideas}
+    bullets: list[dict] = []
+    warnings: list[str] = []
+    short_name = ""
+    for n, chunk in enumerate(chunks, 1):
+        sub = [by_id[c["id"]] for c in chunk if c["id"] in by_id]
+        user = ("Changes in this update:\n\n"
+                + json.dumps(chunk, indent=2, ensure_ascii=False))
+        raw, name = ask_model(
+            model, FLAVOR_SYSTEM, user, FLAVOR_SCHEMA, regen,
+            num_predict=grant_budget(chunk, FLAVOR_SYSTEM, model,
+                                     FLAVOR_OUT_BASE, FLAVOR_OUT_PER_ITEM),
+            quiet=len(chunks) > 1)
+        short_name = name or short_name
+        part = (raw or {}).get("bullets") if isinstance(raw, dict) else None
+        part, w = repair_bullets(part, sub)
+        warnings.extend(w)
+        if part is None:
+            # One batch coming back empty must not cost the other batches their
+            # prose: its items keep their own roadmap notes, exactly as they
+            # would have without --flavor at all.
+            warnings.append(f"batch {n}/{len(chunks)} produced nothing usable — "
+                            f"its {len(sub)} item(s) keep their original notes")
+            part = [{"ids": [i["id"]], "text": None} for i in sub]
+        bullets.extend(part)
+
     for w in warnings:
         print(f"[warn] --flavor: {w}", file=sys.stderr)
-    if bullets is None:
-        print("[warn] --flavor: writing the deterministic notes instead",
-              file=sys.stderr)
+    if not any(b["text"] for b in bullets):
+        print("[warn] --flavor: nothing usable came back; writing the "
+              "deterministic notes instead", file=sys.stderr)
         return None
+    bullets.sort(key=lambda b: sorted(b["ids"]))
 
     FLAVOR_DIR.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(
@@ -850,7 +1020,9 @@ def run_emoji_flavor(ideas: list[dict], base: str, head: str, regen: bool,
     if not ideas:
         return {}
     payload = emoji_input(ideas)
-    fp = flavor_fingerprint(payload, model, mode="emoji")
+    chunks = flavor_chunks(payload, FLAVOR_EMOJI_SYSTEM, model,
+                           FLAVOR_EMOJI_OUT_BASE, FLAVOR_EMOJI_OUT_PER_ITEM)
+    fp = flavor_fingerprint(payload, model, mode="emoji", chunks=len(chunks))
     path = flavor_path(base, head, fp)
 
     if not regen:
@@ -859,15 +1031,31 @@ def run_emoji_flavor(ideas: list[dict], base: str, head: str, regen: bool,
             fixed, _ = repair_emoji(cached, ideas)
             return fixed
 
-    user = ("Changes in this update:\n\n"
-            + json.dumps(payload, indent=2, ensure_ascii=False))
-    raw, short_name = ask_model(model, FLAVOR_EMOJI_SYSTEM, user,
-                                FLAVOR_EMOJI_SCHEMA, regen)
-    if raw is None:
-        return {}
+    if len(chunks) > 1:
+        print(f"[info] --flavor: picking emoji in {len(chunks)} batches — "
+              f"{len(payload)} item(s) do not fit {model}'s context at once",
+              file=sys.stderr)
 
-    items = (raw or {}).get("items") if isinstance(raw, dict) else None
-    chosen, warnings = repair_emoji(items, ideas)
+    by_id = {i["id"]: i for i in ideas}
+    chosen: dict[str, str] = {}
+    warnings: list[str] = []
+    short_name = ""
+    for n, chunk in enumerate(chunks, 1):
+        sub = [by_id[c["id"]] for c in chunk if c["id"] in by_id]
+        user = ("Changes in this update:\n\n"
+                + json.dumps(chunk, indent=2, ensure_ascii=False))
+        raw, name = ask_model(
+            model, FLAVOR_EMOJI_SYSTEM, user, FLAVOR_EMOJI_SCHEMA, regen,
+            num_predict=grant_budget(chunk, FLAVOR_EMOJI_SYSTEM, model,
+                                     FLAVOR_EMOJI_OUT_BASE,
+                                     FLAVOR_EMOJI_OUT_PER_ITEM),
+            quiet=len(chunks) > 1)
+        short_name = name or short_name
+        items = (raw or {}).get("items") if isinstance(raw, dict) else None
+        part, w = repair_emoji(items, sub)
+        warnings.extend(w)
+        chosen.update(part)
+
     for w in warnings:
         print(f"[warn] --flavor: {w}", file=sys.stderr)
     if not chosen:
