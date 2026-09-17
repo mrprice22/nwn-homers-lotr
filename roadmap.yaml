@@ -505,7 +505,7 @@ ideas:
   - id: add-more-rapiers-and-scimitars
     title: "Add more weapons rapiers and scimitars"
     group: items-gear
-    status: wip
+    status: later
     type: Enhancement
     player: "Balendin (Balendin_2222)"
     date: "2026-08-31"
@@ -5733,6 +5733,10 @@ ideas:
       - step: "UAT anti-farm (permanent stat gain -- the most important check): drink the draught, confirm +1 STR/+1 CON on the base scores and that they survive a relog; then place a second Draught of the Ent on the same character -- drinking it must apply nothing. Also drop the truffle just before casting Nature's Balance: no draught may be granted."
         status: open
         kind: uat
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-17"
+        text: "Discord — HomelessSon in The Thirteenth Ent (https://discord.com/channels/514343293761486848/1549088186318462979):\n\n@Szescian82 , This was mostly implemented but still have some action items open on it (oops)\n\nImages:\n- https://img.homerslotr.com/discord/de/de9fcd58bf98877b4c793a1bcd389355.webp"
   - id: twentyfirst-hall
     title: "Quest: The Twenty-First Hall (Moria, party dungeon)"
     group: quests-areas
@@ -8109,12 +8113,34 @@ ideas:
   - id: buged-dev-crit
     title: "Buged Dev Crit ???"
     group: combat-classes
-    status: planned
+    status: manual
     type: Defect
     player: Szescian82
-    date: "2026-09-13"
+    date: "2026-09-17"
+    commit: 71d13db5865
     discord: {'thread_id': '1548761150358032467', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1548761150358032467'}
-    notes: "<div>The player reports experiencing Dev crits at level 51, level 54, and level 57.</div>"
+    notes: "<div>Devastating Critical (Unarmed) is a real feat again. It was being taken off your character to stop it killing outright, which meant the level-up screen offered it to you all over again at the next feat level -- and the bonus damage it was supposed to give you instead quietly stopped working when you logged out. There is now a proper module version of the feat: it stays on your character sheet, it is never offered twice, and it does what the reworked Devastating Critical has always been meant to do (bonus damage scaled to your weapon, not an instant kill).</div><div>If you already lost it, you do not have to do anything: the feat is put back on your character the next time you log in. Feat picks you spent on it more than once cannot be handed back automatically -- the server records who is owed how many, so speak to the admin.</div><div>Barbarians and paladins take it from their bonus feat list exactly as before.</div>"
+    impl_notes: "feat.2da row 506 gets ALLCLASSESCANUSE 0 (the engine resolves that feat id into the save-or-die and no 2DA can reach the check, so it must not be selectable); new row 1312 LOTR_DEVCRIT_UNARMED is the stock row verbatim with a new LABEL/Constant and ALLCLASSESCANUSE 1. It reuses the stock FEAT/DESCRIPTION strrefs, so lotr.tlk is untouched -- hak-only publish. cls_feat_barb.2da and cls_feat_pal.2da (the only stock class tables listing feat 506 as a bonus feat) are repointed at 1312; barb joins hak_2da/ for that one row. All of it is minted by bin/gen-legendary-feats.py, which pins the row index (a feat id is baked into every .bic that takes it) and refuses to renumber it. DevCrit_ArmNoDevCrit grants the proxy to a legacy feat-506 holder before stripping, and re-derives DEVCRIT_HAD_UNARMED from the proxy at every login, so DevCrit_HasDevCrit / LegFeat_HasAnyDevCrit are unchanged. DevCrit_RestoreUnarmed (mod_cliententer, 6.45s) repairs characters the strip already emptied: NWNX_Creature_RemoveFeat does not touch the .bic's per-level feat list, so every pick ever spent on 506 is still recorded there -- it is read behind a GetHasFeat(FEAT_EPIC_OVERWHELMING_CRITICAL_UNARMED) guard and grants the proxy once, logging and telling admins when more than one pick was spent. bin/audit-devcrit-lost.py is the same walk offline (currently 14 picks owed across the three realms; PiC Finger of Death alone spent 7). devcrit_atk's iAttackResult-10 alarm now also re-arms the attacker. DEPLOY: this is a rules change -- bin/build-lotr-rules-hak --install then bin/refresh-nwsync (detached, 10+ min); clients download the hak before they see the feat. devcrit_inc.nss is an include, so use bin/repack-homers-lotr-clean, not a plain repack."
+    manual_steps:
+      - step: "UAT: on an unarmed epic character, open the level-up feat list. Devastating Critical (Unarmed) must appear EXACTLY ONCE, must be takeable, and after taking it must still be on the character sheet after a full relog. At the next feat level it must NOT be offered again."
+        status: open
+        kind: uat
+        tester: "unarmed build, level 51+"
+      - step: "UAT: with that feat, land critical hits on the Combat Dummy. The bonus physical damage must appear (3 dice, +5 more with Legendary Butcher) and NOTHING may die outright. Any '[DEVCRIT ALARM]' line in the server log means a save-or-die leaked and the fix is incomplete."
+        status: open
+        kind: uat
+        tester: "unarmed build, level 51+"
+      - step: "UAT: log in a character that lost the feat (bin/audit-devcrit-lost.py names them). It must be granted back once, with the red chat line, and an admin online must see the '[DEVCRIT RESTORE] ... pick(s) are still owed' message. Log out and in again: no second grant, no second message."
+        status: open
+        kind: uat
+        tester: "any (an affected character)"
+      - step: "UAT: a barbarian or paladin's BONUS feat list still offers Devastating Critical (Unarmed) - the repointed cls_feat row."
+        status: open
+        kind: uat
+        tester: "barbarian or paladin, level 51+"
+      - step: "Compensate the feat picks the bug ate: run python3 bin/audit-devcrit-lost.py and hand back one feat per 'owed' pick to each player listed (14 across the realms at the time of the fix). The feat itself is restored automatically; these are the extra picks that bought the same feat twice or more."
+        status: open
+        kind: admin
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8889,14 +8915,12 @@ ideas:
   - id: world-boss
     title: "World Boss"
     group: bosses
-    status: planned
-    hidden: true
+    status: soon
     type: Enhancement
     player: Tukwut
     date: "2026-09-17"
     discord: {'thread_id': '1549963626062938283', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549963626062938283'}
     notes: "<div>Random and/or roaming boss that can only be defeated by a large party</div>"
-    triage: true
     comments:
       - author: "Sync Bot"
         date: "2026-09-16"
@@ -8904,21 +8928,25 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-16"
         text: "Discord — Tukwut in World Boss (https://discord.com/channels/514343293761486848/1549963626062938283):\n\nRandom and/or roaming boss that can only be defeated by a large party"
+      - author: "Sync Bot"
+        date: "2026-09-17"
+        text: "Discord — HomelessSon in World Boss (https://discord.com/channels/514343293761486848/1549963626062938283):\n\nI like this too, actually drafted up plans for only 1 so far but having more would be great: https://homerslotr.com/manual/Draft/boss-updates#gimmick-borg"
   - id: daily-empowered-boss
     title: "Daily Empowered Boss"
     group: bosses
-    status: planned
-    hidden: true
+    status: soon
     type: Enhancement
     player: Tukwut
     date: "2026-09-17"
     discord: {'thread_id': '1549964343964213318', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549964343964213318'}
     notes: "<div>Each real world day (or desired cadence), an existing boss encounter is replaced with a more difficult version with same but scaled up drops.</div>"
-    triage: true
     comments:
       - author: "Sync Bot"
         date: "2026-09-16"
         text: "Discord — Tukwut in Daily Empowered Boss (https://discord.com/channels/514343293761486848/1549964343964213318):\n\nEach real world day (or desired cadence), an existing boss encounter is replaced with a more difficult version with same but scaled up drops."
+      - author: "Sync Bot"
+        date: "2026-09-17"
+        text: "Discord — HomelessSon in Daily Empowered Boss (https://discord.com/channels/514343293761486848/1549964343964213318):\n\nI like that, possibly with a longer respawn than 20 min so it's not just farmed all day"
   - id: rmqol-tab-scroll-memory
     title: "Remember each tab's scroll position, including across a refresh"
     group: wiki-tools
