@@ -177,7 +177,7 @@ ideas:
     title: "roadmap editor QoL — umbrella (split into child ideas)"
     group: wiki-tools
     epic: roadmap-editor-qol
-    status: planned
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -4327,7 +4327,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
-    notes: "<div><b>The Wandering One</b> — a proposed boss with no fixed home: it roams the module, so players have to hunt it rather than look it up. It also learns, building resistance to whatever damage type you keep hitting it with and shedding resistance to types you have stopped using — so a party that rotates its damage keeps it off balance, and a mono-damage party grinds to a halt. Design and feasibility: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-borg\">boss-updates#gimmick-borg</a>.</div>"
+    notes: "<div><b>The Wandering One</b> — a proposed boss with no fixed home: it roams the module, so players have to hunt it rather than look it up. It also learns, building resistance to whatever damage type you keep hitting it with and shedding resistance to types you have stopped using — so a party that rotates its damage keeps it off balance, and a mono-damage party grinds to a halt. Design and feasibility:<a href=\"https://homerslotr.com/manual/Draft/boss-updates#gimmick-borg\" target=\"_blank\" rel=\"noopener\">boss-updates#gimmick-borg.</a></div>"
     impl_notes: "<div>Two ideas fused: roaming (no fixed wiki area) and adaptive immunity drawing from a shared 500% pool in 5-10% increments per damage type, stealing from the least-recently-received type when the pool is empty.</div><div><br></div><div>Build notes: reuses the unused wandering.nss state machine; must set NO_LEASH=1 or leash_to_area snaps it home; OnDamaged juggles percentage-immunity item properties across its gear slots; still qualifies as a single-instance registry boss (board attribution 'roaming').</div>"
   - id: elemental-swarm-waves
     title: "Elemental swarm arena: waves of 24 elementals trickle-spawned to surround the party, the element rotating each cleared wave"
@@ -8923,7 +8923,7 @@ ideas:
     title: "Remember each tab's scroll position, including across a refresh"
     group: wiki-tools
     epic: roadmap-editor-qol
-    status: implemented
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -8948,7 +8948,7 @@ ideas:
     title: "Cap idea titles at Discord's 100-character thread-name limit"
     group: wiki-tools
     epic: roadmap-editor-qol
-    status: implemented
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -9001,7 +9001,7 @@ ideas:
     title: "Make the \"Duplicate of\" picker searchable and sorted"
     group: wiki-tools
     epic: roadmap-editor-qol
-    status: implemented
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -9070,9 +9070,28 @@ ideas:
     title: "PUBLIC read-only role so a Discord link to an idea needs no account"
     group: wiki-tools
     epic: roadmap-editor-qol
-    status: planned
+    status: implemented
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<p>Linking a player to an idea in Discord currently means asking them to log in. A PUBLIC role would let anyone open <code>https://roadmap.homerslotr.com/</code> and browse the non-hidden backlog read-only: LIST and BOARD tabs, no left-hand navigator, a read-only board, and clicking an idea opening an in-app tab with its detail.</p><p>What a public viewer must NOT see: hidden ideas, the commit hash, the HTML/rich-text toggle (rich text only), testing tasks, implementation notes and merit totals. What they should see: a link to the idea's Discord thread when it has one.</p>"
-    impl_notes: "<p><code>bin/roadmap_auth.py</code> already sketches the tier — a commented-out <code>\"player\": {\"view\", \"submit\"}</code> in <code>ROLES</code> — and the page already gates every control on <code>data-cap</code> attributes swept by <code>applyCapabilities()</code>, with <code>ROUTE_CAPS</code> failing closed server-side. So the role itself is small.</p><p>The two real pieces of work are elsewhere. <strong>Anonymous access</strong>: <code>PUBLIC_ROUTES</code> is currently just <code>/login</code> and <code>/api/login</code>, so there has to be a way to resolve a request with no session to a public identity without weakening <code>_gate()</code>. <strong>Field-level filtering</strong>: <code>/api/data</code> hands the browser the whole ideas array, including hidden items, <code>impl_notes</code>, <code>manual_steps</code>, <code>uat_credits</code> and <code>merit_awarded</code> — hiding those in the page would be decoration, not privacy, so the payload itself has to be filtered server-side for this role. A capability like <code>view_public</code> served by a separate, narrower projection of the document is the shape to aim for, rather than a filter bolted onto the existing one.</p><p>Note the existing <code>tester</code> tier's lesson, recorded in CLAUDE-roadmap.md: it has no <code>edit</code> at all precisely because <code>/api/save</code> posts the whole array, so a per-field filter on a write route is a large thing to get right and a larger thing to keep right. The same reasoning applies to the read side here.</p>"
+    date: "2026-09-17"
+    commit: a5fbc3176b9dea340b1f491a9f0b6a5423be91af
+    notes: "<p>The roadmap is now readable without an account. Open <a href=\"https://roadmap.homerslotr.com/\">roadmap.homerslotr.com</a> and you get the List and the Board read-only, and clicking any idea opens its own tab with the write-up and a link straight to its Discord thread. A link to a single idea works too, so a reply in Discord can point at exactly the item being discussed instead of asking you to log in first.</p><p>Only published items are visible: anything hidden or still waiting on triage is not served at all, and neither are the builder's internal notes, testing tasks or merit figures. Staff still log in for the editor as before.</p>"
+    impl_notes: "<p><b>Shipped 2026-09-17.</b> A request with no session cookie resolves to <code>AUTH.anonymous_user()</code> — role <code>public</code>, capability <code>view_public</code>, no account behind it — and <code>_gate()</code>'s ordinary capability check then decides what it may have. The fail-closed route table did not move.</p><p><b>The payload is a different document, not this one with fields blanked.</b> New <code>bin/roadmap_public.py</code> serves <code>/api/public-data</code>: which <i>items</i> are public is <code>gen-roadmap.py</code>'s own <code>publishable()</code> (drops <code>hidden</code> + <code>triage</code>, the same function the wiki page and the in-game sign use, so nothing can be public on one surface and private on another); which <i>fields</i> survive is <code>PUBLIC_IDEA_FIELDS</code>, a whitelist — <b>a field added to <code>FIELD_ORDER</code> later is private by default</b>. The vocab is derived from the projected list rather than the file, because the staff <code>vocab()</code>'s <code>dupes</code> block carries the title of every hidden idea. Cached against <code>yaml_version()</code>.</p><p><b>Four details that are load-bearing</b>, all asserted by <code>bin/roadmap-auth-selftest.py</code>: a cookie that <i>fails</i> to resolve is not anonymous (an expired staff session keeps its 401 → <code>/login</code>, via a new <code>had_cookie</code> flag); <code>view_public</code> is <i>subtracted</i> from <code>admin</code> and <code>dm</code>, since it names which document a session is served rather than how much power it has; <code>public</code> is not a login role (<code>LOGIN_ROLES</code>); and anonymous denials are not written to the audit log, or a crawler would bury it.</p><p><b>Client:</b> <code>PUBLIC_MODE()</code> branches <code>load()</code> onto the public route, guards the <code>/api/history</code> calls (a 403 per tab click otherwise), renders a purpose-built read-only idea pane instead of the form with its inputs disabled, and hides the navigator behind a small header bar whose <i>Log in</i> link preserves the fragment. Two fixes fell out that also help the <code>tester</code> tier: <code>api()</code> had no 403 branch at all, so a refused fetch failed silently, and board cards were draggable without <code>edit</code> — a drag the server could only refuse. Epic children are deliberately <b>not</b> collapsed here, unlike the wiki page: a Discord thread is per-idea, so each idea keeps its own card.</p>"
+    manual_steps:
+      - step: "Signed out (private window or phone), open https://roadmap.homerslotr.com/ — the List and Board render with no left-hand navigator, nothing is editable, and a board card cannot be dragged between lanes."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Signed out, follow a roadmap link posted in a Discord thread (or any https://roadmap.homerslotr.com/#idea-<id>) — it opens that idea's own tab showing the title, status, credit, write-up and an 'Open the Discord thread' link, and nothing else."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "From the public view click 'Log in' while an idea tab is open, sign in, and check you land back on the same idea with the full editor chrome (navigator, form, Save)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Signed in as admin, confirm the editor is unchanged — navigator, idea form, Save, Award merit, the queues — and that the browser console shows no 403s."
+        status: open
+        kind: uat
+        tester: "admin"
