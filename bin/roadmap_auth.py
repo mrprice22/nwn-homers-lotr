@@ -54,7 +54,13 @@ CAPS: tuple[str, ...] = (
     "merit_view",       # look at merit balances and pending redemptions
     "release_notes",       # read the tester/player release notes for the open diff
     "release_notes_admin", # read the ADMIN audience of those notes
+    "view_public",      # read the REDACTED public projection of the backlog
 )
+
+#: The role a request with no session cookie resolves to. Named once, here,
+#: because three separate places have to agree about it: the ROLES table, the
+#: LOGIN_ROLES exclusion, and roadmap-editor.py's "don't audit-log a stranger".
+ANON_ROLE = "public"
 
 # Role -> capability set. Deliberately a data table.
 #
@@ -81,9 +87,14 @@ CAPS: tuple[str, ...] = (
 #
 # It also lacks `merit_view`: seeing the whole backlog is the point, but every
 # player's merit balance and pending redemptions is not a tester's business.
+# `view_public` is subtracted from the two "everything" roles on purpose. It is
+# not a lesser `view` that a bigger role subsumes -- it names WHICH DOCUMENT a
+# session is served, and the page reads it to decide which one to ask for. An
+# admin holding both would be an admin served the redacted public view of their
+# own backlog. The self-test asserts no role but ANON_ROLE holds it.
 ROLES: dict[str, set[str]] = {
-    "admin": set(CAPS),
-    "dm": set(CAPS) - {"promote_shipped", "merit"},
+    "admin": set(CAPS) - {"view_public"},
+    "dm": set(CAPS) - {"promote_shipped", "merit", "view_public"},
     "tester": {"view", "uat", "serverlog", "release_notes"},
     # nwnbot, the Discord forum <-> roadmap sync. It mirrors forum threads into
     # ideas (`edit`, what /api/save gates on) and appends to an idea's internal
@@ -96,16 +107,36 @@ ROLES: dict[str, set[str]] = {
     # business republishing the wiki, or reading who changed what and what every
     # player is owed. No `serverlog` either; it never looks at the realm.
     "bot": {"view", "edit", "uat"},
+    # The anonymous visitor: nobody, holding no session, who opened
+    # roadmap.homerslotr.com or followed a Discord link to one idea. It is NOT a
+    # weak `tester` -- `view` is the whole document, including hidden items,
+    # impl_notes, manual_steps, uat_credits and merit_awarded, because /api/data
+    # hands the browser the file. `view_public` is a DIFFERENT, narrower
+    # projection served by a different route (see bin/roadmap_public.py), so
+    # there is no filter bolted onto the staff payload that a later field can
+    # slip past: a field is private until someone adds it to the whitelist.
+    #
+    # It is also the only role with no account behind it -- see LOGIN_ROLES.
+    ANON_ROLE: {"view_public"},
     # Sketch for later; not offered by the CLI until it is wanted. Note it has
     # no `audit_view`: who changed what is staff information, not a player's.
     # "player": {"view", "submit"},
 }
+
+# Roles a password account may be created with or moved to. `public` is the
+# identity a request with NO session resolves to; minting a real account with
+# it would be an account that can log in and then see less than a logged-out
+# stranger, which is not a tier anybody wants. add_user(), set_role() and
+# bin/roadmap-users.py's --role choices all read this, never ROLES.
+LOGIN_ROLES: dict[str, set[str]] = {r: c for r, c in ROLES.items()
+                                    if r != ANON_ROLE}
 
 ROLE_LABELS = {
     "admin": "Administrator",
     "dm": "Dungeon Master",
     "tester": "Tester",
     "bot": "Sync Bot",
+    ANON_ROLE: "Public",
 }
 
 # Capabilities a `tester` must never acquire. Asserted by
@@ -119,6 +150,11 @@ TESTER_FORBIDDEN: frozenset[str] = frozenset((
     # carries `hidden` items and the commits no roadmap item claimed, which is
     # staff information for the same reason `audit_view` is.
     "release_notes_admin",
+    # Not a restriction so much as a statement of which door this role uses: a
+    # tester reads the whole document through /api/data. Listing it keeps the
+    # `caps | FORBIDDEN == CAPS` whitelist below exhaustive, which is the check
+    # that catches a capability nobody classified.
+    "view_public",
 ))
 
 # Capabilities the `bot` role must never acquire, asserted the same way. The
@@ -134,7 +170,18 @@ BOT_FORBIDDEN: frozenset[str] = frozenset((
     # Release notes are written for an audience of people, and the admin
     # audience carries `hidden` items and unclaimed commits besides.
     "release_notes", "release_notes_admin",
+    # Same as the tester: the bot reads /api/data. Listed to keep the whitelist
+    # exhaustive.
+    "view_public",
 ))
+
+# Capabilities the anonymous `public` role must never acquire -- which is every
+# capability except the one that defines it. Written as a subtraction rather
+# than a literal on purpose: a capability added to CAPS later lands on this list
+# automatically, so the tier cannot be widened by forgetting to think about it.
+# Every other FORBIDDEN set here is a literal because those roles are meant to
+# grow; this one is not.
+PUBLIC_FORBIDDEN: frozenset[str] = frozenset(CAPS) - {"view_public"}
 
 # Statuses a role without `promote_shipped` may not move an item into. This is
 # roadmap_publish.SHIPPED_STATUSES -- the set that reaches the public roadmap
@@ -362,6 +409,17 @@ class User:
                 "caps": sorted(self.caps)}
 
 
+def anonymous_user() -> User:
+    """The identity a request with no session cookie resolves to.
+
+    Not a row in the users table and never one: it is manufactured per request,
+    holds `view_public` and nothing else, and has an empty username so anything
+    keyed on the account -- navigation history, audit rows, UAT attribution --
+    has nothing to key on. See ANON_ROLE.
+    """
+    return User(username="", role=ANON_ROLE, display_name="Guest")
+
+
 def _user_from_row(row: sqlite3.Row) -> User:
     keys = row.keys()
     return User(username=row["username"], role=row["role"],
@@ -383,8 +441,8 @@ def add_user(conn, username: str, password: str, role: str,
         raise ValueError(
             f"invalid username {username!r}: 2-32 chars, lowercase letters, "
             "digits, dot, dash or underscore, starting alphanumeric")
-    if role not in ROLES:
-        raise ValueError(f"unknown role {role!r}: pick one of {', '.join(sorted(ROLES))}")
+    if role not in LOGIN_ROLES:
+        raise ValueError(f"unknown role {role!r}: pick one of {', '.join(sorted(LOGIN_ROLES))}")
     if get_user(conn, username):
         raise ValueError(f"user {username!r} already exists")
     with conn:
@@ -426,8 +484,8 @@ def set_password(conn, username: str, password: str) -> None:
 
 def set_role(conn, username: str, role: str) -> None:
     _require_user(conn, username)
-    if role not in ROLES:
-        raise ValueError(f"unknown role {role!r}: pick one of {', '.join(sorted(ROLES))}")
+    if role not in LOGIN_ROLES:
+        raise ValueError(f"unknown role {role!r}: pick one of {', '.join(sorted(LOGIN_ROLES))}")
     with conn:
         conn.execute("UPDATE users SET role=? WHERE username=?",
                      (role, username.strip().lower()))

@@ -719,9 +719,10 @@ more than one person uses it, so both halves of that theory are gone.
 ### Roles and capabilities
 
 Roles are a data table in `bin/roadmap_auth.py` (`CAPS` / `ROLES`), not
-`if role == "admin"` branches, so adding a role later — a `player` tier that can
-only view and submit, say — is a one-line change rather than a sweep through the
-request handlers.
+`if role == "admin"` branches, so adding a role later is close to a one-line
+change rather than a sweep through the request handlers. The anonymous `public`
+tier below is the worked example of what that does and does not buy you: the
+role itself *was* one line, and the payload it is served took a module.
 
 | Capability | Covers |
 |---|---|
@@ -738,15 +739,79 @@ request handlers.
 | `submit` | creating new ideas (reserved for a future `player` role) |
 | `release_notes` | the **Notes · Testers** and **Notes · Players** panels |
 | `release_notes_admin` | the **Notes · Admin** panel |
+| `view_public` | the redacted public projection — `/api/public-data`, and nothing else |
 
 | Role | Has |
 |---|---|
-| `admin` | everything |
+| `admin` | every staff capability (i.e. everything but `view_public`) |
 | `dm` | everything **except** `promote_shipped` and `merit` |
 | `tester` | **only** `view`, `uat`, `serverlog` and `release_notes` |
+| `public` | **only** `view_public` — the anonymous visitor, no account |
 
 So a DM runs the backlog day to day — edits, triage, the queues, the LLM review
 panel, and even Publish — but cannot mark anything shipped and cannot pay merit.
+
+### The anonymous `public` role
+
+`https://roadmap.homerslotr.com/` is open. A request carrying **no session
+cookie** resolves to `AUTH.anonymous_user()` — role `public`, capability
+`view_public` and nothing else — and gets the workspace with no navigator, the
+List and Board tabs, and a read-only tab per idea. That is what makes a Discord
+link to an idea worth posting: `/#idea-<id>` already routed to a tab, but until
+now it routed through a login form.
+
+Four things about it are load-bearing:
+
+- **A cookie that fails to resolve is NOT anonymous.** `_resolve_user()` records
+  `had_cookie`, and `_gate()` keeps the old 401 → `/login` for an expired staff
+  session. Demoting it to the public view instead would read as "the editor lost
+  half its features".
+- **`view_public` is subtracted from `admin` and `dm`.** It is not a lesser
+  `view` that a bigger role subsumes — it names *which document* a session is
+  served, and the page reads it to decide which route to fetch. An admin holding
+  both would be an admin shown the redacted view of their own backlog. The
+  self-test asserts that no role but `public` holds it.
+- **`public` is not a login role.** `add_user()`, `set_role()` and
+  `bin/roadmap-users.py`'s `--role` choices all read `LOGIN_ROLES`, which is
+  `ROLES` minus this one. An account that can log in and then see *less* than a
+  stranger is not a tier anybody wants.
+- **Anonymous denials are not audited.** `_gate()` skips its `denied.route` row
+  for this role: the audit log records what the people with accounts did, and
+  every crawler that finds a gated path would otherwise bury it.
+
+#### The payload is a different document, not a filtered one
+
+`/api/data` hands the browser the whole file. Hiding fields in the page would be
+decoration, so the public view is served **`/api/public-data`**, built by
+**`bin/roadmap_public.py`**:
+
+- Which *items* are public is `gen-roadmap.py`'s `publishable()` — the same
+  function the wiki page and the in-game Recent Updates sign are built from, so
+  nothing can be public on one surface and private on another. It drops `hidden`
+  **and** `triage`.
+- Which *fields* survive is `PUBLIC_IDEA_FIELDS`, a **whitelist**: id, title,
+  group, epic, status, type, player, date, notes, and `discord.url`. **A field
+  added to `FIELD_ORDER` later is private by default** — that is the whole
+  reason it is written as a whitelist, and the rule to keep. `impl_notes`,
+  `manual_steps`, `design_questions`, `uat_credits`, `comments`, `commit`,
+  `merit_awarded` and the dupe bookkeeping are all absent, not blanked.
+- The **vocab is derived from the projected list**, never from the raw document.
+  The staff `vocab()` emits a `dupes: [{id, title}]` across every idea in the
+  file; serving that would carry the titles of hidden items into a public
+  payload. Epics are likewise narrowed to those with at least one published
+  child — an epic whose every child is hidden is unreleased work.
+- No `base_hashes`/`base_vocab` (the save-merge baseline; this view cannot save)
+  and no `environments` map (which realm an idea's code is on).
+- The body is cached against `yaml_version()`: it is identical for every
+  anonymous viewer, so it is built once per edit of `roadmap.yaml`.
+
+Unlike the wiki page, epic children are **not** collapsed into one card here:
+a Discord thread is per-idea, so every linkable idea keeps its own card and tab.
+
+`python3 bin/roadmap-auth-selftest.py` asserts all of it — including, against the
+real `roadmap.yaml`, that no field outside the whitelist survives, that no hidden
+or triaged id appears, and that no hidden idea's *title* rides along in the
+vocab. Run it after touching either file.
 
 ### Release notes in the editor
 

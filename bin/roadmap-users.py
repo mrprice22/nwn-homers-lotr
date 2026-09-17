@@ -361,10 +361,12 @@ def cmd_setup(conn, args) -> int:
             print(f"Password changed for {username}; sessions revoked.")
         return 0
 
-    roles = sorted(A.ROLES)
+    # LOGIN_ROLES, not ROLES: `public` is the identity a request with no session
+    # resolves to, not an account anybody can hold.
+    roles = sorted(A.LOGIN_ROLES)
     while True:
         role = _ask(f"Role ({', '.join(roles)})", args.role or "tester")
-        if role in A.ROLES:
+        if role in A.LOGIN_ROLES:
             break
         print(f"  Pick one of: {', '.join(roles)}")
     display = _ask("Display name (shown in the editor)", player)
@@ -502,7 +504,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description=__doc__.split("\n\n")[0],
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Roles: " + ", ".join(sorted(A.ROLES))
+        epilog="Roles: " + ", ".join(sorted(A.LOGIN_ROLES))
                + ".  Run `roles` for the full capability table.")
     ap.add_argument("--db", help="override the auth database path")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -519,13 +521,13 @@ def main() -> int:
     p = sub.add_parser("setup",
                        help="interactive: pick a player, create or rebind an "
                             "account (the recommended way in)")
-    p.add_argument("--role", default="", choices=[""] + sorted(A.ROLES),
+    p.add_argument("--role", default="", choices=[""] + sorted(A.LOGIN_ROLES),
                    help="skip the role prompt (or change it, when rebinding)")
     p.set_defaults(fn=cmd_setup)
 
     p = sub.add_parser("add", help="create an account")
     p.add_argument("username")
-    p.add_argument("--role", required=True, choices=sorted(A.ROLES))
+    p.add_argument("--role", required=True, choices=sorted(A.LOGIN_ROLES))
     p.add_argument("--name", default="", help="display name shown in the editor")
     p.add_argument("--player", default="",
                    help="in-game player name this account credits UAT work to "
@@ -540,7 +542,7 @@ def main() -> int:
 
     p = sub.add_parser("role", help="change a role (revokes their sessions)")
     p.add_argument("username")
-    p.add_argument("role", choices=sorted(A.ROLES))
+    p.add_argument("role", choices=sorted(A.LOGIN_ROLES))
     p.set_defaults(fn=cmd_role)
 
     p = sub.add_parser("name", help="set a display name")

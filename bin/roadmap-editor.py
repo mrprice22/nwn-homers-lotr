@@ -51,6 +51,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import roadmap_auth as AUTH   # noqa: E402  (path set up immediately above)
 import roadmap_merit as MERIT   # noqa: E402  (meritdb access, shared with the CLI)
+import roadmap_public as PUBLIC   # noqa: E402  (the redacted anonymous projection)
 
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
@@ -410,6 +411,42 @@ def vocab(data: dict) -> dict:
             # through the Cloudflare Tunnel, so a tester's clock can be a day
             # off from the one every other date in this file was stamped in.
             "today": server_today()}
+
+
+# --------------------------------------------------------------------------
+# The public projection — what an anonymous visitor is served
+# --------------------------------------------------------------------------
+# The document itself lives in bin/roadmap_public.py (importable, so the
+# self-test can assert it without a server). Only the caching is here.
+_public_lock = threading.Lock()
+_public_cache: dict = {"version": None, "body": None}
+
+
+def public_payload(user) -> dict:
+    """/api/public-data, cached against roadmap.yaml's version token.
+
+    Anonymous traffic arrives from the open internet, and rebuilding the
+    projection means re-running publishable() and re-projecting ~600 items per
+    request. The document is identical for every anonymous viewer, so it is
+    built once per edit of roadmap.yaml and copied thereafter -- the same
+    trick environment_map() plays against HEAD.
+
+    `me` is stamped per request rather than cached with the body: it is the
+    only part that differs between callers.
+    """
+    version = yaml_version()
+    with _public_lock:
+        if _public_cache["version"] != version or _public_cache["body"] is None:
+            _public_cache["body"] = PUBLIC.public_payload(
+                read_yaml(), version, {}, gen=GEN)
+            _public_cache["version"] = version
+        body = _public_cache["body"]
+    # Shallow copy is enough and is the point: `ideas` and `vocab` are never
+    # mutated downstream (this route has no writer), so one build is shared by
+    # every reader and only the small envelope is per-request.
+    out = dict(body)
+    out["me"] = user.public()
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -2145,11 +2182,20 @@ PUBLIC_ROUTES = frozenset(("/login", "/api/login"))
 # Authenticated, but needing no particular capability.
 ANY_USER_ROUTES = frozenset(("/api/logout", "/api/me"))
 
-ROUTE_CAPS: dict[str, str] = {
-    "/": "view",
-    "/index.html": "view",
+# A value may be a TUPLE of capabilities, meaning "any one of these". Exactly
+# three routes need it, and all three for the same reason: the app shell and
+# its version poll are served to staff (`view`) and to the anonymous `public`
+# role (`view_public`) alike, and the two are deliberately disjoint -- a
+# `view_public` holder must never reach /api/data. An alternation here is a
+# smaller thing than a second table nobody remembers to update.
+ROUTE_CAPS: dict[str, str | tuple[str, ...]] = {
+    "/": ("view", "view_public"),
+    "/index.html": ("view", "view_public"),
     "/api/data": "view",
-    "/api/version": "view",
+    # The redacted projection -- bin/roadmap_public.py. Its own capability, so
+    # `view` does NOT imply it and it does not imply `view`.
+    "/api/public-data": "view_public",
+    "/api/version": ("view", "view_public"),
     # Read-only merit views: a DM may look, but /api/award is gated on `merit`.
     # `merit_view` rather than `view` so a `tester` -- who must see the whole
     # backlog -- does not also see every player's balance and redemptions.
@@ -2453,8 +2499,12 @@ def audit_diff(entry: str, idea: str = "") -> dict:
 # HTTP server
 # --------------------------------------------------------------------------
 class Handler(BaseHTTPRequestHandler):
-    # Set by _gate() before any route runs; None means "not logged in".
+    # Set by _gate() before any route runs. Never None once _gate() has run: a
+    # request with no session becomes AUTH.anonymous_user(), the `public` role.
     user: "AUTH.User | None" = None
+    #: Did this request carry a session cookie at all? _gate() tells "expired
+    #: session" (401, log in again) from "stranger" (the public view) with it.
+    had_cookie: bool = False
 
     def log_message(self, *a):  # quiet
         pass
@@ -2573,7 +2623,16 @@ class Handler(BaseHTTPRequestHandler):
         return [("Set-Cookie", "; ".join(bits))]
 
     def _resolve_user(self):
+        """The signed-in user, or None.
+
+        `None` means "this request carries no usable session" and says nothing
+        about why. _gate() needs the why -- no cookie at all is a stranger who
+        may be shown the public view, while a cookie that failed to resolve is
+        a staff session that expired and must be told so rather than silently
+        demoted -- so it reads self.had_cookie alongside the return value.
+        """
         token = self._cookies().get(AUTH.SESSION_COOKIE, "")
+        self.had_cookie = bool(token)
         if not token:
             return None
         try:
@@ -2616,9 +2675,25 @@ class Handler(BaseHTTPRequestHandler):
 
         self.user = self._resolve_user()
         if self.user is None:
-            self._deny(401, "Your session has expired — please log in again.",
-                       wants_html=wants_html)
-            return False
+            # No cookie at all: a stranger, not a lapsed session. Resolve them
+            # to the anonymous `public` role and let the SAME capability check
+            # below decide what they may have -- the table still fails closed,
+            # and `public` holds exactly one capability, so a route nobody
+            # classified is as firmly denied to them as to anyone else.
+            #
+            # A cookie that did not resolve is the other case and keeps its
+            # 401: an expired staff session that silently became the public
+            # view would read as "the editor lost half its features".
+            #
+            # ANY_USER_ROUTES is excluded: /api/logout and /api/me are about an
+            # account, and a stranger has none. Letting the anonymous role
+            # through would mean a logout row in the audit log per anonymous
+            # POST, which is exactly the log-spam the denial rule below avoids.
+            if self.had_cookie or key in ANY_USER_ROUTES:
+                self._deny(401, "Your session has expired — please log in again.",
+                           wants_html=wants_html)
+                return False
+            self.user = AUTH.anonymous_user()
         if key in ANY_USER_ROUTES:
             return True
 
@@ -2628,11 +2703,20 @@ class Handler(BaseHTTPRequestHandler):
             # nobody classified must never reach them with a session attached.
             self._deny(404, "No such endpoint.", wants_html=False)
             return False
-        if not self.user.can(cap):
-            AUTH.audit(auth_db(), "denied.route", user=self.user,
-                       ip=self.client_ip(), detail=f"{self.command} {path} needs {cap}")
+        wanted = (cap,) if isinstance(cap, str) else tuple(cap)
+        if not any(self.user.can(c) for c in wanted):
+            need = " or ".join(wanted)
+            # Anonymous denials are not audited. The audit log is a record of
+            # what the people with accounts did; every crawler, scanner and
+            # mistyped URL that reaches a public hostname would otherwise bury
+            # it, which is the same reasoning that keeps /api/history out of
+            # AUDITED. A stranger who finds a gated route simply gets a 403.
+            if self.user.role != AUTH.ANON_ROLE:
+                AUTH.audit(auth_db(), "denied.route", user=self.user,
+                           ip=self.client_ip(),
+                           detail=f"{self.command} {path} needs {need}")
             self._deny(403, f"Your role ({AUTH.ROLE_LABELS.get(self.user.role, self.user.role)}) "
-                            f"does not have access to this ({cap}).",
+                            f"does not have access to this ({need}).",
                        wants_html=False)
             return False
         return True
@@ -3449,6 +3533,8 @@ class Handler(BaseHTTPRequestHandler):
                         # Who is asking. The page hides controls it may not use;
                         # the server enforces the same rules regardless.
                         "me": self.user.public()})
+        elif self.path == "/api/public-data":
+            self._json(public_payload(self.user))
         elif self.path.startswith("/api/release-notes"):
             self._release_notes()
         elif self.path == "/api/version":
@@ -4464,6 +4550,24 @@ PAGE = r"""<!doctype html>
      forcing a value, so it cannot outrank a stylesheet rule that still applies.
      That is why the class must come off BEFORE the inline styles go on. */
   body.caps-unknown [data-cap] { display:none; }
+  /* Anonymous viewer: no navigator, no resize handle. The workspace grid
+     restacks on its own -- this is the same column the collapse button hides,
+     so there is no second layout to keep working. */
+  body.public > nav, body.public > #navdrag { display:none; }
+  #publicbar { display:none; }
+  body.public #publicbar { display:flex; align-items:baseline; gap:10px;
+       flex-wrap:wrap; padding:8px 12px; border-bottom:1px solid var(--line); }
+  #publicbar .pb-title { font-weight:600; }
+  #publicbar .pb-note, #publicbar .pb-link { font-size:12px; color:var(--mut); }
+  #publicbar .spacer { flex:1; }
+  #publicbar .pb-link { color:var(--accent); text-decoration:none; }
+  #publicbar .pb-link:hover { text-decoration:underline; }
+  .pubidea { max-width:70ch; }
+  .pubidea h2 { margin:.2em 0 .4em; }
+  .pubidea .chips { margin-bottom:6px; }
+  .pubnotes { margin:12px 0; line-height:1.5; }
+  .pubnotes p:first-child { margin-top:0; }
+  .pubnotes img { max-width:100%; }
   .chk { display:flex; align-items:center; gap:6px; margin-top:8px; font-size:12px;
          color:var(--mut); cursor:pointer; }
   .chk input { width:auto; }
@@ -4968,6 +5072,16 @@ window.__MAX_TITLE_LEN = /*__MAX_TITLE_LEN__*/100;</script>
 </nav>
 <div id="navdrag" title="Drag to resize the navigator"></div>
 <div id="workspace">
+  <!-- Public view only (CSS: body.public). The navigator is hidden for an
+       anonymous viewer, and this carries the two things it held that they
+       still need: what this site is, and the way in for staff. The Log in
+       link keeps the fragment, so /#idea-x -> /login#idea-x -> /#idea-x. -->
+  <div id="publicbar">
+    <span class="pb-title">Homer&#39;s LotR &mdash; development roadmap</span>
+    <span class="pb-note">Read-only. Ideas come from players in Discord.</span>
+    <span class="spacer"></span>
+    <a class="pb-link" id="pb_login" href="/login">Log in</a>
+  </div>
   <div id="tabbar"></div>
   <div id="banner"></div>
   <div id="panes"></div>
@@ -4997,6 +5111,15 @@ function canSetStatus(st){ return CAN('promote_shipped') || !SHIPPED_STATUSES.in
 // No `edit` means the document form is a reader, not an editor. A tester still
 // writes — but only through the three narrow `uat` endpoints, never /api/save.
 function READONLY(){ return !CAN('edit'); }
+// The anonymous visitor: no session, served the redacted /api/public-data. It
+// is not "a role with fewer buttons" -- the DOCUMENT is different (no
+// impl_notes, no manual_steps, no commit, hidden items absent entirely), so
+// anything that renders an idea has to know which one it is looking at.
+// Written as "has the public cap and NOT the staff one" rather than the cap
+// alone: roadmap_auth subtracts view_public from admin and dm precisely so the
+// two can never both be true, and this keeps the page correct even if that
+// subtraction is ever undone.
+function PUBLIC_MODE(){ return !CAN('view') && CAN('view_public'); }
 // The in-game player name this session credits UAT work to; '' when the account
 // is unbound (the server refuses a claim or a result in that case, and says so).
 function ME(){ return ((DATA.me && DATA.me.player_name) || '').trim(); }
@@ -5009,6 +5132,17 @@ function isMine(name){
 async function api(url, opts){
   const r = await fetch(url, opts);
   if (r.status === 401){ location.href = '/login'; throw new Error('signed out'); }
+  // 403 is a different animal from 401 and used to have no branch at all: the
+  // fetch resolved, the caller parsed the error body as data, and the failure
+  // was silent. It matters more now that a logged-out viewer is a real caller
+  // -- for them a 403 is a bug in this page (it asked for something the public
+  // role cannot have), and a silent one is the worst kind.
+  if (r.status === 403){
+    let msg = 'You do not have access to that.';
+    try { const j = await r.clone().json(); if (j && j.message) msg = j.message; }
+    catch(e){}
+    banner('bad', msg);
+  }
   return r;
 }
 let sel = -1;
@@ -5091,8 +5225,8 @@ function filterBarHTML(which){
     <select data-f="player"></select>
     <select data-f="group"></select>
     <select data-f="epic"></select>
-    <select data-f="env"></select>
-    <select data-f="hidden">
+    <select data-f="env" data-cap="view"></select>
+    <select data-f="hidden" data-cap="view">
       <option value="">Published + hidden</option>
       <option value="pub">Published only</option>
       <option value="hid">Hidden only</option>
@@ -5107,9 +5241,17 @@ function filterBarHTML(which){
     </select>
     ${which==='list' ? `<label class="chk"><input type="checkbox" data-f="showAwarded">
       Show awarded (done)</label>` : ''}
-    <label class="chk"><input type="checkbox" data-f="showTriage">
+    <!-- Publishing state, triage and data-completeness are questions about the
+         RECORD, so they are staff-only: a viewer who cannot change any of them
+         has no use for filtering on them, and for the anonymous viewer they are
+         meaningless besides (the payload holds no hidden or triaged item to
+         filter for). Gated on "view" rather than "edit" so a tester, who
+         browses the whole document, keeps them.
+         NOTE: no backticks in here -- this comment lives inside a template
+         literal, and one would end the string. -->
+    <label class="chk" data-cap="view"><input type="checkbox" data-f="showTriage">
       Show in triage</label>
-    <label class="chk"><input type="checkbox" data-f="onlyIncomplete">
+    <label class="chk" data-cap="view"><input type="checkbox" data-f="onlyIncomplete">
       Only missing data</label>
     ${which==='board' ? `<label class="chk" data-cap="edit"><input type="checkbox"
       data-f="cardDropdowns"> Card status dropdowns</label>` : ''}
@@ -5204,7 +5346,8 @@ function setCount(n){
   // Shown whether or not the filter is on: the point is to notice, and an
   // idea missing its type is invisible precisely because nothing complains.
   const gaps = (DATA.ideas||[]).filter(i=>missingFields(i).length).length;
-  if (gaps && !FILTERS.onlyIncomplete) note += ` · ${gaps} missing data`;
+  if (gaps && !FILTERS.onlyIncomplete && !PUBLIC_MODE())
+    note += ` · ${gaps} missing data`;
   const txt = `${n}/${DATA.ideas.length} ideas${note}`;
   allBars().forEach(b=>{ const c=b.querySelector('.fcount'); if (c) c.textContent=txt; });
 }
@@ -5224,7 +5367,12 @@ function groupTitle(id){
 }
 
 async function load(){
-  const r = await api('/api/data'); DATA = await r.json();
+  // Two documents, two routes. The public one is a narrower projection built
+  // server-side (bin/roadmap_public.py), not this one with fields blanked --
+  // see PUBLIC_MODE(). It carries no base_hashes/base_vocab, which is correct:
+  // nothing in this mode can save.
+  const r = await api(PUBLIC_MODE() ? '/api/public-data' : '/api/data');
+  DATA = await r.json();
   DATA_READY = true;
   baseVersion = DATA.version || null;
   // Opaque per-idea fingerprints from the server. We never compute these — we
@@ -5310,6 +5458,12 @@ function applyCapabilities(root){
   // enforces all of it independently — this is a courtesy, not the control.
   document.body.classList.toggle('readonly', READONLY());
   if (READONLY()) showCardDropdown = false;
+  // The anonymous viewer gets the workspace with no navigator at all: every
+  // link in it is gated on a capability they do not hold, so what survives the
+  // sweep above is one heading and two views they already have as fixed tabs.
+  // Hiding the whole column is not a second gate -- it is the same gate,
+  // rendered honestly.
+  document.body.classList.toggle('public', PUBLIC_MODE());
 }
 
 // ---- Workspace tabs -------------------------------------------------------
@@ -5545,15 +5699,28 @@ function renderTab(t){
       // point: before /api/data lands EVERY id is "missing", so a deep link
       // must wait rather than accuse. load() flips DATA_READY and re-renders.
       t.unresolved = true;
-      t.pane.innerHTML = DATA_READY
-        ? `<div class="notfound"><h2>No such idea</h2>
+      // For a public viewer the likeliest reason an id is missing is that the
+      // item is not published -- the payload never contained it. Saying "no
+      // such idea" there would read as a broken link and invite a bug report
+      // about a link that is working exactly as intended.
+      const gone = PUBLIC_MODE()
+        ? `<div class="notfound"><h2>Not public</h2>
+             <p>There is no published item with the id
+             <code>${esc(t.ref)}</code>. It may not have been announced yet, or
+             it may have been renamed or merged into another item.</p>
+             <p class="hint">Browse what is published from the
+             <a href="#list">List</a> or the <a href="#board">Board</a>.</p>
+           </div>`
+        : `<div class="notfound"><h2>No such idea</h2>
              <p>Nothing in <code>roadmap.yaml</code> has the id
              <code>${esc(t.ref)}</code>. It may have been renamed, merged into
              another item as a duplicate, or deleted.</p>
              <p class="hint">Check the id in the link — it is the part after
              <code>#idea-</code> — or find the item from the
              <a href="#list">List</a> or the <a href="#board">Board</a>.</p>
-           </div>`
+           </div>`;
+      t.pane.innerHTML = DATA_READY
+        ? gone
         : `<p class="hint">Loading <code>${esc(t.ref)}</code>…</p>`;
       return;
     }
@@ -5689,8 +5856,12 @@ function visibleRows(which){
   const q = (FILTERS.q||'').toLowerCase();
   const fs=FILTERS.status, ft=FILTERS.type;
   const fp=FILTERS.player, fg=FILTERS.group;
-  const fe=FILTERS.epic, fh=FILTERS.hidden;
-  const fv=FILTERS.env;
+  const fe=FILTERS.epic;
+  // Staff-only filters, ignored in public mode: FILTERS is persisted per
+  // browser, so signing out with "Hidden only" set would otherwise leave a
+  // public viewer staring at an empty list they have no control to clear.
+  const pub = PUBLIC_MODE();
+  const fv = pub ? '' : FILTERS.env, fh = pub ? '' : FILTERS.hidden;
   const showAwarded=(which==='board') || !!FILTERS.showAwarded, sort=FILTERS.sort;
   let rows = DATA.ideas.map((it,idx)=>({it,idx})).filter(({it})=>{
     if (!showAwarded && it.status==='awarded') return false;
@@ -5699,8 +5870,8 @@ function visibleRows(which){
     // it sits in a lane it was never put in, and in the list it reads as
     // accepted work. The Pending approval tab is where it belongs until it is
     // approved -- this checkbox is for when you want to see it anyway.
-    if (!FILTERS.showTriage && it.triage) return false;
-    if (FILTERS.onlyIncomplete && !missingFields(it).length) return false;
+    if (!pub && !FILTERS.showTriage && it.triage) return false;
+    if (!pub && FILTERS.onlyIncomplete && !missingFields(it).length) return false;
     if (fs && it.status!==fs) return false;
     if (ft){ if (ft===BLANK){ if (it.type) return false; } else if ((it.type||'')!==ft) return false; }
     if (fp){ if (fp===BLANK){ if (it.player) return false; } else if ((it.player||'')!==fp) return false; }
@@ -5762,6 +5933,10 @@ function chips(it){
   let out='';
   if (it.hidden) out+='<span class="chip hidden">hidden</span> ';
   if (it.epic) out+=`<span class="chip epic">${esc(epicTitle(it.epic))}</span> `;
+  // The rest are the builder's own housekeeping: a failed UAT step, and which
+  // required fields an item still lacks. Both are about the RECORD rather than
+  // the work, and neither means anything to a player reading the backlog.
+  if (PUBLIC_MODE()) return out;
   // Flag only — a failed step never rewrites the idea's status; moving it back
   // to `manual` stays the admin's call.
   if (hasFailedStep(it)) out+='<span class="chip failed">failed</span> ';
@@ -5834,7 +6009,10 @@ function renderBoard(){
             `<option value="${esc(ls)}"${ls===it.status?' selected':''}>${esc(statusLabel(ls))}</option>`).join('')}</select>`
         : '';
       const env=envOf(it);
-      return `<div class="card${it.hidden?' hid':''}" draggable="true" data-idx="${idx}"${
+      // Not draggable without `edit`: a drag ends in /api/save, so for a
+      // tester (and now for a logged-out viewer) it could only ever move the
+      // card on screen and then be refused by the server.
+      return `<div class="card${it.hidden?' hid':''}" draggable="${!READONLY()}" data-idx="${idx}"${
         env?` data-env="${esc(env.state)}"`:''}>
         <span class="ct">${esc(it.title||'(untitled)')}</span>
         <span class="cmeta">${tbadge}${chips(it)}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>
@@ -5881,6 +6059,7 @@ function renderBoard(){
 function moveToStatus(idx, status){
   const it=DATA.ideas[idx];
   if (!it || it.status===status) return;
+  if (READONLY()) return;   // no `edit`: the save would be refused anyway
   // Refuse here rather than let the save come back 403 — by then the card has
   // already moved on screen and has to be put back.
   if (!canSetStatus(status) || !canSetStatus(it.status)){
@@ -6068,11 +6247,47 @@ function autofillIdFromTitle(){
 // Build the idea form. It writes into #form, which lives in the ACTIVE idea
 // tab's pane — and only that pane is attached, so $('#form') is unambiguous
 // however many idea tabs are open.
+// The public detail tab. NOT the form with its inputs disabled: the public
+// payload has no impl_notes, no manual_steps, no commit and no merit, so
+// lockFormIfReadOnly() over the ordinary form would render a page of empty
+// boxes and invite the reader to wonder what was in them. This renders what a
+// player came for -- the note, the credit, and the way into the conversation.
+function renderPublicIdea(it){
+  const st = statusLabel(it.status);
+  const bits = [];
+  if (it.type) bits.push(`<span class="chip ${typeCls(it.type)}">${esc(it.type)}</span>`);
+  bits.push(`<span class="chip status ${statusCls(it.status)}">${esc(st)}</span>`);
+  if (it.epic) bits.push(`<span class="chip epic">${esc(epicTitle(it.epic))}</span>`);
+  bits.push(`<span class="chip">${esc(groupTitle(it.group))}</span>`);
+  const credit = it.player
+    ? `Requested by <strong>${esc(it.player)}</strong>` : 'Server admin';
+  return `<div class="pubidea">
+    <h2>${esc(it.title || it.id)}</h2>
+    <div class="chips">${bits.join(' ')}</div>
+    <p class="small">${credit}${it.date ? ' &middot; ' + esc(it.date) : ''}</p>
+    ${it.notes ? `<div class="pubnotes">${it.notes}</div>`
+               : '<p class="small">No write-up yet.</p>'}
+    ${(it.discord && it.discord.url) ? `
+    <div class="discordbar">
+      <a class="discordlink" href="${esc(it.discord.url)}" target="_blank"
+         rel="noopener noreferrer">Open the Discord thread</a>
+      <span class="small">The discussion, the screenshots and the reports live
+        there.</span>
+    </div>` : ''}
+  </div>`;
+}
+
 function select(i){
   sel = i; formSnapshot = null; selRef = DATA.ideas[i] || null; renderList();
   const it = DATA.ideas[i];
   const form = $('#form'); if (!form) return;
   if (!it) { form.innerHTML=''; return; }
+  if (PUBLIC_MODE()){
+    // Nothing below this line is reachable for a public viewer: no snapshot
+    // (there is nothing to save), no handoff, no merit lookup, no bindings.
+    form.innerHTML = renderPublicIdea(it);
+    return;
+  }
   // The empty option exists only while the item HAS no group: it is the
   // placeholder a new idea starts on, and offering it on an item that is
   // already filed would just be a way to break one by mis-click.
@@ -9363,6 +9578,14 @@ $('#publish').onclick = ()=>{
   if(!confirm('Regenerate, publish the roadmap into the local docs/ AND the LIVE public wiki, sync the local in-game Recent Updates DB, commit & git push both repos?')) return;
   commit('/api/publish');
 };
+// Carry the fragment into the login page, which hands it back on success --
+// a plain <a href="/login"> would drop it and land a staff member on the board
+// instead of the idea they were reading.
+$('#pb_login').onclick=(e)=>{
+  e.preventDefault();
+  location.href = '/login' + (location.hash || '');
+};
+
 $('#logout').onclick=async ()=>{
   if (!confirm('Sign out of the roadmap editor?')) return;
   try { await fetch('/api/logout', {method:'POST',
@@ -9381,6 +9604,11 @@ let histTimer = null;
 
 function recordVisit(t){
   if (!t) return;
+  // History is per ACCOUNT, and /api/history is gated on `view`. A logged-out
+  // viewer has neither, so firing it would be a 403 per tab click -- a banner
+  // storm in the page and nothing in the log worth having. Same reasoning as
+  // refreshPending()'s merit_view guard.
+  if (!CAN('view')) return;
   clearTimeout(histTimer);
   const row = {kind: t.kind, ref: t.ref || t.key, title: t.title,
                route: keyToRoute(t.key)};
@@ -9398,6 +9626,7 @@ function recordVisit(t){
 }
 
 function fetchHistory(){
+  if (!CAN('view')) return Promise.resolve();   // see recordVisit()
   return api('/api/history').then(r=>r.json()).then(d=>{
     HISTORY = d.rows || [];
     if (!$('#navhist').hidden) renderHistory();
@@ -9567,9 +9796,14 @@ setInterval(async ()=>{
     if (d.version && baseVersion && d.version!==baseVersion){
       const b=$('#banner');
       if (!b.querySelector('button')){   // don't stomp an active conflict banner
-        banner('warn','roadmap.yaml changed on disk (external edit) — Reload '
-          +'to see it. Your edits are safe: a Save merges around changes to '
-          +'other items, and only warns if the same item was edited on both sides.');
+        // A public viewer has no edits to merge and no file to reason about --
+        // "roadmap.yaml changed on disk" would be a warning about somebody
+        // else's working copy. They just need to know the page is behind.
+        banner('warn', PUBLIC_MODE()
+          ? 'The roadmap has been updated — reload to see the latest.'
+          : 'roadmap.yaml changed on disk (external edit) — Reload '
+            +'to see it. Your edits are safe: a Save merges around changes to '
+            +'other items, and only warns if the same item was edited on both sides.');
       }
     }
   }catch(e){}

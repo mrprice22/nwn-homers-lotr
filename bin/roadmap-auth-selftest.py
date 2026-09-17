@@ -59,7 +59,11 @@ def test_roles() -> None:
     section("Roles and capabilities")
     admin = A.User("a", "admin")
     dm = A.User("d", "dm")
-    check("admin has every capability", admin.caps == set(A.CAPS))
+    # Every capability except `view_public`, which is not a power an admin
+    # lacks but a statement of which document a session is served -- holding it
+    # would serve an admin the redacted public view. See ROLES.
+    check("admin has every staff capability",
+          admin.caps == set(A.CAPS) - {"view_public"})
     check("dm cannot promote to a shipped status", not dm.can("promote_shipped"))
     check("dm cannot award merit", not dm.can("merit"))
     for cap in ("view", "edit", "publish", "llm_review", "palette", "serverlog"):
@@ -124,6 +128,84 @@ def test_roles() -> None:
     check("bot's granted and forbidden caps partition CAPS",
           bot.caps | A.BOT_FORBIDDEN == set(A.CAPS)
           and not (bot.caps & A.BOT_FORBIDDEN))
+
+
+def test_public_role() -> None:
+    section("The anonymous `public` tier")
+    anon = A.anonymous_user()
+    check("anonymous resolves to the public role", anon.role == A.ANON_ROLE)
+    check("anonymous holds view_public", anon.can("view_public"))
+    check("anonymous has no username to key anything on", anon.username == "")
+    for cap in sorted(A.PUBLIC_FORBIDDEN):
+        check(f"public cannot {cap}", not anon.can(cap))
+    check("PUBLIC_FORBIDDEN names only real capabilities",
+          A.PUBLIC_FORBIDDEN <= set(A.CAPS))
+    # The whole point of the tier: `view` is the FULL document (/api/data),
+    # including hidden items and every internal field. A public viewer must
+    # never hold it, whatever else moves in the table.
+    check("public cannot read the staff document", not anon.can("view"))
+    check("public's granted and forbidden caps partition CAPS",
+          anon.caps | A.PUBLIC_FORBIDDEN == set(A.CAPS)
+          and not (anon.caps & A.PUBLIC_FORBIDDEN))
+    check("no real role holds view_public",
+          not any("view_public" in caps for r, caps in A.ROLES.items()
+                  if r != A.ANON_ROLE))
+    check("public is not an assignable login role",
+          A.ANON_ROLE not in A.LOGIN_ROLES)
+
+
+def test_public_projection() -> None:
+    """The redacted payload, against the REAL roadmap.yaml.
+
+    Not a synthetic document on purpose: what this has to catch is a field that
+    exists in the live file and nobody classified, which a fixture would never
+    contain.
+    """
+    section("The public projection (bin/roadmap_public.py)")
+    try:
+        import yaml
+        import roadmap_public as P
+    except Exception as exc:                      # pragma: no cover
+        check(f"roadmap_public imports ({exc})", False)
+        return
+
+    doc = yaml.safe_load((P.REPO / "roadmap.yaml").read_text(encoding="utf-8")) or {}
+    all_ideas = [i for i in (doc.get("ideas") or []) if isinstance(i, dict)]
+    pub = P.public_ideas(doc)
+    check("the projection is not empty", len(pub) > 0)
+    check("it is smaller than the document", len(pub) < len(all_ideas))
+
+    stray = sorted({k for i in pub for k in i} - set(P.PUBLIC_IDEA_FIELDS))
+    check("no field outside PUBLIC_IDEA_FIELDS survives", not stray,
+          f"leaked: {', '.join(stray)}")
+
+    private = {i["id"] for i in all_ideas
+               if i.get("id") and (i.get("hidden") or i.get("triage"))}
+    shown = {i["id"] for i in pub}
+    check("no hidden or triaged idea is published", not (private & shown),
+          f"leaked: {', '.join(sorted(private & shown))}")
+
+    # Titles are the leak that is easy to miss: an id can be absent while the
+    # same idea's title rides along in a picker vocabulary.
+    vocab = P.public_vocab(doc, pub)
+    blob = repr(vocab)
+    hidden_titles = [str(i.get("title") or "") for i in all_ideas
+                     if i.get("id") in private and len(str(i.get("title") or "")) > 12]
+    leaked = [t for t in hidden_titles if t in blob]
+    check("no hidden idea's title appears in the vocab", not leaked,
+          f"leaked: {leaked[:2]}")
+
+    # An epic every one of whose children is hidden is unreleased work.
+    used = {i.get("epic") for i in pub if i.get("epic")}
+    check("only epics with a published child are listed",
+          all(e["id"] in used for e in vocab["epics"]))
+    check("the dupe picker is not served publicly", not vocab["dupes"])
+
+    body = P.public_payload(doc, "v", {"role": A.ANON_ROLE})
+    check("no merge baseline is served publicly",
+          "base_hashes" not in body and "base_vocab" not in body)
+    check("no realm/environment map is served publicly",
+          "environments" not in body)
 
 
 def test_users_and_sessions() -> None:
@@ -417,6 +499,8 @@ def main() -> int:
     print("roadmap editor — access control self-test")
     test_passwords()
     test_roles()
+    test_public_role()
+    test_public_projection()
     test_users_and_sessions()
     test_throttle()
     test_permissions_block()
