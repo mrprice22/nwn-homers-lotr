@@ -258,7 +258,9 @@ server owner's job.
 - **Out of game:** the roadmap editor's **Award merit** button (`bin/roadmap-editor.py`,
   `award_merit()` → `/api/award`, `/api/revoke`) does exactly what the EmoteWand
   branch does — one counter increment plus one `merit_ledger` row — for the idea
-  being moved into `status: awarded`, keyed off the idea's `type`. Its rows are
+  being moved into `status: implemented` (shipped to the test realm — the
+  reporter can go and see their fix; `deployed` comes later and pays nothing),
+  keyed off the idea's `type`. Its rows are
   told apart only by the `(roadmap:<idea-id>)` suffix on the reason. It never
   INSERTs a `players` row (rows are created on login by `Merit_RecordLogin`); an
   unresolvable submitter is an error, and the roadmap status change is rolled

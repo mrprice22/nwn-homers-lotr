@@ -22,7 +22,7 @@ The loop talks about tiers; `roadmap.yaml` talks about statuses. Mapping:
 | Later | `later` |
 | Under consideration | `planned` |
 | Shipped — in testing | `implemented` |
-| Merit awarded (done) | `awarded` — **never set by the agent** |
+| Deployed to production | `deployed` — **never set by the agent**; it moves there by itself when the code is promoted |
 | Not likely | `unlikely` — leave alone |
 
 ## Context economy
@@ -385,12 +385,14 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
      into `manual_steps` (one string per step: waypoint tag + area + suggested spot +
      what spawns there + what breaks until it's placed). Set `status: implemented`
      **only if you can confirm with certainty that zero manual toolset steps remain** —
-     when uncertain, choose `manual`. Never `awarded`.
+     when uncertain, choose `manual`. Never `deployed` (that is computed at promotion),
+     and note that `implemented` is now the step at which the admin pays the submitter's
+     merit — the status alone never pays, but do not claim it lightly.
    - `commit:` the hash from step 1
    - `date:` **always set to today's actual date** (`YYYY-MM-DD` — check the real current
      date, don't guess or leave the original report date)
    - `notes`: append a `Fixed YYYY-MM-DD` line (what/why/how), **plus testing/UAT
-     notes** — what the admin should verify in-game before promoting to `awarded`.
+     notes** — what the admin should verify in-game on the test realm.
    - **Wiring due-diligence — do this BEFORE marking `implemented`.** A clean build
      proves nothing *runs*: an orphaned script (attached to no event hook/NPC/conversation)
      or one that looks up a mismatched tag compiles fine and silently does nothing — this
@@ -488,7 +490,7 @@ for detail. Never put a UAT script, a resref, a script name or a design question
 agent only ever *appends* to the internal lists; the admin answers questions, does the work,
 and flips the statuses.
 
-Note the save-time gate: an item in `implemented` / `awarded` with an unfinished blocker
+Note the save-time gate: an item in `implemented` / `deployed` with an unfinished blocker
 step is a **validation error**. If blocking work remains, the item belongs in `manual`.
 
 **Run `python3 bin/roadmap-lint.py` after every `roadmap.yaml` edit, before committing.** It
@@ -499,8 +501,9 @@ agent cleans it up.
 
 ## Hard rules — never do these
 
-- **Never set `status: awarded`** or otherwise mark an item done — merit credit is the
-  admin's manual call.
+- **Never set `status: deployed`** or otherwise mark an item done — that status means
+  "the code is in production", and `bin/roadmap-reconcile-deployed.py` sets it from git at
+  the promotion. Merit credit is likewise the admin's manual call.
 - **Never deploy to the live server**: no `repack-homers-lotr*` wrappers, no copying
   `.mod`/`.ncs`/DLLs into server folders.
 - **Never reboot or shut down the live server** — don't touch `bin/reboot-on-empty` or

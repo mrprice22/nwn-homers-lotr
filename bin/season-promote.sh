@@ -219,6 +219,34 @@ python3 "$DEV_ROOT/bin/season-profile.py" --check >/dev/null || die "dev season-
 note "season-brand + season-profile OK"
 echo
 
+# ------------------------------------------------------- deployed lifecycle --
+# `implemented` (shipped to the test realm, submitter already paid) becomes
+# `deployed` the moment its code reaches production -- which is what this run is
+# about to do. Reconcile BEFORE DEV_SHA is taken, so the flip is part of the
+# commit this promotion names, and before the rsync, so the new statuses ride
+# into the season repo and the target's gen-roadmap.py + publish-roadmap-db.py
+# below render them on this same run. Afterwards would leave production a
+# promotion behind.
+#
+# It commits, because the preflight above refuses a dirty dev tree: writing
+# roadmap.yaml and walking away would break the very invariant this script
+# enforces, and leave the promotion pointing at a sha that does not contain it.
+# Warn-and-continue throughout -- a status badge is never worth failing a
+# promotion over.
+if (( APPLY )); then
+  echo "reconciling deployed statuses..."
+  if python3 "$DEV_ROOT/bin/roadmap-reconcile-deployed.py" --base HEAD --apply; then
+    if ! git -C "$DEV_ROOT" diff --quiet -- roadmap.yaml; then
+      git -C "$DEV_ROOT" add -- roadmap.yaml
+      git -C "$DEV_ROOT" commit -q -m "Roadmap: mark items deployed ahead of the season ${TGT_NUM} promotion" \
+        && note "committed $(git -C "$DEV_ROOT" rev-parse --short HEAD)"
+    fi
+  else
+    echo "    WARN: roadmap-reconcile-deployed.py failed (statuses may lag a promotion)"
+  fi
+  echo
+fi
+
 DEV_SHA=$(git -C "$DEV_ROOT" rev-parse --short HEAD)
 DEV_DESC=$(git -C "$DEV_ROOT" log -1 --format='%s' HEAD)
 

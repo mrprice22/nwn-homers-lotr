@@ -69,7 +69,7 @@ Each entry under `ideas:` is one backlog item:
 | `type` | yes | `Defect`, `Enhancement`, or `Exploit`. Sets the merit value of a shipped item (1 / 2 / 3). |
 | `epic` | no | Id of an entry in the `epics:` block. The item is then published only as one bullet inside that epic's rolled-up card — see **Epics** below. |
 | `hidden` | no | `true` = **never published**: kept off the public roadmap page, out of the in-game Recent Updates sign, out of the type/stage pivot counts, and out of any epic's bullet list and `x/y` count. It still shows (chipped and dimmed) in the editor. Omitted entirely when false. |
-| `merit_awarded` | no | `true` = the submitter's Merit for this item was really paid into the `meritdb` campaign DB. **Never hand-edit and never set it from an agent** — it is written only by the editor's **Award merit** / **Revoke merit points** buttons, which do the DB write first. It is deliberately separate from `status: awarded` so the status can move back to `implemented` and forward again without paying twice. Omitted entirely when false. |
+| `merit_awarded` | no | `true` = the submitter's Merit for this item was really paid into the `meritdb` campaign DB. **Never hand-edit and never set it from an agent** — it is written only by the editor's **Award merit** / **Revoke merit points** buttons, which do the DB write first. It is deliberately separate from the status so payment is recorded exactly once no matter how the item moves — it is paid on the way into `implemented` and the item carries on to `deployed` afterwards. Omitted entirely when false. |
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
 | `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. **When you ship an item, set this to today.** |
 | `commit` | no | git commit hash (short or full, e.g. `f1e0b114d7d`) of the change that shipped the item. **Add this when you ship.** Used to derive `date` for shipped items when `date` is absent. |
@@ -92,8 +92,8 @@ the page belongs in `notes`, anything meant for the record in `impl_notes`. `IDE
 `bin/gen-roadmap.py` is the authoritative set; `FIELD_ORDER` in the editor orders the same
 names and warns at startup if the two ever drift apart.
 
-**Statuses** (workflow order): `awarded` (shipped, merit awarded) · `implemented`
-(shipped, in testing) · `manual` (needs manual finishing — code done, admin toolset work
+**Statuses** (workflow order): `deployed` (live on the production season) ·
+`implemented` (shipped to the test realm, and where the submitter's Merit is paid) · `manual` (needs manual finishing — code done, admin toolset work
 outstanding) · `design` (needs design input — blocked on an admin decision) · `confirmed`
 (actively being worked) · `wip` (queued, "Up Next") · `soon` (one tier deeper) · `later`
 (further out still) · `planned` (under consideration) · `unlikely` (logged but not likely
@@ -104,7 +104,7 @@ there so the two never drift, and the roadmap board orders tiers by their `rank`
 ### Pipeline flow
 
 ```
-planned → later → soon → wip → confirmed → manual → implemented → awarded
+planned → later → soon → wip → confirmed → manual → implemented → deployed
                                     ⇅
                                   design
 ```
@@ -143,7 +143,7 @@ An epic is **not an idea**: it has no `type`, no `player` and earns no merit —
 still do, exactly as before. Everything about the rollup is derived:
 
 - **Progress** — `x / y complete`, where `y` is the epic's non-hidden children and `x` those
-  with a shipped status (`implemented`/`awarded`). Each child is a bullet: ✔ shipped, ○ not.
+  with a shipped status (`implemented`/`deployed`). Each child is a bullet: ✔ shipped, ○ not.
 - **Date** — the most recently shipped child's date.
 - **Status** — the most advanced unfinished child's status (`implemented` once they are all
   done), unless the epic sets `status:` itself.
@@ -221,7 +221,7 @@ a step that **was run and did not pass** and now needs another code change, not 
 `failed` is **editor-only** — the public roadmap page, the in-game Recent Updates sign and
 the release notes all decide "outstanding" by testing `status == "done"` and negating it,
 so a failed step reads there exactly like any other open step (and still blocks
-`implemented`/`awarded` when `blocker: true`). Inside the editor it sorts to the top of the
+`implemented`/`deployed` when `blocker: true`). Inside the editor it sorts to the top of the
 hand-off panel and of both queues, carries a red left border, and puts a red `failed` chip
 on the idea's list row and board card. Setting a step to `failed` **never** rewrites the
 idea's own `status` — moving it back to `manual` stays the admin's call. A step marked
@@ -312,7 +312,7 @@ The admin answers questions, flips step states and flips statuses; the agent onl
 
 - `status: design` must carry at least one `open` question — otherwise nothing could ever
   unblock it.
-- `status: implemented` / `awarded` must have **no** unfinished blocker step. An item with
+- `status: implemented` / `deployed` must have **no** unfinished blocker step. An item with
   outstanding blocking work belongs in `manual`, which is exactly what that status means.
 
 **Validate every edit with `python3 bin/roadmap-lint.py`.** It imports the editor and calls
@@ -328,10 +328,11 @@ out of adding new ideas (this happened — five items, fixed 2026-08-05).
 These are hard rules — follow them exactly:
 
 - **Shipping an item → `status: manual` by default, `implemented` only when certain, never
-  `awarded`.** When you finish the code for an item, it lands in `manual` (needs manual
+  `deployed`.** When you finish the code for an item, it lands in `manual` (needs manual
   finishing) with the outstanding toolset work listed in `manual_steps`. Set `implemented`
   **only if you can confirm zero manual toolset steps remain** — if you are uncertain,
-  choose `manual`. **Never** set `awarded` (or otherwise mark an item "done"), and never
+  choose `manual`. **Never** set `deployed`: that status is a statement about production,
+  computed from git by `bin/roadmap-reconcile-deployed.py` at the promotion. Never
   touch `merit_awarded` (nor any `uat_credits[].awarded`) — those steps credit Merit
   to a player in the live game database
   and is the admin's call, made with the editor's **Award merit** button.
@@ -493,16 +494,16 @@ What it does:
   sourced from the file itself; `player` is a combobox of the managed roster that warns
   (but still allows) when you type a name that isn't already in use.
 - **Filter, sort, and hide done.** The list has dropdown filters (status / player /
-  group), a sort selector, and a free-text search, all combinable. `awarded` (done) ideas
-  are **hidden by default** — tick "Show awarded" to see them.
+  group), a sort selector, and a free-text search, all combinable. `deployed` (done) ideas
+  are **hidden by default** — tick "Show deployed" to see them.
 - **Two fixed views: Board / List.** Both are always-open tabs; each carries its own copy
   of the filter bar. The board has eight vertical lanes
   in pipeline order (Under consideration → Later → Soon → Up next → In progress → In testing
-  → Merit awarded → Not likely); lane labels come from `gen-roadmap.py`'s `STATUS` so they
-  never drift. The board honors the same filters/search; it always shows the awarded lane
-  (ignores "Show awarded"). **Drag a card between lanes** to change an idea's `status`,
-  which auto-saves. Dragging into the awarded lane (like the Status dropdown) is a **YAML
-  edit only** — it never pays Merit; only the form's **Award merit** button does. An optional **Card status dropdowns (Board)** checkbox (off by default)
+  → Deployed to production → Not likely); lane labels come from `gen-roadmap.py`'s `STATUS`
+  so they never drift. The board honors the same filters/search; it always shows the
+  deployed lane (ignores "Show deployed"). **Drag a card between lanes** to change an idea's
+  `status`, which auto-saves. Dragging into the *In testing* lane (like the Status dropdown)
+  is a **YAML edit only** — it never pays Merit; only the form's forward button does. An optional **Card status dropdowns (Board)** checkbox (off by default)
   adds a per-card status `<select>` as a drag-free alternative (it lives on the board's own
   filter bar now). **Clicking a card opens that idea in its own workspace tab**, as does
   clicking a List row — so you can have several ideas open side by side. **+ Add idea**
@@ -527,14 +528,18 @@ What it does:
   editor onto the board.
 - **Pipeline buttons (and the only thing that pays Merit).** The sticky bar at the top of
   the idea form carries a **back** and a **forward** button, each labelled with the status
-  it moves to (`◀ In progress` / `Needs manual finishing ▶` / `Ship · in testing ▶` /
-  `Award merit ▶`). They walk the chain
-  `planned → later → soon → wip → confirmed → manual → implemented → awarded`; from the
+  it moves to (`◀ In progress` / `Needs manual finishing ▶` /
+  `Ship to test · award merit ▶` / `Deployed to production ▶`). They walk the chain
+  `planned → later → soon → wip → confirmed → manual → implemented → deployed`; from the
   off-chain `design` and `unlikely`, forward rejoins the chain (`confirmed` / `planned`)
   and back is a dead end. Illegal moves are **greyed with the reason on hover**: unfinished
   blocker `manual_steps`, open `design_questions`, a missing `type`, or an idea that has no
   `id` yet.
-  **Forward into `awarded` is the merit payment.** Unlike the Status dropdown or a board
+  **Forward into `implemented` is the merit payment.** The submitter is paid when their
+  fix reaches the **test realm**, because that is the moment they can go and see it — the
+  last step, `deployed`, pays nothing and is normally not clicked at all (see
+  [The per-idea environment badge](#the-per-idea-environment-badge)).
+  Unlike the Status dropdown or a board
   lane drag — which only edit YAML — this button writes the live `meritdb`: it bumps the
   submitter's counter for the idea's `type` (Defect→`bugs` +1, Enhancement→`features` +2,
   Exploit→`exploits` +3) and appends a `merit_ledger` row reading
@@ -553,8 +558,9 @@ What it does:
   asks for confirmation and then moves the status with no payment.
   Once paid, the bar shows a **merit paid** chip and a **Revoke merit points** button
   (confirmation required) that subtracts the points and writes a negative ledger row.
-  Moving *back* out of `awarded` never un-pays, and moving forward again never pays twice —
-  that is what the `merit_awarded` flag records.
+  Moving *back* out of a paid status never un-pays, and moving forward again never pays
+  twice — that is what the `merit_awarded` flag records, and it is why the Lifetime-merit
+  panel counts that flag rather than any status.
 - **Unsaved-changes guard.** The form lives in the DOM until Save, so leaving it used to
   discard edits silently. Clicking another idea, switching to the Board, or adding a new
   idea with unsaved edits now opens a modal: **Save and continue** (navigates only if the
@@ -591,8 +597,8 @@ What it does:
     keeps the report. Tick *also show credits with no recorded result* to see the ones
     added by hand. See [The `tester` role](#the-tester-role).
   - Both queues carry **two filter checkboxes**, both defaulting to *hidden*: *show done*
-    (step-level — a `done` step) and *show awarded ideas* (idea-level — every step of an
-    idea whose own `status` is `awarded`, i.e. finished business whose leftover steps would
+    (step-level — a `done` step) and *show deployed ideas* (idea-level — every step of an
+    idea whose own `status` is `deployed`, i.e. finished business whose leftover steps would
     otherwise sit in the queue forever). `implemented` and `manual` ideas always show:
     those are the shipped-but-in-testing items the UAT queue exists for. The count line
     says which filters are in force, and **Copy as checklist** reflects them.
@@ -895,6 +901,37 @@ so a computed field hung on an idea would be written into `roadmap.yaml`. The
 regression test is: open an idea, save it unchanged, and confirm `roadmap.yaml` is
 byte-identical.
 
+#### The badge drives the final status
+
+`deployed` is not a decision anybody makes — it is a fact about git, and
+**`bin/roadmap-reconcile-deployed.py` is the only thing that writes it.** It asks
+this same classifier and promotes `implemented` → `deployed` for every item whose
+badge reads **Live**, then writes through `roadmap-apply-patch.py`'s
+`apply_patch()` under the editor's file lock.
+
+It is deliberately narrow:
+
+- **forward only** — it never demotes, never touches `manual`, and never writes
+  `merit_awarded` or `uat_credits`;
+- **only the unambiguous `live` state moves.** *rework*, *missing*, *untracked*
+  and *external* are listed as held rather than guessed at;
+- **idempotent**, and **never fatal**: with no resolvable baseline it says so and
+  exits 0, because it runs inside a promotion and inside the nightly refresh and
+  may take neither down.
+
+Two callers, and the order in the first one matters:
+
+| Caller | When |
+|---|---|
+| `bin/season-promote.sh` | `--base HEAD --apply`, **before `DEV_SHA` is taken and before the rsync** — so the flip is inside the commit the promotion names, rides into the season repo, and is rendered by the target's own `gen-roadmap.py` + `publish-roadmap-db.py` on the same run. It commits the change in dev, because the promotion's own preflight refuses a dirty dev tree. |
+| `bin/refresh-homers-lotr-wiki` | `--apply`, dev realm only, as the catch-up path for a promotion made out of band |
+
+`--migrate-awarded` was the one-shot for the rename from `awarded` (see the note
+in the script): a legacy row keeps its terminal position unless the badge
+positively says its code is still only on the test realm, because most of those
+rows predate the `commit:` convention and there is nothing to prove them either
+way.
+
 ### The `tester` role
 
 A trusted player who helps validate fixes. They browse the **whole** backlog
@@ -954,7 +991,7 @@ correct for weeks and fails at the one moment it matters.
 The admin's **UAT Review** panel (sidebar, `merit`) lists every unpaid credit
 next to what the tester actually reported, with **Award +1** (the existing
 `/api/uat-award` — meritdb first, YAML only if that succeeded) and **Dismiss**
-(drops the credit, keeps the report). Nothing a tester does can set `awarded`.
+(drops the credit, keeps the report). Nothing a tester does can ship an item.
 
 **What a tester can still move:** a UAT step's own status, up to `done`. That is
 what "complete a UAT task" means, and it does take the item off the in-game
@@ -977,7 +1014,7 @@ easier to miss.)
 
 **What the DM ceiling does *not* restrict:** `manual_steps`, `design_questions`
 and the `uat_credits` list itself stay fully editable on **any** item, including
-one already `implemented` or `awarded`. Adding a UAT check to a shipped item is
+one already `implemented` or `deployed`. Adding a UAT check to a shipped item is
 the DM's core job. The ceiling gates an item's own status, never its subtasks.
 (The one thing to know: `implemented` plus an unfinished `blocker: true` step is
 a whole-file validation error that blocks saves for *everyone* — see

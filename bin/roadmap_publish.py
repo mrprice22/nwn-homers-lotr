@@ -52,7 +52,7 @@ GEN = load_gen()
 # An idea is on the sign once it has shipped. `manual` counts: the code is live,
 # it is the admin's own finishing work that is outstanding — and if that work is
 # a UAT step, the bucket split below puts it in front of the players who can help.
-SHIPPED_STATUSES = ("implemented", "awarded", "manual")
+SHIPPED_STATUSES = ("implemented", "deployed", "manual")
 TYPE_PREFIX = {
     "Defect":      "Bug fixed: ",
     "Enhancement": "New feature: ",

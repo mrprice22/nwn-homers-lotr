@@ -950,7 +950,8 @@ What is left is a role flip, a domain move, and the notices.
    domain moves, the public apex is the early-access wiki.
 
 8. **Prune the archived roadmap.** In `_s<N>`: `bin/roadmap-archive-prune.py`
-   keeps `status: awarded` only. Run `bin/gen-roadmap.py`, commit both files, and
+   keeps the rows that reached production (`status: deployed`) plus anything whose
+   merit was really paid. Run `bin/gen-roadmap.py`, commit both files, and
    publish to that season's `roadmapdb`. The archived season's roadmap becomes a
    pure merit-credit ledger; the full backlog lives on in **dev**, untouched.
 

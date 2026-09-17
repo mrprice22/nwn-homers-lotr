@@ -42,7 +42,7 @@ from pathlib import Path
 CAPS: tuple[str, ...] = (
     "view",             # read the board, the roadmap data, merit balances
     "edit",             # save ideas, tick manual_steps
-    "promote_shipped",  # move an item INTO a shipped status (manual/implemented/awarded)
+    "promote_shipped",  # move an item INTO a shipped status (manual/implemented/deployed)
     "merit",            # award/revoke merit and UAT credits (touches the live meritdb)
     "publish",          # regenerate + publish to the wiki, the sign DB and git
     "llm_review",       # accept/revert/reroll the LLM changes ledger
@@ -72,7 +72,7 @@ ANON_ROLE = "public"
 #
 # Note what `dm` deliberately does NOT restrict: manual_steps, design_questions
 # and the uat_credits list itself are fully editable on ANY item, including one
-# already implemented or awarded. Adding a UAT check to a shipped item is the
+# already implemented or deployed. Adding a UAT check to a shipped item is the
 # DM's core job; the ceiling gates an item's own status, never its subtasks.
 #
 # `tester` is a trusted player who helps validate fixes. It is deliberately NOT
@@ -188,7 +188,7 @@ PUBLIC_FORBIDDEN: frozenset[str] = frozenset(CAPS) - {"view_public"}
 # page and the in-game sign. Kept as a literal here so this module stays
 # importable standalone (the CLI and the self-test have no reason to load
 # gen-roadmap.py); roadmap-editor.py asserts the two agree at import time.
-SHIPPED_STATUSES: frozenset[str] = frozenset(("implemented", "awarded", "manual"))
+SHIPPED_STATUSES: frozenset[str] = frozenset(("implemented", "deployed", "manual"))
 
 SESSION_COOKIE = "roadmap_session"
 SESSION_DAYS = 30

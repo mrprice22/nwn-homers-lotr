@@ -94,8 +94,8 @@ FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "design_questions", "manual_steps",
                "uat_credits", "comments"]
 # `merit_awarded` records that meritdb was really credited for this idea, which
-# `status: awarded` alone cannot: status can bounce back to `implemented` and
-# forward again, and the merit must be granted exactly once. Written only by the
+# the status alone cannot: an item ships to test, is paid, and then moves on to
+# `deployed` -- and the merit must be granted exactly once. Written only by the
 # Award / Revoke buttons in the detail-pane header bar (never by the form, the
 # status dropdown, or a board-lane drag) — see award_merit().
 MERIT_FLAG = "merit_awarded"
@@ -1325,7 +1325,7 @@ def validate_internal_fields(ideas) -> list[str]:
                             f"design_question with status 'open'")
         # An item can't be on the shipped board while a blocking manual step is
         # still outstanding — that's exactly what status 'manual' is for.
-        if idea.get("status") in ("implemented", "awarded"):
+        if idea.get("status") in ("implemented", "deployed"):
             n = len(open_blockers(idea))
             if n:
                 errs.append(f"'{iid}': status '{idea['status']}' with {n} "
@@ -3022,11 +3022,11 @@ class Handler(BaseHTTPRequestHandler):
             if canon_id == iid:
                 return self._json({"ok": False, "errors": [
                     "that would point an item at itself."]}, 400)
-            # The admin's rule: an idea is not reopened once awarded or
-            # deployed. A report matching shipped work is a story of its own --
-            # most likely a regression -- so it is never merged INTO one.
+            # The admin's rule: an idea is not reopened once it has shipped.
+            # A report matching shipped work is a story of its own -- most
+            # likely a regression -- so it is never merged INTO one.
             if cursor.get("merit_awarded") or cursor.get("status") in (
-                    "awarded", "implemented"):
+                    "deployed", "implemented"):
                 return self._json({"ok": False, "errors": [
                     f"'{canon_id}' has already shipped - a report that matches "
                     f"it is a new story, not a duplicate. Approve it instead."]},
@@ -3428,8 +3428,8 @@ class Handler(BaseHTTPRequestHandler):
         name = (idea.get("player") or "").strip()
         itype = idea.get("type") or ""
         cdkey = (payload.get("cdkey") or "").strip()
-        # skip_merit = admin/community item the user chose to mark awarded with
-        # no payment; already-flagged = re-entering `awarded`, never pay twice.
+        # skip_merit = admin/community item the user chose to ship with no
+        # payment; already-flagged = re-entering a paid state, never pay twice.
         skip = bool(payload.get("skip_merit"))
         if not revoke and idea.get(MERIT_FLAG):
             skip = True
@@ -5134,7 +5134,7 @@ const MAX_TITLE_LEN = window.__MAX_TITLE_LEN || 100;
 function CAN(cap){ return ((DATA.me && DATA.me.caps) || []).includes(cap); }
 // Statuses only `promote_shipped` may set. Kept in step with
 // roadmap_publish.SHIPPED_STATUSES / roadmap_auth.SHIPPED_STATUSES.
-const SHIPPED_STATUSES = ['manual','implemented','awarded'];
+const SHIPPED_STATUSES = ['manual','implemented','deployed'];
 function canSetStatus(st){ return CAN('promote_shipped') || !SHIPPED_STATUSES.includes(st); }
 // No `edit` means the document form is a reader, not an editor. A tester still
 // writes — but only through the three narrow `uat` endpoints, never /api/save.
@@ -5204,15 +5204,15 @@ let showCardDropdown = false; // per-card status <select> on board cards (off by
 // Board lanes, left→right = pipeline flow. Labels come from DATA.vocab.statuses
 // (sourced from gen-roadmap.py STATUS) so they never drift.
 const BOARD_LANES = ['planned','later','soon','wip','confirmed','design','manual',
-                     'implemented','awarded','unlikely'];
+                     'implemented','deployed','unlikely'];
 // The pipeline the header-bar forward/back buttons walk. `design` and
 // `unlikely` sit off it: from either, forward rejoins the chain (design → back
 // to work, unlikely → back under consideration) and back is a dead end.
 const CHAIN = ['planned','later','soon','wip','confirmed','manual',
-               'implemented','awarded'];
+               'implemented','deployed'];
 const OFFCHAIN_FWD = {design:'confirmed', unlikely:'planned'};
 // Labels that read badly as a button. Everything else uses its STATUS label.
-const PIPE_LABEL = {awarded:'Award merit', implemented:'Ship · in testing'};
+const PIPE_LABEL = {deployed:'Deployed to production', implemented:'Ship to test · award merit'};
 // Sentinel filter value: match rows whose field is empty/unset.
 const BLANK = '__BLANK__';
 const BLANK_OPT = `<option value="${BLANK}">&lt;Is Blank&gt;</option>`;
@@ -5226,7 +5226,7 @@ const $ = s => document.querySelector(s);
 // is what keeps the two bars in sync BY CONSTRUCTION, rather than by copying
 // values from one bar to the other and hoping they never diverge.
 const FILTERS = {q:'', status:'', type:'', player:'', group:'', epic:'',
-                 env:'', hidden:'', sort:'status', showAwarded:false,
+                 env:'', hidden:'', sort:'status', showDeployed:false,
                  showTriage:false, onlyIncomplete:false};
 const FILTER_KEYS = Object.keys(FILTERS);
 const FILTERS_LS = 'roadmap.filters';
@@ -5243,8 +5243,8 @@ function saveFilters(){
 
 // The bar's markup. Every control is addressed by `data-f`, never by id: two
 // copies of this are live at once and duplicate ids would make $() ambiguous.
-// `showAwarded` is emitted for the list only — the board always shows its
-// awarded lane, so the checkbox would be a control that does nothing there.
+// `showDeployed` is emitted for the list only — the board always shows its
+// deployed lane, so the checkbox would be a control that does nothing there.
 function filterBarHTML(which){
   return `<div class="filterbar" data-bar="${which}">
     <input class="fq" data-f="q" placeholder="search title, player, group, status…">
@@ -5267,8 +5267,8 @@ function filterBarHTML(which){
       <option value="title">Sort: title</option>
       <option value="file">Sort: file order</option>
     </select>
-    ${which==='list' ? `<label class="chk"><input type="checkbox" data-f="showAwarded">
-      Show awarded (done)</label>` : ''}
+    ${which==='list' ? `<label class="chk"><input type="checkbox" data-f="showDeployed">
+      Show deployed (done)</label>` : ''}
     <!-- Publishing state, triage and data-completeness are questions about the
          RECORD, so they are staff-only: a viewer who cannot change any of them
          has no use for filtering on them, and for the anonymous viewer they are
@@ -5877,7 +5877,7 @@ function statusRank(s){
   return i<0 ? 999 : i;
 }
 
-// `which` is the view asking: the board always shows its awarded lane, while
+// `which` is the view asking: the board always shows its deployed lane, while
 // the list honours the checkbox. Everything else is shared, so both views see
 // exactly the same rows in exactly the same order.
 function visibleRows(which){
@@ -5890,9 +5890,9 @@ function visibleRows(which){
   // public viewer staring at an empty list they have no control to clear.
   const pub = PUBLIC_MODE();
   const fv = pub ? '' : FILTERS.env, fh = pub ? '' : FILTERS.hidden;
-  const showAwarded=(which==='board') || !!FILTERS.showAwarded, sort=FILTERS.sort;
+  const showDeployed=(which==='board') || !!FILTERS.showDeployed, sort=FILTERS.sort;
   let rows = DATA.ideas.map((it,idx)=>({it,idx})).filter(({it})=>{
-    if (!showAwarded && it.status==='awarded') return false;
+    if (!showDeployed && it.status==='deployed') return false;
     // An idea in triage is a REPORT, not a decision. It carries whatever
     // status it was filed with rather than one anybody chose, so on the board
     // it sits in a lane it was never put in, and in the list it reads as
@@ -6099,8 +6099,9 @@ function moveToStatus(idx, status){
     renderBoard();
     return;
   }
-  if (status==='awarded' && !CAN('merit')){
-    banner('bad', 'Only an administrator can award merit.');
+  if (status==='implemented' && !CAN('merit')){
+    banner('bad', 'Only an administrator can ship an item to test — that is '
+      + 'where the submitter\'s merit is paid.');
     renderBoard();
     return;
   }
@@ -6137,14 +6138,14 @@ function transitions(it){
                fwd:{status:fwd, label:fwd?(pipeLabel(fwd)+' ▶'):'', reason:''}};
   if (!back) out.back.reason = (i===0) ? 'Already at the start of the pipeline'
                                        : 'Off the main pipeline — use the Status dropdown';
-  if (!fwd)  out.fwd.reason  = (cur==='awarded') ? 'Already the final state'
-                                                 : 'No forward step from this status';
+  if (!fwd)  out.fwd.reason  = (cur==='deployed') ? 'Already the final state'
+                                                  : 'No forward step from this status';
   if (!(it.id||'').trim()){
     out.back.reason = out.fwd.reason = 'Give the idea an id and Save it first';
     return out;
   }
   // Shipping gates, same rules the server refuses to save past.
-  if (fwd==='implemented' || fwd==='awarded'){
+  if (fwd==='implemented' || fwd==='deployed'){
     const n = openBlockers(it).length;
     if (n) out.fwd.reason = n+' unfinished blocker manual step'+(n>1?'s':'');
   }
@@ -6152,12 +6153,18 @@ function transitions(it){
     const n = openQuestions(it).length;
     if (n) out.fwd.reason = n+' open design question'+(n>1?'s':'');
   }
-  if (fwd==='awarded'){
+  // Shipping to test is the merit payment, so it needs the type that decides
+  // how much. `deployed` pays nothing — it is normally reached by itself when
+  // the code is promoted (bin/roadmap-reconcile-deployed.py); the button is
+  // kept so it can be set by hand when a promotion happened out of band.
+  if (fwd==='implemented'){
     if (!it.type) out.fwd.reason = 'Set a type (Defect/Enhancement/Exploit) — '
                                  + 'it decides how much merit is granted';
     // Already paid: the move is legal, it just must not pay again.
-    else if (it.merit_awarded) out.fwd.label = 'Mark awarded ▶';
+    else if (it.merit_awarded) out.fwd.label = 'Ship to test ▶';
   }
+  if (fwd==='deployed') out.fwd.hint = 'Normally automatic: an item moves here '
+    + 'when its commits reach the live season. No merit is paid by this step.';
   // Role gates, last so they override a merely-informational reason. Shown as a
   // disabled button with an explanation rather than a hidden one: "why can't I
   // ship this?" deserves an answer in place. The server enforces the same rules.
@@ -6167,7 +6174,7 @@ function transitions(it){
   if (back && !canSetStatus(cur))
     out.back.reason = 'Only an administrator can move an item out of “'
                     + statusLabel(cur) + '”';
-  if (fwd==='awarded' && !CAN('merit'))
+  if (fwd==='implemented' && !CAN('merit'))
     out.fwd.reason = 'Only an administrator can award merit';
   return out;
 }
@@ -6190,7 +6197,7 @@ function formbarHTML(it){
   const tr = transitions(it);
   const stepBtn = (id, t, cls) => t.status
     ? `<button id="${id}" class="step ${cls}"${t.reason?' disabled':''}
-         title="${esc(t.reason || ('Move to: '+statusLabel(t.status)))}"
+         title="${esc(t.reason || t.hint || ('Move to: '+statusLabel(t.status)))}"
          >${esc(t.label)}</button>`
     : `<button id="${id}" class="step ${cls}" disabled
          title="${esc(t.reason)}">${cls==='fwd'?'▶':'◀'}</button>`;
@@ -6546,10 +6553,13 @@ function lockFormIfReadOnly(){
 
 // ---- pipeline moves ------------------------------------------------------
 // Every move folds the open form in and saves, so an edit made just before
-// clicking a pipeline button is never lost. Only the move into `awarded` goes
-// through /api/award — the one path that touches the live merit database.
+// clicking a pipeline button is never lost. Only the move into `implemented`
+// goes through /api/award — the one path that touches the live merit database.
+// Merit is paid when the fix reaches the TEST realm, because that is when the
+// reporter can see it; `deployed` comes later and by itself (see
+// bin/roadmap-reconcile-deployed.py), so it must never be the paying step.
 function stepTo(status){
-  if (status !== 'awarded'){
+  if (status !== 'implemented'){
     $('#f_status').value = status;
     return commit('/api/save', false, {stay:true});
   }
@@ -6557,7 +6567,7 @@ function stepTo(status){
 }
 
 function doAward(it, prev, cdkey, skip){
-  $('#f_status').value = 'awarded';
+  $('#f_status').value = 'implemented';
   return commit('/api/award', false, {stay:true, extra:{
     idea_id: it.id, prev_status: prev, cdkey: cdkey||'', skip_merit: !!skip}});
 }
@@ -6573,7 +6583,7 @@ async function awardFlow(){
   if (!name || name === 'community'){
     if (!confirm('This idea has no individual submitter'
       + (name ? ' (credited to "community")' : '')
-      + ', so no merit can be granted.\n\nMove it to "Merit awarded" anyway? '
+      + ', so no merit can be granted.\n\nShip it to the test realm anyway? '
       + 'The status changes and nothing is written to the merit database.')) return;
     return doAward(it, prev, '', true);
   }
@@ -6640,19 +6650,22 @@ function revokeMerit(){
   return commit('/api/revoke', false, {stay:true, extra:{idea_id: it.id}});
 }
 
-// Lifetime merit for a submitter: count their *awarded* (totally done) ideas by
-// type and weight them Defect=1, Enhancement=2, Exploit=3.
+// Lifetime merit for a submitter: count the ideas their merit was really PAID
+// for, weighted Defect=1, Enhancement=2, Exploit=3. Keyed on `merit_awarded`
+// rather than on a status, because payment now happens at `implemented` and the
+// item carries on to `deployed` afterwards — a status test would either miss
+// the newly-shipped half or double-count the lifecycle.
 const MERIT_POINTS = {Defect:1, Enhancement:2, Exploit:3, UAT:1};
 function playerMerit(name){
   const c={Defect:0, Enhancement:0, Exploit:0}; let untyped=0, uat=0;
   const lc=(name||'').toLowerCase();
   DATA.ideas.forEach(it=>{
     // UAT credit is independent of who reported the idea and of its status, so
-    // it is counted across EVERY idea, not just this player's awarded ones.
+    // it is counted across EVERY idea, not just this player's paid ones.
     (it.uat_credits||[]).forEach(u=>{
       if(u && u.awarded && (u.player||'').toLowerCase()===lc) uat++;
     });
-    if(it.status!=='awarded' || (it.player||'')!==name) return;
+    if(!it.merit_awarded || (it.player||'')!==name) return;
     if(c[it.type]!=null) c[it.type]++; else untyped++;
   });
   const total=c.Defect*MERIT_POINTS.Defect + c.Enhancement*MERIT_POINTS.Enhancement
@@ -6667,13 +6680,13 @@ function renderMerit(name){
   const awarded=c.Defect+c.Enhancement+c.Exploit;
   const chip=(t,n)=>`<span class="tbadge ${t.toLowerCase()}">${t}: ${n}</span>`;
   const note = untyped>0
-    ? `<div class="note">${untyped} awarded item(s) for this player have no type set — not counted.</div>` : '';
+    ? `<div class="note">${untyped} paid item(s) for this player have no type set — not counted.</div>` : '';
   box.innerHTML=`<div class="merit">
     <h3>Lifetime merit — <span class="who">${esc(name)}</span></h3>
     <div class="counts">${chip('Defect',c.Defect)} ${chip('Enhancement',c.Enhancement)} ${chip('Exploit',c.Exploit)}
       ${uat?`<span class="tbadge uat">UAT: ${uat}</span>`:''}</div>
     <div class="pts">Total awarded points: <b>${total}</b></div>
-    <div class="sub">${awarded} awarded idea(s)${uat?` · ${uat} fix${uat>1?'es':''} validated`:''}
+    <div class="sub">${awarded} paid idea(s)${uat?` · ${uat} fix${uat>1?'es':''} validated`:''}
       · Defect=1, Enhancement=2, Exploit=3, UAT=1.</div>
     ${note}
   </div>`;
@@ -8919,7 +8932,7 @@ async function pfSearch(){
 // DATA.ideas — no new read endpoint — and each control writes just its own step
 // through /api/step-status.
 const STEP_KINDS = ['toolset','uat','admin'];
-let QUEUE = {kind:'toolset', filter:'', showDone:false, showAwarded:false,
+let QUEUE = {kind:'toolset', filter:'', showDone:false, showDeployed:false,
              mine:false};
 
 // Every step of the wanted kinds, flattened, with its owning idea.
@@ -8927,10 +8940,10 @@ function queueRows(kinds){
   const out=[];
   DATA.ideas.forEach(it=>{
     if (it.hidden) return;
-    // Merit-awarded ideas are finished business; their leftover steps would
+    // Deployed ideas are finished business; their leftover steps would
     // otherwise sit in the queue forever. `implemented`/`manual` still show —
     // those are the shipped-but-in-testing items the UAT queue exists for.
-    if (!QUEUE.showAwarded && it.status==='awarded') return;
+    if (!QUEUE.showDeployed && it.status==='deployed') return;
     (it.manual_steps||[]).forEach((s,i)=>{
       if (!s || typeof s!=='object') return;
       const k = STEP_KINDS.indexOf(s.kind)>=0 ? s.kind : 'admin';
@@ -9052,7 +9065,7 @@ function renderQueue(){
   });
   $('#q_count').textContent = rows.length + (rows.length===1?' step':' steps')
     + (QUEUE.showDone?' (including done)':' outstanding')
-    + (QUEUE.showAwarded?'':' · awarded ideas hidden');
+    + (QUEUE.showDeployed?'':' · deployed ideas hidden');
   box.innerHTML = order.length
     ? order.map(([label,rs])=>`<div class="qgroup">${esc(label)}
         <span class="n">${rs.length}</span></div>`
@@ -9119,7 +9132,7 @@ async function queueClaim(id, index, release){
 }
 
 function openQueue(kind){
-  QUEUE = {kind, filter:'', showDone:false, showAwarded:false, mine:false};
+  QUEUE = {kind, filter:'', showDone:false, showDeployed:false, mine:false};
   const uat = kind==='uat';
   panelHTML(`<h2>${uat?'UAT Queue':'Toolset Queue'}</h2>
     <p class="small">${uat
@@ -9133,7 +9146,7 @@ function openQueue(kind){
     <div class="qbar">
       <input id="q_filter" placeholder="filter…" autocomplete="off">
       <label class="chk"><input type="checkbox" id="q_done"> show done</label>
-      <label class="chk"><input type="checkbox" id="q_awarded"> show awarded ideas</label>
+      <label class="chk"><input type="checkbox" id="q_awarded"> show deployed ideas</label>
       ${uat && CAN('uat') && ME()
         ? '<label class="chk"><input type="checkbox" id="q_mine"> only mine</label>'
         : ''}
@@ -9146,7 +9159,7 @@ function openQueue(kind){
   $('#q_close').onclick=()=>{ closePanel(); };
   $('#q_filter').oninput=e=>{ QUEUE.filter=e.target.value.trim(); renderQueue(); };
   $('#q_done').onchange=e=>{ QUEUE.showDone=e.target.checked; renderQueue(); };
-  $('#q_awarded').onchange=e=>{ QUEUE.showAwarded=e.target.checked; renderQueue(); };
+  $('#q_awarded').onchange=e=>{ QUEUE.showDeployed=e.target.checked; renderQueue(); };
   const qm=$('#q_mine');
   if (qm) qm.onchange=e=>{ QUEUE.mine=e.target.checked; renderQueue(); };
   $('#q_copy').onclick=()=>{

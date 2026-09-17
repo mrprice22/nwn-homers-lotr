@@ -71,6 +71,17 @@ def main() -> int:
 
 
 def _apply(ed, yaml, path, patch_file, dry, allow_new=False) -> int:
+    patch = json.loads(Path(patch_file).read_text())
+    return apply_patch(ed, yaml, path, patch, dry, allow_new)
+
+
+def apply_patch(ed, yaml, path, patch, dry, allow_new=False) -> int:
+    """The patch application itself, on an already-parsed {id: {field: value}}.
+
+    Split out so another tool can drive the same write without inventing a
+    second copy of the lock/serialize/validate dance -- see
+    bin/roadmap-reconcile-deployed.py. The CALLER holds ed.yaml_lock().
+    """
     text = path.read_text(encoding="utf-8")
     doc = yaml.load(text, Loader=ed._YamlLoader)
     ideas = doc["ideas"]
@@ -80,7 +91,7 @@ def _apply(ed, yaml, path, patch_file, dry, allow_new=False) -> int:
     before = [{"id": i.get("id"), "title": i.get("title")} for i in ideas]
     by_id = {i["id"]: i for i in ideas}
 
-    patch = json.loads(Path(patch_file).read_text())
+    patch = dict(patch)
     # `epics` is a block, not an idea id -- lift it out before anything below
     # treats it as one.
     epic_patch = patch.pop("epics", None) or {}

@@ -344,7 +344,7 @@ def disk_doc() -> list[dict]:
         {"id": "idea-progress", "status": "confirmed", "title": "In progress"},
         {"id": "idea-shipped", "status": "implemented", "title": "Shipped",
          "manual_steps": [{"step": "check it", "kind": "uat", "status": "open"}]},
-        {"id": "idea-paid", "status": "awarded", "title": "Paid",
+        {"id": "idea-paid", "status": "deployed", "title": "Paid",
          "merit_awarded": True,
          "uat_credits": [{"player": "Alice", "awarded": True},
                          {"player": "Bob"}]},
@@ -373,9 +373,9 @@ def test_permissions_block() -> None:
         by["idea-progress"]["status"] = "manual"
     check("blocks promoting an item to `manual`", denied(DM, edited(promote_manual)))
 
-    def promote_awarded(by, _d):
-        by["idea-backlog"]["status"] = "awarded"
-    check("blocks promoting an item to `awarded`", denied(DM, edited(promote_awarded)))
+    def promote_deployed(by, _d):
+        by["idea-backlog"]["status"] = "deployed"
+    check("blocks promoting an item to `deployed`", denied(DM, edited(promote_deployed)))
 
     def new_shipped(_by, doc):
         doc.append({"id": "idea-new", "status": "implemented", "title": "Sneaky"})

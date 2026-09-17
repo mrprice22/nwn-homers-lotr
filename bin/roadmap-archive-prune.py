@@ -3,14 +3,14 @@
 
 Run this ONCE, in an archived season's repo, at Phase 2 of a cutover (see
 season-cutover-guide.md §7 step 8). It deletes every `ideas:` entry whose
-status is not `awarded`, drops any `epics:` entry left with no children, and
-regenerates docs.manual/Roadmap.html.
+status is not `deployed` and whose merit was never paid, drops any `epics:`
+entry left with no children, and regenerates docs.manual/Roadmap.html.
 
 Why deleting is safe: the backlog is not lost. Everything removed here lives on
 in the unnumbered repo's roadmap — which is always the newest season and is the
 only place that work will actually get done. What must stay behind is the record
-of merit already awarded to players for shipped work, which is exactly the
-`awarded` rows. The archived season's roadmap becomes a pure merit ledger, and
+of merit already awarded to players for shipped work. The archived season's
+roadmap becomes a pure merit ledger, and
 the editor never reopens it (there is one backlog, ever — prereq item 12).
 
 Usage:
@@ -46,7 +46,18 @@ YAML_PATH = REPO / "roadmap.yaml"
 SERVER_ENV = REPO / "server.env"
 GEN = REPO / "bin" / "gen-roadmap.py"
 
-KEEP_STATUS = "awarded"
+KEEP_STATUS = "deployed"
+
+
+def keep_idea(idea: dict) -> bool:
+    """A row worth freezing: it reached production, or its merit was paid.
+
+    `merit_awarded` is the second half because merit is paid when an item ships
+    to the TEST realm (`implemented`), so a season can end with work that was
+    paid for and never promoted. Dropping those rows would delete the only
+    record of a payment -- exactly what this script exists to preserve.
+    """
+    return idea.get("status") == KEEP_STATUS or bool(idea.get("merit_awarded"))
 
 
 def load_editor():
@@ -85,8 +96,8 @@ def main() -> int:
     ideas = doc.get("ideas") or []
     epics = doc.get("epics") or []
 
-    keep = [i for i in ideas if i.get("status") == KEEP_STATUS]
-    drop = [i for i in ideas if i.get("status") != KEEP_STATUS]
+    keep = [i for i in ideas if keep_idea(i)]
+    drop = [i for i in ideas if not keep_idea(i)]
 
     kept_epic_ids = {i.get("epic") for i in keep if i.get("epic")}
     epics_keep = [e for e in epics if e.get("id") in kept_epic_ids]
@@ -96,12 +107,12 @@ def main() -> int:
     print(f"roadmap.yaml : {len(ideas)} ideas, {len(epics)} epics")
     print(f"season role  : {role or 'unset'}")
     print()
-    print(f"KEEP  {len(keep):>4}  status={KEEP_STATUS}")
+    print(f"KEEP  {len(keep):>4}  status={KEEP_STATUS} or merit paid")
     print(f"DROP  {len(drop):>4}  everything else:")
     for status, n in Counter(i.get("status", "?") for i in drop).most_common():
         print(f"        {n:>4}  {status}")
     print()
-    print(f"epics: keep {len(epics_keep)}, drop {len(epics_drop)} (no awarded children)")
+    print(f"epics: keep {len(epics_keep)}, drop {len(epics_drop)} (no kept children)")
     for e in epics_drop:
         print(f"        - {e.get('id')}: {e.get('title', '')[:60]}")
     print()

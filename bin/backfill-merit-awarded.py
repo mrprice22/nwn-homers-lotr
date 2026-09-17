@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""One-off: mark every already-`awarded` idea as merit_awarded.
+"""One-off (already run): mark every historically-shipped idea as merit_awarded.
 
 `merit_awarded` is the flag that says the merit for an idea was really paid
 into meritdb. It was added when the roadmap editor grew Award / Revoke buttons;
-before that, `status: awarded` was the only record, and every one of those was
-paid by hand in-game. So the whole existing `awarded` set is back-populated to
+before that, the terminal status was the only record, and every one of those was
+paid by hand in-game. So the whole existing set is back-populated to
 merit_awarded: true — otherwise the first time one of them passed through the
 Award button it would pay the submitter a second time.
+
+The terminal status was called `awarded` then and is called `deployed` now
+(rmqol-deployed-lifecycle); merit is paid at `implemented` these days, so this
+script is history rather than a tool — do not reach for it to flag newly
+shipped work, which has never been paid by hand.
 
 Idempotent: re-running changes nothing. Dry-run by default; --apply writes.
 Writes through the editor's own write_document(), so comments and every block
@@ -47,11 +52,11 @@ def main() -> int:
     flag = ed.MERIT_FLAG
 
     todo = [i for i in ideas
-            if i.get("status") == "awarded" and not i.get(flag)]
+            if i.get("status") == "deployed" and not i.get(flag)]
     for idea in todo:
         print(f"  {idea.get('id')}  ({idea.get('type') or 'no type'}, "
               f"{idea.get('player') or 'no submitter'})")
-    print(f"{len(todo)} awarded idea(s) to flag; "
+    print(f"{len(todo)} deployed idea(s) to flag; "
           f"{sum(1 for i in ideas if i.get(flag))} already flagged.")
     if not todo:
         return 0

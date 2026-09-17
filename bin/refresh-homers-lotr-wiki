@@ -96,6 +96,21 @@ MAX_ABILITY_BONUS="${NWN_MAX_ABILITY_BONUS:-12}"
 # Neither step may take the wiki down with it: a roadmap.yaml that fails
 # validation is a roadmap problem, not a reason to skip the nightly republish of
 # 287 areas. Both warn and continue.
+# Before either: an item shipped to the test realm moves to `deployed` by
+# itself once its code reaches production. season-promote.sh does that at the
+# promotion; this is the catch-up path for a promotion made out of band, and it
+# is what keeps the page and the sign from advertising released work as "in
+# testing" forever. Dev only, for the same reason gen-roadmap.py is: a season
+# repo's roadmap.yaml is a copy, and dev's `commit:` hashes do not resolve in
+# its history, so every item there would read as "commit not found".
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  if reconcile_out=$(python3 "$PROJECT/bin/roadmap-reconcile-deployed.py" --apply 2>&1); then
+    echo "[roadmap] $(printf '%s' "$reconcile_out" | tail -1)"
+  else
+    echo "[roadmap] warn: roadmap-reconcile-deployed.py failed; statuses unchanged" >&2
+  fi
+fi
+
 if python3 "$PROJECT/bin/gen-roadmap.py" --check >/dev/null 2>&1; then
   # Print the generator's own line: on a season realm it SKIPS (only the dev
   # realm renders the page - the roadmap editor's Publish copies it into the

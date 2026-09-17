@@ -71,8 +71,8 @@ def season_role() -> str:
 # Status -> (badge label, css modifier, which board it belongs to).
 # board "shipped" = Recently Shipped timeline; "roadmap" = In Progress / Up Next.
 STATUS = {
-    "awarded":     {"label": "Shipped · Merit awarded", "cls": "shipped",  "board": "shipped", "rank": 0},
-    "implemented": {"label": "Shipped · in testing",     "cls": "testing",  "board": "shipped", "rank": 1},
+    "deployed":    {"label": "Deployed to production", "cls": "shipped",  "board": "shipped", "rank": 0},
+    "implemented": {"label": "Shipped · in testing",    "cls": "testing",  "board": "shipped", "rank": 1},
     "confirmed":   {"label": "In progress",                  "cls": "active",   "board": "roadmap", "rank": 0},
     "manual":      {"label": "Needs manual finishing",       "cls": "manual",   "board": "roadmap", "rank": 1},
     "design":      {"label": "Needs design input",           "cls": "design",   "board": "roadmap", "rank": 2},
@@ -83,8 +83,9 @@ STATUS = {
     "unlikely":    {"label": "Not likely to implement",      "cls": "unlikely", "board": "roadmap", "rank": 7},
 }
 
-# Idea kind -> (badge label, css modifier). The merit value of a *shipped*
-# (awarded) idea depends on its type: Defect=1, Enhancement=2, Exploit=3.
+# Idea kind -> (badge label, css modifier). The merit value of an idea depends
+# on its type: Defect=1, Enhancement=2, Exploit=3. It is paid when the item
+# ships to the test realm (`implemented`), not when it reaches `deployed`.
 TYPES = {
     "Defect":      {"label": "Defect",      "cls": "defect"},
     "Enhancement": {"label": "Enhancement", "cls": "enhancement"},
@@ -517,8 +518,13 @@ def collapse_epics(epics: list[dict], ideas: list[dict]) -> tuple[list[dict], li
         todo = [c for c in children if not is_shipped(c)]
         status = ep.get("status")
         if not status:
+            # Every child shipped: the epic is only "deployed" once they all
+            # are -- one child still on the test realm keeps the card honest.
             status = (min(todo, key=lambda c: STATUS[c["status"]]["rank"])["status"]
-                      if todo else "implemented")
+                      if todo
+                      else ("deployed"
+                            if all(c.get("status") == "deployed" for c in children)
+                            else "implemented"))
         requesters: list[str] = []
         for c in children:
             for p in c.get("_requesters", []):
