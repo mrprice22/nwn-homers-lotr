@@ -465,6 +465,14 @@ def nss_include():
         lines.append(f"const int FEAT_{feat.label} = {FIRST_ROW + offset};")
     lines += [
         "",
+        "// The module's own Devastating Critical (Unarmed) - an inert row that",
+        "// replaces stock feat 506, which the engine resolves into a save-or-die",
+        "// and which is therefore suppressed in feat.2da (roadmap buged-dev-crit).",
+        "// devcrit_inc.nss reads it; the engine has never heard of it.",
+        f"const int FEAT_DEVCRIT_UNARMED_PROXY = {DEVCRIT_PROXY_ROW};",
+    ]
+    lines += [
+        "",
         "// --- prerequisite helpers ------------------------------------------------",
         "// A `prereq` expression in the generator's table is rendered verbatim into",
         "// LegFeat_MeetsPrereq below, and THIS FILE HAS NO INCLUDES - so an",
@@ -484,6 +492,11 @@ def nss_include():
         "// prerequisite. The two names are DEVCRIT_VAR_HAD_* in devcrit_inc.nss,",
         "// repeated as literals because this file has no includes;",
         "// tests/check_devcrit.py asserts the spellings still match.",
+        "//",
+        "// A player's unarmed entitlement now lives in the PROXY feat instead, which",
+        "// is a real feat on the character sheet and survives a logout - the local",
+        "// never did, which is what cost the reporter three epic feat picks",
+        "// (roadmap buged-dev-crit).",
         "int LegFeat_HasAnyDevCrit(object oPC)",
         "{",
         "    int nFeat;",
@@ -491,6 +504,7 @@ def nss_include():
         "         nFeat <= FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE; nFeat++)",
         "        if (GetHasFeat(nFeat, oPC)) return TRUE;",
         "",
+        "    if (GetHasFeat(FEAT_DEVCRIT_UNARMED_PROXY, oPC)) return TRUE;",
         "    if (GetLocalInt(oPC, \"DEVCRIT_HAD_UNARMED\")) return TRUE;",
         "    if (GetLocalInt(oPC, \"DEVCRIT_HAD_CREATURE\")) return TRUE;",
         "",
@@ -798,6 +812,27 @@ def load_proxies():
     return module
 
 
+def build_devcrit_cells(stock_cells, header):
+    """The Devastating Critical (Unarmed) replacement row.
+
+    The stock row VERBATIM, with three cells moved: a new LABEL and Constant so
+    the two rows are distinguishable, and ALLCLASSESCANUSE back to 1 because the
+    stock row has just been suppressed with 0. Everything else - MINSTR 25,
+    Improved Critical and Epic Weapon Focus in PREREQFEAT1/2, PreReqEpic, the
+    icon, and both strrefs - is carried across, so this is the same feat, earned
+    the same way, reading the same way. Anything else copied loosely here would
+    be a way to buy a feat you did not earn; tests/check_devcrit.py asserts the
+    carry column by column.
+    """
+    cells = list(stock_cells)
+    cells[0] = str(DEVCRIT_PROXY_ROW)
+    for column, value in (("LABEL", DEVCRIT_PROXY_LABEL),
+                          ("Constant", f"FEAT_{DEVCRIT_PROXY_LABEL}"),
+                          ("ALLCLASSESCANUSE", "1")):
+        cells[1 + header.index(column)] = value
+    return cells
+
+
 def build_proxy_cells(proxy, proxies_by_stock, stock_cells, header, mod, gated):
     """Render one proxy row: the stock row, with three columns moved.
 
@@ -944,12 +979,23 @@ def write_class_tables(proxy_list, mod, apply_changes):
     for proxy in proxy_list:
         by_class.setdefault(proxy.cls.name, []).append(proxy)
 
-    for cls in mod.PROXY_CLASSES:
-        rows_for_class = [p for p in by_class.get(cls.name, [])
-                          if p.list_value is not None]
-        path = mod.HAK_2DA / f"{cls.feat_table}.2da"
+    tables = [(mod.HAK_2DA / f"{cls.feat_table}.2da",
+               [p for p in by_class.get(cls.name, []) if p.list_value is not None])
+              for cls in mod.PROXY_CLASSES]
+    # The tables that carry no caster proxy but do list Devastating Critical
+    # (Unarmed) as a class bonus feat, which has to be repointed at the proxy
+    # row or barbarians and paladins keep being offered the suppressed stock
+    # feat off their own list. Paladin is already above.
+    known = {path for path, _ in tables}
+    for stem in DEVCRIT_CLASS_TABLES:
+        path = mod.HAK_2DA / f"{stem}.2da"
+        if path not in known:
+            tables.append((path, []))
+
+    for path, rows_for_class in tables:
+        required = path.stem in DEVCRIT_CLASS_TABLES
         if not path.exists():
-            if not rows_for_class:
+            if not rows_for_class and not required:
                 continue
             raise SystemExit(f"error: {path} is missing - seed it from stock "
                              "with nwn_resman_cat before generating proxies")
@@ -967,18 +1013,53 @@ def write_class_tables(proxy_list, mod, apply_changes):
         # Everything below our floor is stock and is passed through untouched.
         # Ours are dropped and regenerated, so a re-seed or a widened
         # SHIPPED_CLASSES can never leave a stale proxy entry behind.
+        #
+        # The one exception is a STOCK row we repointed at the Devastating
+        # Critical (Unarmed) replacement below: it is above the floor but it is
+        # not an appended row, and dropping it would delete the feat from that
+        # class's bonus list on the very next run.
         stock_lines, stock_rows = [], {}
         for line in lines[3:]:
             cells = line.split()
             if not cells or not cells[0].isdigit():
                 continue
             if (len(cells) > index_i and cells[index_i].isdigit()
-                    and int(cells[index_i]) >= mod.PROXY_ROW_FLOOR):
+                    and int(cells[index_i]) >= mod.PROXY_ROW_FLOOR
+                    and int(cells[index_i]) != DEVCRIT_PROXY_ROW):
                 continue
             stock_lines.append(line)
             stock_rows[int(cells[index_i])] = cells
 
         widths = table_widths(header, [ln.split() for ln in stock_lines])
+
+        # Repoint the stock bonus-feat entry for Devastating Critical (Unarmed)
+        # at our replacement row. The entry is kept rather than deleted: these
+        # tables are read as a list and a hole would shift every row after it.
+        repointed = 0
+        for position, line in enumerate(stock_lines):
+            cells = line.split()
+            if (len(cells) > index_i
+                    and cells[index_i] == str(DEVCRIT_STOCK_UNARMED)):
+                cells[index_i] = str(DEVCRIT_PROXY_ROW)
+                cells[label_i] = f"FEAT_{DEVCRIT_PROXY_LABEL}"
+                stock_lines[position] = render(cells, widths)
+                repointed += 1
+
+        # A table that ends up listing neither the stock feat nor its
+        # replacement has LOST it - a re-seed from a table we had already
+        # repointed, or a hand edit. Stop: emitting it quietly would take
+        # Devastating Critical (Unarmed) off that class's bonus list with
+        # nothing to say so.
+        if path.stem in DEVCRIT_CLASS_TABLES and not repointed:
+            listed = {cells[index_i] for cells in
+                      (ln.split() for ln in stock_lines)
+                      if len(cells) > index_i}
+            if str(DEVCRIT_PROXY_ROW) not in listed:
+                raise SystemExit(
+                    f"error: {path} lists neither feat {DEVCRIT_STOCK_UNARMED} "
+                    f"nor its replacement {DEVCRIT_PROXY_ROW} - re-seed it from "
+                    "stock with nwn_resman_cat and run this again")
+
         appended = []
         for offset, proxy in enumerate(rows_for_class):
             cells = [BLANK] * (1 + len(header))
@@ -995,7 +1076,8 @@ def write_class_tables(proxy_list, mod, apply_changes):
         same = raw == payload
         if apply_changes:
             path.write_bytes(payload)
-        changed.append((path, len(stock_lines), len(rows_for_class), same))
+        changed.append((path, len(stock_lines), len(rows_for_class), same,
+                        repointed))
     return changed
 
 
@@ -1034,6 +1116,45 @@ def table_widths(header, rows):
 DEVCRIT_ROWS = list(range(495, 533)) + [955, 996]
 
 
+# ---------------------------------------------------------------------------
+# Devastating Critical (Unarmed): the stock row is SUPPRESSED and replaced
+#
+# Roadmap: buged-dev-crit. The engine resolves the unarmed devastating critical
+# by the hardcoded feat id 506 - no 2DA indirection exists - so the only way to
+# stop the save-or-die was to take the feat off the character
+# (DevCrit_ArmNoDevCrit). That removal is written into the .bic, and the client
+# then OFFERS THE FEAT AGAIN at every epic feat level: the reporter spent a pick
+# on it at 51, 54 and 57 and had nothing to show for any of them, because the
+# "it had it" record was a session-only local that died with the logout.
+#
+# So the stock row stops being selectable and a row the engine has never heard
+# of takes its place. ALLCLASSESCANUSE 0 is the whole suppression for the
+# general feat list - it is the same column the legendary feats rely on - and
+# the two stock class tables that also offer it as a BONUS feat (barbarian and
+# paladin; monk takes it off the general list) are repointed at the proxy in
+# write_class_tables.
+#
+# The proxy is inert: nothing in the engine reads it, devcrit_inc.nss does.
+# It carries the stock row's own FEAT/DESCRIPTION strrefs, so it reads exactly
+# like the feat it replaces and adds NOTHING to lotr.tlk - the same rule
+# spellfeat_proxies.py follows, and it keeps this a hak-only publish.
+DEVCRIT_STOCK_UNARMED = 506
+DEVCRIT_PROXY_LABEL = "LOTR_DEVCRIT_UNARMED"
+
+# THE ROW INDEX IS A FEAT ID AND IS BAKED INTO EVERY .BIC THAT TAKES IT.
+# It is pinned rather than computed so that appending a legendary feat or a
+# caster class - both of which move the tail - fails the build instead of
+# silently turning every player's Devastating Critical into another feat. If
+# that assertion fires, the answer is to leave this number alone and give the
+# new rows the next free index, not to renumber this one.
+DEVCRIT_PROXY_ROW = 1312
+
+# The stock class tables that list feat 506 as a class BONUS feat. Checked
+# against every cls_feat_*.2da in the game data: only these two. They are
+# rewritten by write_class_tables, so both must exist in hak_2da/.
+DEVCRIT_CLASS_TABLES = ("cls_feat_barb", "cls_feat_pal")
+
+
 def stock_overrides():
     """{row index: {column: new value}} for stock rows we repoint.
 
@@ -1049,7 +1170,13 @@ def stock_overrides():
     tlk = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(tlk)
     devcrit = tlk.stock_override_strref(tlk.STOCK_OVERRIDE_STRINGS[0])
-    return {row: {"DESCRIPTION": str(devcrit)} for row in DEVCRIT_ROWS}
+    overrides = {row: {"DESCRIPTION": str(devcrit)} for row in DEVCRIT_ROWS}
+    # And the one stock row we take off the level-up page entirely: the unarmed
+    # devastating critical, which the engine can still resolve into a
+    # save-or-die and which is replaced by the proxy row below. See
+    # DEVCRIT_PROXY_ROW.
+    overrides[DEVCRIT_STOCK_UNARMED]["ALLCLASSESCANUSE"] = "0"
+    return overrides
 
 
 # ---------------------------------------------------------------------------
@@ -1244,6 +1371,22 @@ def main():
             proxy, proxies_by_stock, stock_cells[proxy.stock_id], header, mod,
             gated)
 
+    # The Devastating Critical (Unarmed) replacement appends after the caster
+    # proxies. Its index is PINNED (DEVCRIT_PROXY_ROW), because a feat id lives
+    # in every .bic that took it: if the tail has moved, stop and let a human
+    # decide, rather than renumbering a feat out from under the players holding
+    # it.
+    devcrit_row = proxy_first + len(proxy_list)
+    if devcrit_row != DEVCRIT_PROXY_ROW:
+        print(f"error: the feat table's tail is now row {devcrit_row}, but "
+              f"Devastating Critical (Unarmed) is pinned at {DEVCRIT_PROXY_ROW} "
+              "- a row was added before it. Leave DEVCRIT_PROXY_ROW where it is "
+              "and give the new rows the indices after it; renumbering it turns "
+              "every player's feat into a different feat.", file=sys.stderr)
+        return 1
+    owned_cells[DEVCRIT_PROXY_ROW] = build_devcrit_cells(
+        stock_cells[DEVCRIT_STOCK_UNARMED], header)
+
     widths = column_widths(header, rows, owned_cells.values())
     owned = {i: render(cells, widths) for i, cells in owned_cells.items()}
 
@@ -1255,6 +1398,9 @@ def main():
         name_ref, desc_ref = refs[feat.label]
         print(f"        {FIRST_ROW + offset}  FEAT_{feat.label}  "
               f"name={name_ref} desc={desc_ref}  {feat.effect}")
+    print(f"[feat] devcrit: row {DEVCRIT_PROXY_ROW} FEAT_{DEVCRIT_PROXY_LABEL} "
+          f"-> replaces stock {DEVCRIT_STOCK_UNARMED} "
+          "(FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED, now ALLCLASSESCANUSE 0)")
     shipped = ", ".join(mod.SHIPPED_CLASSES) or "none"
     print(f"[feat] proxy: {len(proxy_list)} caster proxy row(s) from "
           f"{proxy_first}  (classes: {shipped})")
@@ -1270,11 +1416,12 @@ def main():
     out_lines = preamble + base_lines + [owned[i] for i in sorted(owned)]
     text = newline.join(out_lines) + newline
 
-    tables = write_class_tables(proxy_list, mod, args.apply)
-    for path, base_count, added, same in tables:
+    class_tables = write_class_tables(proxy_list, mod, args.apply)
+    for path, base_count, added, same, repointed in class_tables:
         state = "unchanged" if same else ("wrote" if args.apply else "would write")
+        note = f", {repointed} devcrit row(s) repointed" if repointed else ""
         print(f"[list] {state} -> {path.name}  "
-              f"({base_count} stock row(s) + {added} proxy row(s))")
+              f"({base_count} stock row(s) + {added} proxy row(s){note})")
 
     if not args.apply:
         print()

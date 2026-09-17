@@ -39,6 +39,12 @@ const int FEAT_LEGENDARY_WRATH = 1131;
 const int FEAT_LEGENDARY_QUARRY = 1132;
 const int FEAT_LEGENDARY_SUNDERING = 1133;
 
+// The module's own Devastating Critical (Unarmed) - an inert row that
+// replaces stock feat 506, which the engine resolves into a save-or-die
+// and which is therefore suppressed in feat.2da (roadmap buged-dev-crit).
+// devcrit_inc.nss reads it; the engine has never heard of it.
+const int FEAT_DEVCRIT_UNARMED_PROXY = 1312;
+
 // --- prerequisite helpers ------------------------------------------------
 // A `prereq` expression in the generator's table is rendered verbatim into
 // LegFeat_MeetsPrereq below, and THIS FILE HAS NO INCLUDES - so an
@@ -58,6 +64,11 @@ const int FEAT_LEGENDARY_SUNDERING = 1133;
 // prerequisite. The two names are DEVCRIT_VAR_HAD_* in devcrit_inc.nss,
 // repeated as literals because this file has no includes;
 // tests/check_devcrit.py asserts the spellings still match.
+//
+// A player's unarmed entitlement now lives in the PROXY feat instead, which
+// is a real feat on the character sheet and survives a logout - the local
+// never did, which is what cost the reporter three epic feat picks
+// (roadmap buged-dev-crit).
 int LegFeat_HasAnyDevCrit(object oPC)
 {
     int nFeat;
@@ -65,6 +76,7 @@ int LegFeat_HasAnyDevCrit(object oPC)
          nFeat <= FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE; nFeat++)
         if (GetHasFeat(nFeat, oPC)) return TRUE;
 
+    if (GetHasFeat(FEAT_DEVCRIT_UNARMED_PROXY, oPC)) return TRUE;
     if (GetLocalInt(oPC, "DEVCRIT_HAD_UNARMED")) return TRUE;
     if (GetLocalInt(oPC, "DEVCRIT_HAD_CREATURE")) return TRUE;
 

@@ -288,6 +288,154 @@ if "DevCrit_HasDevCrit" not in read(UNPACKED / "devcrit_inc.nss"):
         "engine's check disabled, the feat test is the ONLY thing that grants "
         "the bonus dice.")
 
+# --- 7. the unarmed feat is replaced, not just taken away -------------------
+# Roadmap buged-dev-crit. The strip alone cost the player the feat AND the pick:
+# it is written into the .bic, so the level-up wizard offers the feat again at
+# the next feat level, and the snapshot local that carried the entitlement died
+# with the session. So stock row 506 is suppressed and an inert proxy row takes
+# its place. Every half of that is silent if it breaks:
+#   * the stock row selectable again -> the save-or-die comes back, one
+#     level-up at a time;
+#   * the proxy row missing or renumbered -> every player holding it loses the
+#     feat, or worse, holds a different one (a feat id lives in the .bic);
+#   * a requirement column not carried -> a way to buy a feat nobody earned;
+#   * the class tables not repointed -> barbarians and paladins keep being
+#     offered the suppressed stock feat off their own bonus list.
+sys.path.insert(0, str(ROOT / "bin"))
+import importlib.util as _ilu
+
+_spec = _ilu.spec_from_file_location(
+    "gen_legendary_feats", ROOT / "bin" / "gen-legendary-feats.py")
+_gen = _ilu.module_from_spec(_spec)
+try:
+    _spec.loader.exec_module(_gen)
+except Exception as exc:                                  # pragma: no cover
+    errors.append(f"cannot load bin/gen-legendary-feats.py: {exc}")
+    _gen = None
+
+if _gen is not None:
+    feat_2da = ROOT / "hak_2da" / "feat.2da"
+    if not feat_2da.is_file():
+        errors.append("hak_2da/feat.2da is missing — the proxy row lives there.")
+    else:
+        feat_lines = feat_2da.read_bytes().decode("latin-1").splitlines()
+        feat_header = feat_lines[2].split()
+        feat_rows = {}
+        for line in feat_lines[3:]:
+            cells = line.split()
+            if cells and cells[0].isdigit():
+                feat_rows[int(cells[0])] = cells
+
+        def feat_cell(row, column):
+            cells = feat_rows.get(row)
+            if cells is None:
+                return None
+            pos = 1 + feat_header.index(column)
+            return cells[pos] if pos < len(cells) else None
+
+        stock_row = _gen.DEVCRIT_STOCK_UNARMED
+        proxy_row = _gen.DEVCRIT_PROXY_ROW
+
+        if feat_cell(stock_row, "ALLCLASSESCANUSE") != "0":
+            errors.append(
+                f"hak_2da/feat.2da row {stock_row} "
+                "(FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED) has "
+                f"ALLCLASSESCANUSE={feat_cell(stock_row, 'ALLCLASSESCANUSE')}, "
+                "expected 0 — the engine resolves that feat into a save-or-die "
+                "by its hardcoded id, so it must not be selectable. Re-run "
+                "python3 bin/gen-legendary-feats.py --apply.")
+
+        if proxy_row not in feat_rows:
+            errors.append(
+                f"hak_2da/feat.2da has no row {proxy_row} — the replacement "
+                "Devastating Critical (Unarmed) is gone, and with it every "
+                "player's feat. Re-run bin/gen-legendary-feats.py --apply.")
+        else:
+            if feat_cell(proxy_row, "LABEL") != _gen.DEVCRIT_PROXY_LABEL:
+                errors.append(
+                    f"hak_2da/feat.2da row {proxy_row} is "
+                    f"{feat_cell(proxy_row, 'LABEL')!r}, expected "
+                    f"{_gen.DEVCRIT_PROXY_LABEL!r} — rows renumbered, which "
+                    "turns every granted feat into a different feat.")
+            if feat_cell(proxy_row, "ALLCLASSESCANUSE") != "1":
+                errors.append(
+                    f"hak_2da/feat.2da row {proxy_row} is not selectable "
+                    "(ALLCLASSESCANUSE != 1) — no unarmed build can ever take "
+                    "Devastating Critical again.")
+            # The requirement columns, one by one. A proxy that asks for less
+            # than the feat it replaces is a feat nobody earned.
+            for column in ("FEAT", "DESCRIPTION", "ICON", "MINSTR",
+                           "PREREQFEAT1", "PREREQFEAT2", "GAINMULTIPLE",
+                           "PreReqEpic", "MASTERFEAT", "CRValue"):
+                if feat_cell(proxy_row, column) != feat_cell(stock_row, column):
+                    errors.append(
+                        f"hak_2da/feat.2da row {proxy_row} has "
+                        f"{column}={feat_cell(proxy_row, column)}, stock row "
+                        f"{stock_row} has {feat_cell(stock_row, column)} — the "
+                        "replacement must be the same feat, earned the same "
+                        "way and reading the same way (FEAT/DESCRIPTION are "
+                        "the stock strrefs on purpose: this adds nothing to "
+                        "lotr.tlk).")
+
+    for stem in _gen.DEVCRIT_CLASS_TABLES:
+        path = ROOT / "hak_2da" / f"{stem}.2da"
+        if not path.is_file():
+            errors.append(
+                f"hak_2da/{stem}.2da is missing — it lists Devastating Critical "
+                "(Unarmed) as a class BONUS feat, so without our copy that "
+                "class is still offered the suppressed stock row.")
+            continue
+        table = path.read_bytes().decode("latin-1").splitlines()
+        cls_header = table[2].split()
+        fi = 1 + cls_header.index("FeatIndex")
+        listed = {c[fi] for c in (ln.split() for ln in table[3:])
+                  if len(c) > fi and c[0].isdigit()}
+        if str(_gen.DEVCRIT_STOCK_UNARMED) in listed:
+            errors.append(
+                f"hak_2da/{stem}.2da still lists feat "
+                f"{_gen.DEVCRIT_STOCK_UNARMED} — that class can take the stock "
+                "unarmed devastating critical off its bonus feat list, and the "
+                "save-or-die comes with it.")
+        if str(_gen.DEVCRIT_PROXY_ROW) not in listed:
+            errors.append(
+                f"hak_2da/{stem}.2da does not list the replacement row "
+                f"{_gen.DEVCRIT_PROXY_ROW} — that class loses the feat "
+                "entirely. Re-run bin/gen-legendary-feats.py --apply.")
+
+    ids_inc = read(UNPACKED / "legfeat_ids_inc.nss")
+    if _gen is not None and (
+            f"const int FEAT_DEVCRIT_UNARMED_PROXY = {_gen.DEVCRIT_PROXY_ROW};"
+            not in ids_inc):
+        errors.append(
+            "unpacked/legfeat_ids_inc.nss (GENERATED) does not declare "
+            f"FEAT_DEVCRIT_UNARMED_PROXY = {_gen.DEVCRIT_PROXY_ROW} — the "
+            "scripts and the 2DA disagree about which feat id is the player's "
+            "entitlement. Re-run bin/gen-legendary-feats.py --apply.")
+    if "GetHasFeat(FEAT_DEVCRIT_UNARMED_PROXY, oPC)" not in ids_inc:
+        errors.append(
+            "LegFeat_HasAnyDevCrit does not read FEAT_DEVCRIT_UNARMED_PROXY — "
+            "an unarmed character would lose the Legendary Butcher "
+            "prerequisite the moment the proxy replaced the stock feat.")
+
+# The login path must both convert a legacy holder and restore a character the
+# strip already emptied. Neither is visible in game until a player complains.
+if "NWNX_Creature_AddFeat(oCreature, FEAT_DEVCRIT_UNARMED_PROXY)" not in inc_code:
+    errors.append(
+        "DevCrit_ArmNoDevCrit no longer grants FEAT_DEVCRIT_UNARMED_PROXY "
+        "before stripping the stock feat — a character that still holds feat "
+        "506 would have its entitlement deleted rather than converted.")
+if "DevCrit_RestoreUnarmed" not in inc_code:
+    errors.append(
+        "devcrit_inc.nss no longer defines DevCrit_RestoreUnarmed — the "
+        "characters whose picks the strip ate never get the feat back "
+        "(roadmap buged-dev-crit).")
+else:
+    login = re.sub(r"//[^\n]*", "", read(UNPACKED / "mod_cliententer.nss"))
+    if "DevCrit_RestoreUnarmed" not in login:
+        errors.append(
+            "mod_cliententer.nss does not call DevCrit_RestoreUnarmed — the "
+            "restore is a login-time migration and runs nowhere else.")
+
 # ---------------------------------------------------------------------------
 if errors:
     print("check_devcrit: FAIL")
@@ -296,6 +444,7 @@ if errors:
     sys.exit(1)
 
 print("check_devcrit: ok (NWNX Damage enabled, attack handler wired, "
-      "unarmed/creature feats stripped at login+level-up+spawn, "
+      "unarmed/creature feats stripped at login+level-up+spawn, the unarmed "
+      "feat replaced by the proxy row and restored at login, "
       "dice match the published design)")
 sys.exit(0)

@@ -209,7 +209,13 @@ def check_caster_proxies(problems, gen):
     proxy_first = gen.FIRST_ROW + len(gen.FEATS)
     expected = mod.proxies(proxy_first, header, {i: rows[i] for i in stock_cells})
 
-    found = sorted(i for i in rows if i >= proxy_first)
+    # The Devastating Critical (Unarmed) replacement appends after the caster
+    # proxies and is owned by check_devcrit.py, which asserts the whole of it —
+    # its index, its carried requirement columns, and the suppression of the
+    # stock row it replaces. Here it is only excluded, so that the two gates
+    # cannot both claim the same row and disagree.
+    found = sorted(i for i in rows
+                   if i >= proxy_first and i != gen.DEVCRIT_PROXY_ROW)
     if found != [p.row for p in expected]:
         shown = found[:8] + (["..."] if len(found) > 8 else [])
         problems.append(
