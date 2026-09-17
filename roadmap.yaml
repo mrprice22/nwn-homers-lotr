@@ -9050,12 +9050,43 @@ ideas:
     title: "Separate \"shipped to test\" from \"deployed to production\" in the lifecycle"
     group: wiki-tools
     epic: roadmap-editor-qol
-    status: planned
+    status: manual
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<p>Today an idea has to be moved to <em>awarded</em> to pay its merit, which also closes it — so there is no way to credit a player for something that is live on the test realm but not yet promoted to the live season.</p><p><strong>Agreed shape:</strong> pay merit when an item ships to <em>test</em> (status <code>implemented</code>), and rework <code>awarded</code> to mean <strong>Deployed to Production</strong>, moved there automatically by the computed Live/Test-realm environment badge rather than by hand.</p>"
-    impl_notes: "<p>The environment badge already computes exactly this (CLAUDE-roadmap.md, \"The per-idea environment badge\"): <strong>Live</strong> when every commit is an ancestor of the last promoted sha, <strong>Test realm</strong> when they are only in the dev repo. It is a computed side map keyed by idea id, deliberately never stored on the idea — so the work is to drive the status off it at a promotion boundary, not to add a field.</p><p>Blast radius to check before starting: <code>STATUS</code> in <code>bin/gen-roadmap.py</code> (labels, <code>board</code>, <code>rank</code>, the pivot buckets), <code>SHIPPED_STATUSES</code> in <code>bin/roadmap_publish.py</code> and <code>bin/roadmap_auth.py</code> (they are cross-checked at editor startup), the merit Award/Revoke buttons' coupling to the <code>awarded</code> status in <code>transitions()</code>, and <code>FORBIDDEN_STATUSES</code> in nwnbot (<code>nwn_discord_bot/nwnbot/roadmap.py</code> and <code>config.py</code>) — the bot must still never write any of them.</p>"
+    date: "2026-09-17"
+    commit: 736017a4695
+    notes: "<p>The backlog now says which realm your fix is actually on. An idea that has shipped to the <b>test realm</b> sits at <i>Shipped · in testing</i>, and that is also where your Merit is paid — you no longer have to wait for the next promotion to the live season to be credited for something you can already log in and try.</p><p>The final state is now <b>Deployed to production</b>, and nothing has to be clicked to get there: an item moves to it by itself when its code reaches the live season.</p>"
+    impl_notes: "<p><b>Shipped 2026-09-17.</b> The pipeline is <code>… → manual → implemented → deployed</code>. Forward into <code>implemented</code> is now the merit payment (<code>stepTo()</code>/<code>awardFlow()</code>/<code>doAward()</code>); <code>_merit_write()</code> needed no change, since it was already status-agnostic — the client sets <code>f_status</code> and posts <code>prev_status</code>. <code>playerMerit()</code> now counts <code>merit_awarded</code> rather than a status, because payment and the terminal state are no longer the same event.</p><p><b><code>deployed</code> is computed, not decided.</b> New <code>bin/roadmap-reconcile-deployed.py</code> calls <code>gen-release-notes.py</code>'s existing <code>promotion_index()</code> + <code>classify_idea()</code> — the same classifier behind the per-idea environment badge — and promotes every <code>implemented</code> item whose badge reads <b>Live</b>. Forward-only; only the unambiguous <code>live</code> state moves (<i>rework</i>, <i>missing</i>, <i>untracked</i>, <i>external</i> are reported as held); idempotent; exits 0 with a warning when no baseline resolves, because it runs inside a promotion and inside the nightly refresh and may fail neither. It writes through <code>roadmap-apply-patch.py</code>'s <code>apply_patch()</code> (factored out for this) under the editor's file lock.</p><p><b>Two callers.</b> <code>bin/season-promote.sh</code> runs it <code>--base HEAD --apply</code> <i>before</i> <code>DEV_SHA</code> and the rsync, and commits the result in dev — the promotion's own preflight refuses a dirty dev tree, and the flip has to be inside the commit the promotion names. <code>bin/refresh-homers-lotr-wiki</code> runs it on the dev realm as the catch-up path for a promotion made out of band.</p><p><b>Blast radius.</b> All four independent copies of \"what counts as shipped\" moved together: <code>STATUS</code> in <code>gen-roadmap.py</code>, <code>SHIPPED_STATUSES</code> in <code>roadmap_publish.py</code> and <code>roadmap_auth.py</code>, and the editor's JS copy; plus the narrower pairs in <code>validate_internal_fields()</code>, the dupe-merge refusal and <code>collapse_epics()</code>. <code>bin/roadmap-archive-prune.py</code> now keeps a row that is <code>deployed</code> <i>or</i> whose merit was paid — keying it on the status alone would delete the only record of a payment for work a season ended without promoting. The Discord bot was renamed in the same breath (<code>nwn_discord_bot e2fb049</code>): its <code>STATUSES</code> tuple validates every status it reads, so a stale copy would have failed live the moment <code>roadmap.yaml</code> changed.</p><p><b>The migration</b> (<code>--migrate-awarded</code>, one shot) moved 238 rows: a legacy <code>awarded</code> row keeps its terminal position unless the badge positively says its code is still only on the test realm, because most of them predate the <code>commit:</code> convention and nothing can prove them either way. 235 landed on <code>deployed</code>, 3 on <code>implemented</code>.</p>"
+    manual_steps:
+      - step: "In the editor, open an item at 'In progress' and walk it forward: the buttons read 'Needs manual finishing', then 'Ship to test · award merit', then 'Deployed to production'. Confirm the merit prompt appears on the SHIP step, not the last one."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Ship a real item to test with the forward button and confirm meritdb was written: the 'merit paid' chip appears, the submitter's in-game balance goes up by the type's value, and a merit_ledger row reading 'award: <kind> (roadmap:<id>)' exists."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "From that same item, click 'Deployed to production' and confirm NOTHING is paid a second time (no prompt, balance unchanged) and the chip still reads 'merit paid'."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "List view: the 'Show deployed (done)' checkbox hides/shows the deployed rows; the Board shows a 'Deployed to production' lane and dragging a card into 'In testing' does NOT pay merit (YAML edit only)."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Signed in as a DM, confirm the forward button into 'In testing' and into 'Deployed to production' are both greyed with a reason, and that manual_steps/design_questions/uat_credits are still editable on a shipped item."
+        status: open
+        kind: uat
+        tester: "dm"
+      - step: "Check the in-game Recent Updates sign in the Well of Eru still lists the same two buckets (shipped / needs testing) with the same items after the status rename."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "At the NEXT promotion, watch season-promote.sh print its 'reconciling deployed statuses' step, confirm it commits in dev, and check afterwards that the items it moved read 'Deployed to production' on the public roadmap page and in the season repo's copy of roadmap.yaml."
+        status: open
+        kind: uat
+        tester: "admin"
   - id: rmqol-agent-api-account
     title: "Give Claude its own roadmap account and make it write through the API"
     group: wiki-tools
