@@ -61,11 +61,12 @@ def main() -> int:
     long_titles = ED.over_long_titles(data.get("ideas") or [])
     if long_titles:
         warnings = list(warnings) + [
-            f"{len(long_titles)} title(s) are over the {ED.MAX_TITLE_LEN}-char "
-            f"Discord thread-name limit and predate it; each has to be trimmed "
-            f"the next time it is edited (longest: "
-            f"{max(long_titles, key=lambda x: x[1])[0]} at "
-            f"{max(n for _, n in long_titles)})"]
+            f"{len(long_titles)} title(s) predate the {ED.MAX_TITLE_LEN}-char "
+            f"Discord thread-name cap and have to be trimmed the next time they "
+            f"are edited (longest: {max(long_titles, key=lambda x: x[1])[0]} at "
+            f"{max(n for _, n in long_titles)}). Only the ones still OPEN with "
+            f"no thread yet gain anything from being trimmed now — a thread name "
+            f"is fixed at creation and nwnbot has no rename action."]
 
     if args.warnings:
         for w in warnings:

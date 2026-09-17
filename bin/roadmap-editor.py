@@ -1142,6 +1142,12 @@ def validate_title_lengths(posted, disk) -> list[str]:
     So the rule is "you cannot write one", not "you cannot have one": an
     untouched over-length title saves exactly as before, and editing one at all
     forces it under the cap.
+
+    Sweeping the old ones would mostly be busywork in any case. A thread name is
+    fixed when the thread is created and nwnbot has no rename action, so of the
+    41, the 7 that already have a thread cannot benefit and the 26 that are
+    shipped without one never will. Only an item that is still open and has no
+    thread yet gains anything from being trimmed.
     """
     was = {i.get("id"): str(i.get("title") or "") for i in (disk or [])
            if isinstance(i, dict)}
@@ -1156,9 +1162,10 @@ def validate_title_lengths(posted, disk) -> list[str]:
         errs.append(
             f"'{iid}': the title is {len(title)} characters; the limit is "
             f"{MAX_TITLE_LEN}, because it becomes the name of the idea's "
-            f"Discord forum thread and Discord truncates past that. Trim "
-            f"{len(title) - MAX_TITLE_LEN} character(s) — the detail belongs "
-            f"in the notes.")
+            f"Discord forum thread and Discord refuses a longer one — the bot "
+            f"would have to cut it short, and a thread name can never be "
+            f"changed afterwards. Trim {len(title) - MAX_TITLE_LEN} "
+            f"character(s) — the detail belongs in the notes.")
     return errs
 
 
@@ -2245,9 +2252,19 @@ MAX_BODY = 8 * 1024 * 1024   # the ideas array is large; unbounded is a weapon
 MAX_RESULT_LEN = 3000
 MAX_COMMENT_LEN = 3000
 # An idea's title becomes the name of its Discord forum thread, and Discord caps
-# a thread name at 100 characters. Over that the bot's thread is silently
-# truncated and no longer matches the roadmap, so the cap belongs here, where it
-# can be enforced before the title is ever written.
+# a thread name at 100 characters -- the API rejects the create outright with
+# "In name: Must be between 1 and 100 in length", so an over-length title would
+# mean no thread at all. nwnbot already guards that (`thread_title()` in
+# nwn_discord_bot/nwnbot/sync.py cuts on a word boundary and appends an
+# ellipsis), so the thread does get made; what it cannot do is match. And the
+# name is fixed at creation -- the bot has CreateThread, PostMessage,
+# ArchiveThread and SetThreadTags, and no rename action at all -- so a title
+# trimmed AFTER its thread exists never reaches Discord.
+#
+# That is the whole value of enforcing it here: a title written under the cap
+# mints a thread that matches it exactly, forever. It is also why the 41 titles
+# that predate the cap are left alone rather than swept (see
+# validate_title_lengths) -- most of them can no longer benefit.
 MAX_TITLE_LEN = 100
 
 

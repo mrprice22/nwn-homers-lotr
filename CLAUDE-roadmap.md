@@ -63,7 +63,7 @@ Each entry under `ideas:` is one backlog item:
 | Field | Required | Notes |
 |-------|----------|-------|
 | `id` | yes | Stable unique key, lowercase-hyphen (e.g. `forge-zero-value-exploit`). Referenced by `dupe_of`. |
-| `title` | yes | The public one-line description shown on the page. This **is** the description. **Capped at 100 characters** — it becomes the name of the idea's Discord forum thread and Discord truncates past that. The cap is enforced against a title being *written*, so the 41 that predate it still save untouched but must be trimmed the next time they are edited (`roadmap-editor.validate_title_lengths`; `bin/roadmap-lint.py --warnings` counts them). |
+| `title` | yes | The public one-line description shown on the page. This **is** the description. **Capped at 100 characters** — it becomes the name of the idea's Discord forum thread, and Discord refuses a longer one (nwnbot's `thread_title()` cuts it short so the thread still gets made). A thread name is fixed at creation — the bot has **no rename action** — so a title trimmed after its thread exists never reaches Discord. The cap is therefore enforced against a title being *written*: the 41 that predate it still save untouched and are deliberately not swept (`roadmap-editor.validate_title_lengths`; `bin/roadmap-lint.py --warnings` counts them). |
 | `group` | yes | Must match a `groups[].id` (`forge`, `combat-classes`, `bosses`, …). |
 | `status` | yes | One of the ten workflow values below. |
 | `type` | yes | `Defect`, `Enhancement`, or `Exploit`. Sets the merit value of a shipped item (1 / 2 / 3). |
