@@ -110,8 +110,15 @@ UAT_FIELD = "uat_credits"
 # Append-only per-idea notes: {author, date, text}. A tester has no `edit`, so
 # this is how they add information to an item at all -- and append-only is what
 # keeps that safe: there is no route that rewrites or deletes an entry, so the
-# worst a tester can do to the record is add to it. Internal like the rest of
-# LIST_FIELDS; nothing on the public page or the in-game sign renders it.
+# worst a tester can do to the record is add to it.
+#
+# NOT wholly internal any more. In practice almost every entry is a message
+# nwnbot MIRRORED from the idea's public Discord thread -- the report, the
+# screenshots, the back-and-forth -- so the anonymous roadmap view publishes
+# exactly those (bin/roadmap_public.py filters on the mirror header written by
+# the bot's sync.COMMENT_TEMPLATE). A note typed into the editor has no such
+# header and stays private. The wiki page and the in-game sign still render
+# none of it.
 COMMENTS_FIELD = "comments"
 INTERNAL_FIELDS = LIST_FIELDS | {"impl_notes", "impl_notes_h"}
 # Fields always rendered as YAML double-quoted scalars.
@@ -4550,10 +4557,16 @@ PAGE = r"""<!doctype html>
      forcing a value, so it cannot outrank a stylesheet rule that still applies.
      That is why the class must come off BEFORE the inline styles go on. */
   body.caps-unknown [data-cap] { display:none; }
-  /* Anonymous viewer: no navigator, no resize handle. The workspace grid
-     restacks on its own -- this is the same column the collapse button hides,
-     so there is no second layout to keep working. */
-  body.public > nav, body.public > #navdrag { display:none; }
+  /* Anonymous viewer: no navigator, no resize handle, and the body grid drops
+     to the single workspace column.
+     The selectors must be ID-qualified: `#nav { display:flex }` above is an ID
+     rule, and `body.public > nav` -- element + class -- LOSES to it on
+     specificity, so the navigator stayed on screen. Dropping the grid columns
+     is the other half; hiding the element alone would leave its 260px track
+     behind as a blank gutter. */
+  body.public { grid-template-columns:1fr; grid-template-rows:1fr;
+                grid-template-areas:"ws"; }
+  body.public #nav, body.public #navdrag { display:none; }
   #publicbar { display:none; }
   body.public #publicbar { display:flex; align-items:baseline; gap:10px;
        flex-wrap:wrap; padding:8px 12px; border-bottom:1px solid var(--line); }
@@ -4568,6 +4581,16 @@ PAGE = r"""<!doctype html>
   .pubnotes { margin:12px 0; line-height:1.5; }
   .pubnotes p:first-child { margin-top:0; }
   .pubnotes img { max-width:100%; }
+  .pubthread { margin:18px 0 6px; }
+  .pubthread h3 { font-size:14px; margin:0 0 8px; color:var(--mut); }
+  .pubmsg { border-left:2px solid var(--line); padding:2px 0 2px 10px;
+            margin:0 0 12px; }
+  .pubmsg-h { display:flex; gap:8px; align-items:baseline; }
+  .pubmsg-h .small { color:var(--mut); }
+  /* pre-wrap: a mirrored message is plain text and its line breaks are the
+     player's own paragraphing. */
+  .pubmsg-b { white-space:pre-wrap; margin-top:2px; }
+  .pubmsg-b img { max-width:100%; border-radius:4px; margin-top:6px; }
   .chk { display:flex; align-items:center; gap:6px; margin-top:8px; font-size:12px;
          color:var(--mut); cursor:pointer; }
   .chk input { width:auto; }
@@ -6252,6 +6275,50 @@ function autofillIdFromTitle(){
 // lockFormIfReadOnly() over the ordinary form would render a page of empty
 // boxes and invite the reader to wonder what was in them. This renders what a
 // player came for -- the note, the credit, and the way into the conversation.
+// One mirrored Discord message, split into its parts. nwnbot writes
+// `Discord — {author} in {thread} ({url}):\n\n{body}` (sync.COMMENT_TEMPLATE),
+// and the server only ever publishes comments that match that header --
+// bin/roadmap_public.py's DISCORD_COMMENT_RE. Parsing it here is presentation
+// only: a header that does not split just renders whole, never privately.
+function splitDiscordComment(text){
+  const t = String(text || '');
+  const m = t.match(/^Discord\s+[\u2014-]\s([^\n]*?):\n\n([\s\S]*)$/);
+  if (!m) return {who:'', url:'', body:t};
+  let who = m[1], url = '';
+  // Only a discord.com thread link is linkified. The bot composes this header
+  // itself from the real thread url, so nothing else should ever appear here --
+  // and pinning the host means a header that somehow said otherwise renders as
+  // text instead of as a link somebody might trust.
+  const w = who.match(/^(.*?)\s+in\s+.*\((https:\/\/discord\.com\/[^)\s]+)\)$/);
+  if (w){ who = w[1]; url = w[2]; }
+  return {who: who.trim(), url, body: m[2].trim()};
+}
+
+// The forum thread, as players wrote it. These are copies of messages that are
+// already public in Discord -- the bot mirrors them in, screenshots and all --
+// so this is the detail a link to an idea was worth following for. Notes typed
+// into the editor never reach here: the server filters on the mirror header,
+// not on this renderer.
+function publicCommentsHTML(it){
+  const cs = it.comments || [];
+  if (!cs.length) return '';
+  return `<div class="pubthread">
+    <h3>From the Discord thread</h3>
+    ${cs.map(c=>{
+      const d = splitDiscordComment(c.text);
+      const who = d.who
+        ? (d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${esc(d.who)}</a>`
+                 : esc(d.who))
+        : 'Discord';
+      return `<div class="pubmsg">
+        <div class="pubmsg-h"><b>${who}</b>
+          <span class="small">${esc(c.date||'')}</span></div>
+        <div class="pubmsg-b">${commentText(d.body)}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
 function renderPublicIdea(it){
   const st = statusLabel(it.status);
   const bits = [];
@@ -6267,6 +6334,7 @@ function renderPublicIdea(it){
     <p class="small">${credit}${it.date ? ' &middot; ' + esc(it.date) : ''}</p>
     ${it.notes ? `<div class="pubnotes">${it.notes}</div>`
                : '<p class="small">No write-up yet.</p>'}
+    ${publicCommentsHTML(it)}
     ${(it.discord && it.discord.url) ? `
     <div class="discordbar">
       <a class="discordlink" href="${esc(it.discord.url)}" target="_blank"
@@ -7068,7 +7136,9 @@ function commentsHTML(){
   return `
     <label style="margin-top:10px">Notes &amp; findings
       ${(HO.comments||[]).length?`<span class="ho-badge">${HO.comments.length}</span>`:''}
-      <span class="small">(internal, append-only — once added, a note stays)</span></label>
+      <span class="small">(append-only — once added, a note stays. Notes
+        mirrored from the idea's Discord thread are shown on the public
+        roadmap; a note you type here is not)</span></label>
     ${rows||'<p class="small">None.</p>'}
     ${CAN('uat') ? `<textarea id="ho_ctext" class="tester-ok"
         placeholder="Add a note — repro details, a side effect you spotted, anything

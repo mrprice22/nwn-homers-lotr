@@ -790,11 +790,25 @@ decoration, so the public view is served **`/api/public-data`**, built by
   nothing can be public on one surface and private on another. It drops `hidden`
   **and** `triage`.
 - Which *fields* survive is `PUBLIC_IDEA_FIELDS`, a **whitelist**: id, title,
-  group, epic, status, type, player, date, notes, and `discord.url`. **A field
-  added to `FIELD_ORDER` later is private by default** — that is the whole
-  reason it is written as a whitelist, and the rule to keep. `impl_notes`,
-  `manual_steps`, `design_questions`, `uat_credits`, `comments`, `commit`,
-  `merit_awarded` and the dupe bookkeeping are all absent, not blanked.
+  group, epic, status, type, player, date, notes, `discord.url` and the
+  mirrored half of `comments` (below). **A field added to `FIELD_ORDER` later is
+  private by default** — that is the whole reason it is written as a whitelist,
+  and the rule to keep. `impl_notes`, `manual_steps`, `design_questions`,
+  `uat_credits`, `commit`, `merit_awarded` and the dupe bookkeeping are all
+  absent, not blanked.
+- **`comments` publishes, but only what nwnbot mirrored out of Discord.** Nearly
+  every entry is a copy of a message from the idea's public forum thread — the
+  report, the screenshots, the back-and-forth — and that content is already
+  public, so withholding it only made the roadmap the poorer half of the same
+  conversation. The filter is `DISCORD_COMMENT_RE`, the `Discord — {author} in
+  {thread} ({url}):` header from nwnbot's `sync.COMMENT_TEMPLATE`. **It is the
+  only per-comment evidence of provenance** — `author` is just the display name
+  of whatever account appended it — so a note *typed into the editor* has no
+  header and stays private. If that template is ever reworded, comments stop
+  publishing rather than start: the safe direction for a filter to fail in. The
+  published entry carries `date` and `text` only, and the page renders the body
+  through the existing `commentText()`, whose `img.homerslotr.com` host
+  allowlist is what makes a rehosted screenshot safe to `<img>`.
 - The **vocab is derived from the projected list**, never from the raw document.
   The staff `vocab()` emits a `dupes: [{id, title}]` across every idea in the
   file; serving that would carry the titles of hidden items into a public

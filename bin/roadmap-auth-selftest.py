@@ -201,6 +201,27 @@ def test_public_projection() -> None:
           all(e["id"] in used for e in vocab["epics"]))
     check("the dupe picker is not served publicly", not vocab["dupes"])
 
+    # `comments` publishes, but only the entries nwnbot MIRRORED out of the
+    # public Discord thread. A note typed into the editor has no mirror header
+    # and must stay private -- that distinction is the whole basis on which the
+    # field is public at all.
+    everywhere = [c for i in all_ideas for c in (i.get("comments") or [])
+                  if isinstance(c, dict)]
+    internal = [c for c in everywhere if not P.is_discord_comment(c)]
+    published = [c for i in pub for c in (i.get("comments") or [])]
+    check("mirrored Discord notes are published", len(published) > 0)
+    check("every published note carries the mirror header",
+          all(P.is_discord_comment(c) for c in published))
+    check("no editor-written note is published",
+          not ({c.get("text") for c in internal}
+               & {c.get("text") for c in published}))
+    check("a published note carries no author field",
+          all(set(c) <= {"date", "text"} for c in published))
+    check("is_discord_comment refuses a plain note",
+          not P.is_discord_comment({"text": "Discord is fine but this is mine"})
+          and not P.is_discord_comment({"text": ""})
+          and not P.is_discord_comment("a bare string"))
+
     body = P.public_payload(doc, "v", {"role": A.ANON_ROLE})
     check("no merge baseline is served publicly",
           "base_hashes" not in body and "base_vocab" not in body)

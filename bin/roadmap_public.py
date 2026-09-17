@@ -29,6 +29,7 @@ three, so nothing can be public on one surface and private on another.
 from __future__ import annotations
 
 import importlib.util
+import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -38,9 +39,9 @@ GEN_PATH = REPO / "bin" / "gen-roadmap.py"
 #:
 #: Redacted by omission, and each for its own reason: `hidden`/`triage` (the
 #: items are gone entirely, so the flags have nothing to say), `commit`,
-#: `impl_notes`, `design_questions`, `manual_steps`, `uat_credits`, `comments`
-#: (the builder's internal record and the tester lane), `merit_awarded` (what
-#: the server owes a player), `notes_h`/`impl_notes_h` (editor box heights),
+#: `impl_notes`, `design_questions`, `manual_steps`, `uat_credits` (the
+#: builder's own record and the tester lane), `merit_awarded` (what the server
+#: owes a player), `notes_h`/`impl_notes_h` (editor box heights),
 #: `dupe_of`/`dupe_candidates`/`depends_on` (internal bookkeeping).
 PUBLIC_IDEA_FIELDS: frozenset[str] = frozenset((
     "id", "title", "group", "epic", "status", "type", "player", "date",
@@ -51,7 +52,29 @@ PUBLIC_IDEA_FIELDS: frozenset[str] = frozenset((
     # Narrowed to {url} by public_idea(): thread_id and channel_id are Discord
     # plumbing the browser has no use for.
     "discord",
+    # Narrowed to the bot-mirrored entries by public_idea() -- see
+    # DISCORD_COMMENT_RE. What is published is a copy of a message that is
+    # already public in the Discord forum; what is not is a note somebody typed
+    # into the editor.
+    "comments",
 ))
+
+#: The header nwnbot writes on every message it mirrors out of Discord:
+#: ``Discord — {author} in {thread} ({url}):``. This is the ONLY per-comment
+#: evidence of where a note came from -- `author` is just the display name of
+#: whatever account appended it, and a DM typing a note gets the same shape.
+#:
+#: It must stay in step with nwn_discord_bot's ``sync.COMMENT_TEMPLATE``. If
+#: that template is reworded, comments stop publishing (they fall back to
+#: private) rather than the other way round, which is the safe direction for a
+#: filter to fail in.
+DISCORD_COMMENT_RE = re.compile(r"^Discord\s+[—-]\s")
+
+
+def is_discord_comment(c) -> bool:
+    """Was this note mirrored from a public Discord thread?"""
+    return (isinstance(c, dict)
+            and bool(DISCORD_COMMENT_RE.match(str(c.get("text") or ""))))
 
 
 def load_gen():
@@ -65,6 +88,15 @@ def load_gen():
 def public_idea(idea: dict) -> dict:
     """One idea, reduced to PUBLIC_IDEA_FIELDS."""
     out = {k: v for k, v in idea.items() if k in PUBLIC_IDEA_FIELDS}
+    # The reports, the screenshots and the back-and-forth from the forum thread
+    # -- the part of an item players wrote and can already read in Discord.
+    # Anything else in `comments` is an internal note and is dropped.
+    kept = [c for c in (out.get("comments") or []) if is_discord_comment(c)]
+    if kept:
+        out["comments"] = [{"date": str(c.get("date") or ""),
+                            "text": str(c.get("text") or "")} for c in kept]
+    else:
+        out.pop("comments", None)
     # merge_dupes() is not run for this view (a duplicate row is just another
     # card here), so `_requesters` and friends never appear -- but any private
     # key an upstream pass might hang on the dict is dropped by the whitelist
