@@ -63,7 +63,7 @@ Each entry under `ideas:` is one backlog item:
 | Field | Required | Notes |
 |-------|----------|-------|
 | `id` | yes | Stable unique key, lowercase-hyphen (e.g. `forge-zero-value-exploit`). Referenced by `dupe_of`. |
-| `title` | yes | The public one-line description shown on the page. This **is** the description. |
+| `title` | yes | The public one-line description shown on the page. This **is** the description. **Capped at 100 characters** — it becomes the name of the idea's Discord forum thread and Discord truncates past that. The cap is enforced against a title being *written*, so the 41 that predate it still save untouched but must be trimmed the next time they are edited (`roadmap-editor.validate_title_lengths`; `bin/roadmap-lint.py --warnings` counts them). |
 | `group` | yes | Must match a `groups[].id` (`forge`, `combat-classes`, `bosses`, …). |
 | `status` | yes | One of the ten workflow values below. |
 | `type` | yes | `Defect`, `Enhancement`, or `Exploit`. Sets the merit value of a shipped item (1 / 2 / 3). |
@@ -126,6 +126,18 @@ epics:
     status: confirmed          # optional; derived when absent
     notes: "Public blurb shown on the card."
 ```
+
+Create or edit one from an agent with the `epics` key of a
+`bin/roadmap-apply-patch.py` patch — it writes the block through the editor's own
+serializer under the same lock, same as the ideas half:
+
+```json
+{"epics": {"my-epic": {"title": "My Epic", "group": "wiki-tools"}},
+ "child-idea": {"epic": "my-epic", "status": "planned"}}
+```
+
+An epic is never *deleted* from there (that would orphan every idea pointing at it) — use
+**Manage epics** in the GUI.
 
 An epic is **not an idea**: it has no `type`, no `player` and earns no merit — its children
 still do, exactly as before. Everything about the rollup is derived:
