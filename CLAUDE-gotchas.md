@@ -197,3 +197,15 @@
   consumer script. Verify every engine function in the Lexicon
   (<https://nwnlexicon.com>) or by grepping existing `unpacked/*.nss`.
   See [CLAUDE-nwscript.md](CLAUDE-nwscript.md) for known non-existent functions.
+
+- **A plain repack can ship a stale `.ncs` after you edit an include, and it
+  never heals.** nasher does not reliably recompile a script whose `#include`
+  changed, but it *does* refresh its cached copy of the include — so every later
+  build sees "nothing changed" and reuses the stale compiled script forever. The
+  code is right, the build is wrong, and the only symptom is at runtime (the
+  2026-09-16 case: `onmoduleload.ncs` missing a `CREATE TABLE` that `mw_db.nss`
+  had gained, so the table never existed and every Mixtape consume logged
+  `no such table: mw_legacy_claim`). No build gate catches this. The rule, the
+  verification recipe and when to reach for `repack-homers-lotr-clean` are in
+  [CLAUDE.md](CLAUDE.md), "Editing a `.nss` include — when a plain repack is not
+  enough".

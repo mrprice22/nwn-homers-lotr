@@ -68,6 +68,47 @@ per small fix. Full schema + workflow: [CLAUDE-roadmap.md](CLAUDE-roadmap.md). *
 
 **`docs/` is a human-readable reference**: `docs/index.html` (area map), `docs/creatures/`, `docs/areas/`, `docs/conversations/`, `docs/items/`, `docs/stores/`, `docs/factions.html`, `docs/journal.html`. Use it to look up module content before parsing JSON by hand.
 
+### Editing a `.nss` include — when a plain repack is not enough
+
+**nasher's incremental compile does not reliably recompile a script when one of its
+`#include`s changed.** On 2026-09-16 `mw_db.nss` gained a
+`CREATE TABLE IF NOT EXISTS mw_legacy_claim` (`ed16ebcccb1`); `onmoduleload.nss`
+`#include`s `mw_db` and calls `MW_InitDb()` — and the `onmoduleload.ncs` that got
+packed still carried only the two older CREATEs. The table was therefore never
+created on the dev realm, and every Akira's Mixtape consume logged
+`sqlite error: no such table: mw_legacy_claim` followed by `not prepared`.
+
+**The trap is that it does not heal itself.** nasher refreshes its cached *source*
+copy (`.nasher/cache/default/mw_db.nss`) even on the run that skips the dependent,
+so from then on the include looks unchanged and the stale `.ncs` is reused forever.
+No ordinary repack will ever fix it, no build gate catches it, and the only symptom
+is at runtime. `bin/repack-homers-lotr-clean`'s own header documents this failure
+mode — the cache wipe is the remedy, and `--clean` also purges `.nasher/tmp/*.ncs`,
+which otherwise fool the same "no changed files" check.
+
+**The rule: after editing a file that anything `#include`s, a plain repack is not
+trustworthy — say so and offer `repack-homers-lotr-clean`.** 227 files under
+`unpacked/` are included by something and the blast radius reaches most of the tree
+(`color` alone has 251 transitive dependents), so this is not a rare shape. Whether
+to spend the rebuild is the **user's call** — it wipes the cache and recompiles
+everything (~2.5 min here, plus the smoke and dialog gates) — but raise it rather
+than quietly shipping a build that may not contain the change. A `.nss` that
+nothing includes (a conversation action script, an event handler) is safe: its own
+source changed, so nasher rebuilds it.
+
+**Verify instead of assuming.** The check is cheap and exact — pull the dependent
+back out of the build and look for the change:
+
+```
+nwn_erf -x -f "$NWN_HOME_DIR/modules/$NWN_MODULE.mod" onmoduleload.ncs
+strings onmoduleload.ncs | grep mw_legacy_claim     # no output = stale build
+```
+
+To size the damage after the fact, diff every `.ncs` between the previous archived
+build and the rebuild (the repo root keeps the last 5 of each): anything that
+differs and is not `nwnmgr_bstamp` — the build stamp, which changes every build —
+is either your fix or a change that had been silently held back.
+
 ### Where a repack puts the `.mod` — three destinations
 
 `nwn_manager/bin/repack-homers-lotr` (and `-clean`) writes **three** copies of every
@@ -367,9 +408,9 @@ read back as the other. It is opt-in, and the result
 is cached to a `release-notes/<range>.<fingerprint>.flavor.json` sidecar (gitignored), so
 the same range always renders identically and any bullet can be hand-edited: `text` is
 what renders, `ids` says which items it covers, `null` text falls back to that item's
-roadmap note. `--regen-flavor` re-rolls. The model is `--model` (a `bin/llm/config.py`
-alias or a literal model id; `--list-models` shows what the box serves — one model,
-since llama-server loads exactly one) and it is part of
+roadmap note. `--regen-flavor` re-rolls. The model is `--model` — one of the names the LLM box serves (`qwen36`, `deepseek9b`,
+`deepseek`; `--list-models` prints the live list with what each is good for, and the
+roadmap editor's dropdown offers the same set) — and it is part of
 the sidecar's identity, so switching models never returns the previous one's text. If the model drops, repeats or invents an id the
 answer is **repaired, not discarded** — every item still ends up in exactly one bullet,
 un-flavored if need be; in emoji mode an id the model skipped, invented or answered with
@@ -616,15 +657,25 @@ committed, never under `unpacked/`, never sent to the local LLM box.
 
 ## Working with the local LLM
 
-A local LLM box does the module's bulk prose work — since 2026-09-14 that is
-**llama.cpp's `llama-server`** serving `Qwen3.6-35B-A3B-Q4_K_M`, on the Windows
+A local LLM box does the module's bulk prose work — llama.cpp on the Windows
 machine wired to this host over ethernet, reached at `bin/llm/config.py`'s
 `LLM_URL` (override with the `LLM_URL` env var). The client speaks the
-**OpenAI-compatible API**, so a move is a URL change. Full details in
-[CLAUDE-llm-harness.md](CLAUDE-llm-harness.md) — read its "The box" section
-before debugging a connection, because both common failures (llama-server bound
-to `127.0.0.1`, the Windows firewall) present as a hang, not an error. Three
-rules matter everywhere:
+**OpenAI-compatible API**, so a move is a URL change. Since 2026-09-15 that is a
+**router**: one endpoint serves every model in `bin/llm/config.py`'s `MODELS`,
+the `model` field of a request picks one, and the box loads it on demand and
+unloads it after 15 idle minutes. It holds exactly one at a time, so switching
+costs a reload — batch a model's work rather than alternating per request.
+
+| name | what it is | measured | reach for it when |
+|---|---|---|---|
+| `qwen36` | Qwen3.6-35B-A3B Q4_K_M (MoE, 3B active), 32K ctx | ~42 tok/s generating, ~510 tok/s reading | **the default.** Best quality per second, and the only one whose thinking can be switched off |
+| `deepseek9b` | Qwen3.5-9B distilled from DeepSeek-V4-Flash, 16K ctx | ~40 tok/s generating, **~1630 tok/s reading** | the *input* is the expensive part — summarising something long, classifying a big batch |
+| `deepseek` | DeepSeek-V4-Flash-0731 UD-IQ1_S, 16K ctx | **~4 tok/s**, minutes to load cold | one hard question you will walk away from. Never behind a button someone is waiting on |
+
+Full details in [CLAUDE-llm-harness.md](CLAUDE-llm-harness.md) — read its "The
+box" section before debugging a connection, because both common failures (the
+server bound to `127.0.0.1`, the Windows firewall) present as a hang, not an
+error. Three rules matter everywhere:
 
 - **Never send secrets to it.** It is unauthenticated plain HTTP on another
   machine — no `server.env`, no CD keys, no `bin/seed-admindb.sh`, no

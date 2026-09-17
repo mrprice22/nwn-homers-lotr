@@ -531,28 +531,66 @@ def emoji_input(ideas: list[dict]) -> list[dict]:
     } for i in sorted(ideas, key=lambda i: i["id"])]
 
 
-def available_models() -> list[tuple[str, str]]:
-    """[(name, source)] for the model picker. Never raises.
+def available_models() -> list[dict]:
+    """Rows for the model picker: {name, label, hint, source}. Never raises.
 
-    The aliases always come back, so a caller (the roadmap editor's dropdown)
-    still has something to offer when the box is asleep -- which it often is.
+    The registry rows always come back, so the roadmap editor's dropdown offers
+    every model even when the box answers nothing -- which is its normal state,
+    since the router only loads a model once a request names one. `source` says
+    how much is known about a row:
+
+      registry  a `bin/llm/config.py` name the box did not confirm
+      served    the box listed it
+      extra     the box serves it and config.py has never heard of it
+      error     not a model at all: why the box could not be asked
+
+    `default` is deliberately not offered. It is an alias for whichever model
+    config.py points at, and offering both it and its target invites picking the
+    same model twice under two names -- and so under two cache keys.
     """
-    out = [(alias, "alias") for alias in _llm_config_models()]
+    served: list[str] = []
+    error = ""
     try:
         from llm.client import Client
-        for tag in Client().available_models():
-            out.append((tag, "installed"))
-    except Exception as exc:
-        out.append((f"(the LLM box did not answer: {exc})", "error"))
+        served = Client().available_models()
+    except Exception as exc:                              # noqa: BLE001
+        error = str(exc)
+
+    registry = _llm_config_models()
+    targets = set(registry.values())
+    out: list[dict] = []
+    for name, target in registry.items():
+        if name == "default" and target in registry:
+            continue
+        label, hint = _model_info(name)
+        out.append({"name": name, "label": label, "hint": hint,
+                    "source": "served" if name in served else "registry"})
+    for tag in served:
+        if tag not in registry and tag not in targets:
+            out.append({"name": tag, "label": tag, "source": "extra",
+                        "hint": "served by the box but not in bin/llm/config.py"})
+    if error:
+        out.append({"name": f"(the LLM box did not answer: {error})",
+                    "label": "", "hint": "", "source": "error"})
     return out
 
 
-def _llm_config_models() -> list[str]:
+def _llm_config_models() -> dict[str, str]:
     try:
         from llm import config
-        return list(config.MODELS)
-    except Exception:
-        return ["default"]
+        return dict(config.MODELS)
+    except Exception:                                     # noqa: BLE001
+        return {"default": "default"}
+
+
+def _model_info(name: str) -> tuple[str, str]:
+    """(label, hint) for the picker -- the bare name when config says nothing."""
+    try:
+        from llm import config
+        label, hint = config.MODEL_INFO[name]
+        return label, hint
+    except Exception:                                     # noqa: BLE001
+        return name, ""
 
 
 def flavor_ctx(user: str, system: str = FLAVOR_SYSTEM) -> int:
@@ -1074,19 +1112,19 @@ def main() -> int:
     ap.add_argument("--regen-flavor", action="store_true",
                     help="re-run the flavor pass even if a sidecar exists")
     ap.add_argument("--model", default="default",
-                    help="which model does the --flavor rewrite: a bin/llm/config.py "
-                         "alias (default, fast, best) or a literal Ollama tag. "
-                         "--list-models shows what the box actually has.")
+                    help="which model does the --flavor rewrite: a name the LLM "
+                         "box serves (qwen36, deepseek9b, deepseek) or the "
+                         "`default` alias. --list-models shows the live list.")
     ap.add_argument("--list-models", action="store_true",
-                    help="list the models the LLM box is serving, and exit")
+                    help="list the models the LLM box will serve, and exit")
     ap.add_argument("--out", help="write here instead of stdout")
     ap.add_argument("--force", action="store_true",
                     help="run outside the dev realm (commit hashes may not resolve)")
     args = ap.parse_args()
 
     if args.list_models:
-        for name, source in available_models():
-            print(f"{name}\t{source}")
+        for row in available_models():
+            print(f"{row['name']}\t{row['source']}\t{row.get('hint') or ''}")
         return 0
 
     role = GEN.season_role()

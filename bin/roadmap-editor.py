@@ -1481,14 +1481,24 @@ def environment_map(ideas: list) -> dict:
                 "error": str(exc)}
 
 
+# How long the generator gets, per model. Ten minutes is sized for qwen36 at
+# ~42 tok/s; `deepseek` generates at ~4 and can spend minutes paging 82.5 GB of
+# weights off NVMe before its first token, so the same cap would kill a run that
+# was working. The deterministic pass never goes near either number.
+RELNOTES_TIMEOUT = 600
+RELNOTES_MODEL_TIMEOUT = {"deepseek": 3900}
+
+
 def release_notes(audience: str, flavor: bool = False,
                   model: str = "default") -> tuple[bool, str, str]:
     """(ok, markdown, warnings) from bin/gen-release-notes.py."""
     cmd = [sys.executable, str(RELNOTES_PATH), "--audience", audience]
+    timeout = RELNOTES_TIMEOUT
     if flavor:
         cmd += ["--flavor", "--model", model]
+        timeout = RELNOTES_MODEL_TIMEOUT.get(model, RELNOTES_TIMEOUT)
     proc = subprocess.run(cmd, cwd=str(REPO), capture_output=True, text=True,
-                          timeout=600)
+                          timeout=timeout)
     return proc.returncode == 0, proc.stdout, proc.stderr.strip()
 
 
@@ -2441,9 +2451,10 @@ class Handler(BaseHTTPRequestHandler):
         q = urllib.parse.parse_qs(parts.query)
 
         if route == "/api/release-notes/models":
-            return self._json({"ok": True,
-                               "models": [{"name": n, "source": src}
-                                          for n, src in RELNOTES.available_models()]})
+            # Rows straight from the generator: name, label, hint and how the
+            # name is known (registry / served / extra / error). See
+            # gen-release-notes.available_models().
+            return self._json({"ok": True, "models": RELNOTES.available_models()})
 
         if route == "/api/release-notes/admin":
             audience = "admin"
@@ -2458,9 +2469,11 @@ class Handler(BaseHTTPRequestHandler):
         model = (q.get("model") or ["default"])[0]
         try:
             ok, markdown, warnings = release_notes(audience, flavor, model)
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
+            mins = max(1, int(exc.timeout or RELNOTES_TIMEOUT) // 60)
             return self._json({"ok": False, "errors": [
-                "the release-notes generator timed out (10 min)"]}, 504)
+                f"the release-notes generator timed out ({mins} min) on "
+                f"model {model!r}"]}, 504)
         return self._json({"ok": ok, "audience": audience, "markdown": markdown,
                            "warnings": warnings, "flavored": flavor,
                            "model": model})
@@ -8162,7 +8175,7 @@ async function openReleaseNotes(audience){
     <p class="small">${esc(blurb)}</p>
     <div class="rn-bar">
       <button id="rn_copy">Copy</button>
-      <select id="rn_model" title="Which local model does the rewrite"></select>
+      <select id="rn_model" title="Which model on the LAN LLM box does the rewrite"></select>
       <button id="rn_flavor" title="${audience==='players'
         ? `Pick up to three emojis for each change. Runs on the LAN LLM box; the
 first run takes a while, after which it is cached. An item the model skips keeps
@@ -8174,6 +8187,7 @@ while, after which it is cached.`}">${audience==='players'
       <span class="spacer"></span>
       <span class="small" id="rn_meta"></span>
     </div>
+    <p class="small" id="rn_model_hint"></p>
     <pre id="rn_out">Loading…</pre>
     <div class="bar"><span class="spacer"></span><button id="rn_close">Close</button></div>`);
   $('#rn_close').onclick=()=>{ closePanel(); };
@@ -8190,17 +8204,38 @@ while, after which it is cached.`}">${audience==='players'
 async function rnModels(){
   const sel=$('#rn_model');
   if (!sel) return;
+  const render=(models)=>{
+    // Every model the box serves is offered by name, with what it is good for
+    // as the option's tooltip. Nothing is filtered on whether the box answered:
+    // it only loads a model when a request asks for one, so "unloaded" is its
+    // resting state and an empty dropdown would make the button look broken.
+    sel.innerHTML=models.filter(m=>m.source!=='error')
+      .map(m=>`<option value="${esc(m.name)}" title="${esc(m.hint||'')}">${
+        esc(m.label||m.name)}${m.source==='extra'?' (not in config.py)':''
+        }</option>`).join('');
+    RN_MODELS={}; models.forEach(m=>{ RN_MODELS[m.name]=m; });
+    rnModelHint();
+  };
   try{
     const r=await api('/api/release-notes/models');
     const res=await r.json();
-    // The box is asleep more often than not, so the aliases must still render
-    // -- an empty dropdown would make the rewrite button look broken.
-    sel.innerHTML=(res.models||[]).filter(m=>m.source!=='error')
-      .map(m=>`<option value="${esc(m.name)}">${esc(m.name)}${
-        m.source==='alias'?'':' (installed)'}</option>`).join('');
+    render(res.models||[]);
     const err=(res.models||[]).find(m=>m.source==='error');
+    // The box being unreachable is not fatal here -- the rewrite is opt-in and
+    // falls back to the deterministic notes -- but it is why a run will fail.
     if (err) sel.title=err.name;
-  }catch(e){ sel.innerHTML='<option value="default">default</option>'; }
+    sel.onchange=rnModelHint;
+  }catch(e){ render([{name:'default', label:'default'}]); }
+}
+
+// Which model is selected, spelled out under the bar: the dropdown shows one
+// line and these differ by an order of magnitude in speed.
+let RN_MODELS={};
+function rnModelHint(){
+  const sel=$('#rn_model'), note=$('#rn_model_hint');
+  if (!sel || !note) return;
+  const m=RN_MODELS[sel.value]||{};
+  note.textContent=m.hint||'';
 }
 
 async function rnLoad(audience, flavor){

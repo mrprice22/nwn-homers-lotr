@@ -39,32 +39,45 @@ and only the inference is remote. That is also what lets every batch be gated on
 **Never send it secrets.** Unauthenticated plain HTTP on the LAN: no
 `server.env`, no CD keys, no `bin/seed-admindb.sh`, no `roadmap-merit-aliases.json`.
 
-**Since 2026-09-14 it runs llama.cpp's `llama-server`** (not Ollama) serving
-`Qwen3.6-35B-A3B-Q4_K_M`, wired to this host over ethernet rather than sitting on
-the wifi LAN. The address is `config.LLM_URL`, overridable by the `LLM_URL` env
-var. The client talks the **OpenAI-compatible API** (`/v1/chat/completions`,
-`/v1/models`), which both servers implement.
+**Since 2026-09-14 it runs llama.cpp** (not Ollama), wired to this host over
+ethernet rather than sitting on the wifi LAN. The address is `config.LLM_URL`,
+overridable by the `LLM_URL` env var. The client talks the **OpenAI-compatible
+API** (`/v1/chat/completions`, `/v1/models`), which every one of these servers
+implements.
 
-Three Ollama behaviours did not survive the move: `options.num_ctx` (the window
-is now fixed by llama-server's `-c`, and an overflow is an HTTP error rather than
-a silent front-truncation), `think: false` (now
-`chat_template_kwargs.enable_thinking`, plus a defensive `<think>` strip), and
-the model registry (**one model per process**, and the `model` field is ignored —
-so `config.MODELS` is a label and a cache key, not a choice).
+**Since 2026-09-15 it is a router**: one endpoint, every model in
+`config.MODELS`, picked by the `model` field and loaded on demand.
+
+| name | what it is | measured | reach for it when |
+|---|---|---|---|
+| `qwen36` | Qwen3.6-35B-A3B Q4_K_M (MoE, 3B active), 32K ctx | ~42 tok/s generating, ~510 tok/s reading | **the default.** Best quality per second, and the only one whose thinking can be switched off |
+| `deepseek9b` | Qwen3.5-9B distilled from DeepSeek-V4-Flash, 16K ctx | ~40 tok/s generating, **~1630 tok/s reading** | the *input* is the expensive part — summarising something long, classifying a big batch |
+| `deepseek` | DeepSeek-V4-Flash-0731 UD-IQ1_S, 16K ctx | **~4 tok/s**, minutes to load cold | one hard question you will walk away from. Never behind a button someone is waiting on |
+
+It holds one at a time, so a switch evicts the loaded model — batch a model's
+work instead of alternating. Only `qwen36` honours
+`chat_template_kwargs.enable_thinking: false`; the DeepSeek models always reason
+first, which is what `config.MIN_PREDICT` (token floor) and
+`config.MODEL_TIMEOUT` (3900s for `deepseek` at ~4 tok/s) exist for.
+
+Two Ollama behaviours did not survive the move: `options.num_ctx` (the window is
+now fixed at launch by `-c`, and an overflow is an HTTP error rather than a
+silent front-truncation) and `think: false` (now
+`chat_template_kwargs.enable_thinking`, plus a defensive `<think>` strip).
 
 **Both common connection failures are hangs, not errors**, and both are on the
 Windows side: llama-server binds `127.0.0.1` unless given `--host 0.0.0.0`, and
 the firewall must allow its port for this subnet. Check with
 `curl http://<box>:<port>/v1/models`.
 
-Measured 2026-09-14 (Ryzen 7 9700X, 61.7 GB RAM, RTX 3060 8 GB): **25.8 tok/s**,
-**~24s cold start**, **16384 context** as launched. **Concurrency is 1** —
-llama-server serializes, so parallel callers only queue; that reverses the
-Ollama-era 4, which really did give ~2.5x on short generations.
+Measured 2026-09-15 (Ryzen 7 9700X, 61.7 GB RAM, RTX 3060 8 GB) — see the table
+above; `qwen36`'s ~42 tok/s supersedes the 25.8 measured the day before, which
+was a CPU+Vulkan build of llama.cpp rather than a CUDA one. **Concurrency is 1** —
+the box serializes, so parallel callers only queue; that reverses the Ollama-era
+4, which really did give ~2.5x on short generations.
 
-There is **no embedding model**, and that is structural now: one model per
-process, so embeddings need a *second* `llama-server --embeddings` on its own
-port.
+There is **no embedding model**: the router serves what its `models.ini` lists,
+and an embedding model additionally needs `--embeddings` at launch.
 
 ---
 
