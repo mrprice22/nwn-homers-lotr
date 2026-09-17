@@ -129,6 +129,10 @@ epics:
     title: "Legendary Levels 41-60"
     group: combat-classes
     notes: "Replace the bolt-on legendary leveler with real character levels 41-60 — true class progression on a proper epic XP table, plus a pool of Legendary Feats you can only take at level 60"
+  - id: roadmap-editor-qol
+    title: "Roadmap Editor QoL"
+    group: wiki-tools
+    notes: "A batch of quality-of-life work on the roadmap editor itself: remembering where you were, a searchable duplicate picker, a title cap that matches Discord, a read-only public view, and a lifecycle that separates 'shipped to test' from 'live in production'."
 
 
 # -----------------------------------------------------------------------------
@@ -170,14 +174,20 @@ ideas:
         status: open
         kind: admin
   - id: roadmap-editor-qol-improvements
-    title: "roadmap editor QoL improvements"
+    title: "roadmap editor QoL — umbrella (split into child ideas)"
     group: wiki-tools
-    status: confirmed
+    epic: roadmap-editor-qol
+    status: planned
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-09-15"
-    notes: "<ul><li>when returning to the \"Board\" app tab, remember the horizontal and vertical scroll position for user, even across page refreshes</li><li>enforce a max title length that aligns with discord's max thread name length</li><li>creating a new idea should correctly leave that idea in it's own tab; right now when I click save: that tab changes to a different (seemingly random idea) -- this can happen even on existing ideas</li><li>'duplicate of  (merges credit)' is too cumbersome for a human to use -- it's not sorted alphabetically and I cant search/filter, so even if I know exact ID of duplicate It's too time consuming to try and link it. also remove the merges credit verbiage -- only the original idea submitter gets merit/credit.</li><li>Need a way to deploy ideas to test realm and give credit but still leave idea open in roadmap until testing is confirmed and the work is promoted to live prod realm -- thinking a new status at of lifecycle</li><li>when claude is updating roadmap on back end during couse of normal development, conventions are stored in claude.md and not enforced with rules, and those do not trigger updates to for the discord bot; thinking need a new admin account for claude and to use an API for all roadmap updates in future, blocking direct roadmap edit access via claude.md </li></ul><div><br></div>"
+    notes: "<p>Superseded. The eight asks in this entry are now one child idea each under the <strong>Roadmap Editor QoL</strong> epic, so they can be worked, shipped and credited separately: <code>rmqol-tab-scroll-memory</code>, <code>rmqol-title-max-length</code>, <code>rmqol-new-idea-tab-retarget</code>, <code>rmqol-dupe-of-picker</code>, <code>rmqol-relnotes-model-tuning</code>, <code>rmqol-deployed-lifecycle</code>, <code>rmqol-agent-api-account</code>, <code>rmqol-public-role</code>.</p>"
+    notes_h: 425
+    manual_steps:
+      - step: "Delete this umbrella row once you are happy the eight children carry everything it said. It is hidden, so it publishes nowhere either way — it is only kept so nothing is lost in the split."
+        status: open
+        kind: admin
   - id: double-sided-weapons-dont-give-expected-attacks-per-round
     title: "double sided weapons dont give expected attacks per roundon large sized creature appearances"
     group: combat-classes
@@ -328,7 +338,8 @@ ideas:
   - id: boss-enrages-after-killing-player
     title: "Boss enrages after killing player"
     group: bosses
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-01"
@@ -379,6 +390,9 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-14"
         text: "Discord — HomelessSon in Boss enrages after killing player (https://discord.com/channels/514343293761486848/1544373948420980866):\n\nattempted fix deployed to test realm"
+      - author: "Sync Bot"
+        date: "2026-09-16"
+        text: "Discord — HomelessSon in Boss enrages after killing player (https://discord.com/channels/514343293761486848/1544373948420980866):\n\nlooks like this was deployed to season 2 in the past few weeks at some point, lmk if still happening"
   - id: level-drain-property-not-removable-from-forge
     title: "Level drain property not removable from Forge"
     group: forge
@@ -417,7 +431,8 @@ ideas:
   - id: combat-dummy-can-be-slain
     title: "Combat dummy can be slain"
     group: combat-classes
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Sync (Shync)"
     date: "2026-09-01"
@@ -506,7 +521,8 @@ ideas:
   - id: meaningwave-bardsong-not-firing
     title: "Meaningwave Bardsong not firing"
     group: meaningwave
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Fugdish (Try_this)"
     date: "2026-09-15"
@@ -696,8 +712,9 @@ ideas:
   - id: boss-timer-standardization
     title: "Standardize every boss respawn to 20 minutes and the enrage out-of-combat reset to 30, both tunable from one include"
     group: bosses
-    status: manual
+    status: awarded
     hidden: true
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-28"
@@ -919,15 +936,15 @@ ideas:
     discord: {'thread_id': '1549086904639824012', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549086904639824012'}
     notes: "Look for a place that is evil faction aligned (store) to sell harm potions for undead chars/players, and inflict serious wounds potions as well"
   - id: tensors-transformation-not-merging-items-reliably
-    title: "Tensor's Transformation not merging items reliably"
+    title: "Tensor's Transformation not merging items reliably (X4 multiper issue)"
     group: combat-classes
-    status: manual
-    type: Defect
+    status: confirmed
+    type: Exploit
     player: "Sync (Shync)"
     date: "2026-08-27"
     commit: f50a48bc2da
     discord: {'thread_id': '1545227465595560037', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1545227465595560037'}
-    notes: "<div><b>8/24/26: Shapeshifting merges your gear every time now, not just when you happen to catch it.</b> Tenser's Transformation, Polymorph Self, Shapechange, druid Wild Shape and Elemental Shape and every Shifter form share one merge, and it was being run before the game had finished putting you into the form - so on an unlucky cast there was no new hide or weapon to merge onto and nothing carried over. It now waits until the form's own hide and weapon are actually in your hands before it merges, so a cold cast with no buffs works the same as one after a full buff routine. Reported by Sync (Shync), who pinned down the tell: no buffs, no merge.</div><div><br></div><div><b>It could also quietly duplicate the properties on your own weapon.</b> When the merge ran too early it treated the weapon still in your hand as the form's weapon and copied that weapon's properties onto itself, permanently. That can no longer happen: the merge refuses to write to anything you were already carrying, and the “your equipment's magic flows into your new form” message now only appears when something really merged.</div><div><br></div><div><br></div><div><b>8/26/26: LAST DEFECT related to tensors:</b> all the weapon properties merge over and show on character sheet, EXCEPT \"Enchantment Bonus\". When I look at merged sword though, I see the Tensor's stock sword, and when examined I see it has it's original/default +3 Enchantment, and whatever enchantment bonus was on my unmorphed weapon, e.g. +15. </div><div><br></div><div>Since We get defects if a weapon as multiple enchantment bonuses, or if weapon has both an Attack bonus and Enchantment bonus, I think a well-rounded fix would be</div><div><ol><li>Check if morphed weapon has either a &gt;= +4 or greater enchantment bonus or a &gt;= +4 attack bonus property</li><li>if so remove the default +3 enchantment bonus from Tensor's Sword.</li><li>otherwise remove any enchantment/attack bonus property from the list of effects to morph into Tensor's Sword</li><li>Assume player accessible (unmorphed) weapons wont have enchantment and attack bonus properites on this (this is build gated to prevent)</li></ol></div><div><br></div><div><b>8/27/26 (round 4): the shape's weapon now keeps ONE enchantment bonus - the better of its own and yours.</b> Tenser's hands you a stock sword that already carries a +3, and the merge used to add your +15 on top of it. NWN does not stack two enchantment bonuses on one weapon, so the sword read \"+3 and +15\" when you examined it and the game quietly paid out the +3 - which is why every other merged property showed up on your character sheet and this one never did. The merge now compares the two and keeps only the winner: your +15 replaces the stock +3 outright, and a weapon weaker than +3 leaves the form's own bonus alone instead of piling a second one on. An attack bonus counts on the same scale, since the two never stack with each other either. Animal and elemental forms are unchanged - claws still get the attack and damage your weapon is worth - they just no longer collect duplicate lines. Reported by Sync (Shync), who spotted the doubled enchantment on the merged sword.</div><div><br></div><div>Three weapons that carried both an attack bonus and an enchantment bonus at once - Rakescar, and two others sold or stashed around the module - have been collapsed to a single enchantment at the higher value. They are slightly better now, not worse: the halves that were shadowing each other have been merged.</div>"
+    notes: "<div><b>8/24/26: Shapeshifting merges your gear every time now, not just when you happen to catch it.</b> Tenser's Transformation, Polymorph Self, Shapechange, druid Wild Shape and Elemental Shape and every Shifter form share one merge, and it was being run before the game had finished putting you into the form - so on an unlucky cast there was no new hide or weapon to merge onto and nothing carried over. It now waits until the form's own hide and weapon are actually in your hands before it merges, so a cold cast with no buffs works the same as one after a full buff routine. Reported by Sync (Shync), who pinned down the tell: no buffs, no merge.</div><div><br></div><div><b>It could also quietly duplicate the properties on your own weapon.</b> When the merge ran too early it treated the weapon still in your hand as the form's weapon and copied that weapon's properties onto itself, permanently. That can no longer happen: the merge refuses to write to anything you were already carrying, and the “your equipment's magic flows into your new form” message now only appears when something really merged.</div><div><br></div><div><br></div><div><b>8/26/26: LAST DEFECT related to tensors:</b> all the weapon properties merge over and show on character sheet, EXCEPT \"Enchantment Bonus\". When I look at merged sword though, I see the Tensor's stock sword, and when examined I see it has it's original/default +3 Enchantment, and whatever enchantment bonus was on my unmorphed weapon, e.g. +15. </div><div><br></div><div>Since We get defects if a weapon as multiple enchantment bonuses, or if weapon has both an Attack bonus and Enchantment bonus, I think a well-rounded fix would be</div><div><ol><li>Check if morphed weapon has either a &gt;= +4 or greater enchantment bonus or a &gt;= +4 attack bonus property</li><li>if so remove the default +3 enchantment bonus from Tensor's Sword.</li><li>otherwise remove any enchantment/attack bonus property from the list of effects to morph into Tensor's Sword</li><li>Assume player accessible (unmorphed) weapons wont have enchantment and attack bonus properites on this (this is build gated to prevent)</li></ol></div><div><br></div><div><b>8/27/26 (round 4): the shape's weapon now keeps ONE enchantment bonus - the better of its own and yours.</b> Tenser's hands you a stock sword that already carries a +3, and the merge used to add your +15 on top of it. NWN does not stack two enchantment bonuses on one weapon, so the sword read \"+3 and +15\" when you examined it and the game quietly paid out the +3 - which is why every other merged property showed up on your character sheet and this one never did. The merge now compares the two and keeps only the winner: your +15 replaces the stock +3 outright, and a weapon weaker than +3 leaves the form's own bonus alone instead of piling a second one on. An attack bonus counts on the same scale, since the two never stack with each other either. Animal and elemental forms are unchanged - claws still get the attack and damage your weapon is worth - they just no longer collect duplicate lines. Reported by Sync (Shync), who spotted the doubled enchantment on the merged sword.</div><div><br></div><div>Three weapons that carried both an attack bonus and an enchantment bonus at once - Rakescar, and two others sold or stashed around the module - have been collapsed to a single enchantment at the higher value. They are slightly better now, not worse: the halves that were shadowing each other have been merged.</div><div><br></div><div><br></div><div>\n<div><div><span><span>Sync</span><span><span><span>OP</span></span></span></span><span><span><i> — </i>9/3/26, 7:42 PM</span></span><div><span>After more testing just found out the same thing happens with other shapes as well, tested with risen and dragon, they dont get the stats from items merged right either</span></div></div><div><div></div></div></div><div><div><div><div><div></div><div><div><a><span><span><span>Sync</span></span></span></a> changed the post title: <strong>Shapes are not merging items correctly</strong><span><span><i> — </i>9/3/26, 7:44 PM</span></span></div></div></div></div></div><div><div></div></div></div><div><div><span><span>HomelessSon</span></span><span><span><i> — </i>9/6/26, 7:49 AM</span></span><div><span>yeah I think it works by taking the highest value of each property type among all the items, so if you had 2 diff items that gave + CON for example, it only takes the highest one</span></div></div><div><div></div></div></div><div><div> <div><span>that was an okay first step, but I agree a more mature version would stack and not stack properties in the same way the game engine normally does when you're unmorphed, will add it to the roadmap</span></div></div><div><div></div></div></div><div><div><span><span>Sync</span><span><span><span>OP</span></span></span></span><span><span><i> — </i>9/6/26, 8:34 AM</span></span><div><span>I think its also the same reason as to why dragons get so much ac now, vanilla system probably mixed with the new gear system at some point during a fix or update</span></div></div></div><div><div> <div><span>Since i didnt need ac anymore I tried to get it down, so i could actually get hit, but it seemed to stay high no matter what i did... </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div><div><div></div></div></div><div><div> <div><span>Think its using gear ac and then using vanilla calculation on top, taking highest ac item and multiplying it x3... Or 4 </span><span><img src=\"https://discord.com/assets/d5d18f9c17a19de2.svg\" alt=\"🤔\"></span></div></div><div><div></div></div></div><div><div> <div><span>So dragon ends with 130 ac with a +10ac item</span></div></div><div><div></div></div></div><div><div><span><span>HomelessSon</span></span><span><span><i> — </i>9/6/26, 8:41 AM</span></span><div><span>ooph</span></div></div><div><div></div></div></div><div><div> <div><span>i wanted to keep whatever AC/stats/etc you get from going to naked shifter to the new shape (whatever those deltas are) PLUS your gear</span></div></div><div><div></div></div></div><div><div><span><span>Sync</span><span><span><span>OP</span></span></span></span><span><span><i> — </i>9/6/26, 8:46 AM</span></span><div><span>Then its working as intended</span></div></div><div><div></div></div></div><div><div> <div><span>Vanilla only takes one ac item and multiplies it, so i guess its taking ac twice now, worked wonders for me until i got dmg immunities on my gear, since even bosses with 110ab couldn't hit me </span><span><img src=\"https://discord.com/assets/e5bddb2a9171637d.svg\" alt=\"🤣\"></span></div></div><div><div></div></div></div><div><div><span><span>HomelessSon</span></span><span><span><i> — </i>9/6/26, 8:52 AM</span></span><div><span>ah I was not expecting it to get multiplied but sounds like that was part of original calc that got left it, I'll consider this an exploit, thanks for reporting!</span></div></div><div><div></div></div></div><div><div><span><span>Sync</span><span><span><span>OP</span></span></span></span><span><span><i> — </i>9/6/26, 8:53 AM</span></span><div><span>Yeah, i did tell you when it happened but we didnt know why it was happening </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div><div><div></div></div></div><div><div> <div><span>Until i started to remove stuff 1 by 1, seems to be the most likely scenario</span></div></div></div>\n\n<br></div>"
     notes_h: 414
     impl_notes: "shape_merge_inc gains ShapeMergeFormReady() and ShapeMergeWhenReady(); all six polymorph scripts (nw_s0_tenstrans, nw_s0_polyself, nw_s0_shapechg, nw_s2_wildshape, nw_s2_elemshape, x2_s2_gwildshp) call the latter instead of ShapeMergeAll(). Root cause: five of them merged in the same script tick that applied EffectPolymorph, and the engine's gear-strip/creature-item-equip is not guaranteed complete by then, so GetItemInSlot returned the PRE-shift slots - CARMOUR invalid (no armour/ring/amulet merge at all) and the caster's own weapon in RIGHTHAND, which made IPWildShapeCopyItemProperties(oWeapon, oWeapon) copy that weapon's properties onto itself as DURATION_TYPE_PERMANENT, i.e. persistent .bic corruption. Stock polymorph.2da row 28 (POLYMORPH_DOOM_KNIGHT) leaves MergeW/MergeI/MergeA blank, so the engine merges nothing of its own and the script merge is the whole feature. Readiness is GetAppearanceType(oPC) == the form's polymorph.2da AppearanceType (true for every row; three rows have no HideItem, so the hide is not a usable signal). Retry ladder 0.2/0.5/1.0/1.5/2.5s, flat rather than recursive because NWScript forbids a function calling itself even through DelayCommand; a SHAPE_MERGE_PENDING sequence number on the PC makes the merge fire exactly once per shift and lets a later shift supersede stale rungs. Belt-and-braces: ShapeMergeAll now nulls any merge target that is one of the ShapeMergeGear snapshot's own items (ShapeMergeIsOwnGear), so merging too early degrades to 'nothing merged' rather than a corrupted item, and bMergedSomething only latches when a form-owned item was written to. nw_s0_shapechg keeps its existing DelayCommand(0.6, ...) and goes through the same helper. Ruled out during triage: no spells.2da override in hak_2da; Mod_OnPlrEqItm/Mod_OnPlrUnEqItm are empty so se_stopswap_uei never runs; sd_filter_inc's equipedScan (which destroys creature items) is dead code, included only by sd_test_filter. REMEDIATION (cada9296680): bin/audit-item-prop-dupes.py finds items whose property list is an exact k-fold repetition (k = gcd of the property counts) and collapses them back to 1/k, covering both servervault .bic files and the CPDB-compressed bank-box/house-chest objects in bankdb/housechest. It skips items that still match their blueprint exactly, because a few module blueprints legitimately repeat every property (it_mneck002 ships four identical regeneration properties). Swept all three realms on 2026-08-24 - dev (102 characters), season 2 live (57) and the season 1 archive (188), every item type plus every bank box and house chest: CLEAN, no duplication found anywhere. The tool is verified against synthetic corruption on both paths (a doubled right-hand weapon on a character and one inside a bank box), repairing each back to an object identical to the pre-corruption original. NOTE: the season 2 production repo still carries the vulnerable inline merge - this fix is dev-only until promoted. ROUND 2 (8874994fa15) - round 1 shipped and changed nothing; Sync retested and got the identical buff-dependent result (no buffs no merge; Energy Buffer + Shadow Shield + Elemental Shield merged; Mestil's Acid Sheath + Greater Stoneskin + Mind Blank + Premonition did not). The deploy was verified live first - the dev container started 19:30 on the 19:20:56 build in currentgame.22 - so the fix itself was wrong. GetAppearanceType() is NOT the item swap: the engine flips the appearance and swaps the equipment in separate ticks, and on Tenser's the appearance lands first. The first rung therefore saw appearance 40, declared ready, cleared SHAPE_MERGE_PENDING to 0, and ShapeMergeAll then found the caster's own weapon still in RIGHTHAND and no form hide - the own-gear guard blanked both, nothing merged, no message - after which every later rung no-opped on the spent sequence number. The ladder was dead on arrival in exactly the case it existed for. Fix: (1) ShapeMergeFormReady(oPC, nPoly, gear) now asks whether one of the slots polymorph.2da names for the form (HideItem -&gt; CARMOUR, EQUIPPED -&gt; RIGHTHAND, CreatureWeapon1/2/3 -&gt; CWEAPON_R/L/B) holds an item that is not in the ShapeMergeGear snapshot; identity against the snapshot is the load-bearing half, since a resref comparison alone would not separate the form's hide from a shifter's own creature item. Appearance survives only as the fallback for a row that names no items at all, so nothing stalls. (2) ShapeMergeAll returns bMergedSomething and ShapeMergeAttempt spends the one-shot only on TRUE, so a ready-but-empty attempt leaves the ladder armed; re-running the merge on a later rung is safe precisely because it returns FALSE when it found no form item to write to. Ladder extended to 0.2/0.5/1.0/1.5/2.5/4.0/6.0s. Reference row, extracted from data/nwn_base.key (polymorph.2da is not overridden in hak_2da or any CEP hak): 28 POLYMORPH_DOOM_KNIGHT, AppearanceType 40, HideItem NW_IT_CREITEM005, EQUIPPED NW_WSWMLS013, CreatureWeapon1/2/3 ****, MergeW/MergeI/MergeA ****. INSTRUMENTATION: shape_merge_inc gains SHAPE_VAR_DEBUG (\"SHAPE_MERGE_DEBUG\" on the module object), set and cleared by dbg_combat alongside DEVCRIT_VAR_DEBUG and CBD_VAR_DEBUG - i.e. by the existing rest menu -&gt; Admin Options -&gt; \"[Admin] Combat diagnostics on/off\" reply, so no new dialog reply and no toolset work. While it is on, every rung SendMessageToPCs seq/poly/appearance/RIGHTHAND/CARMOUR/CWEAPON_R/L/B (each marked (own) when it is the caster's) plus ready= and merged=, and the cast itself reports the snapshot. The toggle is already admindb-gated, so shape_merge_inc needs no admin_db include and the six spell scripts take no DB hit. Delete the debug block when this item closes. ROUND 3 (edbc034bf00) - round 2 fixed the FIRING. Sync's instrumented cold cast returned '[SHAPE] seq=3 poly=28 appear=40/40 rh=nw_wswmls013 hide=nw_it_creitem005 cwR=- cwL=- cwB=- ready=1 merged=1' on the first rung with no buffs at all, plus the flow message - which neither earlier round managed. The remaining defect is a different one that the buff story was masking all along: the merge does not deliver the gear's ABILITY bonuses. Same character, same snapshot (wpn=brokenbranch armor=cloth034 shield=- gloves=bracesoftheblade), cold cast read STR 26 / DEX 23 / CON 18 / WIS 8 / CHA 8, AC 46, max HP 654; a later cast read STR 43 / DEX 35 / CON 26 / WIS 18 / CHA 14, AC 70, max HP 894. Elemental Shield, Shadow Shield and Mestil's Acid Sheath grant no ability points, so the +17 STR / +10 WIS / +6 CHA can only be the equipment's own bonuses applying in one case and not the other (WIS 8 / CHA 8 are the naked base scores). The weapon delta is the same story downstream: +74 vs +82 attack and +10 vs +18 damage is exactly the 8-point STR modifier gap. Two candidates remain and they need different fixes: (a) the merge lands on a hide the engine then tears down and rebuilds, throwing the properties away; (b) the merge lands and stays, but AddItemProperty on an already-equipped creature hide does not re-apply its ability bonuses. This round is built to tell them apart rather than guess again. The once-per-shift guarantee moves off the PC and onto the ITEMS: every merge target is tagged SHAPE_MERGED_SEQ with the shift's sequence number and a target already carrying it is skipped, so the ladder can run all nine rungs (out to 9s) with no double-merge risk - the tag rides the object. That also FIXES (a) for free: a rung finding an unclaimed hide has caught the engine swapping the item underneath us and merges the replacement. SHAPE_MERGE_PENDING is gone; only a later shift retires a ladder. The floating message is held to once per shift by SHAPE_MERGE_TOLD. Diagnostics for (b): every rung now prints the property COUNT on the form's hide and right hand and the caster's str/dex/con/wis/cha as current/base, and the cast line dumps all eleven snapshot slots with their property counts. If the hide holds its merged count out to the 9s rung while str/wis/cha never move, (b) is the answer and the fix is a re-equip, not a re-merge. ROUND 4 (this commit) - round 3 fixed the DELIVERY; Sync's follow-up isolated the last defect to one property. The form weapon for Tenser's is stock NW_WSWMLS013, which ships a generic ENHANCEMENT_BONUS +3, and IPWildShapeCopyItemProperties adds every source property blindly, so a +15 caster weapon produced an item carrying BOTH. Two generic enhancement bonuses on one item do not stack and the engine pays out the +3; the generic ATTACK_BONUS (56) does not stack with the enhancement's attack component either - the same non-stacking pair bin/ab-enhance-audit.py was written for. FIX: shape_merge_inc splits the merge in two. ShapeCopyPropsExceptBonus() is IPWildShapeCopyItemProperties minus property types 6 and 56 (matching on TYPE alone is correct and needs no subtype test - the conditional vs-racial/vs-alignment variants are separate types, which also sidesteps the blank-subtype-is-0-or-65535 trap). ShapeMergeWeaponBonus() then RESOLVES the bonus on a manufactured form weapon: nSrcBest = max(srcEnh, srcAB) vs nDstBest = max(dstEnh, dstAB); if the source does not beat the form, nothing is copied (Sync's rule 3), otherwise both generic types are stripped off the target and exactly one property is added back - an enhancement when srcEnh &gt;= srcAB, else an attack bonus (rules 1 + 2). An attack-bonus-only caster weapon therefore does strip the form's +3, losing its damage and DR bypass; that was the admin's explicit call, chosen for one-property/one-number consistency over the marginally better mechanics of keeping it. ShapeCopyToCreatureWeapon() got the same treatment but keeps BOTH types on a claw, each as a single property at the higher value: on a creature weapon the enhancement contributes nothing to attack or damage and buys only DR bypass, so there is no attack component for it to shadow. Its derived damage bonus is now added once from max(srcEnh) rather than once per enhancement property found. Helpers: ShapeIPMax(), ShapeIPStrip() (iterate-and-remove, the IPRemoveMatchingItemProperties shape, safe on PERMANENT blueprint properties as IPSetWeaponEnhancementBonus already relies on). The SHAPE_MERGE_DEBUG rung line gains bonus=src(enh15/ab0) rh(enh15/ab0) so the resolution is visible without another guess-and-retest round. NEW BUILD GATE tests/check_ab_enhance.py (wired into tests/smoke-test): no weapon base item may carry both a generic AB and a generic ENH. Sync's rule 4 asserted this was already gated - it was not; ab-enhance-audit.py was a one-shot CSV pass from June and three weapons added since were violating it. Scope is every weapon base item read from hak_2da/baseitems.2da WeaponType != 0 (84 of them, 1238 blueprints scanned), no creature-weapon exemption and no allowlist - the runtime claw pairing above is an engine-created object, not a blueprint. REMEDIATION: bin/ab-enhance-audit.py --append + bin/ab-enhance-apply.py --apply collapsed rakescar2 (Rakescar, ENH 3 / AB 7 -&gt; ENH 7), x2_it_crewpwhip4 (5/9 -&gt; ENH 9) and it_cremumkat0012 (3/5 -&gt; ENH 5), blueprint AND placed instance in each case - two store instances (isengardmagicroo, laketownthetipss) and one placeable container (area010). keep=enhancement at the AB value was the admin's choice; it is a small buff and more generous than the two hand-resolved AB&gt;ENH precedents already in the CSV (Smash 5/20 -&gt; 12, Epic Spear of Victory 10/20 -&gt; 15). All six polymorph scripts recompile clean; full smoke-test green."
     impl_notes_h: 503
@@ -1034,6 +1051,9 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-14"
         text: "Discord — Sync in Shapes are not merging items correctly (https://discord.com/channels/514343293761486848/1545227465595560037):\n\nUntil i started to remove stuff 1 by 1, seems to be the most likely scenario"
+      - author: "Sync Bot"
+        date: "2026-09-16"
+        text: "Discord — HomelessSon in Shapes are not merging items correctly (https://discord.com/channels/514343293761486848/1545227465595560037):\n\nlinking to https://roadmap.homerslotr.com/#idea-tensors-transformation-not-merging-items-reliably"
   - id: add-custom-helmet-skins
     title: "Add custom helmet skins"
     group: items-gear
@@ -1087,7 +1107,8 @@ ideas:
   - id: more-shortcuts-for-testers-in-test-realm
     title: "accessibility shortcuts for testers in test realm"
     group: items-gear
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-24"
@@ -1228,7 +1249,8 @@ ideas:
   - id: henchmen-prevent-friendly-fire
     title: "MW Henchmen to prevent friendly fire with AoE (Area of effect spells)"
     group: meaningwave
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: dormic
     date: "2026-08-28"
@@ -1270,7 +1292,8 @@ ideas:
   - id: Commoner-troll-faction
     title: "Ologai trolls (and the rest of Mount Gundabad) were in the Commoner faction"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-08-27"
@@ -2460,7 +2483,8 @@ ideas:
   - id: mw-questgiver-ignore-combat
     title: "Meaningwave quest givers to ignore and be ignored in combat"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
@@ -2475,6 +2499,10 @@ ideas:
       - step: "UAT: confirm the quiz-givers still wander/idle normally and their quiz conversation still opens when clicked."
         status: open
         kind: uat
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-16"
+        text: "Discord — HomelessSon in Meaningwave quest givers to ignore and be ignored in combat (https://discord.com/channels/514343293761486848/1549087247414857829):\n\nThis one deployed a while back and havent heard any more reports of it so closing"
   - id: palette-mapping
     title: "WIKI: Document Item and Creature locations within in-game palette"
     group: wiki-tools
@@ -7409,8 +7437,9 @@ ideas:
   - id: horn-of-the-fell-beast-unfindable
     title: "Horn of the Fell Beast is invisible in the pack and cannot be sounded"
     group: items-gear
-    status: manual
+    status: awarded
     hidden: true
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-27"
@@ -7460,7 +7489,7 @@ ideas:
   - id: admin-merit-tier
     title: "New DM tier: admin perks without the merit economy"
     group: economy
-    status: manual
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -7592,7 +7621,7 @@ ideas:
   - id: graffiti-easel-well-of-eru
     title: "Graffiti reward: pick your placeable at an easel in the Well of Eru"
     group: economy
-    status: manual
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -7602,7 +7631,7 @@ ideas:
     impl_notes: "<div>Reward 301 is still needs_dm = 1 - the DM places the final placeable by hand; what changed is that the request now says what the player wants.<br><br><b>Pedestal + canvas.</b> NWScript has no SetPlaceableAppearance and NWNX_Object_SetAppearance does not update for PCs already in the area, so the canvas is destroyed and recreated on every pick (appearance set in the same frame as CreateObject) while the pedestal you talk to is never destroyed. Tags graf_pedestal / graf_canvas.<br><br><b>Catalogue.</b> 9,554 appearances in 289 CEP categories, grouped into 9 hand-mapped themes so the browser's first level is a single page (289 categories would have been 33 pages of paging). Generated by bin/gen-placeable-appearances.py from placeables.2da via the module's own hak list and published to the placeappdb campaign DB by bin/publish-placeable-db.py. Re-run both after a CEP bump, and once per new season.<br><br><b>Storage.</b> Picks in graffitidb; the confirmed choice lands on a new redemptions.note column (PRAGMA-guarded ALTER, meritdb is cross-season) shown in the EmoteWand pending list and in the roadmap editor's Pending Requests and per-idea merit history. Tokens 6500-6518. Full map: CLAUDE-graffiti.md.</div>"
     manual_steps:
       - step: "BLOCKER: run `python3 bin/gen-placeable-appearances.py` then `python3 bin/publish-placeable-db.py` on the host. The easel reads the placeappdb campaign DB; without it every category page is empty. Not part of the module, so it does not travel with a build."
-        status: open
+        status: done
         kind: admin
         blocker: true
       - step: "Optional: the canvas sits 3m in front of the pedestal, computed from its facing (GRAF_CANVAS_DIST in graf_inc.nss). To pin it elsewhere, place a waypoint tagged `wp_graffiti_canvas` where you want it."
@@ -7639,7 +7668,7 @@ ideas:
   - id: graffiti-easel-tuning
     title: "Graffiti easel: readable canvas, a real plinth, step-through browsing and a way out"
     group: economy
-    status: manual
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -7679,8 +7708,9 @@ ideas:
   - id: wtop-court-pursuit
     title: "Weathertop hidden court: the garrison chases you down to the thrones, and the Queen is no longer naked"
     group: quests-areas
-    status: manual
+    status: awarded
     hidden: true
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-09-06"
@@ -7720,8 +7750,9 @@ ideas:
     title: "Legendary feat picker offered a second pick to a character that already had one after moving between realms"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
     hidden: true
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-09-06"
@@ -7750,12 +7781,13 @@ ideas:
   - id: wtop-court-combat-defects
     title: "Weathertop court combat defects: archers shoot their own, Curse Song's AC penalty misses the King and Queen, the heal pulse moves soul fatigue, and the Royal Magi are barely hittable"
     group: bosses
-    status: manual
-    hidden: true
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-09-06"
     commit: 4e0a02951ca
+    discord: {'thread_id': '1549949247980314624', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549949247980314624'}
     notes: "<div><b>The Weathertop garrison no longer shoots its own.</b> Archers were turning on other archers, guardsmen and anything else wearing their colours - first spotted by Rajmund (Ray) on Amon Sûl and confirmed by -Methonash- in the Hidden Court. The cause was not a Weathertop one: <b>every creature in the module</b> could be flipped onto its own side by a single point of stray damage from an ally, and once one did, a call for help spread it - by the end of a long session whole factions could be fighting each other instead of you. Fixed everywhere, not just on the hill.</div><div><br></div><div><b>Curse Song's armour penalty now actually applies.</b> It was being applied in a bucket the rules cap at 20, so against anything with defences of its own - the Weathertop King and Queen above all - the armour part of the song did nothing at all, while the rest of it worked. <i>Legendary Sundering</i> had the same flaw and the two were cancelling each other out. Both now land in full.</div><div><br></div><div><b>The Queen can finally pick the King up.</b> Her heal has never once worked: both of them are undead, and a healing spell aimed at the undead is treated as an attack, so it quietly resolved to nothing. She now mends him for a quarter of his health every 30 seconds while he is below half - which is the fight the pair were always described as having. Kill her first.</div><div><br></div><div><b>The Royal Magi have gone from an ornament to the most dangerous thing in the room.</b> They now carry a full eighth- and ninth-circle book - Wail of the Banshee, Weird, Meteor Swarm, Horrid Wilting, Incendiary Cloud, Power Word Kill, Energy Drain, Gate, Black Blade of Disaster and more - and above that, three things a party has to plan around: <b>Greater Ruin</b>, <b>Mordenkainen's Disjunction</b>, which strips your buffs wholesale, and <b>Mummy Dust</b>, which raises an Epic Mummy Reaper to fight beside them. The court only gets <b>one of each per minute between all of them</b>, however many Magi are standing - so this is a fight you can read, not a coin flip.</div><div><br></div><div>Reported by Rajmund (Ray); confirmed and extended by -Methonash-.</div>"
     impl_notes: "<div><b>1. Same-faction attacks - module-wide, not a Weathertop bug.</b> Every Weathertop blueprint runs the stock <code>x2_def_*</code> family, which chains into this module's overrides of the BioWare AI includes, and three had lost their same-faction guards (the module's own Jasperre copy guards correctly at <code>j_inc_generic_ai.nss:6392</code>).<ul><li><b>Ignition</b> - <code>nw_c2_default6</code> (OnDamaged) and <code>nw_c2_default5</code> (OnAttacked) retargeted onto a damager passing <code>(GetHitDice(oDamager) - 2) &gt; GetHitDice(oTarget)</code>, always true for a CR-200 ally against a player, with no friend test at all. Both now null the attacker/damager when <code>GetFactionEqual</code> or <code>GetIsFriend</code>.</li><li><b>Explosion</b> - <code>nw_i0_generic</code>'s <code>NW_ATTACK_MY_TARGET</code> case 5 called <code>AdjustReputation(oIntruder, OBJECT_SELF, -100)</code> unguarded. Between two NPCs that is a <b>faction-to-faction</b> edit: one call naming an ally drops Hostile→Hostile to 0 and every hostile creature in the module turns on every other one <i>for the rest of the server session</i> (reputation edits are runtime-only, so a reboot clears it). The shout fires on every attack (<code>nw_c2_default5</code>) and every death (<code>nw_c2_default7</code>), so it spread itself. Case 5 now returns on an invalid, same-faction or friendly intruder, and only adjusts reputation against a PC.</li><li><b>Wrong object</b> - <code>nw_c2_default4</code> resolved the shout's intruder with <code>GetAttemptedAttackTarget()</code>/<code>GetAttemptedSpellTarget()</code>, which take no object argument and therefore answered for <code>OBJECT_SELF</code>, the <i>listener</i>: a responder fed its own current target in as the intruder. Fallbacks deleted (there is no <code>(oShouter)</code> overload of either - inventing one is the module's standing NWScript trap).</li></ul>New gate <code>tests/check_ai_faction_guards.py</code>, all four checks negative-tested, because these are stock BioWare files kept as overrides and the obvious way to fix something else in one is to re-copy it.</div><div><br></div><div><b>2. Curse Song's AC penalty.</b> <code>x2_s2_cursesong.nss</code> applied it as <code>EffectACDecrease(nAC, AC_DODGE_BONUS)</code> and <code>hak_2da/ruleset.2da</code> caps that bucket at <code>MAX_AC_DODGE_MOD 20</code>; a boss with Dodge, Defensive Stance and haste sits at the ceiling, so the -15 was absorbed while every uncapped component (attack, damage, saves, skills) landed - exactly the symptom reported. Retyped to <code>AC_DEFLECTION_BONUS</code>. <code>legfeat_atk_inc.nss</code>'s Legendary Sundering shared the bucket and the bug; same fix. <code>wtop_royal.nss</code>'s grief bonus was a bare <code>EffectACIncrease(20)</code> - dodge by default - filling the same ceiling, now <code>AC_NATURAL_BONUS</code>. The module already documents this trap at <code>shape_merge_inc.nss:545-550</code>. The effect doubler was <b>exonerated</b>: it rebuilds whole links, its <code>X2DUR_MAX_SCAN</code> backstop leaves the original intact, and the royals carry ~81-90 effects against a cap of 250. Also fixed in passing: <code>WtopStrip</code> called <code>RemoveEffect</code> inside a <code>GetFirstEffect</code>/<code>GetNextEffect</code> walk (skips an entry per removal), so a partial strip could leave a residual grief link and stack a second permanent +20 at the next state flip. It now counts, then removes one restart at a time.</div><div><br></div><div><b>3. The Queen's heal never worked.</b> <code>wtop_royal.nss</code> had her <code>ActionCastSpellAtObject(SPELL_HEAL, oKing, ...)</code>. Both royals are Race 24 (Undead) and stock <code>nw_s0_heal</code> treats an undead target as an attack, gated on <code>!GetIsReactionTypeFriendly()</code> - so an ally-cast Heal resolved to nothing whatsoever. Now a direct <code>EffectHeal(GetMaxHitPoints/4)</code> with <code>VFX_IMP_HEALING_X</code> and a spoken line, keeping the 30s cooldown and the under-50% trigger.</div><div><br></div><div><b>4. Soul fatigue - not reproducible, hardened anyway.</b> Stacks are added in exactly one place (<code>FAT_ApplyToPC</code>, reached only from <code>FAT_OnOverrideSpellCast</code> via <code>stop_spellcheat.nss</code>), and <code>x2_inc_spellhook.nss:268-275</code> returns early for every non-PC caster that is not DM-possessed and not in an <code>X2_L_WILD_MAGIC</code> area (area028 has no locals at all). So the Queen's Heal, the Guardsmen's Draught of the Royal Court (a Potion of Heal), the King's 6s regeneration pulse and the Magus's and Queen's <code>SPELL_GREATER_RESTORATION</code> abilities <b>cannot</b> bill a player. Most likely what was seen: the player's own heal mid-fight (by design), or coincidence - <code>FAT_Tick</code> floats its decay message on a 6-second cadence, the same beat as the King's regeneration. The single-target branch did lack any caster-side test, though, so a DM-possessed court creature (the spellhook lets <code>GetIsDMPossessed</code> through) aiming Greater Restoration at a player would have billed them; now guarded on PC-or-PC's-associate. UAT step kept to settle what -Methonash- actually saw.</div><div><br></div><div><b>5. The Royal Magus.</b> Measured first: <code>wtop_crtmage</code> is NaturalAC 48 - <i>lower</i> than the Guardsman's 55 - with Dex 112 (+51) and Wizard 60 / Undead 60 / Dragon Disciple 60. The \"unhittable\" feel is its buff stack (Epic Mage Armour and Epic Warding feats, Greater Stoneskin, Shadow Shield, Mestil's Acid Sheath, Elemental Shield, Entropic Shield, Globe of Invulnerability, Greater Spell Mantle, Improved Spell Resistance 1-10), not its blueprint AC, so <b>no AC number was changed</b> - a UAT step measures the real value first.<br><br>Its offence was the problem: 366 special-ability uses topping out at Magic Missile x99 / Vampiric Touch x99. <code>bin/gen-wtop-magus-book.py</code> (owned table, idempotent, dry-run default, house style) rewrites the <code>SpecAbilityList</code> to 515 uses across 48 spells at caster level 60 - the level 8/9 list. <code>SpecAbilityList</code> is the module-native route for a boss caster: <code>gandalf001</code> and <code>sarumanthewhi001</code> both arm this way on stock AI, and the Queen already carries 577 uses.<br><br><b>Greater Ruin (640), Mordenkainen's Disjunction (122) and Epic Mummy Dust (637) are deliberately stripped from that list</b> - Disjunction was in it - and cast from <code>wtop_cmage.nss</code> instead, because an AI-chosen talent cannot be rate-limited and the court fields several Magi. The cooldown moved from the creature to the <b>area</b> (a local int cleared by a <code>DelayCommand</code> assigned to the area, so it survives the caster's death - the area-scoped-state pattern <code>forge_inc.nss</code> uses): one Disjunction, one Ruin and one Mummy Dust per 60s across the whole court, priority in that order, one cast per Magus per round. Its header's two false claims are corrected too (it does hold <code>FEAT_EPIC_SPELL_RUIN</code>; <code>x2_def_endcombat</code> leads to BioWare's AI, not Jasperre's).</div><div><br></div><div><b>6. Mummy Dust needed a hostile summon.</b> <code>x2_s2_mumdust.nss</code> routes through <code>EpicSummon_Cast</code> → <code>CreateObject</code> + <code>AddHenchman</code>, and <code>mummyreaper.utc</code> is <b>FactionID 2 (Commoner)</b> deliberately so the player's version is a friendly henchman. Cast by a Magus, that path drops a non-hostile mummy into a hostile court - fighting nobody, and a fresh friendly-fire source. New blueprint <b>wtop_mreaper.utc</b> (\"Mummy Reaper of the Court\", tag <code>WtopMummyReaper</code>, FactionID 1, henchman AI swapped for the standard hostile <code>x2_def_*</code> set, filed by <code>bin/file-palette-orphans.py</code>), created by a <code>!GetIsPC(OBJECT_SELF)</code> branch in <code>x2_s2_mumdust.nss</code>: 5-minute life, capped at 2 live per area across all casters, <code>\"spawn\"</code> location pinned so <code>leash_to_area</code> behaves. Script-spawned, so it stays off the Roll of the Fallen. <code>wtop_chase.nss</code>'s empty-court branch destroys any survivor and clears the three court cooldowns, so a fresh party is not held off by the last one's timers. The player path is untouched.</div><div><br></div><div><b>Gates:</b> 31/31 smoke tests (including the new one), 9 scripts compiled / 0 errors, palette coverage clean, boss registry unchanged. Module-only - no hak, no TLK, so no NWSync. Dev realm only.</div>"
     manual_steps:
@@ -7793,10 +7825,14 @@ ideas:
         tester: "-Methonash-"
     uat_credits:
       - player: "-Methonash-"
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-16"
+        text: "Discord — HomelessSon in Weathertop court combat defects: archers shoot their own, Curse Song's AC penalty misses the King… (https://discord.com/channels/514343293761486848/1549949247980314624):\n\nI think this one is good to go now"
   - id: wtop-royal-loot-tier
     title: "Weathertop King and Queen drop less than bosses a third their size, and the King's own epic blade is obtainable nowhere"
     group: items-gear
-    status: manual
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -7893,8 +7929,9 @@ ideas:
   - id: mw-mixtape-per-character
     title: "Meaningwave guide progress collides between characters with similar names"
     group: quests-areas
-    status: manual
+    status: awarded
     hidden: true
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-09-09"
@@ -8029,7 +8066,7 @@ ideas:
   - id: custom-music-jukebox
     title: "Custom music pipeline, and a jukebox that plays it in the room you are standing in"
     group: qol
-    status: manual
+    status: awarded
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -8100,7 +8137,8 @@ ideas:
   - id: gandalfs-mummys
     title: "Gandalf's mummys"
     group: bosses
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-09-16"
@@ -8249,7 +8287,8 @@ ideas:
   - id: gwathdor-snakes
     title: "Gwathdor snakes"
     group: economy
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: dormic
     date: "2026-09-14"
@@ -8759,7 +8798,8 @@ ideas:
   - id: wiki-and-boss-list-show-creatures-as-accessible-even-when
     title: "Wiki (and boss list) show creatures as accessible even when they have no path from Well of Eru"
     group: wiki-tools
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-09-04"
@@ -8774,7 +8814,8 @@ ideas:
   - id: meaningwave-ring-on-char-creation-on-test-realm
     title: "MeaningWave ring on char creation on test realm."
     group: items-gear
-    status: confirmed
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-09-16"
@@ -8788,12 +8829,12 @@ ideas:
         kind: uat
         tester: "any, fresh level 1 character"
       - step: "Activate the Mixtape, choose \"Consume it\" and confirm all six ability scores rise by 1 on the character sheet and the ring is destroyed. Log out and back in to confirm the raise persisted to the .bic."
-        status: open
+        status: done
         kind: uat
         tester: "any, fresh level 1 character"
         result: "The stats increase by one, and the ring is destroyed, but, I see server errors in-game:\nScript mw_mixtape_con, sqlite error: no such table mw_legacy_claim\nScript mw_mixtape_con, sqlite error: not prepared\n\nRESOLVED 2026-09-16 (build, not code): mw_db.nss's MW_InitDb() does create mw_legacy_claim, but the packed onmoduleload.ncs in the deployed build predated that table - nasher kept a cached .ncs for onmoduleload even though its include mw_db.nss had changed, so the DDL never ran. The table has been created by hand in the dev meaningwavedb (identical DDL), which stops the errors immediately, and the module has been rebuilt with repack-homers-lotr-clean so the fix is in the build. The stat grant itself was never affected - MW_ClaimLegacyRow only guards legacy-progress migration. Please re-run this check."
       - step: "Confirm the consume check now runs clean: activate and consume a Mixtape and confirm NO 'no such table mw_legacy_claim' / 'not prepared' errors appear in the server log or in-game."
-        status: open
+        status: done
         kind: uat
         tester: "any, fresh level 1 character"
       - step: "Close and reopen the chest, take the restocked Mixtape and activate it again: the consume option must grant nothing, destroy the ring, and show \"You have already taken the Mixtape's wisdom into yourself. This one crumbles to dust.\" Confirm ability scores are unchanged and no Mixtape is left in the pack."
@@ -8801,11 +8842,11 @@ ideas:
         kind: uat
         tester: "any, same character as the consume check"
       - step: "Confirm the \"Keep the ring\" branch still leaves the Mixtape intact and wearable (it must not be destroyed by declining)."
-        status: open
+        status: done
         kind: uat
         tester: "any, same character as the consume check"
       - step: "Confirm on a SECOND new character that the +1 is available again (the flag is per character by design, which is the whole point of the request)."
-        status: open
+        status: done
         kind: uat
         tester: "admin"
     uat_credits:
@@ -8845,3 +8886,197 @@ ideas:
     discord: {'thread_id': '1549178045561180160', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549178045561180160'}
     notes: "<div>Phase 2 of <a href=\"#idea-wiki-and-boss-list-show-creatures-as-accessible-even-when\">Wiki (and boss list) show creatures as accessible even when they have no path from Well of Eru</a>.</div><div><br></div><div>Phase 1 stopped the wiki claiming you could reach these creatures: 11 of them, across 4 areas, are now listed under <b>Creatures → Inaccessible</b> instead of the ordinary browsing pages, and Mashano came off the Roll of the Fallen board. That was the honest fix, not the final answer — the content is still there and still unreachable.</div><div><br></div><div>This item is the decision, area by area: either <b>build a real way in</b> (a door, a trigger, a portal) so the fights count again, or accept the area as <b>DM-event only</b> and give it a clear label, so a boss that only appears at an event is shown as such on the boss list, respawn tracker and bestiary rather than quietly missing.</div><div><br></div><div>The four areas in question are <b>House of Nazgûl</b>, <b>Temple of Nazgul</b>, <b>Northern Harad</b> and <b>Sharkey's Chamber</b>.</div>"
     impl_notes: "<div><b>Worklist is generated, not guessed:</b> <code>module-index/unreachable_creatures.json</code> (written by every wiki build) lists the affected creatures per area, with <code>is_registry_boss</code> flagged. <code>module-index/area_paths.json</code> holds the full unreachable-area set. <code>AREA_CONNECTION_TODO.md</code> is the older hand-written survey of the same areas and already proposes anchor areas for most of them.</div><div><br></div><div><b>Current state after phase 1:</b> 21 unreachable areas, 6 of them WIKI_HIDDEN DM areas, 15 visible. Only 4 of the visible ones actually hold creatures: area010 (Temple of Nazgul, 3), harad (Northern Harad, 2), nazgulguildhouse (House of Nazgûl, 4 incl. creature020 Mashano), sharkeyschamber (Sharkey's Chamber, 2).</div><div><br></div><div><b>If an area gets a real entrance,</b> the wiki needs nothing: <code>build_area_graph</code> already walks doors, triggers, conversation teleports and script teleports (including trigger/door OnEnter-OnOpen teleport scripts and <code>const string</code> tags, added in phase 1), so the creatures return to the indexes on the next build by themselves. If the entrance is one static analysis genuinely cannot resolve, put <code>WIKI_REACHABLE</code> in the area's toolset Comments — same convention as <code>WIKI_HIDDEN</code>.</div><div><br></div><div><b>If an area is declared DM-event only,</b> that label does not exist yet and is the actual build work: the boss list, respawn tracker and bestiary would each need a way to show \"event only\" rather than simply omitting the entry.</div><div><br></div><div><b>Putting a boss back on the board is one edit:</b> remove it from <code>EXCLUDE</code> in <code>bin/gen-boss-registry.py</code>, re-run with <code>--write</code>, repack. <code>brd_db.nss</code> is the single source the game, the wiki and <code>tests/check_boss_registry.py</code> all read.</div><div><br></div><div><b>Watch the forge coupling.</b> <code>forge_inc.nss</code> reads <code>respawndb.boss_registry</code>: <code>ForgeBossTotalTracked()</code> is the denominator for the \"Boss-slayer's edge\" top tier (all bosses slain = +20% forge value cap and one extra enchantment slot). Registry membership also drives <code>enr_inc.nss</code> (enrage-on-retreat) and <code>se_respawn_inc.nss</code> (1200s boss timer vs 900s creature timer). Adding a boss back raises the completionist threshold again — so only restore bosses players can actually reach, or the top tier becomes unobtainable, which is exactly the bug phase 1 removed.</div>"
+  - id: world-boss
+    title: "World Boss"
+    group: bosses
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: Tukwut
+    date: "2026-09-17"
+    discord: {'thread_id': '1549963626062938283', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549963626062938283'}
+    notes: "<div>Random and/or roaming boss that can only be defeated by a large party</div>"
+    triage: true
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-16"
+        text: "Discord — Tukwut in World Boss (https://discord.com/channels/514343293761486848/1549963626062938283):\n\nRandom and/or roaming boss that can only be defeated by a large party"
+      - author: "Sync Bot"
+        date: "2026-09-16"
+        text: "Discord — Tukwut in World Boss (https://discord.com/channels/514343293761486848/1549963626062938283):\n\nRandom and/or roaming boss that can only be defeated by a large party"
+  - id: daily-empowered-boss
+    title: "Daily Empowered Boss"
+    group: bosses
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: Tukwut
+    date: "2026-09-17"
+    discord: {'thread_id': '1549964343964213318', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549964343964213318'}
+    notes: "<div>Each real world day (or desired cadence), an existing boss encounter is replaced with a more difficult version with same but scaled up drops.</div>"
+    triage: true
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-16"
+        text: "Discord — Tukwut in Daily Empowered Boss (https://discord.com/channels/514343293761486848/1549964343964213318):\n\nEach real world day (or desired cadence), an existing boss encounter is replaced with a more difficult version with same but scaled up drops."
+  - id: rmqol-tab-scroll-memory
+    title: "Remember each tab's scroll position, including across a refresh"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: implemented
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-16"
+    commit: fe62d6b74f5
+    notes: "<p>Coming back to a tab in the roadmap editor now puts you back where you were — both down the page and across it — and the open tabs and their positions survive a browser refresh.</p>"
+    impl_notes: "<p>Tabs kept a single in-memory <code>scrollTop</code> on <code>#panes</code>, saved and restored by hand in <code>activate()</code>. Now <code>captureScroll()</code>/<code>restoreScroll()</code> walk every element in the pane that is actually scrolled — <code>#panes</code>, the board's horizontal <code>#board</code>, each <code>.lane-cards</code>, <code>#list</code> — and remember both axes, keyed by element id (falling back to position among the pane's scrollers).</p><p>The tab set, the front tab and every offset persist to <code>localStorage['roadmap.tabs']</code>, written on activate and on a 150 ms-debounced capturing <code>scroll</code> listener (scroll does not bubble; a capturing listener on <code>document</code> still sees it). Boot reopens the saved set, the URL fragment still wins for which tab is in front, and an <code>idea:&lt;id&gt;</code> restored for an id that no longer exists is dropped once <code>/api/data</code> lands rather than left accusing the admin of a bad link.</p><p>Restore runs after the render, then again on the next frame and once more at 300 ms — a panel fills itself from a fetch, so one assignment lands on an empty box. The retries bail out if the tab is no longer in front or anything has scrolled since, so a late retry can never yank you back.</p>"
+    manual_steps:
+      - step: "Scroll the List tab well down, scroll the Board tab sideways and a lane down, switch between them, then come back: each is where you left it."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "With several tabs open and scrolled, hard-refresh the browser: the same tabs reopen, the same one is in front, and each is at the same position."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Open an idea tab, close it, reopen the same idea: it starts at the top (a tab closed in this session forgets its position on purpose)."
+        status: open
+        kind: uat
+        tester: "any"
+  - id: rmqol-title-max-length
+    title: "Cap idea titles at Discord's 100-character thread-name limit"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: implemented
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-16"
+    commit: fe62d6b74f5
+    notes: "<p>An idea's title is the name of its Discord forum thread, and Discord cuts a thread name off at 100 characters. The editor now stops you typing past that, counts down as you approach it, and refuses to save a title over it.</p>"
+    impl_notes: "<p><code>MAX_TITLE_LEN = 100</code> in <code>bin/roadmap-editor.py</code>, stamped into the page by <code>render_page()</code> so the input's <code>maxlength</code> and the server's refusal cannot drift apart. Client side: <code>maxlength</code> on <code>#f_title</code> plus <code>bindTitleCount()</code>. Server side: <code>validate_title_lengths(posted, disk)</code>, called from every <code>DOCUMENT_WRITES</code> route and from <code>bin/roadmap-apply-patch.py</code>.</p><p><strong>It is grandfathered on purpose.</strong> 41 of the titles in <code>roadmap.yaml</code> already exceed 100 (the longest, <code>wtop-court-combat-defects</code>, is 182). Validation here is whole-file, so an unconditional check would refuse every save in the GUI — the exact lockout <code>bin/roadmap-lint.py</code> exists to prevent. So the rule is \"you cannot write one\", not \"you cannot have one\": an untouched over-length title still saves, and editing one at all forces it under the cap. <code>roadmap-lint.py --warnings</code> counts the remaining ones.</p>"
+    manual_steps:
+      - step: "Type past 100 characters in a title: the input stops and the counter under it turns red."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Open an old over-length idea (e.g. wtop-court-combat-defects) and save it without touching the title: it still saves."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Edit that same over-length title by one character and save: it is refused, naming how many characters to trim."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Decide whether to trim the 41 grandfathered titles (python3 bin/roadmap-lint.py --warnings lists the count) — their Discord threads are silently truncated until then."
+        status: open
+        kind: admin
+  - id: rmqol-new-idea-tab-retarget
+    title: "Saving an idea jumps the tab to a different, seemingly random idea"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: implemented
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-16"
+    commit: fe62d6b74f5
+    notes: "<p>Save now keeps you on the idea you just saved. It used to move the tab to whatever came next in the list — and on a brand-new idea that was effectively a random item, or a blank pane.</p>"
+    impl_notes: "<p><code>$('#save').onclick</code> passed no <code>opts.stay</code>, so <code>commit()</code> ended at <code>advanceSelection()</code> and re-keyed the tab to <code>vis[curPos+1]</code> — the next row of the <em>filtered, sorted</em> list. A new idea is unshifted at index 0 with a blank id, so that row is arbitrary; when the new row was not in <code>visibleRows('list')</code> at all, <code>curPos === -1</code> and the pane was left empty.</p><p>Save-and-advance was inherited from the pre-tab list+form layout, where the form was a viewport onto the list. In a tabbed workspace a tab is a document, so it is gone: <code>commit()</code> always ends at <code>reselect(keepId)</code> (following a renamed or newly minted id), and <code>advanceSelection()</code> is deleted rather than left as dead code. <code>opts.stay</code> is still accepted and ignored, because several call sites pass it.</p>"
+    manual_steps:
+      - step: "Add a new idea, fill in title/group/type, Save: the tab stays on it, the tab title shows the new title, and the URL is #idea-<the minted id>."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Open an existing idea, change something, Save: the tab does not move."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Rename an existing idea's id and Save: the tab follows the new id rather than jumping away."
+        status: open
+        kind: uat
+        tester: "any"
+  - id: rmqol-dupe-of-picker
+    title: "Make the \"Duplicate of\" picker searchable and sorted"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: implemented
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-16"
+    commit: fe62d6b74f5
+    notes: "<p>The Duplicate of field is now a type-ahead box instead of a 455-entry dropdown in file order: type part of an id or a word from the other idea's title and it filters. It shows that idea's title under the box once you have picked one, and warns in place if the id does not exist. The \"(merges credit)\" wording is gone.</p>"
+    impl_notes: "<p><code>vocab()</code> gained <code>dupes: [{id, title, status}]</code>, sorted by id, alongside the untouched <code>ids</code> (nwnbot reads <code>/api/data</code>). The <code>&lt;select&gt;</code> became an <code>&lt;input list=\"dupes_dl\"&gt;</code> + <code>&lt;datalist&gt;</code> whose options carry the id as <code>value</code> and the title as <code>label</code>, so the browser's own filter matches on either — the same shape the Player field already uses. <code>bindDupeHint()</code> echoes the matched title, or flags an unknown id: unlike the player hint, a typo here is a validation error that blocks the whole file's save, so it says so.</p><p><strong>Open question, deliberately not decided here:</strong> the admin's \"only the original submitter gets credit\". The label no longer claims credit merges, but the behaviour is unchanged — a duplicate row still lists its own <code>player:</code> and the published card shows the deduped union of requesters (<code>roadmap.yaml</code>'s own header documents listing each requester on the duplicate row). Changing who is paid is a merit-policy call, not a label change.</p>"
+    manual_steps:
+      - step: "In Duplicate of, type a word from another idea's title: the list filters to matching ideas. Pick one — its title appears under the box."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Type an id that does not exist: the hint turns red and says saving will be refused. Clear it and the field goes quiet."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Open an idea that already has dupe_of set: the box shows the existing id and its title, and saving without touching it changes nothing in roadmap.yaml."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Rule on whether a duplicate should still credit its own submitter, or only the original reporter — the code still does the former. If it changes, gen-roadmap's requester union and roadmap.yaml's header comment both need updating."
+        status: open
+        kind: admin
+  - id: rmqol-relnotes-model-tuning
+    title: "Release notes only work with qwen36; the other two models fail"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: implemented
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-16"
+    commit: fe62d6b74f5
+    notes: "<p>All three local models now work for the release-notes rewrite. deepseek9b and deepseek serve a 16K context where qwen36 serves 32K, so a wide range overflowed them; the item list is now split into as few batches as fit whichever model you picked, and each request asks for an answer budget sized to the number of items rather than a fixed floor.</p>"
+    impl_notes: "<p>Two independent root causes, both confirmed against the box on 2026-09-16 (<code>/v1/models</code>: qwen36 <code>-c 32768</code>, deepseek9b and deepseek both <code>-c 16384</code>).</p><ul><li><strong>\"token length issue, dies after 3 attempts\"</strong> — <code>FLAVOR_CTX_MAX</code> was a fixed 32768, i.e. qwen36's window. On a 16K model llama-server answers HTTP 400 \"the request exceeds the available context size\", and <code>Client.chat</code>'s retry loop spent all three <code>RETRIES</code> on a deterministic failure. Fixed by <code>served_ctx()</code> (asks the box) + <code>flavor_chunks()</code> (greedy packing into as few batches as fit), and by a new <code>LLMTooLong</code> that the retry loop does not retry and that names the served window.</li><li><strong>\"a different error about format\"</strong> — <code>chat()</code> only applies a <em>floor</em> to <code>max_tokens</code> (<code>config.MIN_PREDICT</code>, 600/2000) and <code>gen-release-notes.py</code> never passed <code>num_predict</code>. Both DeepSeek models always emit a reasoning block, so a multi-item answer spent the whole budget thinking and came back empty or as truncated JSON. Fixed by <code>out_budget()</code>: a per-item allowance plus <code>FLAVOR_REASON_ALLOWANCE</code> for the models outside <code>THINKING_OPTIONAL</code>.</li></ul><p>Items are merged only <em>within</em> a batch — the model can only see two items are the same change if both are in the same request — so the batch count is part of the sidecar fingerprint. A one-batch fingerprint is byte-identical to the old scheme, so qwen36's existing sidecars still resolve. A batch that comes back empty costs only its own items their prose (they keep their roadmap notes); only an entirely empty pass falls back to the deterministic document.</p>"
+    manual_steps:
+      - step: "In the editor, open Notes · Testers, pick deepseek9b and press \"Rewrite with local model\": it produces notes rather than an error. Then do the same with deepseek (slow — minutes to load, ~4 tok/s — so expect to wait)."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Re-run the same range with qwen36 and confirm the output is unchanged from before this fix (its sidecar fingerprint is deliberately unaffected)."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "On a wide range (several dozen items) with deepseek9b, confirm the run reports \"sending N batches\" and that every item still appears exactly once in the output."
+        status: open
+        kind: uat
+        tester: "admin"
+  - id: rmqol-deployed-lifecycle
+    title: "Separate \"shipped to test\" from \"deployed to production\" in the lifecycle"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<p>Today an idea has to be moved to <em>awarded</em> to pay its merit, which also closes it — so there is no way to credit a player for something that is live on the test realm but not yet promoted to the live season.</p><p><strong>Agreed shape:</strong> pay merit when an item ships to <em>test</em> (status <code>implemented</code>), and rework <code>awarded</code> to mean <strong>Deployed to Production</strong>, moved there automatically by the computed Live/Test-realm environment badge rather than by hand.</p>"
+    impl_notes: "<p>The environment badge already computes exactly this (CLAUDE-roadmap.md, \"The per-idea environment badge\"): <strong>Live</strong> when every commit is an ancestor of the last promoted sha, <strong>Test realm</strong> when they are only in the dev repo. It is a computed side map keyed by idea id, deliberately never stored on the idea — so the work is to drive the status off it at a promotion boundary, not to add a field.</p><p>Blast radius to check before starting: <code>STATUS</code> in <code>bin/gen-roadmap.py</code> (labels, <code>board</code>, <code>rank</code>, the pivot buckets), <code>SHIPPED_STATUSES</code> in <code>bin/roadmap_publish.py</code> and <code>bin/roadmap_auth.py</code> (they are cross-checked at editor startup), the merit Award/Revoke buttons' coupling to the <code>awarded</code> status in <code>transitions()</code>, and <code>FORBIDDEN_STATUSES</code> in nwnbot (<code>nwn_discord_bot/nwnbot/roadmap.py</code> and <code>config.py</code>) — the bot must still never write any of them.</p>"
+  - id: rmqol-agent-api-account
+    title: "Give Claude its own roadmap account and make it write through the API"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<p>Claude edits <code>roadmap.yaml</code> on disk and follows conventions that live in CLAUDE.md as prose. Prose is not enforcement, and a file edit is not an event. Give the agent its own account and make every roadmap write go through the editor's HTTP API, so the rules are enforced server-side and the Discord bot sees the change the way it sees any other.</p>"
+    impl_notes: "<p>The plumbing exists. <code>bin/roadmap_auth.py</code> already has a capability table and a <code>bot</code> role (<code>view, edit, uat</code>, with <code>BOT_FORBIDDEN</code> asserted by <code>bin/roadmap-auth-selftest.py</code>), and <code>nwn_discord_bot/nwnbot/roadmap.py</code> is a worked client for <code>/api/login</code>, <code>/api/data</code>, <code>/api/save</code> and <code>/api/idea-comment</code>, including the three-way-merge baseline (<code>base_hashes</code>) and the conflict shape. So this is an <code>agent</code> role plus a small CLI, not new server machinery.</p><p>Design points to settle: which conventions become server-side rules (agent-created ideas forced <code>hidden: true</code> — <code>roadmap-apply-patch.py</code> already does this locally; never <code>awarded</code>; never <code>merit_awarded</code> or <code>uat_credits[].awarded</code>; every <code>manual_step</code> needs a <code>kind</code>; no deploy-kind steps), where the credential lives (same rule as every other secret — outside the repo, never under <code>unpacked/</code>, never sent to the LLM box), and whether <code>bin/roadmap-apply-patch.py</code> grows an <code>--api</code> mode or is replaced.</p><p>Worth confirming first: the bot polls <code>/api/version</code> (a content hash of roadmap.yaml) on a timer and marks the world dirty on a change, so a direct file edit is <em>not</em> invisible to it today. Whatever the real gap is — latency, attribution, or which fields the bot mirrors — pin it down before building, or the account solves the wrong half.</p>"
+  - id: rmqol-public-role
+    title: "PUBLIC read-only role so a Discord link to an idea needs no account"
+    group: wiki-tools
+    epic: roadmap-editor-qol
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<p>Linking a player to an idea in Discord currently means asking them to log in. A PUBLIC role would let anyone open <code>https://roadmap.homerslotr.com/</code> and browse the non-hidden backlog read-only: LIST and BOARD tabs, no left-hand navigator, a read-only board, and clicking an idea opening an in-app tab with its detail.</p><p>What a public viewer must NOT see: hidden ideas, the commit hash, the HTML/rich-text toggle (rich text only), testing tasks, implementation notes and merit totals. What they should see: a link to the idea's Discord thread when it has one.</p>"
+    impl_notes: "<p><code>bin/roadmap_auth.py</code> already sketches the tier — a commented-out <code>\"player\": {\"view\", \"submit\"}</code> in <code>ROLES</code> — and the page already gates every control on <code>data-cap</code> attributes swept by <code>applyCapabilities()</code>, with <code>ROUTE_CAPS</code> failing closed server-side. So the role itself is small.</p><p>The two real pieces of work are elsewhere. <strong>Anonymous access</strong>: <code>PUBLIC_ROUTES</code> is currently just <code>/login</code> and <code>/api/login</code>, so there has to be a way to resolve a request with no session to a public identity without weakening <code>_gate()</code>. <strong>Field-level filtering</strong>: <code>/api/data</code> hands the browser the whole ideas array, including hidden items, <code>impl_notes</code>, <code>manual_steps</code>, <code>uat_credits</code> and <code>merit_awarded</code> — hiding those in the page would be decoration, not privacy, so the payload itself has to be filtered server-side for this role. A capability like <code>view_public</code> served by a separate, narrower projection of the document is the shape to aim for, rather than a filter bolted onto the existing one.</p><p>Note the existing <code>tester</code> tier's lesson, recorded in CLAUDE-roadmap.md: it has no <code>edit</code> at all precisely because <code>/api/save</code> posts the whole array, so a per-field filter on a write route is a large thing to get right and a larger thing to keep right. The same reasoning applies to the read side here.</p>"
