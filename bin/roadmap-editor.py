@@ -4591,6 +4591,11 @@ PAGE = r"""<!doctype html>
      player's own paragraphing. */
   .pubmsg-b { white-space:pre-wrap; margin-top:2px; }
   .pubmsg-b img { max-width:100%; border-radius:4px; margin-top:6px; }
+  .pubshots { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .pubshot img { display:block; max-width:100%; max-height:320px;
+                 border:1px solid var(--line); border-radius:6px;
+                 cursor:zoom-in; }
+  .pubshot.broken { display:inline-block; font-size:12px; color:var(--accent); }
   .chk { display:flex; align-items:center; gap:6px; margin-top:8px; font-size:12px;
          color:var(--mut); cursor:pointer; }
   .chk input { width:auto; }
@@ -6294,6 +6299,33 @@ function splitDiscordComment(text){
   return {who: who.trim(), url, body: m[2].trim()};
 }
 
+// nwnbot appends screenshots to a mirrored message as a trailing block:
+//
+//   Images:
+//   - https://img.homerslotr.com/discord/ab/<hash>.webp
+//   - (shot.png — not rehosted; see the thread, the Discord link expires)
+//
+// (sync.ATTACHMENT_BLOCK / ATTACHMENT_LINE / ATTACHMENT_LOST). Inline, that
+// block reads as bot plumbing -- a bare "Images:" heading and a hyphen in front
+// of a url. Split it off and the message reads as the player wrote it, with the
+// screenshots under it as pictures.
+const IMG_BLOCK_RE = /\n+Images:\n((?:-[^\n]*(?:\n|$))+)$/;
+
+function splitImages(body){
+  const m = String(body||'').match(IMG_BLOCK_RE);
+  if (!m) return {text: body, imgs: [], lost: []};
+  const imgs = [], lost = [];
+  m[1].split('\n').forEach(line=>{
+    // Same host allowlist as commentText(): only a rehosted image is ever put
+    // in an <img>. Anything else on a bullet is named rather than dropped, so
+    // "this report had a screenshot" survives even when the picture does not.
+    const u = line.match(/^-\s+(https:\/\/img\.homerslotr\.com\/[^\s<>"']+?\.(?:webp|png|jpe?g|gif))\s*$/i);
+    if (u) imgs.push(u[1]);
+    else if (line.trim().startsWith('-')) lost.push(line.replace(/^-\s*/, '').trim());
+  });
+  return {text: String(body).slice(0, m.index), imgs, lost};
+}
+
 // The forum thread, as players wrote it. These are copies of messages that are
 // already public in Discord -- the bot mirrors them in, screenshots and all --
 // so this is the detail a link to an idea was worth following for. Notes typed
@@ -6310,10 +6342,16 @@ function publicCommentsHTML(it){
         ? (d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${esc(d.who)}</a>`
                  : esc(d.who))
         : 'Discord';
+      const im = splitImages(d.body);
+      const shots = im.imgs.map(u=>`<a class="pubshot" href="${esc(u)}"
+          target="_blank" rel="noopener noreferrer"><img src="${esc(u)}"
+          alt="Screenshot from the Discord thread" loading="lazy"></a>`).join('');
+      const missing = im.lost.map(x=>`<p class="small">Screenshot: ${esc(x)}</p>`).join('');
       return `<div class="pubmsg">
         <div class="pubmsg-h"><b>${who}</b>
           <span class="small">${esc(c.date||'')}</span></div>
-        <div class="pubmsg-b">${commentText(d.body)}</div>
+        <div class="pubmsg-b">${commentText(im.text)}</div>
+        ${shots ? `<div class="pubshots">${shots}</div>` : ''}${missing}
       </div>`;
     }).join('')}
   </div>`;
@@ -6354,6 +6392,18 @@ function select(i){
     // Nothing below this line is reachable for a public viewer: no snapshot
     // (there is nothing to save), no handoff, no merit lookup, no bindings.
     form.innerHTML = renderPublicIdea(it);
+    // An <img> that fails to load renders as NOTHING -- no icon in most
+    // browsers, and the anchor around it has no text of its own, so a blocked
+    // or missing screenshot left a bare gap under the message and looked like a
+    // bug in the page. Fall back to a link that says what it is.
+    form.querySelectorAll('.pubshot img').forEach(img=>{
+      img.onerror = ()=>{
+        const a = img.closest('.pubshot');
+        if (!a) return;
+        a.classList.add('broken');
+        a.textContent = 'Screenshot (opens in a new tab)';
+      };
+    });
     return;
   }
   // The empty option exists only while the item HAS no group: it is the
