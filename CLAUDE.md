@@ -338,6 +338,16 @@ bin/refresh-nwsync                   # publish the hak to clients
 bin/server-restart                   # the server re-reads the hak on load
 ```
 
+**On the dev realm, do not run that sequence by hand — use
+`bin/publish-and-arm`.** It builds the hak, repacks, and arms
+`reboot-on-empty --nwsync` so the manifest is rebuilt in the **down window**
+instead of underneath a running server (a manifest rewritten while the realm is
+up hands connecting clients a manifest for haks the server has not loaded yet),
+and it appends the ~20-30 minute downtime to the message players are shown —
+which `bin/server-restart` would not do, and which this repo forbids anyway
+(never force-restart dev). `--full` arms the `--force` rebuild, `--clean` uses
+the clean repack, `--dry-run` prints the plan and the exact player message.
+
 Which NWSync mode:
 
 | command | when | cost |

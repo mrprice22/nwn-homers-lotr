@@ -1,0 +1,231 @@
+#!/usr/bin/env bash
+# publish-and-arm — the deploy for a change CLIENTS have to download.
+#
+# bin/rebuild-and-arm is the module-only inner loop: repack, arm
+# reboot-on-empty, done in a couple of minutes. It is the wrong tool the moment
+# a change touches hak_2da/ or tlk/, because a persistent world's clients never
+# download the .mod — they download the HAKS and the TLK, through NWSync. Ship a
+# rules change without republishing the manifest and every client silently keeps
+# reading the old tables: a level-60 sheet that clamps at 40, a kill paying the
+# old XP, a feat with a blank name.
+#
+# So this is the same one-button deploy with the publish steps in it, in the
+# order that actually works:
+#
+#   1. ask for the message players will see (FIRST — the build takes minutes)
+#   2. rebuild lotr_rules.hak from hak_2da/ and install it   (--no-hak to skip)
+#   3. optionally rebuild lotr.tlk (--tlk) and the music hak (--music)
+#   4. repack this repo                                      (--no-repack to skip)
+#   5. arm bin/reboot-on-empty --nwsync, so the NWSync rebuild happens in the
+#      DOWN WINDOW, between the clean shutdown and the server coming back
+#
+# Step 5 is the whole reason the manifest is not published here and now. The
+# realm is up and being played on while this script runs; a manifest rewritten
+# underneath a running server hands connecting clients a manifest for haks the
+# server has not loaded yet. bin/empty-restart-handler holds the server down
+# until the rebuild finishes, which is the only window where the two are
+# guaranteed to agree.
+#
+# ## The downtime, and why the message says it
+#
+# An ordinary reboot-on-empty is a ~1 minute blip. With an NWSync rebuild the
+# realm is down for the length of a SHA1 pass over the whole content-addressed
+# store — 88,693 resrefs / 4.15 GiB of mostly-CEP — which runs whether or not
+# anything changed, and then every client re-downloads what did change. Players
+# who are told "rebooting when empty" and then find the realm gone for half an
+# hour reasonably conclude it crashed. The estimate is therefore APPENDED TO THE
+# MESSAGE AUTOMATICALLY rather than left to whoever is typing: it is the part
+# that is easy to forget and impossible to add afterwards, because the message
+# is read out of the arm file by the Anvil plugin the moment it is armed.
+#
+# DEV REALM ONLY, for the same reason as bin/rebuild-and-arm: shipping to a live
+# season is a decision made deliberately through bin/promote-to-prod (whose
+# --fast-nwsync mode copies dev's already-built manifest in seconds instead of
+# rebuilding an identical one).
+#
+# Usage:
+#   bin/publish-and-arm                       # prompt for the message
+#   bin/publish-and-arm "Rules update"        # non-interactive
+#   bin/publish-and-arm --clean "..."         # clean repack (an .nss include changed)
+#   bin/publish-and-arm --full "..."          # NWSync --force: rewrite every blob
+#   bin/publish-and-arm --tlk --music "..."   # also rebuild the TLK / music hak
+#   bin/publish-and-arm --no-repack "..."     # hak/TLK only, no module change
+#   bin/publish-and-arm --dry-run             # print the plan and the message, do nothing
+set -euo pipefail
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck disable=SC1091
+. "$PROJECT_ROOT/server.env"
+[[ -f $PROJECT_ROOT/server.env.local ]] && . "$PROJECT_ROOT/server.env.local"
+
+if [[ ${SEASON_ROLE:-} != dev ]]; then
+  echo "error: publish-and-arm is dev-realm only (this repo is SEASON_ROLE=${SEASON_ROLE:-unset})." >&2
+  echo "       To ship a build to a live season use bin/promote-to-prod — its" >&2
+  echo "       --fast-nwsync mode copies dev's manifest instead of rebuilding it." >&2
+  exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# The downtime estimates players are told about.
+#
+# Incremental: the rehash is ~20 minutes on this box (bin/refresh-nwsync's own
+# header measures the store at 88,693 resrefs / 4.15 GiB, and the handler's
+# comment records the same ~20 minutes from the season 2 deploy of 2026-08-18).
+# The range is deliberately wide and rounded up — a realm back early is a happy
+# surprise, a realm back late is a support question.
+#
+# Force rewrites every blob rather than the changed ones, so it is bounded by
+# write throughput rather than by hashing: call it double, and say why.
+# ---------------------------------------------------------------------------
+DOWNTIME_NORMAL="about 20-30 minutes"
+DOWNTIME_FULL="about 45-60 minutes"
+
+CLEAN=0 FULL=0 DO_HAK=1 DO_TLK=0 DO_MUSIC=0 DO_REPACK=1 NO_SMOKE=0 DRY=0
+MSG=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --clean)      CLEAN=1 ;;
+    --full|--force) FULL=1 ;;
+    --no-hak)     DO_HAK=0 ;;
+    --tlk)        DO_TLK=1 ;;
+    --music)      DO_MUSIC=1 ;;
+    --no-repack)  DO_REPACK=0 ;;
+    --no-smoke)   NO_SMOKE=1 ;;
+    --dry-run|-n) DRY=1 ;;
+    -h|--help)    sed -n '2,53p' "$0"; exit 0 ;;
+    --)           shift; MSG="$*"; break ;;
+    # Same rule as bin/reboot-on-empty: an unrecognised flag must never become
+    # the text broadcast to players.
+    -*)           echo "unknown option: $1" >&2
+                  echo "try: bin/publish-and-arm --help" >&2; exit 2 ;;
+    *)            MSG="$*"; break ;;
+  esac
+  shift
+done
+
+if [[ $DO_HAK -eq 0 && $DO_TLK -eq 0 && $DO_MUSIC -eq 0 && $DO_REPACK -eq 0 ]]; then
+  echo "error: --no-hak --no-repack with no --tlk/--music leaves nothing to build." >&2
+  exit 2
+fi
+
+if [[ -z $MSG && $DRY -eq 0 ]]; then
+  echo "Publish to clients (hak/TLK + NWSync) and arm reboot-on-empty."
+  echo
+  read -rp "  Message players will see on the reboot warning: " MSG || true
+fi
+[[ -n ${MSG:-} ]] || MSG="Rules update. Rebooting once the realm is empty."
+
+# The message the plugin broadcasts, shouts and shows on login. The downtime
+# sentence is appended here so it can never be left off, and it says what the
+# player has to DO (reconnect and let the client download) as well as how long.
+if [[ $FULL -eq 1 ]]; then
+  DOWNTIME="$DOWNTIME_FULL"
+else
+  DOWNTIME="$DOWNTIME_NORMAL"
+fi
+FULL_MSG="$MSG This update changes files your game client downloads, so the realm will be down $DOWNTIME -- much longer than the usual restart. Leave the client patcher to finish when you reconnect."
+
+echo
+echo "==> plan"
+# Numbered as they will actually run, so a skipped step cannot be mistaken for
+# one that silently failed.
+step=0
+plan() { step=$((step + 1)); echo "    $step. $1"; }
+(( DO_HAK ))   && plan "rebuild + install lotr_rules.hak (hak_2da/)"
+(( DO_TLK ))   && plan "rebuild + install tlk/lotr.tlk"
+(( DO_MUSIC )) && plan "rebuild + install lotr_music.hak"
+if (( DO_REPACK )); then
+  if (( CLEAN )); then
+    plan "repack (CLEAN — cache wiped, every script recompiled)"
+  elif (( NO_SMOKE )); then
+    plan "repack (--no-smoke, gates skipped)"
+  else
+    plan "repack"
+  fi
+else
+  echo "       (no repack — --no-repack)"
+fi
+if (( FULL )); then
+  plan "arm reboot-on-empty --nwsync-force (every blob rewritten)"
+else
+  plan "arm reboot-on-empty --nwsync (manifest rebuilt in the down window)"
+fi
+echo
+echo "    players will be told:"
+echo "      $FULL_MSG"
+echo
+
+# A heads-up, not a gate: the NWSync rebuild fires whenever the DEV realm next
+# empties, which may well be while the live season is busy — and the rehash is
+# the most disk-punishing job on this box. Worth knowing; never worth blocking a
+# dev deploy over, because the admin is the one who decides what the box does.
+if [[ -x $PROJECT_ROOT/bin/prod-busy ]] && "$PROJECT_ROOT/bin/prod-busy" >/dev/null 2>&1; then
+  echo "    note: the live season has players on it right now. The NWSync rebuild"
+  echo "          runs when THIS realm next empties and will compete with them for"
+  echo "          the disk. Consider arming it when the live realm is quiet."
+  echo
+fi
+
+if (( DRY )); then
+  echo "Dry run — nothing built, nothing armed."
+  exit 0
+fi
+
+if (( DO_HAK )); then
+  echo "==> lotr_rules.hak"
+  "$PROJECT_ROOT/bin/build-lotr-rules-hak" --install
+fi
+
+if (( DO_TLK )); then
+  echo
+  echo "==> tlk/lotr.tlk"
+  python3 "$PROJECT_ROOT/bin/build-lotr-tlk" --apply --install
+fi
+
+if (( DO_MUSIC )); then
+  echo
+  echo "==> lotr_music.hak"
+  "$PROJECT_ROOT/bin/build-lotr-music-hak" --install
+fi
+
+if (( DO_REPACK )); then
+  MGR="${NWN_MANAGER_BIN:-/var/home/james/GIT/nwn_manager}/bin"
+  if (( CLEAN )); then
+    REPACK="$MGR/repack-homers-lotr-clean"
+  else
+    REPACK="$MGR/repack-homers-lotr"
+  fi
+  [[ -x $REPACK ]] || { echo "error: no repack wrapper at $REPACK" >&2; exit 1; }
+
+  REPACK_ARGS=(--project "$PROJECT_ROOT")
+  (( NO_SMOKE )) && REPACK_ARGS+=(--no-smoke)
+
+  echo
+  echo "==> repack: $REPACK"
+  "$REPACK" "${REPACK_ARGS[@]}"
+fi
+
+# Only arm on a clean build — `set -e` means we never get here otherwise. Arming
+# after a failed build would cycle the realm onto the PREVIOUS module, spend
+# twenty minutes of downtime republishing the manifest it already had, and look
+# exactly like the change not taking effect.
+echo
+echo "==> arming reboot-on-empty"
+if (( FULL )); then
+  "$PROJECT_ROOT/bin/reboot-on-empty" --nwsync-force -- "$FULL_MSG"
+else
+  "$PROJECT_ROOT/bin/reboot-on-empty" --nwsync -- "$FULL_MSG"
+fi
+
+cat <<EOF
+
+The realm reboots the moment it is next empty, rebuilds the NWSync manifest
+while it is down ($DOWNTIME), and comes back on the new build.
+
+  status:  bin/reboot-on-empty status
+  cancel:  bin/reboot-on-empty off
+  watch:   journalctl --user -fu homers-lotr-empty-restart.service
+
+Arming does NOT survive a restart by any other route (a forced restart, the
+03:00 cycle): if the realm goes down another way, re-run this.
+EOF

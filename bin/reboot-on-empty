@@ -9,7 +9,7 @@
 # the server service onto the new module (optionally rebuilding NWSync first).
 #
 # Usage:
-#   bin/reboot-on-empty [--nwsync] "Custom message shown to players"   # arm
+#   bin/reboot-on-empty [--nwsync|--nwsync-force] "Custom message"     # arm
 #   bin/reboot-on-empty off | --off                                    # cancel
 #   bin/reboot-on-empty status | --status                              # show state
 #   bin/reboot-on-empty help | --help                                  # usage
@@ -28,7 +28,13 @@
 #
 # --nwsync also rebuilds the NWSync manifest (bin/refresh-nwsync) during the
 # down window, before the server comes back — use it when the update changed
-# haks/tlk that clients download.
+# haks/tlk that clients download. --nwsync-force is the same thing with
+# refresh-nwsync --force: every blob rewritten whether or not it changed, which
+# is corruption recovery only and roughly doubles an already long down window.
+#
+# bin/publish-and-arm is the one-button version of the whole sequence (build the
+# hak, repack, arm with the right NWSync mode and a player message that states
+# the downtime); this script stays the primitive it calls.
 #
 # The flags live on the host-visible Anvil PluginData dir (same place as the
 # restart-now test control file). This must be the server's *userdirectory*
@@ -55,6 +61,11 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 ANVIL_DIR=$(season_anvil_dir "$NWN_RUN_DIR")     # fails loudly if it is a symlink
 PLUGIN_DATA="$ANVIL_DIR/PluginData"
 ARM_FILE="$PLUGIN_DATA/reboot-on-empty"
+# Presence = rebuild the manifest in the down window; its CONTENT is the mode,
+# "force" for refresh-nwsync --force and empty for the ordinary incremental
+# rebuild. The mode is content rather than a second flag file because the two
+# are mutually exclusive by construction, and an empty file (every one armed
+# before 2026-09-17) still means exactly what it always meant.
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
 # Holds the path of the realm to copy a manifest FROM. Mutually exclusive with
 # NWSYNC_FILE: one rebuilds the manifest, the other publishes one already built.
@@ -75,7 +86,7 @@ for ~45s it saves characters, shuts down cleanly, and a host systemd .path unit
 restarts just the server onto the new module (optionally rebuilding NWSync first).
 
 Usage:
-  bin/reboot-on-empty [--nwsync | --nwsync-copy DIR] "Message"   # arm
+  bin/reboot-on-empty [--nwsync | --nwsync-force | --nwsync-copy DIR] "Message"  # arm
   bin/reboot-on-empty off | --off | cancel | disarm              # cancel
   bin/reboot-on-empty status | --status | -s                     # show state (also the no-arg default)
   bin/reboot-on-empty help | --help | -h                         # this help
@@ -92,6 +103,11 @@ stops a stale flag rebooting the realm unprompted days later.
                   window — use when the update changed haks/tlk clients download.
                   Correct anywhere, but costs ~20 minutes of extra downtime: the
                   SHA1 pass over 4.15 GiB runs whether or not anything changed.
+
+  --nwsync-force  the same, with --force: every blob is rewritten even when
+                  identical. CORRUPTION RECOVERY ONLY — reach for it when a
+                  client reports a bad download that an ordinary refresh does
+                  not fix. Roughly doubles the down window.
 
   --nwsync-copy DIR
                   publish the manifest DIR has ALREADY built, instead of building
@@ -112,7 +128,13 @@ USAGE
   status|--status|-s|"")
     if [[ -f $ARM_FILE ]]; then
       echo "[reboot-on-empty] ARMED"
-      [[ -f $NWSYNC_FILE ]] && echo "  nwsync: will rebuild manifest before restart"
+      if [[ -f $NWSYNC_FILE ]]; then
+        if [[ $(cat "$NWSYNC_FILE") == force ]]; then
+          echo "  nwsync: will FORCE-rebuild the manifest before restart (every blob rewritten)"
+        else
+          echo "  nwsync: will rebuild manifest before restart"
+        fi
+      fi
       [[ -f $NWSYNC_COPY_FILE ]] && echo "  nwsync: will copy the manifest from $(cat "$NWSYNC_COPY_FILE") before restart"
       echo "  message: $(cat "$ARM_FILE")"
     else
@@ -121,9 +143,12 @@ USAGE
     ;;
   *)
     NWSYNC=0
+    NWSYNC_MODE=""
     NWSYNC_COPY=""
     if [[ ${1:-} == --nwsync ]]; then
       NWSYNC=1; shift
+    elif [[ ${1:-} == --nwsync-force ]]; then
+      NWSYNC=1; NWSYNC_MODE=force; shift
     elif [[ ${1:-} == --nwsync-copy ]]; then
       shift
       [[ $# -gt 0 ]] || { echo "--nwsync-copy needs the source repo directory" >&2; exit 2; }
@@ -156,14 +181,20 @@ USAGE
     printf '%s' "$MSG" > "$ARM_FILE"
     # Exactly one nwsync mode is armed at a time; arming either clears the other.
     if [[ $NWSYNC -eq 1 ]]; then
-      : > "$NWSYNC_FILE"; rm -f "$NWSYNC_COPY_FILE"
+      printf '%s' "$NWSYNC_MODE" > "$NWSYNC_FILE"; rm -f "$NWSYNC_COPY_FILE"
     elif [[ -n $NWSYNC_COPY ]]; then
       printf '%s' "$NWSYNC_COPY" > "$NWSYNC_COPY_FILE"; rm -f "$NWSYNC_FILE"
     else
       rm -f "$NWSYNC_FILE" "$NWSYNC_COPY_FILE"
     fi
     echo "[reboot-on-empty] ARMED — the server will reboot when it next empties."
-    [[ $NWSYNC -eq 1 ]] && echo "  nwsync: manifest will be rebuilt during the down window"
+    if [[ $NWSYNC -eq 1 ]]; then
+      if [[ $NWSYNC_MODE == force ]]; then
+        echo "  nwsync: manifest will be FORCE-rebuilt during the down window (every blob rewritten)"
+      else
+        echo "  nwsync: manifest will be rebuilt during the down window"
+      fi
+    fi
     [[ -n $NWSYNC_COPY ]] && echo "  nwsync: manifest will be copied from $NWSYNC_COPY during the down window"
     echo "  message: ${MSG:-（none）}"
     echo "  cancel with: bin/reboot-on-empty off"

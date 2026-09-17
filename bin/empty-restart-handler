@@ -8,7 +8,11 @@
 # deployed) module.
 #
 # Two NWSync modes, armed by bin/reboot-on-empty:
-#   reboot-on-empty-nwsync       rebuild the manifest here (~20 min of downtime)
+#   reboot-on-empty-nwsync       rebuild the manifest here (~20 min of downtime).
+#                                The file's CONTENT is the mode: "force" runs
+#                                refresh-nwsync --force (every blob rewritten,
+#                                corruption recovery, roughly twice as long),
+#                                empty runs the ordinary incremental rebuild.
 #   reboot-on-empty-nwsync-copy  publish the manifest another realm already built
 #                                (seconds). The file holds that realm's repo path.
 # The copy is guarded and refuses if the two realms' haks do not match; if it
@@ -78,9 +82,19 @@ trap bring_server_back EXIT
 echo "[empty-restart] holding $UNIT down until NWSync is settled..."
 systemctl --user stop "$UNIT" || true
 
+# $1 (optional) is the armed mode: "force" adds refresh-nwsync --force. Anything
+# else - including the empty string every pre-2026-09-17 arm file holds - is the
+# ordinary incremental rebuild.
 nwsync_rebuild() {
-  echo "[empty-restart] rebuilding NWSync manifest before relaunch..."
-  if "$PROJECT_ROOT/bin/refresh-nwsync" --silent; then
+  local mode=${1:-}
+  local extra=()
+  if [[ $mode == force ]]; then
+    extra=(--force)
+    echo "[empty-restart] FORCE-rebuilding NWSync manifest before relaunch (every blob rewritten)..."
+  else
+    echo "[empty-restart] rebuilding NWSync manifest before relaunch..."
+  fi
+  if "$PROJECT_ROOT/bin/refresh-nwsync" --silent "${extra[@]}"; then
     echo "[empty-restart] NWSync manifest rebuilt."
   else
     echo "[empty-restart] WARNING: refresh-nwsync failed; restarting server anyway." >&2
@@ -99,8 +113,9 @@ if [[ -f $NWSYNC_COPY_FILE ]]; then
     nwsync_rebuild
   fi
 elif [[ -f $NWSYNC_FILE ]]; then
+  NWSYNC_MODE=$(cat "$NWSYNC_FILE" 2>/dev/null || true)
   rm -f "$NWSYNC_FILE"
-  nwsync_rebuild
+  nwsync_rebuild "$NWSYNC_MODE"
 fi
 NWSYNC_DONE=1
 

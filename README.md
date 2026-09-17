@@ -1545,6 +1545,30 @@ cleanly and the host `homers-lotr-empty-restart.path` unit restarts **just the
 server service** onto the new module. Cancel with `bin/reboot-on-empty off`. Full
 setup + one-time unit install: [`rebootSchedule.md`](rebootSchedule.md#adhoc-reboot-on-empty-push-an-update-without-kicking-players).
 
+**Two one-button deploys sit on top of this, both dev-realm only:**
+
+| | `bin/rebuild-and-arm` | `bin/publish-and-arm` |
+|---|---|---|
+| for | a module-only change | anything under `hak_2da/` or `tlk/` |
+| builds | repack (`--no-smoke`) | the rules hak, then a repack (gated by default) |
+| arms | `reboot-on-empty` | `reboot-on-empty --nwsync` (or `--nwsync-force` with `--full`) |
+| downtime | ~1 minute | ~20-30 minutes, or ~45-60 with `--full` |
+
+Both ask for the player message **first**, because the build takes minutes and a
+prompt at the end means coming back to a terminal that never armed anything.
+`publish-and-arm` then **appends the downtime to that message automatically** —
+clients download the haks, not the `.mod`, so a rules change means a long down
+window plus a client-side patch, and "rebooting when empty" followed by half an
+hour of silence reads as a crash. Other flags: `--clean` (an `.nss` include
+changed, so nasher's cache must be wiped), `--tlk` / `--music` for those builds,
+`--no-repack` for a hak-only publish, and `--dry-run` to see the plan and the
+exact message without building or arming anything.
+
+The manifest is rebuilt **in the down window**, not while this script runs: the
+realm is up and being played on, and a manifest rewritten under a running server
+hands connecting clients a manifest for haks the server has not loaded yet.
+`bin/empty-restart-handler` holds the server down until that rebuild finishes.
+
 ## Server performance: profiling and headroom
 
 Two tools, answering two different questions. Both are on by default on the dev

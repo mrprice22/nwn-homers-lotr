@@ -108,14 +108,16 @@ WIKI="$APPS/$DEV_PREFIX-wiki.desktop"
 NWSYNC="$APPS/$DEV_PREFIX-refresh-nwsync.desktop"
 NWSYNC_FORCE="$APPS/$DEV_PREFIX-refresh-nwsync-force.desktop"
 
-# The dev realm's inner-loop deploy button: rebuild ungated, then arm
-# reboot-on-empty. Dev only for the same reason as the promotion tiles below —
-# bin/rebuild-and-arm refuses to run from a season repo, so on a season this
-# would be a tile that can only ever print an error.
+# The dev realm's deploy buttons: the inner-loop one (rebuild ungated, arm
+# reboot-on-empty) and the publish one for a change clients have to download
+# (hak + NWSync). Dev only for the same reason as the promotion tiles below —
+# both scripts refuse to run from a season repo, so on a season these would be
+# tiles that can only ever print an error.
 REBUILD_ARM_FILES=()
 if [[ ${SEASON_ROLE:-} == dev ]]; then
   REBUILD_ARM="$APPS/$DEV_PREFIX-rebuild-arm.desktop"
-  REBUILD_ARM_FILES=("$REBUILD_ARM")
+  PUBLISH_ARM="$APPS/$DEV_PREFIX-publish-arm.desktop"
+  REBUILD_ARM_FILES=("$REBUILD_ARM" "$PUBLISH_ARM")
 fi
 
 # Promotion buttons — DEV REALM ONLY. bin/season-promote.sh refuses to run from
@@ -367,6 +369,17 @@ if ((${#REBUILD_ARM_FILES[@]})); then
     "Rebuild this realm's module WITHOUT the build gates (--no-smoke) and arm reboot-on-empty, so the realm cycles onto the new build the moment the last player leaves. Prompts for the message players see, up front. Use the plain Repack tile when you want the gates." \
     "\"$PROJECT_ROOT/bin/rebuild-and-arm\"" \
     "system-reboot" "Development;"
+
+  # The publish deploy: anything that changed hak_2da/ or tlk/. Clients download
+  # the haks, not the module, so without the NWSync rebuild they keep reading
+  # the old tables — and that rebuild is ~20 minutes of downtime, which the
+  # script states in the message players are shown.
+  write_hold_entry "$PUBLISH_ARM" \
+    "Publish + Reboot When Empty (hak/NWSync) - $LABEL" \
+    "NWN Module Build" \
+    "For a change clients must download: rebuild lotr_rules.hak, repack, and arm reboot-on-empty with an NWSync rebuild in the down window. Prompts for the message, then appends the ~20-30 minute downtime to it automatically. Use the plain Rebuild tile for a module-only change." \
+    "\"$PROJECT_ROOT/bin/publish-and-arm\"" \
+    "folder-remote" "Development;"
 fi
 
 # ---------------------------------------------------------------- promotion --
