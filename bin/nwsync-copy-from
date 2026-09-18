@@ -4,6 +4,9 @@
 #
 # WHY THIS IS SOUND
 # -----------------
+# (The guard that proves the two realms match compares RESOURCE CONTENT, not the
+# haks' bytes — an ERF stamps its build date into its own header, so two
+# byte-different haks are routinely the same hak. See guard 2 below.)
 # A NWSync manifest is content-addressed: the manifest file's SHA1 *is* its
 # filename, and the season's name is not in it — that lives in the .json sidecar
 # beside it. So two realms publishing the same haks and TLK produce the SAME
@@ -116,16 +119,42 @@ if ! diff_out=$(diff <(list_scanned "$SRC_HOME") <(list_scanned "$TGT_HOME")); t
 fi
 note "hak/tlk file set matches ($(list_scanned "$SRC_HOME" | wc -l) files)"
 
-# 2. Full SHA1 on the two files this project actually BUILDS. Everything else in
-#    those directories is static third-party content (CEP), already matched by
+# 2. CONTENT hash on the two files this project actually BUILDS. Everything else
+#    in those directories is static third-party content (CEP), already matched by
 #    name and size above — and hashing 8 GiB of it here would reintroduce exactly
 #    the cost this tool exists to avoid.
+#
+#    CONTENT, not the file's bytes. This was a whole-file sha1sum until
+#    2026-09-18, when it refused a season 2 promotion whose hak was identical to
+#    dev's resource for resource: ONE byte differed, at offset 36, the ERF
+#    header's BuildDay — dev's hak was built on the 17th and the target's was
+#    rebuilt on the 18th. A byte comparison of a container that stamps its own
+#    build date into the header can only agree when both were built the same day,
+#    so the guard was refusing nearly every promotion it was meant to wave
+#    through. bin/content-hash.py parses the ERF and hashes the resources
+#    instead; the TLK carries no build stamp and is still hashed whole.
+HASHER="$TARGET_ROOT/bin/content-hash.py"
+hash_content() {
+  if [[ -x $HASHER ]]; then
+    # Exit 1 means it could not read or parse the file at all, which is not the
+    # same as "they differ" and must not be reported as one.
+    python3 "$HASHER" "$1" 2>&1 | awk '{print $1; exit}' \
+      || die "cannot hash $1 — see the message above. Fall back to a full refresh-nwsync."
+  else
+    # An older target repo that predates the helper. Byte comparison still never
+    # publishes a WRONG manifest; it just refuses valid ones built on another
+    # day, so say which check is running rather than let the caller wonder.
+    sha1sum "$1" | cut -d' ' -f1
+  fi
+}
+[[ -x $HASHER ]] || note "note: $HASHER missing — falling back to whole-file hashes, which refuse haks built on different days"
+
 for f in hak/lotr_rules.hak tlk/lotr.tlk; do
   [[ -f $SRC_HOME/$f && -f $TGT_HOME/$f ]] || die "missing $f in one of the realms"
-  a=$(sha1sum "$SRC_HOME/$f" | cut -d' ' -f1)
-  b=$(sha1sum "$TGT_HOME/$f" | cut -d' ' -f1)
-  [[ $a == "$b" ]] || die "$f differs between the realms ($a vs $b). The target's hak is stale — run bin/build-lotr-rules-hak --install there first."
-  note "$f matches ($a)"
+  a=$(hash_content "$SRC_HOME/$f")
+  b=$(hash_content "$TGT_HOME/$f")
+  [[ $a == "$b" ]] || die "$f differs between the realms IN CONTENT ($a vs $b) — this is a real difference, not a build stamp. The target's hak is stale: run bin/build-lotr-rules-hak --install there first, or fall back to a full refresh-nwsync."
+  note "$f matches in content ($a)"
 done
 echo
 
