@@ -8138,7 +8138,7 @@ ideas:
         status: open
         kind: uat
         tester: "barbarian or paladin, level 51+"
-      - step: "Compensate the feat picks the bug ate: run python3 bin/audit-devcrit-lost.py and hand back one feat per 'owed' pick to each player listed (14 across the realms at the time of the fix). The feat itself is restored automatically; these are the extra picks that bought the same feat twice or more."
+      - step: "Compensate the feat picks the bug ate. `python3 bin/audit-devcrit-lost.py` names them: on the LIVE realm it is six picks, all to szescian82's \"PiC Finger of Death\" (he took the feat at levels 33, 36, 45, 48, 51, 54 and 60 - the same player who reported the bug). Ask him which six feats he wants, then grant them with `python3 bin/grant-feats.py --realm live --character \"PiC Finger of Death\" --feat X --feat Y ... --apply --player-is-offline` while he is logged out. The other entries are that same character mirrored into the dev vault plus two throwaway test characters - nothing owed to a player there."
         status: open
         kind: admin
     comments:
