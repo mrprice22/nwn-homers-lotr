@@ -85,7 +85,22 @@
 //         are TAKEN OFF the creature instead (DevCrit_ArmNoDevCrit below), after
 //         recording that it had them. Roadmap: devcrit-unarmed-save-or-die -
 //         this is the half devcrit-roll missed, and it is why a monk on season 2
-//         was still one-shotting things weeks after the &quot;fix&quot;;
+//         was still one-shotting things weeks after the &quot;fix&quot;.
+//
+//         For a PLAYER the strip alone was not enough, and roadmap
+//         buged-dev-crit is what it cost: the removal is written into the .bic,
+//         so the level-up wizard OFFERS THE FEAT AGAIN at every epic feat level
+//         (the reporter bought it at 51, 54 and 57), and the snapshot local
+//         that carried the entitlement died with the session, taking the
+//         replacement dice and the Legendary Butcher prerequisite with it. The
+//         unarmed feat is therefore replaced by a PROXY -
+//         FEAT_DEVCRIT_UNARMED_PROXY, an inert feat.2da row minted by
+//         bin/gen-legendary-feats.py - while stock 506 is suppressed with
+//         ALLCLASSESCANUSE 0 and repointed in the barbarian and paladin
+//         bonus-feat lists. The proxy is a real feat: it shows on the character
+//         sheet, it is never offered twice, it lives in the .bic, and the
+//         engine has never heard of it. Creatures keep the strip-and-local
+//         route, which is all an NPC needs;
 //   2. the bonus damage is added in the NWNX Damage ATTACK event
 //      (devcrit_atk.nss), on an ORDINARY critical, to an attacker holding the
 //      Devastating Critical feat for the weapon in hand - or, for unarmed and
@@ -197,6 +212,30 @@ int DevCrit_HasDevCrit(object oAttacker, object oWeapon, int nWeaponAttackType);
 // too so the Legendary Butcher prerequisite still holds.
 void DevCrit_ArmNoDevCrit(object oCreature);
 
+// Give back what the strip destroyed. Roadmap: buged-dev-crit.
+//
+// Between 2026-08-15 and the proxy row, a player who picked Devastating
+// Critical (Unarmed) had it removed and written out of their .bic, and the
+// &quot;it had it&quot; local died with the session - so the entitlement was gone and the
+// level-up wizard offered the feat again at the next feat level. Some
+// characters spent the pick two, three, seven times over.
+//
+// The .bic still knows. NWNX_Creature_RemoveFeat takes the feat off the
+// creature&#x27;s stats but does NOT touch the PER-LEVEL feat list, so every one of
+// those picks is still recorded against the level it was made at - verified
+// against the live vault, where a character holding no devastating critical at
+// all still lists it at seven separate levels. That list is the evidence, it is
+// per character, and it needs no backup, no published list and no database.
+//
+// Returns the number of picks spent on stock feat 506. Walks the level list, so
+// it is behind a cheap guard in DevCrit_RestoreUnarmed and never runs for the
+// players it cannot apply to.
+int DevCrit_UnarmedPicksSpent(object oPC);
+
+// Grant the proxy to a player whose picks the strip ate, once. Idempotent: a
+// player who already holds the proxy is whole and leaves immediately.
+void DevCrit_RestoreUnarmed(object oPC);
+
 // TRUE if oCreature held Devastating Critical (Unarmed) / (Creature) before
 // DevCrit_ArmNoDevCrit took it, or still holds it because it has not been
 // armed yet.
@@ -252,7 +291,12 @@ void DevCrit_ClearNoKill(object oTarget, int nToken);
 
 int DevCrit_HadUnarmed(object oCreature)
 {
-    return GetLocalInt(oCreature, DEVCRIT_VAR_HAD_UNARMED)
+    // The proxy first: on a player that is the entitlement itself, a real feat
+    // on the character sheet that survives a logout. The local is what a
+    // creature gets (it has no proxy feat), and the stock feat is the case
+    // where arming has not run yet.
+    return GetHasFeat(FEAT_DEVCRIT_UNARMED_PROXY, oCreature)
+        || GetLocalInt(oCreature, DEVCRIT_VAR_HAD_UNARMED)
         || GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED, oCreature);
 }
 
@@ -267,15 +311,97 @@ void DevCrit_ArmNoDevCrit(object oCreature)
     if (GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED, oCreature))
     {
         SetLocalInt(oCreature, DEVCRIT_VAR_HAD_UNARMED, TRUE);
+
+        // MIGRATION. A player holding the stock feat took it before the proxy
+        // row existed (or has not logged in since). Hand them the proxy BEFORE
+        // the strip, so the entitlement converts into something durable instead
+        // of evaporating with the session - the defect this replaces. Creatures
+        // get no proxy: they keep the local, which lives exactly as long as
+        // they do. Roadmap: buged-dev-crit.
+        if (GetIsPC(oCreature) &amp;&amp;
+            !GetHasFeat(FEAT_DEVCRIT_UNARMED_PROXY, oCreature))
+            NWNX_Creature_AddFeat(oCreature, FEAT_DEVCRIT_UNARMED_PROXY);
+
         NWNX_Creature_RemoveFeat(oCreature,
                                  FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED);
     }
+
+    // The proxy is the record from here on: re-derive the snapshot from it on
+    // every login, so nothing downstream has to know the difference.
+    if (GetHasFeat(FEAT_DEVCRIT_UNARMED_PROXY, oCreature))
+        SetLocalInt(oCreature, DEVCRIT_VAR_HAD_UNARMED, TRUE);
 
     if (GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE, oCreature))
     {
         SetLocalInt(oCreature, DEVCRIT_VAR_HAD_CREATURE, TRUE);
         NWNX_Creature_RemoveFeat(oCreature,
                                  FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE);
+    }
+}
+
+int DevCrit_UnarmedPicksSpent(object oPC)
+{
+    int nLevels = GetHitDice(oPC);
+    int nPicks  = 0;
+    int nLevel, nCount, i;
+
+    for (nLevel = 1; nLevel &lt;= nLevels; nLevel++)
+    {
+        nCount = NWNX_Creature_GetFeatCountByLevel(oPC, nLevel);
+        for (i = 0; i &lt; nCount; i++)
+            if (NWNX_Creature_GetFeatByLevel(oPC, nLevel, i) ==
+                FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED)
+                nPicks++;
+    }
+
+    return nPicks;
+}
+
+void DevCrit_RestoreUnarmed(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    // Already whole - either they never lost it or a previous login restored
+    // it. This is what keeps the grant to exactly once per character.
+    if (GetHasFeat(FEAT_DEVCRIT_UNARMED_PROXY, oPC)) return;
+
+    // The cheap guard, and the reason the level walk below is affordable at
+    // all: Epic Overwhelming Critical (Unarmed) is PREREQFEAT2 of the feat we
+    // are looking for, so nobody without it can ever have picked it. Two thirds
+    // of the server leave here on one GetHasFeat.
+    if (!GetHasFeat(FEAT_EPIC_OVERWHELMING_CRITICAL_UNARMED, oPC)) return;
+
+    int nPicks = DevCrit_UnarmedPicksSpent(oPC);
+    if (nPicks &lt;= 0) return;
+
+    NWNX_Creature_AddFeat(oPC, FEAT_DEVCRIT_UNARMED_PROXY);
+    SetLocalInt(oPC, DEVCRIT_VAR_HAD_UNARMED, TRUE);
+
+    // NWScript does not join adjacent string literals - every break needs its
+    // own +.
+    SendMessageToPC(oPC, COLOR_RED +
+        &quot;Devastating Critical (Unarmed) has been restored to your character &quot; +
+        &quot;sheet. It no longer kills outright - it adds bonus damage - and it &quot; +
+        &quot;will not be offered to you again.&quot; + COLOR_END);
+
+    if (nPicks &lt;= 1) return;
+
+    // More than one pick means the level-up wizard sold them the same feat
+    // twice or more. The feat is back; the SPARE picks are not, and only the
+    // admin can make those good - so say so, in the log and to anyone online
+    // who can act on it.
+    string sLine = &quot;[DEVCRIT RESTORE] &#x27;&quot; + GetName(oPC) + &quot;&#x27; (&quot; +
+        GetPCPlayerName(oPC) + &quot;) spent &quot; + IntToString(nPicks) +
+        &quot; feat picks on Devastating Critical (Unarmed); the feat is restored, &quot; +
+        IntToString(nPicks - 1) + &quot; pick(s) are still owed.&quot;;
+    WriteTimestampedLogEntry(sLine);
+
+    object oAdmin = GetFirstPC();
+    while (GetIsObjectValid(oAdmin))
+    {
+        if (Admin_CanAdmin(oAdmin))
+            SendMessageToPC(oAdmin, COLOR_RED + sLine + COLOR_END);
+        oAdmin = GetNextPC();
     }
 }
 

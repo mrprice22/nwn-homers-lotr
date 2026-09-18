@@ -306,6 +306,14 @@ void main()
     // snapshot this leaves behind.
     DelayCommand(6.4, DevCrit_ArmNoDevCrit(oPC));
 
+    // ...and give back what the strip destroyed before the proxy row existed:
+    // a character that spent a feat pick on Devastating Critical (Unarmed) and
+    // has nothing to show for it gets the proxy, once. Self-detecting from the
+    // character&#x27;s own per-level feat list, behind a one-feat guard, so it costs
+    // nothing for the players it does not apply to. Roadmap: buged-dev-crit.
+    // Ahead of LegFeat_ApplyAll for the same reason as the line above.
+    DelayCommand(6.45, DevCrit_RestoreUnarmed(oPC));
+
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
     // The pooled attack/damage effect is a RENDER of the bonus ledger, never the
     // record, so it can always be redrawn. LegFeat_ApplyAll has just re-registered

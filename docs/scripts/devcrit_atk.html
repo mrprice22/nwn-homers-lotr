@@ -152,6 +152,12 @@ void main()
         DevCrit_FlagNoKill(data.oTarget, oAttacker);
         DevCrit_AlarmEngineCrit(oAttacker, data.oTarget, oWeapon,
                                 data.iWeaponAttackType);
+        // Self-heal: whichever route leaked, an attacker still holding one of
+        // the two feats the engine resolves on its own loses it here, so a leak
+        // costs at most one devastating critical instead of every one for the
+        // rest of the session. Free on every other attack - this branch is
+        // meant never to run at all.
+        DevCrit_ArmNoDevCrit(oAttacker);
     }
 
     int nDamage = DevCrit_Roll(nDice, DevCrit_DieSize(oWeapon));
