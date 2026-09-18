@@ -266,6 +266,83 @@ if [[ -n ${INVOCATION_ID:-} ]]; then
   cgroup_args=(--cgroups=split)
 fi
 
+# --- campaign DB preflight ---------------------------------------------------
+# Twice the DEV realm has crash-looped with `what(): database unavailable`,
+# aborting at module load on `admindb` — the campaign DB that is a SYMLINK into
+# $NWN_SHARED_DIR. The DBs opened immediately before it (roadmapdb, respawndb)
+# are ordinary files in the realm's own database/ and open fine, so the fault is
+# in that second symlink hop, as seen FROM INSIDE A CONTAINER. Every check run
+# afterwards from the host came back healthy, which is why this runs here, one
+# second before the server does, in the place that actually fails.
+#
+# THE MOUNTS HERE DELIBERATELY CARRY NO `z` OR `Z`. Those flags relabel the
+# mount source, and a relabel would heal exactly the kind of SELinux fault this
+# is looking for — an investigating container with `:z` did precisely that on
+# 2026-09-17 and destroyed the evidence. It also means the run dir is NOT
+# mounted: it is bind-mounted with private categories (`:Z`), so a container
+# without them would be denied and report a fault that is not there. The home
+# dir and the shared dir carry plain shared labels, and they are the whole path
+# the failure walks.
+#
+# Never fatal, and never slow: one short container, timed out, and the server
+# starts regardless of what it says. Disable with SERVE_DB_PREFLIGHT=0.
+if [[ ${SERVE_DB_PREFLIGHT:-1} == 1 && -d ${NWN_SHARED_DIR:-} ]]; then
+  preflight_mounts=(-v "$NWN_HOME_DIR:/nwn/home:rw"
+                    -v "$NWN_SHARED_DIR:$NWN_SHARED_DIR:rw")
+  preflight_out=$(timeout 45 podman run --rm --entrypoint /bin/sh \
+      --userns=keep-id --user "$(id -u):$(id -g)" \
+      "${preflight_mounts[@]}" "$NWN_IMAGE" -c '
+        rc=0
+        for f in /nwn/home/database/*.sqlite3; do
+          [ -L "$f" ] || continue          # only the shared, symlinked ones
+          name=${f##*/}
+          target=$(readlink "$f")
+          if [ ! -e "$f" ]; then
+            echo "FAIL $name: dangling -> $target"; rc=1; continue
+          fi
+          [ -r "$f" ] || { echo "FAIL $name: not readable"; rc=1; continue; }
+          [ -w "$f" ] || { echo "FAIL $name: not writable"; rc=1; continue; }
+          # SQLite needs to create its rollback journal beside the database, so
+          # the directory matters as much as the file.
+          probe="$(dirname "$target")/.preflight-$$"
+          if touch "$probe" 2>/dev/null; then
+            rm -f "$probe"
+          else
+            echo "FAIL $name: cannot create a journal beside $target"; rc=1; continue
+          fi
+          echo "ok   $name -> $target"
+        done
+        exit $rc
+      ' 2>&1) || {
+    echo "[serve] DB PREFLIGHT FAILED — the server is very likely to abort at"
+    echo "[serve] module load with \"database unavailable\". Detail:"
+    printf '%s\n' "$preflight_out" | sed 's/^/[serve]   /'
+    echo "[serve] Snapshotting host state before starting anyway..."
+    "$PROJECT_ROOT/bin/capture-db-failure" --reason "preflight failed" >/dev/null 2>&1 || true
+  }
+  # `if`, not `[[ … ]] && …`: under `set -e` a false test at statement level is a
+  # failing command and would take the whole server start down with it.
+  if [[ -n ${preflight_out:-} ]]; then
+    printf '%s\n' "$preflight_out" | sed 's/^/[serve] preflight: /'
+  fi
+fi
+
+# --- snapshot a failed run ---------------------------------------------------
+# podman run is the last command, so this script's exit status is the server's.
+# A non-zero exit that carries the "database unavailable" abort in the journal
+# is the crash this exists for; bin/capture-db-failure decides (--require-marker)
+# and throttles itself, so an ordinary shutdown writes nothing. The trap never
+# changes the exit status.
+_serve_snapshot_on_failure() {
+  local rc=$?
+  (( rc == 0 )) && return 0
+  [[ -x $PROJECT_ROOT/bin/capture-db-failure ]] || return 0
+  "$PROJECT_ROOT/bin/capture-db-failure" --require-marker --exit-code "$rc" \
+      --reason "server exited $rc" >/dev/null 2>&1 || true
+  return 0
+}
+trap _serve_snapshot_on_failure EXIT
+
 podman run --rm --name "$NWN_CONTAINER_NAME" \
   --userns=keep-id --user "$(id -u):$(id -g)" \
   --network=host \

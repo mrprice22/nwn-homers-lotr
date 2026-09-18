@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# capture-db-failure — snapshot the host state behind a "database unavailable"
+# crash, at the moment it happens.
+#
+# WHY THIS EXISTS
+# ---------------
+# Twice now (2026-09-14 and 2026-09-17) the DEV realm has entered a crash loop
+# where nwserver aborts at module load with
+#
+#     terminate called after throwing an instance of 'std::runtime_error'
+#       what():  database unavailable
+#     CCampaignDB::GetDatabaseFor -> ExecuteCommandSqlPrepare -> RunScriptFile
+#
+# An fd trace placed it exactly: onmoduleload opens roadmapdb and respawndb and
+# then dies on the NEXT campaign DB, `admindb` — the one that is a symlink into
+# the shared ~/.local/share/nwn-shared/. Both times it followed a
+# reboot-on-empty; both times it healed only at the next full machine reboot;
+# it has never happened to a season realm.
+#
+# Every post-hoc check came back healthy — file, permissions, mount, SELinux
+# labels, locks, disk, memory — because by the time anyone looks, the machine
+# has rebooted or an investigating container has relabelled the evidence away.
+# (That last one is not hypothetical: an investigation on 2026-09-17 ran a probe
+# container with `:z` on the shared dir BEFORE reading its labels, which would
+# have healed a private-label fault and hidden the cause.)
+#
+# So this runs AT FAILURE TIME and reads the volatile things FIRST: SELinux
+# labels before anything can relabel them, then mounts, then the symlink chain,
+# then locks and open handles.
+#
+# Usage:
+#   bin/capture-db-failure                      # snapshot now, unconditionally
+#   bin/capture-db-failure --require-marker     # only if the journal shows the
+#                                               # "database unavailable" abort
+#                                               # in the last 2 minutes
+#   bin/capture-db-failure --exit-code N --reason "text"
+#
+# bin/serve calls it with --require-marker from an EXIT trap, so an ordinary
+# shutdown writes nothing. Throttled to one snapshot per 30 minutes per realm,
+# because the failure is a crash LOOP and 166 identical snapshots help nobody.
+#
+# Read-only. It never writes anything except its own report.
+set -uo pipefail
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck disable=SC1090
+. "$PROJECT_ROOT/server.env" 2>/dev/null || true
+[[ -f $PROJECT_ROOT/server.env.local ]] && . "$PROJECT_ROOT/server.env.local"
+
+REALM=$(basename "$PROJECT_ROOT")
+SHARED_DIR="${NWN_SHARED_DIR:-$HOME/.local/share/nwn-shared}"
+OUT_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/nwn-db-failure"
+THROTTLE_SECONDS=1800
+
+REQUIRE_MARKER=0
+EXIT_CODE=""
+REASON=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --require-marker) REQUIRE_MARKER=1 ;;
+    --exit-code)      EXIT_CODE="${2:-}"; shift ;;
+    --reason)         REASON="${2:-}"; shift ;;
+    -h|--help)        sed -n '2,40p' "$0"; exit 0 ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+UNIT=""
+if [[ -r $PROJECT_ROOT/bin/season-unit.sh ]]; then
+  # shellcheck source=bin/season-unit.sh
+  . "$PROJECT_ROOT/bin/season-unit.sh" 2>/dev/null || true
+  UNIT=$(season_server_unit "$PROJECT_ROOT" 2>/dev/null || true)
+fi
+
+# The marker gate. Without a resolvable unit there is no journal to read, so the
+# snapshot is taken rather than skipped: a missing diagnosis is worse than a
+# spurious file.
+if (( REQUIRE_MARKER )) && [[ -n $UNIT ]]; then
+  if ! journalctl --user -u "$UNIT" --since '-2min' --no-pager 2>/dev/null \
+       | grep -q 'database unavailable'; then
+    exit 0
+  fi
+fi
+
+STAMP="$OUT_DIR/.last-$REALM"
+if [[ -f $STAMP ]]; then
+  age=$(( $(date +%s) - $(stat -c %Y "$STAMP" 2>/dev/null || echo 0) ))
+  (( age < THROTTLE_SECONDS )) && exit 0
+fi
+
+mkdir -p "$OUT_DIR" 2>/dev/null || exit 0
+REPORT="$OUT_DIR/$REALM-$(date +%Y%m%d-%H%M%S).txt"
+
+{
+  echo "# nwn database-failure snapshot"
+  echo "realm:      $REALM"
+  echo "unit:       ${UNIT:-<unresolved>}"
+  echo "when:       $(date -Is)"
+  echo "exit code:  ${EXIT_CODE:-<none>}"
+  echo "reason:     ${REASON:-<none>}"
+  echo "boot id:    $(cat /proc/sys/kernel/random/boot_id 2>/dev/null)"
+  echo "uptime:     $(uptime -p 2>/dev/null)"
+
+  # ---- FIRST: SELinux labels. Any container started with :z or :Z relabels
+  # these, so they must be read before anything else in this script or outside
+  # it touches the paths.
+  echo
+  echo "## selinux labels (read first, deliberately)"
+  ls -Zd "$SHARED_DIR" 2>&1
+  ls -Z "$SHARED_DIR" 2>&1
+  ls -Zd "${NWN_HOME_DIR:-}/database" 2>&1
+  ls -Z "${NWN_HOME_DIR:-}/database" 2>&1 | head -12
+  ls -Zd "${NWN_RUN_DIR:-}" "${NWN_RUN_DIR:-}/database" 2>&1
+
+  echo
+  echo "## mounts"
+  findmnt -no SOURCE,TARGET,FSTYPE,OPTIONS "$SHARED_DIR" 2>&1
+  findmnt -no SOURCE,TARGET,FSTYPE,OPTIONS "${NWN_HOME_DIR:-}" 2>&1
+  findmnt -no SOURCE,TARGET,FSTYPE,OPTIONS "${NWN_RUN_DIR:-}" 2>&1
+
+  echo
+  echo "## the symlink chain the crash walks"
+  for db in admindb meritdb; do
+    f="${NWN_HOME_DIR:-}/database/$db.sqlite3"
+    echo "--- $db"
+    ls -la "$f" 2>&1
+    echo "resolves to: $(readlink -f "$f" 2>&1)"
+    stat -c '  target: mode=%A owner=%U:%G size=%s mtime=%y inode=%i dev=%D' \
+         "$(readlink -f "$f" 2>/dev/null)" 2>&1
+  done
+  echo "--- run-dir database entry"
+  ls -la "${NWN_RUN_DIR:-}/database" 2>&1
+
+  echo
+  echo "## locks on the shared DBs (/proc/locks field 6 is maj:min:inode)"
+  for db in admindb meritdb; do
+    t=$(readlink -f "${NWN_HOME_DIR:-}/database/$db.sqlite3" 2>/dev/null)
+    [[ -n $t ]] || continue
+    ino=$(stat -c %i "$t" 2>/dev/null)
+    echo "--- $db inode=$ino"
+    awk -v i="$ino" '{split($6,f,":"); if (f[3]==i) print "   ", $0}' /proc/locks 2>/dev/null
+  done
+
+  echo
+  echo "## processes holding the shared DBs open"
+  for pid in /proc/[0-9]*; do
+    ls -l "$pid/fd" 2>/dev/null | grep -q 'nwn-shared' || continue
+    echo "--- pid ${pid#/proc/} $(tr '\0' ' ' < "$pid/cmdline" 2>/dev/null | cut -c1-90)"
+    ls -l "$pid/fd" 2>/dev/null | grep -o '/[^ ]*nwn-shared[^ ]*' | sort -u | sed 's/^/     /'
+  done
+
+  echo
+  echo "## containers"
+  podman ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>&1 | head -12
+
+  echo
+  echo "## space and memory"
+  df -h "$SHARED_DIR" "${NWN_HOME_DIR:-}" "${NWN_RUN_DIR:-}" 2>&1 | sort -u
+  free -h 2>&1
+
+  if [[ -n $UNIT ]]; then
+    echo
+    echo "## last journal lines for $UNIT"
+    journalctl --user -u "$UNIT" --since '-3min' --no-pager -o short-iso 2>/dev/null \
+      | grep -vE '^\s+(#[0-9]|0x)' | tail -60
+  fi
+} > "$REPORT" 2>&1
+
+touch "$STAMP" 2>/dev/null || true
+echo "[db-failure] snapshot written: $REPORT" >&2
