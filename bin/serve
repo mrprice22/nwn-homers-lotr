@@ -289,16 +289,44 @@ fi
 if [[ ${SERVE_DB_PREFLIGHT:-1} == 1 && -d ${NWN_SHARED_DIR:-} ]]; then
   preflight_mounts=(-v "$NWN_HOME_DIR:/nwn/home:rw"
                     -v "$NWN_SHARED_DIR:$NWN_SHARED_DIR:rw")
-  # --log-driver=none: the output is captured below and printed with a [serve]
-  # prefix. Without it podman ALSO journals the container's stdout under a
-  # random container name, so every start logs the same two lines twice.
-  preflight_out=$(timeout 45 podman run --rm --entrypoint /bin/sh \
-      --log-driver=none \
+
+  # THE RESULT COMES BACK IN A FILE, NOT ON STDOUT. The first version captured
+  # the container's stdout, and on the season 2 start of 2026-09-18 06:23:34 it
+  # came back EMPTY: podman's own events show `container attach` at .811 and
+  # `container died` at .812, one millisecond apart, and the check silently
+  # reported nothing on the very realm it had just been promoted to. A
+  # diagnostic that is quiet when it loses its output is worse than no
+  # diagnostic, so the container writes to a mounted file and this reads it
+  # afterwards — no attach, no stream, nothing to race.
+  #
+  # This scratch mount is the ONE that may carry `z`: it is a throwaway
+  # directory, not part of what is being inspected, and it needs the container
+  # label to be writable at all. The home and shared mounts above still carry no
+  # relabel flag, for the reason in the comment block above.
+  preflight_tmp=$(mktemp -d)
+  preflight_rc=0
+  timeout 45 podman run --rm --entrypoint /bin/sh \
       --userns=keep-id --user "$(id -u):$(id -g)" \
-      "${preflight_mounts[@]}" "$NWN_IMAGE" -c '
+      "${preflight_mounts[@]}" -v "$preflight_tmp:/preflight:rw,z" \
+      "$NWN_IMAGE" -c '
+        exec >/preflight/out 2>&1
         rc=0
+        # AN UNREADABLE DIRECTORY IS A FAILURE, NOT AN EMPTY ONE. Without these
+        # two guards the loop below simply matches nothing and the check reports
+        # a cheerful silence - which is what it did when first tested against a
+        # database dir the container could not see at all, the exact fault this
+        # exists to catch.
+        if [ ! -r /nwn/home/database ]; then
+          echo "FAIL: /nwn/home/database is not readable from inside the container"
+          exit 1
+        fi
+        total=0
+        links=0
         for f in /nwn/home/database/*.sqlite3; do
+          [ -e "$f" ] || [ -L "$f" ] || continue   # unmatched glob, not a file
+          total=$((total+1))
           [ -L "$f" ] || continue          # only the shared, symlinked ones
+          links=$((links+1))
           name=${f##*/}
           target=$(readlink "$f")
           if [ ! -e "$f" ]; then
@@ -316,18 +344,38 @@ if [[ ${SERVE_DB_PREFLIGHT:-1} == 1 && -d ${NWN_SHARED_DIR:-} ]]; then
           fi
           echo "ok   $name -> $target"
         done
+        if [ "$total" -eq 0 ]; then
+          echo "FAIL: no campaign DBs visible in /nwn/home/database - the mount is empty or unreadable"
+          exit 1
+        fi
+        echo "checked $links shared DB(s) of $total campaign DB(s)"
         exit $rc
-      ' 2>&1) || {
+      ' >/dev/null 2>"$preflight_tmp/podman.err" || preflight_rc=$?
+
+  preflight_out=$(cat "$preflight_tmp/out" 2>/dev/null || true)
+  # A container that never ran leaves an empty report and an explanation on
+  # podman's stderr; without this the failure would print a blank detail.
+  if [[ -z $preflight_out && -s $preflight_tmp/podman.err ]]; then
+    preflight_out=$(cat "$preflight_tmp/podman.err")
+  fi
+  rm -rf "$preflight_tmp"
+
+  # One branch each, so a failure's detail is printed once. `if`, not
+  # `[[ … ]] && …`: under `set -e` a false test at statement level is a failing
+  # command and would take the whole server start down with it.
+  if (( preflight_rc != 0 )); then
     echo "[serve] DB PREFLIGHT FAILED — the server is very likely to abort at"
     echo "[serve] module load with \"database unavailable\". Detail:"
-    printf '%s\n' "$preflight_out" | sed 's/^/[serve]   /'
+    printf '%s\n' "${preflight_out:-<no output>}" | sed 's/^/[serve]   /'
     echo "[serve] Snapshotting host state before starting anyway..."
     "$PROJECT_ROOT/bin/capture-db-failure" --reason "preflight failed" >/dev/null 2>&1 || true
-  }
-  # `if`, not `[[ … ]] && …`: under `set -e` a false test at statement level is a
-  # failing command and would take the whole server start down with it.
-  if [[ -n ${preflight_out:-} ]]; then
+  elif [[ -n ${preflight_out:-} ]]; then
     printf '%s\n' "$preflight_out" | sed 's/^/[serve] preflight: /'
+  else
+    # Silence is not success. The container reports a summary line even when it
+    # finds nothing to check, so an empty report means it lost its output - the
+    # season 2 case above. Say that, rather than imply a pass.
+    echo "[serve] preflight: NO REPORT - the check ran but returned nothing"
   fi
 fi
 
