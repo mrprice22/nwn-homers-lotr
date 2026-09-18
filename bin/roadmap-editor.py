@@ -88,11 +88,32 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 # required; the rest are emitted only when present.
 FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "merit_awarded", "type",
-               "player", "date", "commit", "discord",
+               "player", "date", "commit", "discord", "discord_request",
                "notes", "notes_h", "impl_notes", "impl_notes_h",
                "triage", "dupe_candidates", "dupe_of", "depends_on",
                "design_questions", "manual_steps",
                "uat_credits", "comments"]
+# A thread request: written by the form's "Request Discord thread" button,
+# read and cleared by nwnbot.
+#
+# It exists because this process cannot call the bot and never will. The bot
+# runs on the Windows host under Task Scheduler and exposes no listener at all;
+# this editor makes no outbound HTTP calls at all (it imports urllib.parse and
+# nothing else). So the request travels the one channel that already exists:
+# nwnbot polls /api/version -- a content hash of roadmap.yaml -- every 30
+# seconds, and writing this field moves that hash.
+#
+#   pending   the editor asked; the bot has not looked yet
+#   failed    the bot looked and refused; `reason` is a stable code and
+#             `detail` the sentence the form shows
+#   missing   the bot found the linked thread gone from Discord (bot-written)
+#
+# The key is DELETED on success: an idea carrying `discord` and no
+# `discord_request` is the normal, settled state. Shape is a flow mapping like
+# `discord`: {'state', 'by', 'at'} plus 'reason'/'detail' on a refusal and
+# 'replaces' (the dead link) after a re-create.
+DISCORD_REQUEST_FIELD = "discord_request"
+DISCORD_REQUEST_STATES = ("pending", "failed", "missing")
 # `merit_awarded` records that meritdb was really credited for this idea, which
 # the status alone cannot: an item ships to test, is paid, and then moves on to
 # `deployed` -- and the merit must be granted exactly once. Written only by the
@@ -2252,6 +2273,10 @@ ROUTE_CAPS: dict[str, str | tuple[str, ...]] = {
     # able to do to upload its proposals.
     "/api/thread-links": "edit",
     "/api/thread-links/action": "edit",
+    # Asking nwnbot for a thread changes nothing in Discord by itself -- it
+    # writes a flag the bot is still free to refuse -- so it sits at the same
+    # bar as linking rather than at promote_shipped.
+    "/api/discord-request": "edit",
     "/api/regenerate": "publish",
     "/api/publish": "publish",
     "/api/award": "merit",
@@ -2273,6 +2298,7 @@ AUDITED = {
     "/api/idea-approve": "idea.approve",
     "/api/thread-links": "links.upload",
     "/api/thread-links/action": "links.act",
+    "/api/discord-request": "idea.discord_request",
     "/api/regenerate": "roadmap.regenerate",
     "/api/publish": "roadmap.publish",
     "/api/award": "merit.award",
@@ -2951,6 +2977,80 @@ class Handler(BaseHTTPRequestHandler):
         write_links(doc)
         return self._finish_tester_write(ideas, idea, idea_id,
                                          f"linked '{idea_id}' to that thread.")
+
+    def _discord_request_write(self, payload):
+        """Ask nwnbot for a forum thread on one idea -- or cancel the ask.
+
+        Narrow, like _links_write: re-read, touch one item, save. The write IS
+        the mechanism; nothing here talks to Discord and nothing here can. The
+        bot finds out because roadmap.yaml's version hash moved.
+
+        The refusals below are the point of the endpoint. Two of them stop an
+        idea sitting in `pending` forever for a reason the bot would only
+        re-discover every cycle, and `recreate` is the one action in this whole
+        file that clears an existing `discord` link -- allowed only once the
+        bot has reported the thread gone, so _links_write's "one thread, one
+        idea, never silently repoint" invariant still holds. The dead mapping
+        is kept in `replaces` so the audit trail can still name it.
+        """
+        idea_id = str(payload.get("id") or "")
+        action = str(payload.get("action") or "")
+        if action not in ("request", "cancel", "recreate"):
+            return self._json({"ok": False,
+                               "errors": [f"bad action {action!r}"]}, 400)
+
+        data = read_yaml()
+        ideas = data.get("ideas") or []
+        idea = next((i for i in ideas if i.get("id") == idea_id), None)
+        if idea is None:
+            return self._json({"ok": False, "stale": True, "errors": [
+                f"'{idea_id}' is not in the roadmap - reload."]}, 409)
+
+        req = idea.get(DISCORD_REQUEST_FIELD)
+        req = req if isinstance(req, dict) else {}
+        link = idea.get("discord")
+        link = link if isinstance(link, dict) else {}
+
+        if action == "cancel":
+            if not req:
+                return self._json({"ok": False, "stale": True, "errors": [
+                    f"'{idea_id}' has no open thread request."]}, 409)
+            idea.pop(DISCORD_REQUEST_FIELD, None)
+            return self._finish_tester_write(
+                ideas, idea, idea_id,
+                f"thread request on '{idea_id}' cancelled.")
+
+        if idea.get("hidden"):
+            return self._json({"ok": False, "errors": [
+                f"'{idea_id}' is hidden, so it gets no public thread. Unhide "
+                f"it first."]}, 409)
+        if idea.get("dupe_of"):
+            return self._json({"ok": False, "errors": [
+                f"'{idea_id}' is a duplicate of '{idea['dupe_of']}' -- the "
+                f"canonical item is the one that carries the thread."]}, 409)
+
+        if action == "recreate":
+            if req.get("state") != "missing":
+                return self._json({"ok": False, "errors": [
+                    f"'{idea_id}' has not been reported missing from Discord, "
+                    f"so there is no dead link to replace."]}, 409)
+        elif link.get("url") or link.get("thread_id"):
+            return self._json({"ok": False, "stale": True, "errors": [
+                f"'{idea_id}' is already linked to a thread - reload."]}, 409)
+
+        entry = {"state": "pending",
+                 "by": getattr(self.user, "label", "") or "",
+                 "at": datetime.now(timezone.utc).date().isoformat()}
+        if action == "recreate":
+            replaces = dict(link) if link else dict(req.get("replaces") or {})
+            if replaces:
+                entry["replaces"] = replaces
+            idea.pop("discord", None)
+        idea[DISCORD_REQUEST_FIELD] = entry
+        return self._finish_tester_write(
+            ideas, idea, idea_id,
+            f"asked nwnbot for a thread on '{idea_id}' - it polls every 30 "
+            f"seconds, so give it a moment.")
 
     def _approve_write(self, payload):
         """Answer one pending idea: approve it, merge it, or reject it.
@@ -3842,6 +3942,14 @@ class Handler(BaseHTTPRequestHandler):
             self._audit_write(f"{payload.get('thread_id')} link "
                               f"{payload.get('action')} {payload.get('idea_id') or ''}")
             return self._links_write(payload)
+        if self.path == "/api/discord-request":
+            try:
+                payload = self._read_body()
+            except Exception as e:
+                return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
+            self._audit_write(f"{payload.get('id')} discord "
+                              f"{payload.get('action')}")
+            return self._discord_request_write(payload)
         if self.path == "/api/idea-approve":
             try:
                 payload = self._read_body()
@@ -4455,6 +4563,7 @@ PAGE = r"""<!doctype html>
   /* An idea carrying a manual_step someone RAN and it did not pass. */
   .chip.failed { background:#4a2626; color:#f0b8b8; border-color:#7a3a3a; }
   .chip.missing { background:#4a3a1a; color:#f5d08a; border-color:#7a6128; }
+  .chip.threadreq { background:#1f3448; color:#9ecbf0; border-color:#2f5a7a; }
   /* Which realm the idea's code is actually in. Computed server-side from the
      commit: field vs the last promoted sha -- see environment_map(). Colours
      match _REALM_COLORS, which the server monitor already uses for the realms. */
@@ -4932,6 +5041,7 @@ PAGE = r"""<!doctype html>
                 background:var(--panel); color:var(--ink); text-decoration:none;
                 white-space:nowrap; font:inherit; }
   .discordlink:hover{ border-color:var(--accent); }
+  .discordwhy{ color:var(--err); }
   #links .lmanual{ border-top:1px dashed var(--line); margin-top:8px;
                    padding-top:8px; }
   #links .lmanualrow{ display:flex; gap:6px; margin-top:4px; }
@@ -5226,7 +5336,7 @@ const $ = s => document.querySelector(s);
 // is what keeps the two bars in sync BY CONSTRUCTION, rather than by copying
 // values from one bar to the other and hoping they never diverge.
 const FILTERS = {q:'', status:'', type:'', player:'', group:'', epic:'',
-                 env:'', hidden:'', sort:'status', showDeployed:false,
+                 env:'', hidden:'', discord:'', sort:'status', showDeployed:false,
                  showTriage:false, onlyIncomplete:false};
 const FILTER_KEYS = Object.keys(FILTERS);
 const FILTERS_LS = 'roadmap.filters';
@@ -5258,6 +5368,14 @@ function filterBarHTML(which){
       <option value="">Published + hidden</option>
       <option value="pub">Published only</option>
       <option value="hid">Hidden only</option>
+    </select>
+    <select data-f="discord" data-cap="view">
+      <option value="">Any thread state</option>
+      <option value="none">No Discord thread</option>
+      <option value="has">Has a thread</option>
+      <option value="req">Thread requested</option>
+      <option value="failed">Thread request refused</option>
+      <option value="missing">Thread missing in Discord</option>
     </select>
     <select data-f="sort">
       <option value="status">Sort: status</option>
@@ -5890,6 +6008,7 @@ function visibleRows(which){
   // public viewer staring at an empty list they have no control to clear.
   const pub = PUBLIC_MODE();
   const fv = pub ? '' : FILTERS.env, fh = pub ? '' : FILTERS.hidden;
+  const fd = pub ? '' : FILTERS.discord;
   const showDeployed=(which==='board') || !!FILTERS.showDeployed, sort=FILTERS.sort;
   let rows = DATA.ideas.map((it,idx)=>({it,idx})).filter(({it})=>{
     if (!showDeployed && it.status==='deployed') return false;
@@ -5911,6 +6030,7 @@ function visibleRows(which){
     }
     if (fh==='pub' && it.hidden) return false;
     if (fh==='hid' && !it.hidden) return false;
+    if (fd && discordState(it)!==fd) return false;
     if (q){
       const hay=[it.title,it.player,it.group,it.status,it.type,it.id,
                  (envOf(it)||{}).label].join(' ').toLowerCase();
@@ -5952,6 +6072,28 @@ function missingFields(it){
   return REQUIRED_FIELDS.filter(f => !String(it[f] == null ? '' : it[f]).trim());
 }
 
+// Where this idea stands with Discord, in one word. Shared by the filter, the
+// chips and the form, so the three can never disagree about what they are
+// describing. 'has' beats a stale request; 'missing' beats everything, because
+// the bot only writes it about a link that IS there and no longer resolves.
+function discordState(it){
+  const req = (it.discord_request && typeof it.discord_request==='object')
+            ? it.discord_request : {};
+  const link = (it.discord && typeof it.discord==='object') ? it.discord : {};
+  if (req.state==='missing') return 'missing';
+  if (link.url || link.thread_id) return 'has';
+  if (req.state==='pending') return 'req';
+  if (req.state==='failed') return 'failed';
+  return 'none';
+}
+
+// Why the bot refused, in its own words where it gave any.
+function discordDetail(it){
+  const req = (it.discord_request && typeof it.discord_request==='object')
+            ? it.discord_request : {};
+  return String(req.detail || req.reason || 'no reason recorded');
+}
+
 // Publishing-state chips shown on list rows and board cards.
 function hasFailedStep(it){
   return (it.manual_steps||[]).some(s=>s && typeof s==='object' && s.status==='failed');
@@ -5974,6 +6116,18 @@ function chips(it){
   if (gaps.length) out+=`<span class="chip missing" title="This idea cannot `
                + `be fully used until these are set">no ${esc(gaps.join(', '))}`
                + `</span> `;
+  // Discord state. Deliberately NO chip for 'none': 473 of 604 ideas have no
+  // thread, so a chip for it would be on three rows in four and would say
+  // nothing. The filter is what answers "which ones have none"; a chip is for
+  // the states that want a decision from you.
+  const ds = discordState(it);
+  if (ds==='req') out+='<span class="chip threadreq" title="Waiting for nwnbot '
+               + 'to pick this up; it polls the roadmap every 30 seconds.">'
+               + 'thread requested</span> ';
+  else if (ds==='failed') out+='<span class="chip failed" title="'
+               + esc(discordDetail(it)) + '">thread refused</span> ';
+  else if (ds==='missing') out+='<span class="chip failed" title="nwnbot could '
+               + 'not find this idea\'s thread in Discord.">thread missing</span> ';
   const env = envOf(it);
   if (env) out+=`<span class="chip env-${env.state}" title="${esc(env.why)}">`
                + `${esc(env.label)}</span> `;
@@ -6390,6 +6544,95 @@ function renderPublicIdea(it){
   </div>`;
 }
 
+// The Discord bar in the idea form. An idea with no thread used to render
+// nothing here; now it renders the button that asks for one, and every later
+// state of that ask. Wrapped in a stable #dbar by the caller so this can be
+// re-rendered on its own -- select() would rebuild the whole form and throw
+// away unsaved edits, which is not a fair price for clicking one button.
+//
+// Hidden and dupe_of items get no button: they can never hold a public thread,
+// so offering it would only manufacture a refusal.
+function discordBarHTML(it){
+  const ds = discordState(it);
+  const req = (it.discord_request && typeof it.discord_request==='object')
+            ? it.discord_request : {};
+  if (ds==='has'){
+    return `<div class="discordbar">
+      <a class="discordlink" href="${esc((it.discord||{}).url||'')}" target="_blank"
+         rel="noopener noreferrer">Open the Discord thread</a>
+      <span class="small">This idea is linked to a forum thread; replies there
+        reach it, and status changes are posted back.</span>
+    </div>`;
+  }
+  if (!CAN('edit') || it.hidden || it.dupe_of) return '';
+  const who = [req.by, req.at].filter(Boolean).join(' on ');
+  if (ds==='req'){
+    return `<div class="discordbar">
+      <button type="button" class="discordlink"
+        onclick="discordReq('${esc(it.id)}','cancel')">Cancel request</button>
+      <span class="small">Thread requested${who?' by '+esc(who):''}. nwnbot
+        polls the roadmap every 30 seconds and opens the thread on its next
+        pass &mdash; or says here why it would not.</span>
+    </div>`;
+  }
+  if (ds==='missing'){
+    return `<div class="discordbar">
+      <button type="button" class="discordlink"
+        onclick="discordReq('${esc(it.id)}','recreate')">Re-create thread</button>
+      <span class="small discordwhy">nwnbot could not find this idea's thread in
+        Discord. Re-creating clears the dead link and asks for a new one.</span>
+    </div>`;
+  }
+  if (ds==='failed'){
+    return `<div class="discordbar">
+      <button type="button" class="discordlink"
+        onclick="discordReq('${esc(it.id)}','request')">Ask again</button>
+      <span class="small discordwhy">nwnbot refused: ${esc(discordDetail(it))}</span>
+    </div>`;
+  }
+  return `<div class="discordbar">
+    <button type="button" class="discordlink"
+      onclick="discordReq('${esc(it.id)}','request')">Request Discord thread</button>
+    <span class="small">No forum thread yet. This asks nwnbot for one; it may
+      still refuse, and it will say why right here.</span>
+  </div>`;
+}
+
+// One narrow POST, then patch the in-memory idea and re-render the bar. The
+// server hands back the rebased version and fingerprint exactly as the step and
+// UAT writes do, so an open form can still Save afterwards without a conflict.
+async function discordReq(id, action){
+  const it = DATA.ideas.find(x=>x.id===id);
+  if (!it) return;
+  const bar = $('#dbar');
+  if (bar) bar.innerHTML = '<div class="discordbar"><span class="small">Saving&hellip;</span></div>';
+  try {
+    const r = await api('/api/discord-request',
+      {method:'POST', headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({id, action})});
+    const res = await r.json();
+    if (!res.ok){
+      banner('bad', res.message || (res.errors||[]).join('\n') || 'Refused.');
+      if (res.stale) await load(); else if (bar) bar.innerHTML = discordBarHTML(it);
+      return;
+    }
+    // `recreate` DELETES discord, and Object.assign cannot remove a key, so
+    // clear both fields before taking the server's copy of the idea.
+    if (res.idea){
+      delete it.discord; delete it.discord_request;
+      Object.assign(it, res.idea);
+    }
+    baseVersion = res.version || baseVersion;
+    if (res.hashes && baseHashes) Object.assign(baseHashes, res.hashes);
+    if (bar) bar.innerHTML = discordBarHTML(it);
+    renderList(); renderBoard();
+    banner('ok', res.message || 'Done.');
+  } catch (e){
+    banner('bad', 'Could not reach the editor: ' + e);
+    if (bar) bar.innerHTML = discordBarHTML(it);
+  }
+}
+
 function select(i){
   sel = i; formSnapshot = null; selRef = DATA.ideas[i] || null; renderList();
   const it = DATA.ideas[i];
@@ -6478,13 +6721,7 @@ function select(i){
       <div><label>Commit (optional git ref)</label>
         <input id="f_commit" value="${esc(it.commit||'')}"></div>
     </div>
-    ${(it.discord && it.discord.url) ? `
-    <div class="discordbar">
-      <a class="discordlink" href="${esc(it.discord.url)}" target="_blank"
-         rel="noopener noreferrer">Open the Discord thread</a>
-      <span class="small">This idea is linked to a forum thread; replies there
-        reach it, and status changes are posted back.</span>
-    </div>` : ''}
+    <div id="dbar">${discordBarHTML(it)}</div>
     <label>id (stable key; lowercase-hyphen)</label>
     <input id="f_id" value="${esc(it.id||'')}">
     <label>Notes <span class="small">&mdash; player-facing release note, shown on

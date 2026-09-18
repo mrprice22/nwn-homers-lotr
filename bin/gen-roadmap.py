@@ -166,6 +166,12 @@ IDEA_FIELDS = {
     # Set by nwnbot: which forum thread this idea is mirrored to. Nothing on
     # the public board renders it; it is the link the sync bot reads back.
     "discord",
+    # The editor's standing ask for a thread, and the bot's answer to it.
+    # Written by the form's "Request Discord thread" button and cleared by
+    # nwnbot the moment the thread exists, so on a settled idea it is simply
+    # absent. Nothing public renders it either -- it is left out of
+    # roadmap_public.PUBLIC_IDEA_FIELDS on purpose.
+    "discord_request",
     # Internal, append-only per-idea notes. Nothing here renders them: they are
     # how a tester (who has no `edit`) adds information to an item.
     "comments",

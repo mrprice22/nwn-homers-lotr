@@ -78,6 +78,7 @@ Each entry under `ideas:` is one backlog item:
 | `impl_notes` | no | **Internal — never player-visible.** The builder's record: root cause, scripts and resrefs touched, DB tables, design deviations. Rich-text HTML, same whitelist as `notes`. This is where the technical half of a fix goes. |
 | `impl_notes_h` | no | Editor-only: remembered pixel height of the Implementation notes box. |
 | `discord` | no | `{thread_id, channel_id, url}` — the forum thread this idea is mirrored to. **Written only by `nwnbot` and by the editor's thread-link approval card; never hand-edit it.** Nothing on the public roadmap page renders it, but the **players release notes link every item to it** (`bin/gen-release-notes.py`), so an idea with no thread is announced as plain text. One thread belongs to exactly one idea. |
+| `discord_request` | no | `{state, by, at, reason, detail, replaces}` — the editor's standing **ask** for a thread, and nwnbot's answer to it. Written by the idea form's **Request Discord thread** button and **deleted by the bot the moment the thread exists**, so a settled idea carries `discord` and no `discord_request`. `state` is `pending` (asked, not yet looked at), `failed` (the bot refused; `reason` is a stable code and `detail` the sentence the form shows) or `missing` (bot-written: the linked thread is gone from Discord). Never published. Don't hand-edit it — press the button. |
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
 | `design_questions` | no | **Internal — never player-visible.** List of `{question, status, answer}`; `status` is `open` or `answered`. See below. |
 | `manual_steps` | no | **Internal — never player-visible.** List of `{step, status, blocker}`: toolset work only the admin can do (waypoint placement, loot placement) and UAT scripts. See below. |
@@ -1150,3 +1151,40 @@ Because every request arrives from `127.0.0.1`, the real client address comes
 from Cloudflare's `CF-Connecting-IP` header — trusted **only** when the socket
 peer really is loopback, since a header is otherwise just something a client
 typed.
+
+## Asking nwnbot for a Discord thread
+
+Most of the backlog has no forum thread — 473 of 604 ideas as of 2026-09-18 —
+and until now the editor could not say why, or do anything about it. The idea
+form has a **Request Discord thread** button, and both the List and the Board
+have a **thread state** filter (*No Discord thread*, *Has a thread*, *Thread
+requested*, *Thread request refused*, *Thread missing in Discord*).
+
+**How the ask reaches the bot.** It does not, directly. The editor runs here on
+the Linux box; nwnbot runs on the Windows host under Task Scheduler, exposes no
+listener, and this process makes no outbound HTTP calls at all. So the button
+writes `discord_request: {state: pending, …}` into `roadmap.yaml`, which moves
+the file's version hash, which the bot is already polling every 30 seconds
+(`GET /api/version`). It picks the ask up on its next pass. Nothing new listens
+on a port and nothing depends on the LAN.
+
+**An ask buys an answer, not an exemption.** Every gate nwnbot already applied
+still applies — `hidden`, `dupe_of`, merit already paid, a terminal status, an
+unmapped group, a type with no forum, and `earns_thread`. What changes is that a
+gate which used to refuse *in silence* now writes down why, in words, where the
+person who pressed the button can read it. That matters most for the commonest
+refusal: **a staff-authored item (`player: HomelessSon (Server Admin)`, the
+default for agent-created ideas) only earns a thread at `soon` or beyond**, so
+for most of the `planned` backlog the honest answer is "not yet — promote it".
+
+The editor refuses `hidden` and `dupe_of` itself, up front, rather than letting
+an idea sit in `pending` for an answer that can never change.
+
+**Threads deleted in Discord.** An idea linked to a thread that no longer exists
+used to be a silent dead end: the bot skipped it forever and never re-created
+it. It now marks the idea `state: missing` — but only on the **second**
+consecutive pass that sees the thread gone, and only when that forum returned
+threads at all, because a failed channel read would otherwise condemn every idea
+in it at once. The form then offers **Re-create thread**, which is the one place
+anything clears a `discord` link; the dead mapping is kept in
+`discord_request.replaces` so the audit trail can still name it.
