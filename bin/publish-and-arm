@@ -66,19 +66,59 @@ if [[ ${SEASON_ROLE:-} != dev ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# The downtime estimates players are told about.
+# The downtime players are told about — MEASURED, not guessed.
 #
-# Incremental: the rehash is ~20 minutes on this box (bin/refresh-nwsync's own
-# header measures the store at 88,693 resrefs / 4.15 GiB, and the handler's
-# comment records the same ~20 minutes from the season 2 deploy of 2026-08-18).
-# The range is deliberately wide and rounded up — a realm back early is a happy
-# surprise, a realm back late is a support question.
+# bin/empty-restart-handler times every rebuild it runs and appends
+#   <iso> <realm> <mode> <seconds>
+# to this log. The estimate below is read back from it, so the number players
+# see is this realm's own recent history.
 #
-# Force rewrites every blob rather than the changed ones, so it is bounded by
-# write throughput rather than by hashing: call it double, and say why.
+# This exists because the first version of this script shipped a hardcoded
+# "about 20-30 minutes" and the rebuild it described took 65 SECONDS (dev realm,
+# 2026-09-17: 2.2 GiB / 85,850 files, incremental, on the SSD). The 20-minute
+# figure was inherited from the pre-SSD documentation, was wrong the day it was
+# written here, and nothing in the system would ever have corrected it. Players
+# were told to expect half an hour of downtime for a one-minute reboot.
+#
+# The FALLBACKS below are used only until a realm has recorded a rebuild of its
+# own. They are deliberately pessimistic — a realm back early is a happy
+# surprise, a realm back late is a support question — and the force fallback in
+# particular has never been measured on this box: no --force rebuild has run
+# here since the SSD migration. The first one to run will replace this guess
+# with its own number.
 # ---------------------------------------------------------------------------
-DOWNTIME_NORMAL="about 20-30 minutes"
-DOWNTIME_FULL="about 45-60 minutes"
+NWSYNC_TIMES="${XDG_CACHE_HOME:-$HOME/.cache}/nwsync-rebuild-times.log"
+FALLBACK_NORMAL="up to about 20 minutes"
+FALLBACK_FULL="up to about 45 minutes"
+
+REALM=$(basename "$PROJECT_ROOT")
+
+# The longest of this realm's last five rebuilds in this mode, in seconds.
+# Longest rather than latest: the estimate is a promise to players, and the
+# cost of overshooting it is nothing.
+recorded_seconds() {
+  local mode=$1
+  [[ -r $NWSYNC_TIMES ]] || return 0
+  awk -v realm="$REALM" -v mode="$mode" \
+      '$2 == realm && $3 == mode && $4 ~ /^[0-9]+$/ { print $4 }' \
+      "$NWSYNC_TIMES" | tail -5 | sort -n | tail -1
+}
+
+# Seconds -> the phrase players read. The upper bound carries ~75% headroom,
+# because a rebuild competing with a busy live season is slower than one on an
+# idle box and both are recorded in the same log.
+downtime_phrase() {
+  local seconds=$1 low high
+  low=$(( (seconds + 59) / 60 ))
+  high=$(( (seconds * 7 / 4 + 59) / 60 ))
+  (( low < 1 )) && low=1
+  (( high <= low )) && high=$(( low + 1 ))
+  if (( low == 1 && high <= 2 )); then
+    echo "a minute or two"
+  else
+    echo "about $low-$high minutes"
+  fi
+}
 
 CLEAN=0 FULL=0 DO_HAK=1 DO_TLK=0 DO_MUSIC=0 DO_REPACK=1 NO_SMOKE=0 DRY=0
 MSG=""
@@ -119,11 +159,21 @@ fi
 # sentence is appended here so it can never be left off, and it says what the
 # player has to DO (reconnect and let the client download) as well as how long.
 if [[ $FULL -eq 1 ]]; then
-  DOWNTIME="$DOWNTIME_FULL"
+  DOWNTIME_MODE=force
+  DOWNTIME_FALLBACK="$FALLBACK_FULL"
 else
-  DOWNTIME="$DOWNTIME_NORMAL"
+  DOWNTIME_MODE=normal
+  DOWNTIME_FALLBACK="$FALLBACK_NORMAL"
 fi
-FULL_MSG="$MSG This update changes files your game client downloads, so the realm will be down $DOWNTIME -- much longer than the usual restart. Leave the client patcher to finish when you reconnect."
+MEASURED=$(recorded_seconds "$DOWNTIME_MODE")
+if [[ -n ${MEASURED:-} ]]; then
+  DOWNTIME=$(downtime_phrase "$MEASURED")
+  DOWNTIME_NOTE="measured: this realm's slowest recent $DOWNTIME_MODE rebuild took ${MEASURED}s"
+else
+  DOWNTIME="$DOWNTIME_FALLBACK"
+  DOWNTIME_NOTE="estimate: no $DOWNTIME_MODE rebuild recorded for this realm yet, so this is the fallback"
+fi
+FULL_MSG="$MSG This update changes files your game client downloads, so the realm will be down $DOWNTIME while it republishes them. Leave the client patcher to finish when you reconnect."
 
 echo
 echo "==> plan"
@@ -153,6 +203,7 @@ fi
 echo
 echo "    players will be told:"
 echo "      $FULL_MSG"
+echo "      ($DOWNTIME_NOTE)"
 echo
 
 # A heads-up, not a gate: the NWSync rebuild fires whenever the DEV realm next

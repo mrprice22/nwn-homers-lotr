@@ -1552,14 +1552,21 @@ setup + one-time unit install: [`rebootSchedule.md`](rebootSchedule.md#adhoc-reb
 | for | a module-only change | anything under `hak_2da/` or `tlk/` |
 | builds | repack (`--no-smoke`) | the rules hak, then a repack (gated by default) |
 | arms | `reboot-on-empty` | `reboot-on-empty --nwsync` (or `--nwsync-force` with `--full`) |
-| downtime | ~1 minute | ~20-30 minutes, or ~45-60 with `--full` |
+| downtime | ~1 minute | ~1 minute more than a plain reboot (measured; see below) |
 
 Both ask for the player message **first**, because the build takes minutes and a
 prompt at the end means coming back to a terminal that never armed anything.
 `publish-and-arm` then **appends the downtime to that message automatically** —
-clients download the haks, not the `.mod`, so a rules change means a long down
-window plus a client-side patch, and "rebooting when empty" followed by half an
-hour of silence reads as a crash. Other flags: `--clean` (an `.nss` include
+clients download the haks, not the `.mod`, so a rules change means a longer down
+window plus a client-side patch, and "rebooting when empty" followed by silence
+reads as a crash. **That number is measured, not guessed:**
+`bin/empty-restart-handler` times every manifest rebuild and appends
+`<iso> <realm> <mode> <seconds>` to `~/.cache/nwsync-rebuild-times.log`, and
+`publish-and-arm` quotes this realm's slowest recent run (plus ~75% headroom)
+back to players. Until a realm has recorded one it uses a deliberately
+pessimistic fallback. The first version of this script hardcoded "20-30 minutes"
+for a rebuild that took **65 seconds** — the 20-minute figure came from the
+pre-SSD documentation and nothing would ever have corrected it. Other flags: `--clean` (an `.nss` include
 changed, so nasher's cache must be wiped), `--tlk` / `--music` for those builds,
 `--no-repack` for a hak-only publish, and `--dry-run` to see the plan and the
 exact message without building or arming anything.

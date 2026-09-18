@@ -343,7 +343,7 @@ bin/server-restart                   # the server re-reads the hak on load
 `reboot-on-empty --nwsync` so the manifest is rebuilt in the **down window**
 instead of underneath a running server (a manifest rewritten while the realm is
 up hands connecting clients a manifest for haks the server has not loaded yet),
-and it appends the ~20-30 minute downtime to the message players are shown —
+and it appends the measured downtime to the message players are shown —
 which `bin/server-restart` would not do, and which this repo forbids anyway
 (never force-restart dev). `--full` arms the `--force` rebuild, `--clean` uses
 the clean repack, `--dry-run` prints the plan and the exact player message.
@@ -352,7 +352,7 @@ Which NWSync mode:
 
 | command | when | cost |
 |---|---|---|
-| `bin/refresh-nwsync` | **the default — use this.** Content-addressed and incremental: only resources whose SHA1 changed are written. | Still rehashes the whole store to find what changed — 88,693 resrefs / 4.15 GiB on the dev realm, so 10+ min. |
+| `bin/refresh-nwsync` | **the default — use this.** Content-addressed and incremental: only resources whose SHA1 changed are written. | Still rehashes the whole store to find what changed. **65s measured on dev 2026-09-17** (2.2 GiB / 85,850 files; season 2's store is the same size). The "10+ minutes" this table used to claim predates the SSD migration. Every run's duration is recorded to `~/.cache/nwsync-rebuild-times.log` by `bin/empty-restart-handler`. |
 | `bin/refresh-nwsync --force` | **corruption recovery only.** Rewrites every blob even when identical. Reach for it when a client reports a bad download that a normal refresh does not fix. | Slowest; rewrites gigabytes. |
 | `bin/refresh-nwsync --prune` | **occasional housekeeping.** Garbage-collects blobs no manifest references any more (self-protecting for data under two weeks old). Incremental writes leave orphans behind from superseded manifests. | Cheap; run it now and then, not every refresh. |
 
@@ -361,10 +361,11 @@ is a persistent content-addressed store, and nginx serves it through a live bind
 mount, so the directory inode has to stay stable. Recreating it would break the
 running container and force every client to re-download everything.
 
-**Run it detached.** Even the incremental path exceeds ten minutes on a full CEP
-store (4+ GiB of CEP), so it will blow through a short command timeout — and a killed run leaves
-`latest` pointing at the previous manifest (safe, but nothing was published, so
-it must be re-run).
+**Run it detached** when you cannot watch it. On the SSD the incremental path is
+about a minute (measured above), but `--force` is unmeasured here and the season 1
+archive's store is still on the spinning disk, so a run can outlast a short
+command timeout — and a killed run leaves `latest` pointing at the previous
+manifest (safe, but nothing was published, so it must be re-run).
 
 ### Release notes: what is in dev but not yet live
 

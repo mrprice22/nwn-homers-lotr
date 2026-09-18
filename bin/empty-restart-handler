@@ -8,7 +8,8 @@
 # deployed) module.
 #
 # Two NWSync modes, armed by bin/reboot-on-empty:
-#   reboot-on-empty-nwsync       rebuild the manifest here (~20 min of downtime).
+#   reboot-on-empty-nwsync       rebuild the manifest here (the realm stays down
+#                                for it; see NWSYNC_TIMES below for real runs).
 #                                The file's CONTENT is the mode: "force" runs
 #                                refresh-nwsync --force (every blob rewritten,
 #                                corruption recovery, roughly twice as long),
@@ -64,7 +65,8 @@ fi
 # later, manifest still unpublished. For that window the realm ran new haks
 # while clients were handed the old manifest, which is exactly the client/server
 # mismatch this step exists to prevent. With the --nwsync rebuild instead of the
-# copy, that window is ~20 minutes rather than 31 seconds.
+# copy that window is longer — 65 seconds when it was last measured (dev,
+# 2026-09-17), and the duration of every run is recorded below.
 #
 # `stop` is what closes it: it marks the unit intentionally down, so the restart
 # policy cannot race us. The trap guarantees the realm comes back even if the
@@ -82,20 +84,34 @@ trap bring_server_back EXIT
 echo "[empty-restart] holding $UNIT down until NWSync is settled..."
 systemctl --user stop "$UNIT" || true
 
+# Where the rebuild's duration is recorded. bin/publish-and-arm reads this to
+# tell players how long the realm will be down, so the number they are shown is
+# measured rather than guessed - the estimate shipped on 2026-09-17 said 20-30
+# minutes for a rebuild that took 65 seconds, and nothing in the system would
+# ever have corrected it. One line per rebuild: <iso> <realm> <mode> <seconds>.
+NWSYNC_TIMES="${XDG_CACHE_HOME:-$HOME/.cache}/nwsync-rebuild-times.log"
+
 # $1 (optional) is the armed mode: "force" adds refresh-nwsync --force. Anything
 # else - including the empty string every pre-2026-09-17 arm file holds - is the
 # ordinary incremental rebuild.
 nwsync_rebuild() {
   local mode=${1:-}
   local extra=()
+  local start elapsed
   if [[ $mode == force ]]; then
     extra=(--force)
     echo "[empty-restart] FORCE-rebuilding NWSync manifest before relaunch (every blob rewritten)..."
   else
     echo "[empty-restart] rebuilding NWSync manifest before relaunch..."
   fi
+  start=$SECONDS
   if "$PROJECT_ROOT/bin/refresh-nwsync" --silent "${extra[@]}"; then
-    echo "[empty-restart] NWSync manifest rebuilt."
+    elapsed=$((SECONDS - start))
+    echo "[empty-restart] NWSync manifest rebuilt in ${elapsed}s."
+    # Best effort: a full realm must never fail to come back because a cache
+    # file could not be written.
+    printf '%s %s %s %s\n' "$(date -Is)" "$(basename "$PROJECT_ROOT")" \
+           "${mode:-normal}" "$elapsed" >> "$NWSYNC_TIMES" 2>/dev/null || true
   else
     echo "[empty-restart] WARNING: refresh-nwsync failed; restarting server anyway." >&2
   fi

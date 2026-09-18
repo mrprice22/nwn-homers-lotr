@@ -30,7 +30,7 @@
 # down window, before the server comes back — use it when the update changed
 # haks/tlk that clients download. --nwsync-force is the same thing with
 # refresh-nwsync --force: every blob rewritten whether or not it changed, which
-# is corruption recovery only and roughly doubles an already long down window.
+# is corruption recovery only and takes considerably longer.
 #
 # bin/publish-and-arm is the one-button version of the whole sequence (build the
 # hak, repack, arm with the right NWSync mode and a player message that states
@@ -101,18 +101,24 @@ stops a stale flag rebooting the realm unprompted days later.
 
   --nwsync        rebuild the NWSync manifest (bin/refresh-nwsync) during the down
                   window — use when the update changed haks/tlk clients download.
-                  Correct anywhere, but costs ~20 minutes of extra downtime: the
-                  SHA1 pass over 4.15 GiB runs whether or not anything changed.
+                  Correct anywhere, and it costs real downtime: the SHA1 pass
+                  over the whole store runs whether or not anything changed.
+                  ONE MINUTE-ISH on this box since the SSD migration (65s on dev,
+                  2026-09-17), not the ~20 minutes the pre-SSD docs claimed.
+                  bin/empty-restart-handler records every run's duration to
+                  ~/.cache/nwsync-rebuild-times.log, and bin/publish-and-arm
+                  quotes it back to players, so the number stays honest.
 
   --nwsync-force  the same, with --force: every blob is rewritten even when
                   identical. CORRUPTION RECOVERY ONLY — reach for it when a
                   client reports a bad download that an ordinary refresh does
-                  not fix. Roughly doubles the down window.
+                  not fix. Never yet measured on this box; expect substantially
+                  longer than the incremental pass.
 
   --nwsync-copy DIR
                   publish the manifest DIR has ALREADY built, instead of building
                   an identical one (bin/nwsync-copy-from). Seconds rather than
-                  ~20 minutes, so the realm comes back that much sooner. Valid
+                  a full rehash, so the realm comes back sooner. Valid
                   because a season repo is a derived copy of dev's tree, so after
                   a promotion both realms publish the same content and therefore
                   the same manifest hash. Guarded: the copy verifies the two
