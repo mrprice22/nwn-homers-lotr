@@ -1538,8 +1538,15 @@ the next reboot bootstrap it). To test without waiting for 03:00, set
 ### Adhoc "reboot on empty"
 
 To push a module update mid-day without kicking players or waiting for 03:00:
-deploy the new `.mod`, then `bin/reboot-on-empty "<message>"` (add `--nwsync` if
-haks/tlk changed). The `ServerRestartManager` warns online players and shows new
+deploy the new `.mod`, then `bin/reboot-on-empty "<message>"`. Add `--nwsync` if
+`hak_2da/` or `tlk/` changed, so the manifest is rebuilt in the down window;
+`--nwsync-force` does the same with `refresh-nwsync --force`, rewriting every
+blob whether or not it changed — **corruption recovery only**, for a client
+reporting a bad download an ordinary refresh does not fix. `--nwsync-copy DIR`
+publishes a manifest another realm has already built instead of building an
+identical one (see the promotion section below).
+
+The `ServerRestartManager` warns online players and shows new
 joiners an on-login notice; once the server is empty for ~45s it saves + shuts down
 cleanly and the host `homers-lotr-empty-restart.path` unit restarts **just the
 server service** onto the new module. Cancel with `bin/reboot-on-empty off`. Full
@@ -1575,6 +1582,50 @@ The manifest is rebuilt **in the down window**, not while this script runs: the
 realm is up and being played on, and a manifest rewritten under a running server
 hands connecting clients a manifest for haks the server has not loaded yet.
 `bin/empty-restart-handler` holds the server down until that rebuild finishes.
+
+### Promoting to a live season: the manifest handover
+
+`bin/publish-and-arm` is dev only. Shipping the same change to a live season goes
+through `bin/promote-to-prod <mode>` (`dry` | `apply` | `hot` | `fast` | `reboot`
+| `nobuild`), which finds the live repo itself and makes you type its season
+number back.
+
+**When the hak changed, the mode is `fast`.** It promotes, rebuilds the target's
+hak from the just-promoted `hak_2da/`, verifies the target would publish the same
+content as dev, and arms `reboot-on-empty --nwsync-copy` — so the down window
+*copies* dev's manifest instead of spending a full rehash rebuilding an identical
+one. Measured on the 2026-09-18 season 2 promotion: **~30 seconds of downtime**,
+copy included.
+
+That verification is `bin/nwsync-copy-from`, and it compares **resource content,
+not container bytes**. It used to hash `lotr_rules.hak` whole, and on 2026-09-18
+it refused a promotion whose hak was identical to dev's resource for resource:
+one byte differed, at offset 36 — the ERF header's `BuildDay`. Dev's hak had been
+built on the 17th and the target's was rebuilt on the 18th. A container that
+stamps its own build date into its header can only compare equal when both copies
+were built the same day, so the guard was refusing nearly every promotion it
+exists to wave through. `bin/content-hash.py` now parses the ERF and hashes each
+resource's resref, type and bytes, length-prefixed and sorted, so the build date,
+the reserved header bytes and the layout order are excluded by construction. The
+TLK carries no build stamp and is still hashed whole, and the tool exits 1 when it
+cannot read or parse a file — "I could not tell" must never be reported as "they
+match". A refusal now means a **real** content difference: rebuild the target's
+hak, or fall back to `bin/reboot-on-empty --nwsync` on the target (a rebuild,
+about a minute).
+
+Two things that will bite you when driving this:
+
+- **It prompts twice** — the player message, then the season-number confirm — so
+  it needs a terminal. Run from a shell without a TTY (a `!` command in Claude
+  Code, a script, a pipe) and both reads take EOF: the message comes out empty
+  and the confirm fails. Feed them instead:
+  `printf '%s\n2\n' "Message players see" | bin/promote-to-prod fast`.
+- **An interrupted promotion leaves the target tree dirty**, and the retry
+  refuses to overwrite it ("promotion deletes local edits in production by
+  design"). If the run got as far as the sync, those files are its own output:
+  check them against dev before doing anything (`cmp` each one), and if they
+  match, commit them in the target to clear the refusal. The retry then makes the
+  real `Promote from dev @<sha>` commit on top.
 
 ### When a realm crash-loops on "database unavailable"
 
