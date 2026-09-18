@@ -1576,6 +1576,36 @@ realm is up and being played on, and a manifest rewritten under a running server
 hands connecting clients a manifest for haks the server has not loaded yet.
 `bin/empty-restart-handler` holds the server down until that rebuild finishes.
 
+### When a realm crash-loops on "database unavailable"
+
+nwserver aborts at module load, over and over, with
+`what(): database unavailable` — it failed to open a campaign DB. It has hit the
+**dev realm twice** (2026-09-14, 2026-09-17), both times right after a
+reboot-on-empty, and both times it healed only at the next full machine reboot.
+An fd trace placed it exactly: `onmoduleload` opens `roadmapdb` and `respawndb`
+and then dies on `admindb`, the one that is a **symlink** into
+`~/.local/share/nwn-shared/`.
+
+Every check run after the fact came back healthy, because the evidence
+evaporates — the box reboots, or an investigating container relabels the very
+thing that was wrong. So two things now catch it live:
+
+- **`bin/serve` preflights the shared DBs** from inside a container, as the
+  server's own user, one second before launch: readable, writable, and able to
+  create a rollback journal beside the target. Its mounts carry **no `z`/`Z`**,
+  deliberately — a relabel would heal the fault it is looking for. Opt out with
+  `SERVE_DB_PREFLIGHT=0`.
+- **`bin/capture-db-failure`** snapshots host state at failure time, reading the
+  volatile things first (SELinux labels, then mounts, the symlink chain, locks,
+  open handles). `bin/serve` calls it from an EXIT trap with `--require-marker`,
+  so only this crash writes a snapshot, one per realm per 30 minutes. Run it by
+  hand any time to get the same report. Output: `~/.cache/nwn-db-failure/`.
+
+If it happens again: stop the unit (`systemctl --user stop
+nwn-season-server@<instance>.service`) so the loop stops burning CPU next to the
+live season, grab the snapshot from `~/.cache/nwn-db-failure/`, and let the
+03:00 cycle bring it back.
+
 ## Server performance: profiling and headroom
 
 Two tools, answering two different questions. Both are on by default on the dev

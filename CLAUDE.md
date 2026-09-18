@@ -277,6 +277,15 @@ this approach was chosen over repointing `server.env` — above all because each
 its own host path. Move that directory and six symlinks dangle, and nwserver aborts at
 module load with `what(): database unavailable`.
 
+**That same abort has twice hit the dev realm with nothing moved** (2026-09-14,
+2026-09-17), both times just after a reboot-on-empty, healing only at the next full
+reboot, and never on a season realm. Cause still unknown: every post-hoc check came back
+healthy. `bin/serve` now preflights the symlinked DBs from inside a container before
+launch, and `bin/capture-db-failure` snapshots host state at failure time (labels first,
+before anything can relabel them) — see README.md "When a realm crash-loops on database
+unavailable". If you are debugging this, read labels BEFORE running any container with
+`:z`/`:Z` on those paths; a relabel heals the fault and destroys the evidence.
+
 **Three realms, two storage homes.** Season 2 and dev are on the SSD; the **season 1
 archive stays on the HDD** on purpose, as does `~/OneDrive/…/backups` — a backup on the
 same spindle as its source is not a backup.

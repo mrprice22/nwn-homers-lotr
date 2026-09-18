@@ -289,7 +289,11 @@ fi
 if [[ ${SERVE_DB_PREFLIGHT:-1} == 1 && -d ${NWN_SHARED_DIR:-} ]]; then
   preflight_mounts=(-v "$NWN_HOME_DIR:/nwn/home:rw"
                     -v "$NWN_SHARED_DIR:$NWN_SHARED_DIR:rw")
+  # --log-driver=none: the output is captured below and printed with a [serve]
+  # prefix. Without it podman ALSO journals the container's stdout under a
+  # random container name, so every start logs the same two lines twice.
   preflight_out=$(timeout 45 podman run --rm --entrypoint /bin/sh \
+      --log-driver=none \
       --userns=keep-id --user "$(id -u):$(id -g)" \
       "${preflight_mounts[@]}" "$NWN_IMAGE" -c '
         rc=0
