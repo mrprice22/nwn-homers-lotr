@@ -5677,7 +5677,7 @@ ideas:
     title: "The Thirteenth Ent"
     group: quests-areas
     epic: quest-overhaul
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-05"
@@ -5707,11 +5707,11 @@ ideas:
         status: done
         kind: uat
       - step: "Place waypoint AP_thirteenthent_1 in Fangorn Forest (fangornforest), in a quiet clearing among the trees. Leaflock the Thirteenth Ent (q_ent_13th) is script-spawned there on area entry. Without it the quest does not exist in-game at all -- no NPC, no conversation, no journal."
-        status: open
+        status: done
         kind: toolset
         blocker: true
       - step: "Place waypoints AP_thirteenthent_2, AP_thirteenthent_3, AP_thirteenthent_4, AP_thirteenthent_5, AP_thirteenthent_6 in Fangorn Forest (fangornforest), all within about 10 m walking distance of AP_thirteenthent_1 (leaf-mould / root spots). Truffle placeables (q_ent_trufp) spawn there only while a boar-shaped druid on the trial is in the area. Fewer than five is fine; with none placed the druid branch is uncompletable (the bard branch still works)."
-        status: open
+        status: done
         kind: toolset
         blocker: true
       - step: "UAT appearance: spawn q_ent_13th (palette Monsters > Plants*) in Fangorn Forest (fangornforest) and confirm the Treant model (appearance 1492) renders -- it must not be the invisible-model fallback -- and that he is visibly distinct from the existing Ancient Ents of Fangorn."
@@ -6930,7 +6930,7 @@ ideas:
     title: "Legendary Feats: ability score and martial feats"
     group: combat-classes
     epic: legendary-feats
-    status: manual
+    status: deployed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-03"
@@ -6941,7 +6941,6 @@ ideas:
       - step: "Publish: python3 bin/gen-legendary-feats.py --apply; bin/build-lotr-tlk --apply --install; bin/build-lotr-rules-hak --install; bin/refresh-nwsync; nwn-manager repack; bin/server-restart. The hak and the TLK must go together or the two new rows read as blank names."
         status: open
         kind: admin
-        blocker: true
       - step: "UAT: at level 60 the picker lists eight feats. A character without Epic Prowess sees Legendary Prowess greyed with 'Requires: BAB 35+, Epic Prowess' in the effect column; a character below Monk level 30 sees the same for Legendary Onslaught."
         status: open
         kind: uat
@@ -6963,7 +6962,6 @@ ideas:
       - step: "PUBLISH THE MARTIAL SET (blocker): python3 bin/gen-legendary-feats.py --apply (done); bin/build-lotr-tlk --apply --install; bin/build-lotr-rules-hak --install; bin/refresh-nwsync; nwn-manager repack; bin/server-restart. The TLK and the hak must go together or the nine new rows read as blank names in the picker."
         status: open
         kind: admin
-        blocker: true
       - step: "UAT: the picker lists 18 feats at level 60, and each of the nine new rows greys correctly for a character that fails its prerequisite (Grip without Ambidexterity, Quarry below Ranger 30, Riposte below 60 Parry ranks, Sundering without Called Shot)."
         status: open
         kind: uat
@@ -6988,6 +6986,10 @@ ideas:
       - step: "UAT the respec path for the hook feats specifically: take Bulwark, confirm the reduction, then respec it away and confirm the reduction is GONE without a relog. LegFeat_ArmHooks clears the per-character damage script, and if that ever regressed the feat would keep working after it was given up."
         status: open
         kind: uat
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-18"
+        text: "Discord — HomelessSon in Legendary Feats: ability score and martial feats (https://discord.com/channels/514343293761486848/1549088283059945613):\n\nthis was split into individual ideas for each feat"
   - id: ll-feats-defense
     title: "Legendary Feats: defensive and survival feats"
     group: combat-classes
@@ -8162,6 +8164,12 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-17"
         text: "Discord — HomelessSon in Buged Dev Crit ??? (https://discord.com/channels/514343293761486848/1548761150358032467):\n\npushing fix for this now to season 2, to reboot on empty, but it needs to rebuild nwsync so will be down for a bit longer, maybe like 15-20 min when it goes down"
+      - author: "Sync Bot"
+        date: "2026-09-18"
+        text: "Discord — HomelessSon in Buged Dev Crit ??? (https://discord.com/channels/514343293761486848/1548761150358032467):\n\ndeployed to season 2"
+      - author: "Sync Bot"
+        date: "2026-09-18"
+        text: "Discord — Szescian82 in Buged Dev Crit ??? (https://discord.com/channels/514343293761486848/1548761150358032467):\n\nsaw that in test, but I haven't tested it yet. Now i need to relevel my 2 toons 😄"
   - id: gandalfs-mummys
     title: "Gandalf's mummys"
     group: bosses
@@ -9080,7 +9088,7 @@ ideas:
     title: "Separate \"shipped to test\" from \"deployed to production\" in the lifecycle"
     group: wiki-tools
     epic: roadmap-editor-qol
-    status: manual
+    status: deployed
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -9159,7 +9167,7 @@ ideas:
   - id: roadmap-editor-award-button-split
     title: "Roadmap editor: award merit is its own button, separate from the status"
     group: wiki-tools
-    status: manual
+    status: deployed
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -9953,6 +9961,7 @@ ideas:
     status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    discord: {'thread_id': '1550541515372363914', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1550541515372363914'}
     notes: "<div><b>A proposed Legendary Feat — not approved and not built.</b> Every feat in the pool needs the admin's sign-off on its name, effect, numbers and prerequisites before it is implemented.</div><div><br></div><div><b>Drafted effect:</b> Once per rest as a free action, heal 50% of max HP instantly</div><div><b>Drafted prerequisite:</b> CON 23+, Fighter or Barbarian level 20+</div>"
     impl_notes: "<div><b>Route: TBD.</b> Route not classified in the triage pass — classify it (plain effect / combat hook / spell-script branch / cut) before costing it.</div><div><br></div><div>Draft row: <i>Exotic Feats</i> (<a>LegendaryFeats.html#exotic</a>). Split out of <a href=\"#idea-ll-feats-exotic\">ll-feats-exotic</a> so this feat carries its own approval, status and thread. Routes and hazards: CLAUDE-legendary-feats-triage.md; architecture and the build order: CLAUDE-legendary-feats.md.</div><div><br></div><div><b>gen-legendary-feats.py FEATS is append-only</b> — a feat's row index becomes its id in every save game the moment a character takes it, so a name or a number that ships wrong cannot be taken back cleanly. That is why the sign-off is a gate and not a courtesy.</div>"
   - id: llf-gate
@@ -10403,6 +10412,7 @@ ideas:
     status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    discord: {'thread_id': '1550541540227551252', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1550541540227551252'}
     notes: "<div><b>A proposed Legendary Feat — not approved and not built.</b> Every feat in the pool needs the admin's sign-off on its name, effect, numbers and prerequisites before it is implemented.</div><div><br></div><div><b>Drafted effect:</b> A passed Intimidate check gives allies within 10m +4 AB and +4 saves for 3 rounds; 60s cooldown</div><div><b>Drafted prerequisite:</b> Intimidate 25+</div>"
     impl_notes: "<div><b>Route: HOOK.</b> Part of the martial replacement table the admin APPROVED on 2026-08-03, deferred because it has no trigger: Intimidate is not an activated skill in NWN and NWNX_ON_USE_SKILL_* never fires for it. Proposal: re-base on TAUNT, every number unchanged. The alternative — a bound token item — costs ~2 in-game turns and is unusable mid-fight.</div><div><br></div><div>Draft row: <i>Martial Feats</i> (<a>LegendaryFeats.html#martial</a>). Split out of <a href=\"#idea-ll-feats-ability-martial\">ll-feats-ability-martial</a> so this feat carries its own approval, status and thread. Routes and hazards: CLAUDE-legendary-feats-triage.md; architecture and the build order: CLAUDE-legendary-feats.md.</div><div><br></div><div><b>gen-legendary-feats.py FEATS is append-only</b> — a feat's row index becomes its id in every save game the moment a character takes it, so a name or a number that ships wrong cannot be taken back cleanly. That is why the sign-off is a gate and not a courtesy.</div>"
     design_questions:
@@ -10416,6 +10426,7 @@ ideas:
     status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    discord: {'thread_id': '1550541579087908874', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1550541579087908874'}
     notes: "<div><b>A proposed Legendary Feat — not approved and not built.</b> Every feat in the pool needs the admin's sign-off on its name, effect, numbers and prerequisites before it is implemented.</div><div><br></div><div><b>Drafted effect:</b> On a failed Discipline check the stock Called Shot effects double and add: LEG -40% speed and -4 DEX plus knockdown, ARM disarm plus -4 AB. 8 rounds, stacks 3</div><div><b>Drafted prerequisite:</b> BAB 35+, Called Shot</div>"
     impl_notes: "<div><b>Route: HOOK.</b> Part of the martial replacement table the admin APPROVED on 2026-08-03, deferred on one clause: 'Called Shot loses its -4 attack penalty' is applied inside the engine's own resolution and no event exposes it. The doubled-and-extended effects ARE buildable on NWNX_ON_USE_FEAT_AFTER. Proposal: ship that half and reword, or cut and let the shipped Legendary Sundering carry the armour-shredding role it overlaps with.</div><div><br></div><div>Draft row: <i>Martial Feats</i> (<a>LegendaryFeats.html#martial</a>). Split out of <a href=\"#idea-ll-feats-ability-martial\">ll-feats-ability-martial</a> so this feat carries its own approval, status and thread. Routes and hazards: CLAUDE-legendary-feats-triage.md; architecture and the build order: CLAUDE-legendary-feats.md.</div><div><br></div><div><b>gen-legendary-feats.py FEATS is append-only</b> — a feat's row index becomes its id in every save game the moment a character takes it, so a name or a number that ships wrong cannot be taken back cleanly. That is why the sign-off is a gate and not a courtesy.</div>"
     design_questions:
@@ -10429,6 +10440,7 @@ ideas:
     status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    discord: {'thread_id': '1550541607210590218', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1550541607210590218'}
     notes: "<div><b>A proposed Legendary Feat — not approved and not built.</b> Every feat in the pool needs the admin's sign-off on its name, effect, numbers and prerequisites before it is implemented.</div><div><br></div><div><b>Drafted effect:</b> A hit that drops you below 35% HP freezes everything within the radius except you for 3 seconds, then leaves you with 50% concealment for 1 round. 90-second cooldown</div><div><b>Drafted prerequisite:</b> Hide 35+, Rogue or Monk level 20+</div>"
     impl_notes: "<div><b>Route: HOOK.</b> REPLACES the draft's Legendary Shadow Step (listed twice, in Ki &amp; Mystic and Exotic — one feat, the broader Exotic prerequisite). The teleport is dropped: a scripted blink risks landing a player in geometry they cannot escape and the module has no safe-point data. Build it with EffectCutsceneParalyze — unresistable, and it carries paralysis's combat consequences, so it punches through the freedom-of-movement and hold immunities bosses carry. NEVER build it out of EffectTimeStop, which is module-wide and banned here. It does NOT discriminate: hostiles, neutrals, henchmen, summons and your own party are all caught, and that cost is the point — do not quietly exempt the party later. Snapshot the shape once at trigger time. Apply the effects with a source that is not the player so allied factions do not turn hostile.</div><div><br></div><div>Draft row: <i>Exotic Feats</i> (<a>LegendaryFeats.html#exotic</a>). Split out of <a href=\"#idea-ll-feats-exotic\">ll-feats-exotic</a> so this feat carries its own approval, status and thread. Routes and hazards: CLAUDE-legendary-feats-triage.md; architecture and the build order: CLAUDE-legendary-feats.md.</div><div><br></div><div><b>gen-legendary-feats.py FEATS is append-only</b> — a feat's row index becomes its id in every save game the moment a character takes it, so a name or a number that ships wrong cannot be taken back cleanly. That is why the sign-off is a gate and not a courtesy.</div>"
   - id: llf-arcane-dominion

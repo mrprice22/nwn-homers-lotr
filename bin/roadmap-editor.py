@@ -3499,13 +3499,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def _merit_write(self, revoke, payload, ideas, groups, players, epics,
                      warnings):
-        """Move an idea into/out of 'merit awarded' AND pay/take back the merit.
+        """Pay or take back an idea's merit, and record it in `merit_awarded`.
+
+        This touches NOTHING else about the idea -- in particular not its
+        status. Payment used to ride along with the move into `implemented`,
+        which made shipping and paying one irreversible decision; they are two
+        buttons now, and this endpoint is only ever the paying one.
 
         The two halves must agree, so either both land or neither does:
-          * merit fails  -> the idea's status is put back to `prev_status` and
-            the flag left alone, but the document is still written, so every
-            other edit made in the same form survives (the roadmap is not the
-            thing that failed).
+          * merit fails  -> the flag is left alone, but the document is still
+            written, so every other edit made in the same form survives (the
+            roadmap is not the thing that failed).
           * merit lands but the YAML write blows up -> the merit is immediately
             taken back again, so the DB never records a payment the roadmap
             has no memory of.
@@ -3528,33 +3532,35 @@ class Handler(BaseHTTPRequestHandler):
         name = (idea.get("player") or "").strip()
         itype = idea.get("type") or ""
         cdkey = (payload.get("cdkey") or "").strip()
-        # skip_merit = admin/community item the user chose to ship with no
-        # payment; already-flagged = re-entering a paid state, never pay twice.
-        skip = bool(payload.get("skip_merit"))
+        # The flag is the idempotence record: never pay twice, never take back
+        # what was never paid. Both are refusals rather than no-ops, because the
+        # page only offers the button that is legal -- so either means the two
+        # sides disagree and the admin should be told, not quietly humoured.
         if not revoke and idea.get(MERIT_FLAG):
-            skip = True
+            return self._json({"ok": False,
+                               "errors": [f"'{iid}' has already been paid; "
+                                          f"revoke it first if it is wrong"]})
         if revoke and not idea.get(MERIT_FLAG):
             return self._json({"ok": False,
                                "errors": [f"'{iid}' is not marked as merit awarded"]})
 
-        res = ({"ok": True, "message": "Status changed; no merit granted."}
-               if skip and not revoke
-               else award_merit(name, itype, iid, cdkey=cdkey, revoke=revoke))
+        res = award_merit(name, itype, iid, cdkey=cdkey, revoke=revoke)
         if not res.get("ok"):
+            # The payment did not happen, so the flag must not say it did --
+            # the posted array is whatever the browser had, and this endpoint is
+            # the only thing allowed to decide that field.
             if not revoke:
-                idea["status"] = payload.get("prev_status") or idea.get("status")
                 idea.pop(MERIT_FLAG, None)
             write_document(ideas, groups, players, epics)
             return self._json({
                 "ok": False, "warnings": warnings, "version": yaml_version(),
                 "matched": res.get("matched"), "reverted": not revoke,
                 "errors": [res.get("reason", "merit update failed")]
-                + (["Status left unchanged; your other edits were saved."]
-                   if not revoke else ["Your other edits were saved."])})
+                + ["Your other edits were saved."]})
 
         if revoke:
             idea.pop(MERIT_FLAG, None)
-        elif not skip:
+        else:
             idea[MERIT_FLAG] = True
         try:
             write_document(ideas, groups, players, epics)
@@ -4552,6 +4558,10 @@ PAGE = r"""<!doctype html>
   #formbar .step { max-width:15em; overflow:hidden; white-space:nowrap;
                    text-overflow:ellipsis; }
   #formbar .step.fwd { border-color:var(--accent); }
+  /* Merit is its own control, sitting apart from the pipeline buttons: paying
+     the submitter is a decision, never a side effect of a status move. */
+  button.award { background:#1e3a2b; color:#9fe8c0; border-color:#2c6b4e;
+                 font-weight:600; }
   button[disabled] { opacity:0.42; cursor:not-allowed; }
   button[disabled]:hover { border-color:var(--line); }
   /* Publishing state: hidden ideas are dimmed and chipped everywhere. */
@@ -5322,7 +5332,14 @@ const CHAIN = ['planned','later','soon','wip','confirmed','manual',
                'implemented','deployed'];
 const OFFCHAIN_FWD = {design:'confirmed', unlikely:'planned'};
 // Labels that read badly as a button. Everything else uses its STATUS label.
-const PIPE_LABEL = {deployed:'Deployed to production', implemented:'Ship to test · award merit'};
+const PIPE_LABEL = {deployed:'Deployed to production', implemented:'Ship to test'};
+// Statuses from which merit may be paid: once the work is confirmed to be in
+// progress, and every stage after it. Merit is NEVER paid by a status move --
+// the Award button is the only thing that writes meritdb, and it is deliberately
+// independent of where the item sits in the pipeline, so the admin decides both
+// WHETHER and WHEN to pay. `design` is included because an item parked there for
+// a design question is mid-work too.
+const MERIT_STATUSES = ['confirmed','design','manual','implemented','deployed'];
 // Sentinel filter value: match rows whose field is empty/unset.
 const BLANK = '__BLANK__';
 const BLANK_OPT = `<option value="${BLANK}">&lt;Is Blank&gt;</option>`;
@@ -6253,12 +6270,6 @@ function moveToStatus(idx, status){
     renderBoard();
     return;
   }
-  if (status==='implemented' && !CAN('merit')){
-    banner('bad', 'Only an administrator can ship an item to test — that is '
-      + 'where the submitter\'s merit is paid.');
-    renderBoard();
-    return;
-  }
   it.status=status;
   renderBoard();
   commit('/api/save');
@@ -6307,16 +6318,12 @@ function transitions(it){
     const n = openQuestions(it).length;
     if (n) out.fwd.reason = n+' open design question'+(n>1?'s':'');
   }
-  // Shipping to test is the merit payment, so it needs the type that decides
-  // how much. `deployed` pays nothing — it is normally reached by itself when
-  // the code is promoted (bin/roadmap-reconcile-deployed.py); the button is
-  // kept so it can be set by hand when a promotion happened out of band.
-  if (fwd==='implemented'){
-    if (!it.type) out.fwd.reason = 'Set a type (Defect/Enhancement/Exploit) — '
-                                 + 'it decides how much merit is granted';
-    // Already paid: the move is legal, it just must not pay again.
-    else if (it.merit_awarded) out.fwd.label = 'Ship to test ▶';
-  }
+  // Nothing here pays merit. Shipping to test used to be the payment, which meant
+  // the button could not be pressed without a `type` and could not be pressed
+  // twice; both are now the Award button's problem, and a status move is only
+  // ever a status move. `deployed` is normally reached by itself when the code
+  // is promoted (bin/roadmap-reconcile-deployed.py); the button is kept so it
+  // can be set by hand when a promotion happened out of band.
   if (fwd==='deployed') out.fwd.hint = 'Normally automatic: an item moves here '
     + 'when its commits reach the live season. No merit is paid by this step.';
   // Role gates, last so they override a merely-informational reason. Shown as a
@@ -6328,8 +6335,32 @@ function transitions(it){
   if (back && !canSetStatus(cur))
     out.back.reason = 'Only an administrator can move an item out of “'
                     + statusLabel(cur) + '”';
-  if (fwd==='implemented' && !CAN('merit'))
-    out.fwd.reason = 'Only an administrator can award merit';
+  return out;
+}
+
+// What the Award/Revoke merit button should do for this idea, or why it can't.
+// `show` false means the button isn't offered at all (wrong role, or the item
+// hasn't reached a stage where paying makes sense); a non-empty `reason` means
+// it is shown greyed with the reason on hover, so "why can't I pay this?" is
+// answered in place. The server enforces the same rules.
+function meritAction(it){
+  const out = {show:false, paid:!!it.merit_awarded, reason:'', pts:0};
+  if (!CAN('merit')) return out;
+  // Revoke follows the payment, not the pipeline: an item demoted back to `wip`
+  // after being paid must still be revokable, or the money is stuck.
+  if (!out.paid && !MERIT_STATUSES.includes(it.status || '')) return out;
+  out.show = true;
+  out.pts = MERIT_POINTS[it.type] || 0;
+  if (out.paid) return out;
+  const name = (it.player || '').trim();
+  if (!(it.id||'').trim())
+    out.reason = 'Give the idea an id and Save it first';
+  else if (!it.type)
+    out.reason = 'Set a type (Defect/Enhancement/Exploit) — it decides how '
+               + 'much merit is granted';
+  else if (!name || name === 'community')
+    out.reason = 'No individual submitter to pay'
+               + (name ? ' — this idea is credited to “community”' : '');
   return out;
 }
 
@@ -6347,6 +6378,22 @@ function liveIdea(){
     design_questions: ho.design_questions || []});
 }
 
+// The merit button, which is NOT a pipeline button and never moves the status.
+// It is its own control precisely so nothing is ever paid as a side effect of
+// shipping: the admin presses this when they mean to pay, and can press Revoke
+// at any point afterwards.
+function meritBtnHTML(ma){
+  if (!ma.show) return '';
+  if (ma.paid)
+    return `<button class="danger" id="revoke"
+      title="Take back ${ma.pts} merit point${ma.pts===1?'':'s'} from the submitter"
+      >Revoke merit points</button>`;
+  return `<button class="award" id="award"${ma.reason?' disabled':''}
+    title="${esc(ma.reason || ('Pay '+ma.pts+' merit point'+(ma.pts===1?'':'s')
+      + ' into the live merit database'))}"
+    >Award merit${ma.pts?(' ('+ma.pts+')'):''}</button>`;
+}
+
 function formbarHTML(it){
   const tr = transitions(it);
   const stepBtn = (id, t, cls) => t.status
@@ -6359,9 +6406,8 @@ function formbarHTML(it){
       <button class="primary" id="save">Save</button>
       <button class="danger" id="del">Delete</button>
       <span class="spacer"></span>
-      ${it.merit_awarded ? '<span class="chip merit">merit paid</span>'
-        + (CAN('merit')
-           ? '<button class="danger" id="revoke">Revoke merit points</button>' : '') : ''}
+      ${it.merit_awarded ? '<span class="chip merit">merit paid</span>' : ''}
+      ${meritBtnHTML(meritAction(it))}
       ${stepBtn('t_back', tr.back, 'back')}
       ${stepBtn('t_fwd', tr.fwd, 'fwd')}`;
 }
@@ -6372,10 +6418,11 @@ function bindFormbar(){
   const tr = transitions(liveIdea());
   $('#save').onclick = ()=>commit('/api/save');
   $('#del').onclick = del;
-  const bb=$('#t_back'), fb=$('#t_fwd'), rb=$('#revoke');
+  const bb=$('#t_back'), fb=$('#t_fwd'), rb=$('#revoke'), ab=$('#award');
   if (bb && !bb.disabled) bb.onclick = ()=>stepTo(tr.back.status);
   if (fb && !fb.disabled) fb.onclick = ()=>stepTo(tr.fwd.status);
   if (rb) rb.onclick = revokeMerit;
+  if (ab && !ab.disabled) ab.onclick = awardFlow;
 }
 
 function refreshFormbar(){
@@ -6790,57 +6837,44 @@ function lockFormIfReadOnly(){
 
 // ---- pipeline moves ------------------------------------------------------
 // Every move folds the open form in and saves, so an edit made just before
-// clicking a pipeline button is never lost. Only the move into `implemented`
-// goes through /api/award — the one path that touches the live merit database.
-// Merit is paid when the fix reaches the TEST realm, because that is when the
-// reporter can see it; `deployed` comes later and by itself (see
-// bin/roadmap-reconcile-deployed.py), so it must never be the paying step.
+// clicking a pipeline button is never lost. NO status move pays merit — every
+// one of them is a plain /api/save. Paying is the Award button (awardFlow →
+// /api/award), which leaves the status exactly where it is. The two were one
+// control once, which meant shipping to test paid whether you meant to or not,
+// and paying a submitter meant shipping the item.
 function stepTo(status){
-  if (status !== 'implemented'){
-    $('#f_status').value = status;
-    return commit('/api/save', false, {stay:true});
-  }
-  return awardFlow();
+  $('#f_status').value = status;
+  return commit('/api/save', false, {stay:true});
 }
 
-function doAward(it, prev, cdkey, skip){
-  $('#f_status').value = 'implemented';
+function doAward(it, cdkey){
   return commit('/api/award', false, {stay:true, extra:{
-    idea_id: it.id, prev_status: prev, cdkey: cdkey||'', skip_merit: !!skip}});
+    idea_id: it.id, cdkey: cdkey||''}});
 }
 
 async function awardFlow(){
-  const it = DATA.ideas[curIdx()]; if (!it) return;
-  const prev = it.status;
-  const name = $('#f_player').value.trim();
-  const type = $('#f_type').value;
-  const pts = MERIT_POINTS[type] || 0;
-  // Already paid once — move the status, never grant twice.
-  if (it.merit_awarded) return doAward(it, prev, '', true);
-  if (!name || name === 'community'){
-    if (!confirm('This idea has no individual submitter'
-      + (name ? ' (credited to "community")' : '')
-      + ', so no merit can be granted.\n\nShip it to the test realm anyway? '
-      + 'The status changes and nothing is written to the merit database.')) return;
-    return doAward(it, prev, '', true);
-  }
+  const it = liveIdea(); if (!it) return;
+  const ma = meritAction(it);
+  if (!ma.show || ma.paid) return;
+  if (ma.reason) return banner('bad', ma.reason + '.');
+  const name = it.player, type = it.type, pts = ma.pts;
   // Resolve the submitter first: an unmatched name gets a picker rather than a
   // failed award (roadmap names and in-game login names drift apart).
   let m = {};
   try { m = await (await api('/api/merit?player='+encodeURIComponent(name))).json(); }
   catch(e){ m = {}; }
-  if (m.available && m.matched === false) return pickMeritPlayer(it, prev, name, type, pts);
+  if (m.available && m.matched === false) return pickMeritPlayer(it, name, type, pts);
   const who = m.matched_name || name;
   if (!confirm('Grant '+pts+' merit point'+(pts>1?'s':'')+' ('+type+') to '+who
-    + ' in the live merit database?\n\nThe game DB is written now; the status '
-    + 'only moves if that write succeeds.')) return;
-  return doAward(it, prev, '', false);
+    + ' in the live merit database?\n\nThis pays the submitter now and does '
+    + 'not change the item\'s status.')) return;
+  return doAward(it, '');
 }
 
 // The roadmap player name matched nothing in meritdb. Show every known player
 // and let the admin say who it is; the choice is remembered server-side so the
 // same roadmap name resolves by itself next time.
-async function pickMeritPlayer(it, prev, name, type, pts){
+async function pickMeritPlayer(it, name, type, pts){
   let res = {};
   try { res = await (await api('/api/meritplayers')).json(); } catch(e){ res={}; }
   const rows = res.rows || [];
@@ -6869,7 +6903,7 @@ async function pickMeritPlayer(it, prev, name, type, pts){
         if (!confirm('Grant '+pts+' merit point'+(pts>1?'s':'')+' ('+type+') to '
           + r.name + '?\n\n"' + name + '" will be remembered as this account.')) return;
         closeModal();
-        doAward(it, prev, r.cdkey, false);
+        doAward(it, r.cdkey);
       };
     });
   };

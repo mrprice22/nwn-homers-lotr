@@ -69,7 +69,7 @@ Each entry under `ideas:` is one backlog item:
 | `type` | yes | `Defect`, `Enhancement`, or `Exploit`. Sets the merit value of a shipped item (1 / 2 / 3). |
 | `epic` | no | Id of an entry in the `epics:` block. The item is then published only as one bullet inside that epic's rolled-up card — see **Epics** below. |
 | `hidden` | no | `true` = **never published**: kept off the public roadmap page, out of the in-game Recent Updates sign, out of the type/stage pivot counts, and out of any epic's bullet list and `x/y` count. It still shows (chipped and dimmed) in the editor. Omitted entirely when false. |
-| `merit_awarded` | no | `true` = the submitter's Merit for this item was really paid into the `meritdb` campaign DB. **Never hand-edit and never set it from an agent** — it is written only by the editor's **Award merit** / **Revoke merit points** buttons, which do the DB write first. It is deliberately separate from the status so payment is recorded exactly once no matter how the item moves — it is paid on the way into `implemented` and the item carries on to `deployed` afterwards. Omitted entirely when false. |
+| `merit_awarded` | no | `true` = the submitter's Merit for this item was really paid into the `meritdb` campaign DB. **Never hand-edit and never set it from an agent** — it is written only by the editor's **Award merit** / **Revoke merit points** buttons, which do the DB write first. It is deliberately separate from the status so payment is recorded exactly once no matter how the item moves — it is paid whenever the admin presses **Award merit**, which is available from `confirmed` onwards and moves nothing. Omitted entirely when false. |
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
 | `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. **When you ship an item, set this to today.** |
 | `commit` | no | git commit hash (short or full, e.g. `f1e0b114d7d`) of the change that shipped the item. **Add this when you ship.** Used to derive `date` for shipped items when `date` is absent. |
@@ -527,26 +527,34 @@ What it does:
   by typing the URL. `/dupes` is now a 302 to `/#dupes` so that habit keeps working. Moving
   it in is what lets its per-idea links open an idea tab beside it instead of reloading the
   editor onto the board.
-- **Pipeline buttons (and the only thing that pays Merit).** The sticky bar at the top of
+- **Pipeline buttons.** The sticky bar at the top of
   the idea form carries a **back** and a **forward** button, each labelled with the status
   it moves to (`◀ In progress` / `Needs manual finishing ▶` /
-  `Ship to test · award merit ▶` / `Deployed to production ▶`). They walk the chain
+  `Ship to test ▶` / `Deployed to production ▶`). They walk the chain
   `planned → later → soon → wip → confirmed → manual → implemented → deployed`; from the
   off-chain `design` and `unlikely`, forward rejoins the chain (`confirmed` / `planned`)
   and back is a dead end. Illegal moves are **greyed with the reason on hover**: unfinished
-  blocker `manual_steps`, open `design_questions`, a missing `type`, or an idea that has no
-  `id` yet.
-  **Forward into `implemented` is the merit payment.** The submitter is paid when their
-  fix reaches the **test realm**, because that is the moment they can go and see it — the
-  last step, `deployed`, pays nothing and is normally not clicked at all (see
-  [The per-idea environment badge](#the-per-idea-environment-badge)).
+  blocker `manual_steps`, open `design_questions`, or an idea that has no `id` yet.
+  **No pipeline button pays merit.** Every one of them is a plain `/api/save`, including
+  the move into `implemented`; the last step, `deployed`, is normally not clicked at all
+  (see [The per-idea environment badge](#the-per-idea-environment-badge)).
+- **The Award merit button — the only thing that pays Merit.** It sits in the same sticky
+  bar, styled apart from the pipeline arrows, and **moves no status**. Merit was once paid
+  as a side effect of shipping to test, which made the two one irreversible decision:
+  you could not ship without paying, and you could not pay without shipping. They are two
+  buttons now. **Nothing is ever paid automatically.**
+  The button is offered from `confirmed` (“In progress”) onwards — `confirmed`, `design`,
+  `manual`, `implemented`, `deployed` (`MERIT_STATUSES`) — so the admin can pay at whatever
+  point in the work they think the submitter has earned it, and it is greyed with the reason
+  on hover when the item has no `id`, no `type` (it decides how much), or no individual
+  submitter (`community` or blank). It is `merit`-capability only.
   Unlike the Status dropdown or a board
   lane drag — which only edit YAML — this button writes the live `meritdb`: it bumps the
   submitter's counter for the idea's `type` (Defect→`bugs` +1, Enhancement→`features` +2,
   Exploit→`exploits` +3) and appends a `merit_ledger` row reading
   `award: <kind> (roadmap:<idea-id>)`, in one transaction, then re-reads the row to prove
-  it landed. If the player can't be resolved or the DB write fails, **the status change is
-  rolled back** (every other edit in the form is still saved) and the banner says why.
+  it landed. If the player can't be resolved or the DB write fails, **nothing is paid and
+  the flag stays clear** (every other edit in the form is still saved) and the banner says why.
   An unmatched submitter name opens a picker of `meritdb` accounts; the choice is
   remembered in `roadmap-merit-aliases.json` (gitignored — it holds CD keys) so the same
   roadmap name resolves by itself next time. That file is **gitignored and not
@@ -556,12 +564,14 @@ What it does:
   `nwn-wiki --player-aliases`, to credit ideas on player pages; a CD key in it is only
   ever a lookup INTO the roster, never a name out of it, so an alias naming an account
   that has not played this season leaves the idea uncredited rather than printing a key. An idea with no submitter (or `community`)
-  asks for confirmation and then moves the status with no payment.
-  Once paid, the bar shows a **merit paid** chip and a **Revoke merit points** button
-  (confirmation required) that subtracts the points and writes a negative ledger row.
-  Moving *back* out of a paid status never un-pays, and moving forward again never pays
-  twice — that is what the `merit_awarded` flag records, and it is why the Lifetime-merit
-  panel counts that flag rather than any status.
+  simply cannot be paid; ship it and leave it unpaid.
+  Once paid, the bar shows a **merit paid** chip and the button becomes **Revoke merit
+  points** (confirmation required), which subtracts the points and writes a negative ledger
+  row. **Revoke is available at any stage, including after the item has been demoted back
+  down the pipeline** — it follows the payment, not the status, or the points would be
+  stuck. Moving out of a paid status never un-pays, and the server refuses a second
+  payment outright — that is what the `merit_awarded` flag records, and it is why the
+  Lifetime-merit panel counts that flag rather than any status.
 - **Unsaved-changes guard.** The form lives in the DOM until Save, so leaving it used to
   discard edits silently. Clicking another idea, switching to the Board, or adding a new
   idea with unsaved edits now opens a modal: **Save and continue** (navigates only if the
