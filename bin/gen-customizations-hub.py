@@ -154,6 +154,7 @@ CSS = """
     .cz-card p { margin: 0.2em 0; font-size: 0.92em; }
     .cz-card .cz-sub { color: var(--muted); font-size: 0.85em; }
     .cz-card mark { padding: 0 0.1em; }
+    .cz-card .cz-sub a.cz-hit { font-weight: 700; background: var(--card); outline: 1px solid var(--accent); }
     .cz-card:target, .cz-group:target > h2 { outline: 2px solid var(--accent); }
     [hidden] { display: none !important; }
 
@@ -448,6 +449,13 @@ the titles — or browse by topic.</p>
       var sum = c.querySelector(".cz-sum");
       if (ok && terms.length) {{ snippet(sum, hay, terms[0]); shown++; }}
       else sum.textContent = summaries[n];
+      // Emphasise the sub-sections whose own title matches, so a hit deep in a
+      // big section (one feat of many) is one click away.
+      Array.prototype.forEach.call(c.querySelectorAll(".cz-sub a"), function (a) {{
+        var t = a.textContent.toLowerCase();
+        a.classList.toggle("cz-hit", terms.length > 0 &&
+          terms.every(function (w) {{ return t.indexOf(w) >= 0; }}));
+      }});
     }});
     groups.forEach(function (g) {{
       g.hidden = !g.querySelector(".cz-card:not([hidden])");

@@ -10,16 +10,19 @@ the forwarding map for old links). This gate fails the build when:
      topic page and did not re-run the generator, so search and nav disagree with it;
   2. an anchor that was ever published (tests/customizations_anchors.txt) no longer
      resolves -- every link anyone shared to Customizations.html#<it> would break;
-  3. a link in this repo to Customizations.html#<anchor> (roadmap.yaml, the manual,
+  3. docs.manual/Customizations/LegendaryFeats.html no longer matches FEATS in
+     bin/gen-legendary-feats.py -- a feat shipped (or changed) without its page;
+  4. a link in this repo to Customizations.html#<anchor> (roadmap.yaml, the manual,
      an in-game string, the CLAUDE docs) points at an anchor that does not exist.
 
-The generator's own --check covers 1 and 2, so this gate and the tool can never
+The generators' own --check modes cover 1-3, so this gate and the tool can never
 disagree about them.
 
 Exits 0 on success, 1 on any failure.
 """
 import importlib.util
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -37,6 +40,9 @@ RE_LINK = re.compile(r"Customizations\.html#([A-Za-z0-9_-]+)")
 
 def main() -> int:
     rc = gen.build(check=True)
+    feats = subprocess.run([sys.executable, str(ROOT / "bin" / "gen-legendary-feats-doc.py"),
+                            "--check"])
+    rc = rc or feats.returncode
 
     amap = gen.anchor_map(gen.load_pages())
     broken = []

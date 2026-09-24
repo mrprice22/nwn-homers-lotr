@@ -643,6 +643,15 @@ per the sequence at the bottom of this document. The generator updates the 2DA
 rows, the TLK strings and `unpacked/legfeat_ids_inc.nss` together; the gate
 fails the repack if any of the three drifts.
 
+**Then regenerate the player page:** `python3 bin/gen-legendary-feats-doc.py`.
+It renders `docs.manual/Customizations/LegendaryFeats.html` from the same `FEATS`
+table (name, description, `effect` as the "In short" line, prerequisites) and
+refreshes the Customizations hub's search. Never hand-write feat docs — and note
+that `effect` and `description` are now **player-facing text**, so write them
+for players. `tests/check_customizations_hub.py` fails the repack until the page
+matches `FEATS`. `docs.manual/Draft/LegendaryFeats.html` is the design
+wish-list, not the player reference; it carries a banner saying so.
+
 Set `kind="raw_ability"` only for base-score feats. Everything else is
 `"effect"`, which means `LegFeat_ApplyOne` needs a branch for whatever that feat
 does and `LegFeat_ApplyAll` will rebuild it at login.

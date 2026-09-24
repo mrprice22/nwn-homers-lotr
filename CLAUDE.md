@@ -56,7 +56,10 @@ behavior.
   its position. **Never remove or rename a published `id=`** — `tests/customizations_anchors.txt`
   records every one, and `tests/check_customizations_hub.py` fails the repack if one
   disappears (map a retired id in the script's `ALIASES`), if the hub is stale, or if any
-  `Customizations.html#x` link in the repo points nowhere.
+  `Customizations.html#<anchor>` link in the repo points nowhere.
+  **Legendary feats are generated, never hand-written:** after changing `FEATS` in
+  `bin/gen-legendary-feats.py`, run `python3 bin/gen-legendary-feats-doc.py` (it writes
+  `Customizations/LegendaryFeats.html` and refreshes the hub; the same gate enforces it).
 - `docs.manual/Roadmap.html` is **generated** from `roadmap.yaml` (repo root) by `bin/gen-roadmap.py` — the public dev roadmap + merit-tracking backlog. Edit `roadmap.yaml`, then run `python3 bin/gen-roadmap.py` to regenerate `Roadmap.html` and commit both — **do not** trigger a wiki refresh (the scheduled/daily refresh folds it into `docs/`). The script joins shipped items to git commit dates and warns (advisory only, by title word-overlap within the same group) on likely duplicate ideas — set `dupe_of` to merge genuine cross-player duplicates, or reword a title if it's a false positive (see [CLAUDE-roadmap.md](CLAUDE-roadmap.md) for the exact rule). Don't hand-edit `Roadmap.html`. For typo-proof editing of the backlog use the GUI editor `python3 bin/roadmap-editor.py` (dropdowns for player/group/status/dupe_of, validates before writing, rewrites only the `ideas:` block). Items that must never reach the public page or the in-game Recent Updates sign get
 `hidden: true`; a multi-part effort hangs its items off an entry in the `epics:` block via
 `epic: <epic-id>`, which publishes them as a single "x/y complete" card instead of one card
