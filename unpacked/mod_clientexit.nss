@@ -11,6 +11,8 @@
 #include "pers_state_inc"
 #include "bank_box_inc"
 #include "epic_summon_inc"
+#include "mw_unlock_inc"
+#include "fb_hench_inc"
 #include "fat_inc"
 #include "ptm_db"
 
@@ -21,9 +23,15 @@ void main()
     // the .bic or touch other DBs, and the session length should not include
     // that housekeeping.
     Ptm_Close(PC);
-    // Epic summons live in the henchman slot and don't auto-despawn on logout
-    // like summoned associates do -- clean up any lingering one here.
+    // Epic summons, MeaningWave guides and the Fell Beast live in the henchman
+    // slot and don't auto-despawn on logout like summoned associates do. Their
+    // master-lost heartbeat can't catch it either: a creature's heartbeat stops
+    // once no player is in its area, so an orphan would stand there until
+    // someone walks back in. Clean them all up here (fires on a crash or
+    // timeout too, not only a clean logout).
     EpicSummon_Dismiss(PC);
+    MW_DismissActiveGuide(PC);
+    FB_DismissExisting(PC);
     // Safety net: if the player logs out mid-session with a Bank of Bree storage
     // box still in inventory (i.e. before finishing the banker dialog), commit it
     // here so the contents are not lost. No-op when no box is carried.

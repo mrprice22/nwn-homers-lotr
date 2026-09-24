@@ -15,8 +15,9 @@
 //:: wall-clock source brd_db.nss uses.
 //:://////////////////////////////////////////////
 
+#include "fb_hench_inc"
+
 const string FB_DB       = "fellbeast";
-const string FB_HENCH_TAG = "fellbeast_h";
 const int    FB_COOLDOWN  = 3600; // seconds (1 real hour)
 
 // Current wall-clock epoch seconds (server real time).
@@ -26,23 +27,6 @@ int FB_Now()
     if (SqlStep(q))
         return SqlGetInt(q, 0);
     return 0;
-}
-
-// Remove any Fell Beast this PC already has out (mirrors MW_DismissActiveGuide).
-void FB_DismissExisting(object oPC)
-{
-    int i;
-    for (i = 1; i <= 5; i++)
-    {
-        object oH = GetHenchman(oPC, i);
-        if (!GetIsObjectValid(oH)) break;
-        if (GetTag(oH) == FB_HENCH_TAG)
-        {
-            RemoveHenchman(oPC, oH);
-            AssignCommand(oH, ClearAllActions());
-            ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oH);
-        }
-    }
 }
 
 void main()
