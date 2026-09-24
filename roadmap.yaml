@@ -614,13 +614,28 @@ ideas:
   - id: kerfualls-disappearing-act
     title: "Kerfuall's disappearing act"
     group: bosses
-    status: confirmed
+    status: manual
     type: Defect
     player: "Balendin (Balendin_2222)"
-    date: "2026-08-28"
+    date: "2026-09-23"
+    commit: f7bb577ce1f
     discord: {'thread_id': '1549086789912756294', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549086789912756294'}
-    notes: "<div><div><span><span>Balendin: </span></span><span>As for Kerufall I never killed him just got him to use his 5 heals or such and then I died. Ran back and he was gone </span><span><img src=\"https://discord.com/assets/9999d977e14a0d5a.svg\" alt=\"🙁\"></span></div></div><div><br></div><div><br></div><div><div><span><span>HomelessSon</span><span><span> :</span></span></span><span>What I was expecting was if it took you less than 15 min to get back to where he was, he would still be there, but if it took longer; even though he didnt die, he would have reverted back to his original spawn point.</span></div></div><div><div><div><span>did the creature give a shout or just was gone without a word?</span></div></div></div><div><br></div><div><br></div><div><div><span><span>Balendin: </span></span><span>Pretty sure just vanished. Not 100% sure I went back instantly and the run theres a nightmare too so</span></div></div><span>I was fighting him for ages as my damage was kinda ehsss</span>"
+    notes: "<div>Bosses no longer vanish when you die to them. Before, if the last player in a boss's lair died (or left), the boss was deleted on the spot, so a run back found an empty lair.</div><div>Now a boss you leave behind waits <b>15 minutes</b>, still wounded, for you to come back and finish the job. If nobody returns in time, it resets: full health, spells restored, back at its post. Affects Kerufall, Khamul the Ringwraith (Dol Guldur), Shelob and The Mutant Terror.</div>"
     notes_h: 249
+    impl_notes: "Root cause: kerufall003 is encounter-spawned (kerufall.ute; kerufallslair encounter Max 1, ResetTime 1200), and kerufallslair's OnExit is cleanup.nss, which DestroyObject'd every GetIsEncounterCreature the moment the last PC left. Dying and respawning at the bind point is an area exit, so a solo death deleted the boss; he only came back once the encounter re-armed (20 min) and a PC re-entered the trigger. The Roll of the Fallen still showed him alive since he never died. Fix in cleanup.nss only: encounter creatures with GetChallengeRating &gt; 60 (the gen-boss-registry.py boss rule) are skipped by the instant sweep; a 900s DelayCommand, guarded by a per-area generation counter (cln_boss_gen) so a return-and-leave restarts the clock, then resets any live boss if the area is still empty: strips effects not created by the boss itself (keeps nw_c2_default9 permanent spawn effects), ClearAllActions, ForceRest, EffectHeal(max HP), JumpToLocation(local 'spawn' set at OnSpawn). Reset in place rather than destroy, so it never depends on the encounter re-arm timer. Consumed potions/items are not restored. Trash encounters and loot cleanup unchanged. Same trap fixed for the other cleanup.nss boss lairs: area031 (Khamul), shelobslair, balinstomb (Mutant Terror). Frost (emynarnen) uses d_purge (600s delayed purge, destroys) and was left alone. Nothing includes cleanup.nss, so a plain repack is safe; verified cln_boss_gen is present in the built cleanup.ncs."
+    manual_steps:
+      - step: "UAT: solo, fight Kerufall until wounded, then die (or leave the lair). Return within 15 minutes: he must still be there, still wounded."
+        status: open
+        kind: uat
+        tester: "level 60 able to survive Kerufall a while"
+      - step: "UAT: wound Kerufall, leave the lair and stay out for more than 15 minutes. On return he must be at his spawn point at full health."
+        status: open
+        kind: uat
+        tester: "level 60"
+      - step: "UAT: in any other cleanup.nss area (e.g. Balin's Tomb trash), leave with trash encounter mobs alive and re-enter: they are gone as before."
+        status: open
+        kind: uat
+        tester: "any"
   - id: persistant-map-exploration
     title: "Persistant map exploration with xp reward"
     group: quests-areas
