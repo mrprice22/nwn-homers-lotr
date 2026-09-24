@@ -37,10 +37,13 @@ def load_editor():
 
 
 # Shipped statuses, and the day the `docs:` field was introduced. An Enhancement
-# (the one type that changes what a player experiences; a Defect or Exploit fix
+# (the one type that can change how the game works; a Defect or Exploit fix
 # restores documented behaviour) shipped on or after this date without `docs:`
 # is warned about on every run; older ones are listed by --docs-backlog instead.
-SHIPPED = {"implemented", "manual", "confirmed", "deployed"}
+# Most Enhancements are content (areas, items, quests) and just need `docs: none`
+# -- see "What counts as a customization" in CLAUDE.md.
+# `confirmed` is NOT shipped: it means approved and not yet built.
+SHIPPED = {"implemented", "manual", "deployed"}
 DOCS_SINCE = "2026-09-23"
 
 
@@ -98,9 +101,10 @@ def main() -> int:
     recent = [i["id"] for i in undocumented if str(i.get("date") or "") >= DOCS_SINCE]
     if recent:
         warnings = list(warnings) + [
-            f"{len(recent)} shipped Enhancement(s) have no docs: field -- document the "
-            f"change (docs.manual/Customizations/, then bin/gen-customizations-hub.py) and "
-            f"set docs:, or set docs: none if players have nothing to read: "
+            f"{len(recent)} shipped Enhancement(s) have no docs: field. If it changes how "
+            f"the game works compared to stock NWN, document it (docs.manual/Customizations/, "
+            f"then bin/gen-customizations-hub.py) and set docs: to that page#anchor; if it is "
+            f"content (an area, item, quest, boss...), set docs: none: "
             + ", ".join(recent)]
 
     if args.warnings or recent:

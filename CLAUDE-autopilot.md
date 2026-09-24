@@ -314,9 +314,10 @@ system you just changed, and update it **in the same code commit** (step 7.1). E
   the public page — and never badge a quest as needing a waypoint there; use `Working` (the only
   other badge is `In Development`, for content that is genuinely unbuilt), and track the placement
   in the item's `manual_steps`.
-- **The Customizations reference especially** must track changes to player-facing
-  customization systems (merit shop, housing, forge, gem socketing pointers, rule changes,
-  etc.) — if the item touches one of those, update the relevant section. The content lives
+- **The Customizations reference especially** must track changes to how the game works
+  compared to stock NWN (spell/feat/combat rule changes, rule 2DAs, server settings, the
+  merit shop, housing, forge, etc.) — if the item touches one of those, update the relevant
+  section. New areas, items, quests and bosses are **not** customizations and get no entry. The content lives
   in the topic pages under `docs.manual/Customizations/`; `docs.manual/Customizations.html`
   is a **generated hub** — edit the topic page, then run
   `python3 bin/gen-customizations-hub.py`. Keep every published `id=` (old links forward by
@@ -395,8 +396,9 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
      merit — the status alone never pays, but do not claim it lightly.
    - `commit:` the hash from step 1
    - `docs:` for an **Enhancement** — the player page + anchor you documented it at in
-     step 3 (e.g. `Customizations/Spells.html#soul-fatigue`), or `none` if players have
-     nothing to read. `bin/roadmap-lint.py` warns when it is missing.
+     step 3 (e.g. `Customizations/Spells.html#soul-fatigue`) when it changes how the game
+     works compared to stock NWN; `none` for content (new areas, items, quests, bosses),
+     which never gets a Customizations entry. `bin/roadmap-lint.py` warns when it is missing.
    - `date:` **always set to today's actual date** (`YYYY-MM-DD` — check the real current
      date, don't guess or leave the original report date)
    - `notes`: append a `Fixed YYYY-MM-DD` line (what/why/how), **plus testing/UAT
