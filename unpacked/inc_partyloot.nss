@@ -1,8 +1,12 @@
 // inc_partyloot - WoW-style party loot roll (Need / Greed / Pass) via NUI.
 //
-// Triggered from the OnAcquireItem hook (acquireditem_tag.nss) when a PC picks
-// up an item worth >= the party's minimum and other eligible party members are
-// in the same area. Each participant gets a clickable NUI popup; highest Need
+// Triggered from the OnAcquireItem hook (acquireditem_tag.nss) when a PC takes
+// an item worth >= the party's minimum out of a body or a container in the
+// world, with other eligible party members in the same area. An item that the
+// engine minted into the pack (crafting, dye, a forge revert) or that came off
+// the ground is not loot and never rolls - see the source filter below.
+//
+// Each participant gets a clickable NUI popup; highest Need
 // wins (else highest Greed; Pass cannot win). The looter participates and keeps
 // the item on a self-win, otherwise the item auto-transfers to the winner.
 //
@@ -465,17 +469,29 @@ void PL_OnItemAcquired()
     if (!GetIsPC(oPC)) return;
     if (GetLocalInt(oItem, "pl_rolled")) return;   // already contested once
 
-    // Source filter: ignore store purchases and PC-to-PC trades.
+    // Source filter: a party roll is for loot that came out of the world - a
+    // body, a chest, or a container found in one. This asks for positive
+    // evidence of that rather than listing the sources to skip, because the
+    // listing shape had a hole in it: GetModuleItemAcquiredFrom() is
+    // OBJECT_INVALID for every item the engine materialises into a pack, so
+    // anything created there fell straight through the checks and rolled.
+    //   no source        - the item was minted onto the PC (crafting, dye, a
+    //                      forge revert, a quest grant) or picked up off the
+    //                      ground, e.g. the PC's own weapon after a disarm,
+    //                      which disarm_catch copies back into the pack.
+    //   store            - a purchase, already paid for.
+    //   PC               - a player-to-player trade, or a dead PC's body.
+    //   living creature  - pickpocket: an individual skill contest. A *dead*
+    //                      creature still passes, because that is corpse and
+    //                      boss loot and it is exactly what should roll.
+    //   own container    - shuffling an item out of the PC's own bag. A bag
+    //                      held by anyone else - a corpse, a chest - passes.
     object oFrom = GetModuleItemAcquiredFrom();
-    if (GetIsObjectValid(oFrom) &&
-        (GetObjectType(oFrom) == OBJECT_TYPE_STORE ||
-         GetIsPC(oFrom) ||
-         // Pickpocket: item taken from a *living* creature. Corpse/boss loot
-         // comes from a dead body (still passes -> still rolls); this only
-         // suppresses stealing from a creature that's still up, which is an
-         // individual skill contest and not party-contested loot.
-         (GetObjectType(oFrom) == OBJECT_TYPE_CREATURE && !GetIsDead(oFrom))))
-        return;
+    if (!GetIsObjectValid(oFrom)) return;
+    int nFrom = GetObjectType(oFrom);
+    if (nFrom == OBJECT_TYPE_STORE) return;
+    if (nFrom == OBJECT_TYPE_CREATURE && (GetIsPC(oFrom) || !GetIsDead(oFrom))) return;
+    if (nFrom == OBJECT_TYPE_ITEM && GetItemPossessor(oFrom) == oPC) return;
 
     // GetGoldPieceValue returns 1 for unidentified items, so defer the threshold
     // check for them - we'll re-check after the lore step if identification succeeds.
