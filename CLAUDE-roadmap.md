@@ -112,7 +112,10 @@ planned → later → soon → wip → confirmed → manual → implemented → 
 ```
 
 `design` branches off `confirmed` and returns to it once every question is answered.
-`manual` sits between `confirmed` and `implemented`.
+`manual` sits between `confirmed` and `implemented`, but the normal path **skips it**: an
+agent-shipped item goes `confirmed` → `implemented` as soon as it is built and published to
+the test realm, and detours through `manual` only when toolset work the admin has to do by
+hand is outstanding.
 
 ### Epics
 
@@ -329,11 +332,15 @@ out of adding new ideas (this happened — five items, fixed 2026-08-05).
 
 These are hard rules — follow them exactly:
 
-- **Shipping an item → `status: manual` by default, `implemented` only when certain, never
-  `deployed`.** When you finish the code for an item, it lands in `manual` (needs manual
-  finishing) with the outstanding toolset work listed in `manual_steps`. Set `implemented`
-  **only if you can confirm zero manual toolset steps remain** — if you are uncertain,
-  choose `manual`. **Never** set `deployed`: that status is a statement about production,
+- **Shipping an item → `status: implemented` by default, `manual` only when admin toolset
+  work is outstanding, never `deployed`.** When you finish the code for an item, build it
+  and publish it to the test realm (`bin/rebuild-and-arm`, or `bin/publish-and-arm` when it
+  touched `hak_2da/` or `tlk/`), then land it in `implemented` — shipped, in testing, where
+  its UAT steps get worked in-game. It lands in `manual` (needs manual finishing) **only**
+  when source work that only the admin can do in the toolset remains — a waypoint or
+  blueprint to place — which is to say only when you filed a `manual_steps` entry with
+  `blocker: true`. UAT steps never make an item `manual`, and an unpublished build is never
+  `implemented`. **Never** set `deployed`: that status is a statement about production,
   computed from git by `bin/roadmap-reconcile-deployed.py` at the promotion. Never
   touch `merit_awarded` (nor any `uat_credits[].awarded`) — those steps credit Merit
   to a player in the live game database

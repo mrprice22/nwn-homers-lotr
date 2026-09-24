@@ -16,12 +16,12 @@ The loop talks about tiers; `roadmap.yaml` talks about statuses. Mapping:
 |---|---|
 | In progress | `confirmed` |
 | Needs design input | `design` — blocked on an admin decision; branches off `confirmed` and returns to it |
-| Needs manual finishing | `manual` — code done, admin toolset work outstanding; the **default landing state** after implementation |
+| Needs manual finishing | `manual` — code done, but **source work only the admin can do in the toolset** is outstanding (a waypoint to place, a blueprint to drop). **Not** the default: use it only when a `blocker: true` step remains |
 | Up next | `wip` |
 | Soon | `soon` |
 | Later | `later` |
 | Under consideration | `planned` |
-| Shipped — in testing | `implemented` |
+| Shipped — in testing | `implemented` — the **default landing state** after implementation: committed, built, and published to the TEST realm with a reboot armed, so testers can work its UAT steps in-game |
 | Deployed to production | `deployed` — **never set by the agent**; it moves there by itself when the code is promoted |
 | Not likely | `unlikely` — leave alone |
 
@@ -186,27 +186,32 @@ Autopilot-specific rules:
   - *Exceptions* (these are fine): pins managed by `bin/gen-map-notes.py`, edits to
     **existing** placed instances, and coordinates copied from an existing instance in the
     same area (e.g. swapping a creature at a spot that's already occupied).
-- **2DA changes need a hak rebuild AND an NWSync publish — as `manual_steps`, never
-  run by you.** Editing anything in `hak_2da/` changes nothing in game until
-  `bin/build-lotr-rules-hak --install` packs it and `bin/refresh-nwsync` publishes it
-  to clients; a client on a stale hak silently reads the old tables. File both as
-  `kind: admin` steps with `blocker: true` — the item genuinely does not work
-  without them — and say which 2DA changed and what stays wrong until it ships.
-  This is the **one** deploy-shaped thing that still earns a step: there is no
-  `publish`/deploy kind any more, and an ordinary repack/restart must never be
-  written as a step at all (see CLAUDE.md). A hak or NWSync rebuild is different
-  because it is an extra action the admin would not otherwise take.
-  A change under `unpacked/` alone needs **neither**: `refresh-nwsync` deliberately
-  runs without `--with-module`, so clients download haks and the TLK, never the
-  `.mod`. Which mode to name in the step: plain `bin/refresh-nwsync` (incremental,
-  the normal case), `--force` **only** for corruption recovery, `--prune`
-  occasionally for housekeeping. Never propose deleting the NWSync repo — it is a
-  persistent content-addressed store behind a live nginx bind mount. Full table in
-  [CLAUDE.md](CLAUDE.md), "Publishing to clients".
-- **Server-side-dependent items.** If the item needs a server.env / NWNX flag flip, an
-  Anvil C# plugin build + DLL deploy, or a server restart to take effect: implement the
-  repo-safe part fully, record the server-side step as a `manual_steps` entry, and ship
-  the item as `manual`. The admin completes the deploy step later and promotes it.
+- **2DA / TLK changes need a hak rebuild AND an NWSync publish — you run them, through
+  `bin/publish-and-arm`.** Editing anything in `hak_2da/` or `tlk/` changes nothing in
+  game until `bin/build-lotr-rules-hak --install` packs it and the NWSync manifest is
+  republished; a client on a stale hak silently reads the old tables. On the dev realm
+  that is step 6b's job, not a `manual_steps` blocker: `bin/publish-and-arm` rebuilds the
+  hak (add `--tlk` when `tlk/` changed, `--music` for the music hak), repacks, and arms
+  `reboot-on-empty --nwsync` so the manifest rebuild happens in the down window, which is
+  the only window where server and manifest are guaranteed to agree. Record which 2DA
+  changed in `impl_notes`, and **say in the UAT note that this deploy is not the usual
+  one-minute blip** — the NWSync rebuild is a SHA1 pass over the whole ~4 GiB store, so
+  the realm is down for a while once it empties (the script appends the estimate to the
+  player message itself). An ordinary repack/restart is still never written as a step at
+  all (see CLAUDE.md).
+  A change under `unpacked/` alone needs **neither** — use plain `bin/rebuild-and-arm`:
+  `refresh-nwsync` deliberately runs without `--with-module`, so clients download haks and
+  the TLK, never the `.mod`. NWSync modes, if you ever need to name one: plain
+  `bin/refresh-nwsync` (incremental, the normal case, and what `publish-and-arm` arms),
+  `--force` **only** for corruption recovery, `--prune` occasionally for housekeeping.
+  Never delete the NWSync repo — it is a persistent content-addressed store behind a
+  live nginx bind mount. Full table in [CLAUDE.md](CLAUDE.md), "Publishing to clients".
+- **Server-side-dependent items.** Needing a *restart* to take effect is no longer one of
+  these — step 6b arms the reboot, so such an item ships `implemented` like any other.
+  This is for work outside the repo: a `server.env` / NWNX flag flip, or an Anvil C#
+  plugin build + DLL deploy. Implement the repo-safe part fully, record the server-side
+  step as a `manual_steps` entry with `blocker: true`, and ship the item as `manual`. The
+  admin completes the deploy step later and promotes it.
 - **New blueprints → file into the palette + name the palette path.** If the item
   creates a new item/creature/placeable blueprint, run
   `python3 bin/file-palette-orphans.py --apply` **before the test build** — it files the
@@ -366,9 +371,12 @@ nwn-manager repack        # full path if not on PATH: ~/GIT/nwn_manager/bin/nwn-
 
 **Bare `nwn-manager repack` only** — it builds `dist/<name>.mod` (+ OneDrive copy) and
 runs the gates: script compilation, dialog-integrity, `tests/check_boss_registry.py`, and
-the smoke tests. It does **not** touch the live server. Never use the
-`repack-homers-lotr*` deploy wrappers — those install into the live server's module
-folder.
+the smoke tests. It does **not** install anywhere. Never call a `repack-homers-lotr*`
+wrapper yourself — it installs into a server's module folder; the only sanctioned use of
+one is inside `bin/rebuild-and-arm` / `bin/publish-and-arm` at step 6b, which target the
+dev realm and refuse to run anywhere else. Step 6 is the gate and step 6b is the publish:
+6b repacks again with `--no-smoke`, so running it does **not** excuse skipping this
+gated build.
 
 The build must pass before shipping. On failure: fix and rebuild; if unfixable, take an
 escape hatch (revert the working tree to the last good state first if needed).
@@ -376,6 +384,32 @@ escape hatch (revert the working tree to the last good state first if needed).
 For **wiki-related items** only, a local `bin/refresh-homers-lotr-wiki` run is allowed
 *as validation* — inspect the regenerated `docs/` locally, but don't try to publish;
 the daily reboot/refresh cycle reconciles and publishes `docs/`.
+
+### 6b. Publish to the test realm
+
+A shipped item has to be *testable*. Once the build is clean, publish it to the TEST realm
+and arm the reboot — that is what makes `implemented` in step 7 an honest claim, and what
+lets the admin and the testers work the item's UAT steps in-game:
+
+```
+bin/rebuild-and-arm "<what changed, in one sentence a player reads>"   # module-only change
+bin/publish-and-arm "<the same>"                                       # touched hak_2da/ or tlk/
+```
+
+**Always pass the message as an argument.** Both scripts prompt interactively when given
+none, and an unattended loop must never block on a prompt.
+
+Neither script kicks anyone: `reboot-on-empty` warns the players who are on, shows joiners
+a notice, and the realm cycles onto the new build the moment it next empties. Both are
+**dev-realm only** — they refuse to run from a season repo — which is what keeps this
+apart from a promotion.
+
+Run one of them after **every** shipped item. Re-arming just replaces the pending arm, so
+items that stack up before the realm empties simply land together.
+
+If the publish fails, the item is **not** in testing. Fix it and re-run; if you cannot,
+ship the item as `manual` with the failure written into `impl_notes`. Never mark
+`implemented` on a build that did not publish.
 
 ### 7. Ship
 
@@ -387,13 +421,22 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
    format: `<Item title or short name>: <what changed> (roadmap: <item-id>)`.
    Immediately after, update `autopilot-wip.md`: `stage: shipping`, `commit:` this hash.
 2. **Update the roadmap item** per CLAUDE-roadmap.md's agent rules:
-   - `status: manual` **by default**, with every outstanding admin toolset step written
-     into `manual_steps` (one string per step: waypoint tag + area + suggested spot +
-     what spawns there + what breaks until it's placed). Set `status: implemented`
-     **only if you can confirm with certainty that zero manual toolset steps remain** —
-     when uncertain, choose `manual`. Never `deployed` (that is computed at promotion),
-     and note that `implemented` is now the step at which the admin pays the submitter's
-     merit — the status alone never pays, but do not claim it lightly.
+   - `status: implemented` **by default** — the code is committed, built, and published
+     to the test realm with a reboot armed (step 6b), so the item is somewhere a tester
+     can actually reach it. Use `status: manual` **only** when source work that only the
+     admin can do in the toolset is still outstanding — a waypoint or blueprint to place,
+     an area to edit — which is to say only when you filed a `manual_steps` entry with
+     `blocker: true`. Write each such step out fully (waypoint tag + area + suggested spot
+     + what spawns there + what breaks until it's placed).
+     **UAT steps are not blockers.** An item whose only outstanding steps are checks for a
+     tester belongs in `implemented` — that is the whole point of the status: it is where
+     the in-game UAT happens. The save-time gate says the same thing, and is the test to
+     apply: `implemented` with an unfinished `blocker: true` step is a validation error;
+     with open non-blocking steps it is perfectly valid.
+     Never `deployed` (that is computed at promotion). Note that `implemented` is the step
+     at which the admin pays the submitter's merit, and the one the Discord bot announces
+     to the reporter's thread — the status alone never pays, but both are why the move is
+     a claim that the thing is genuinely on the realm and testable.
    - `commit:` the hash from step 1
    - `docs:` for an **Enhancement** — the player page + anchor you documented it at in
      step 3 (e.g. `Customizations/Spells.html#soul-fatigue`) when it changes how the game
@@ -514,10 +557,16 @@ agent cleans it up.
 - **Never set `status: deployed`** or otherwise mark an item done — that status means
   "the code is in production", and `bin/roadmap-reconcile-deployed.py` sets it from git at
   the promotion. Merit credit is likewise the admin's manual call.
-- **Never deploy to the live server**: no `repack-homers-lotr*` wrappers, no copying
-  `.mod`/`.ncs`/DLLs into server folders.
-- **Never reboot or shut down the live server** — don't touch `bin/reboot-on-empty` or
-  its control files.
+- **Never deploy to a live season**: no `bin/promote-to-prod` in any writing mode, no
+  `repack-homers-lotr*` wrapper aimed at a season repo, no copying `.mod`/`.ncs`/DLLs into
+  a season's server folders. Publishing to the **dev/TEST realm** is different and is now
+  part of the loop — step 6b, through `bin/rebuild-and-arm` / `bin/publish-and-arm` only,
+  both of which refuse to run outside the dev repo.
+- **Never reboot or shut down a live season**, and never force a restart or shutdown of the
+  test realm either (`bin/server-restart`, `bin/server-stop`) — the admin is usually logged
+  in and testing. Arming `bin/reboot-on-empty` via step 6b's wrappers is the sanctioned
+  route: it warns whoever is on and waits for the realm to empty. Don't hand-edit its
+  control files.
 - **Never publish the wiki**: `bin/refresh-homers-lotr-wiki` is allowed only as local
   validation for a wiki item; leave `docs/`/`module-index/` for the daily cycle.
 - **New `ideas:` entries must be `hidden: true`.** As of 2026-08-23 you may mint them

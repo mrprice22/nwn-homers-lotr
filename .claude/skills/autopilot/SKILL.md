@@ -44,18 +44,28 @@ you're signing up for (the runbook is authoritative — read it in full before s
    - **Reward-and-take scripts must re-check `GetItemPossessedBy`/`HasItem` at grant time**
      (not just the DLG conditional) or players farm them by dropping the item mid-
      conversation; the `check_reward_exploit.py` gate enforces this.
-3. Test-build with **bare `nwn-manager repack`** (never the deploy wrappers).
-4. Ship: final code commit → roadmap item to `manual` (with `manual_steps`) — or
-   `implemented` only if zero unfinished `blocker: true` steps remain (**a UAT check is
-   never a blocker**) — with `commit:`, `date:` set to today's actual date, and UAT notes →
+3. Test-build with **bare `nwn-manager repack`** (never a season deploy wrapper, never
+   `bin/promote-to-prod`).
+3b. **Publish to the TEST realm** so the item is genuinely testable:
+   `bin/rebuild-and-arm "<one-sentence player-facing message>"`, or `bin/publish-and-arm
+   "<same>"` when the item touched `hak_2da/` or `tlk/`. Always pass the message as an
+   argument (both prompt interactively otherwise), and run one after **every** shipped
+   item — re-arming just replaces the pending arm. Dev realm only; nobody gets kicked,
+   the realm cycles when it next empties.
+4. Ship: final code commit → roadmap item to `implemented` **by default** — `manual`
+   (with the outstanding work as `blocker: true` `manual_steps`) **only** when source work
+   only the admin can do in the toolset remains, e.g. a waypoint or blueprint to place
+   (**a UAT check is never a blocker**, and never a reason to use `manual`) — with
+   `commit:`, `date:` set to today's actual date, and UAT notes →
    `python3 bin/roadmap-lint.py` (must be clean — it runs the editor service's own save-time
    validation; one bad item blocks the admin's every GUI save) → `gen-roadmap.py` → commit
    yaml + Roadmap.html → push to origin/main.
 5. Repeat until only `planned`/`unlikely` items remain or compute runs out, then report a
    session summary in your final message.
 
-Honor every **hard rule** in the runbook: never `awarded`, never deploy to / restart the
-live server, never publish the wiki, never invent new `ideas:` entries.
+Honor every **hard rule** in the runbook: never `awarded`, never `deployed`, never deploy
+to or reboot a **live season**, never force a restart/shutdown of the test realm either
+(arm `reboot-on-empty` through step 3b's wrappers instead), never publish the wiki.
 
 Pacing: work is synchronous, so chain iterations directly in one turn where possible.
 Use ScheduleWakeup only as a long fallback (~1800s) if genuinely waiting on something,
