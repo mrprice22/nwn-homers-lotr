@@ -52,9 +52,18 @@ MP3 retires the entry and leaves the row reserved forever. You may hand-edit an
 entry's "resref" or "name" BEFORE its first hak build; after that it is frozen.
 
 Usage:
-  bin/gen-music-tracks.py             # dry run — show what would change
+  bin/gen-music-tracks.py             # dry run - show what would change
   bin/gen-music-tracks.py --apply     # write it
   bin/gen-music-tracks.py --apply --force-encode   # re-encode even if unchanged
+
+  bin/gen-music-tracks.py --catalog           # dry run the player catalogue
+  bin/gen-music-tracks.py --catalog --apply   # write jb_catalog.nss + catalog.json
+  bin/gen-music-tracks.py --catalog --apply --remeasure   # re-probe every .bmu
+
+--catalog is a separate job from the encode pipeline above and does not need the
+MP3 masters: it rebuilds the PLAYER jukebox's table (unpacked/jb_catalog.nss and
+music/catalog.json) from the stock 2DA, tlk/dialog.tlk and the stock .bmu
+lengths. Re-run it after adding a custom track, so the new row joins the picker.
 """
 
 import argparse
@@ -303,6 +312,374 @@ def render_nss(rows):
     return "\n".join(body)
 
 
+# ------------------------------------------------------------------ catalog --
+#
+# THE PLAYER-FACING CATALOGUE (jb_catalog.nss / music/catalog.json)
+#
+# The admin jukebox only ever needed OUR five tracks, so jb_tracks.nss lists
+# rows 138+ and nothing else. The player jukebox lets anyone pick from the STOCK
+# music too, and it charges gold per play, so it needs two things jb_tracks.nss
+# does not carry:
+#
+#   * a friendly NAME for every stock row, and
+#   * a DURATION, because a paid queue has to know when a song ends.
+#
+# Neither is available at run time: NWScript cannot read a 2DA, cannot read the
+# TLK, and cannot measure an audio file. So both are resolved HERE, offline, and
+# baked into unpacked/jb_catalog.nss.
+#
+# WHY NAMES COME FROM TWO PLACES
+# ------------------------------------------------------------------------
+# ambientmusic.stock.2da does not name its rows consistently. The OC/SoU/HotU
+# era rows carry a dialog.tlk STRREF in Description and DisplayName ****; the
+# Tyrants/Daggerford premium rows carry a literal quoted DisplayName and
+# Description ****. There is no single column that names every row, so we read
+# DisplayName where it exists and resolve the strref through tlk/dialog.tlk
+# otherwise, reusing bin/gen-palette-map.py's load_tlk() exactly as
+# bin/file-palette-orphans.py does.
+#
+# WHY DURATIONS ARE MEASURED, NOT GUESSED
+# ------------------------------------------------------------------------
+# Stock track lengths are not written down anywhere. They are also not uniform:
+# they run from well under a minute to over ten (mus_bat_city1 is 633s), so a
+# single assumed length would be wrong by an order of magnitude at both ends and
+# the queue would either cut songs off or stall on them.
+#
+# ffprobe CANNOT measure a .bmu through a pipe -- the duration of a streamed MP3
+# is not knowable without a seek, and it returns "N/A". The header has to be
+# stripped to a real file first. That is the whole reason _bmu_duration() writes
+# a temp file instead of piping.
+#
+# WHAT IS EXCLUDED
+# ------------------------------------------------------------------------
+# Row 0 (the reserved silence row, Resource ****) and every mus_bat_* battle
+# track, because the roadmap item asks for neither. The exclusions are listed in
+# the generated file's header so a diff shows what was dropped and why.
+
+CATALOG_JSON = os.path.join(REPO, "music", "catalog.json")
+OUT_CATALOG_NSS = os.path.join(REPO, "unpacked", "jb_catalog.nss")
+DIALOG_TLK = os.path.join(REPO, "tlk", "dialog.tlk")
+
+# Where the stock .bmu files live. First existing wins; the Steam path is what
+# this box has. Only needed to MEASURE durations -- once music/catalog.json is
+# committed, a machine without the game installed can still regenerate the .nss.
+STOCK_MUS_CANDIDATES = [
+    os.path.expanduser("~/.steam/steam/steamapps/common/Neverwinter Nights/data/mus"),
+    os.path.expanduser("~/.local/share/Neverwinter Nights/data/mus"),
+]
+
+BATTLE_PREFIX = "mus_bat_"
+BLANK = "****"
+
+
+def _load_gen_palette_map():
+    """Import bin/gen-palette-map.py for load_tlk(), as file-palette-orphans does."""
+    import importlib.util
+    path = os.path.join(REPO, "bin", "gen-palette-map.py")
+    spec = importlib.util.spec_from_file_location("gen_palette_map", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def split_2da_line(line):
+    """Split a 2DA row into fields, keeping a quoted field with spaces whole."""
+    fields = []
+    i = 0
+    n = len(line)
+    while i < n:
+        while i < n and line[i].isspace():
+            i += 1
+        if i >= n:
+            break
+        if line[i] == '"':
+            j = line.find('"', i + 1)
+            if j < 0:
+                sys.exit("error: unterminated quote in 2DA line: %r" % line)
+            fields.append(line[i + 1:j])
+            i = j + 1
+        else:
+            j = i
+            while j < n and not line[j].isspace():
+                j += 1
+            fields.append(line[i:j])
+            i = j
+    return fields
+
+
+def parse_stock_2da(text):
+    """[{row, description, resource, displayname}] for every stock row."""
+    lines = text.replace("\r\n", "\n").split("\n")
+    if not lines or not lines[0].startswith("2DA"):
+        sys.exit("error: %s is not a 2DA V2.0 file" % STOCK_2DA)
+    header = split_2da_line(lines[2])
+    try:
+        i_desc = header.index("Description")
+        i_res = header.index("Resource")
+        i_disp = header.index("DisplayName")
+    except ValueError:
+        sys.exit("error: %s header is missing Description/Resource/DisplayName" % STOCK_2DA)
+
+    rows = []
+    for line in lines[3:]:
+        if not line.strip():
+            continue
+        f = split_2da_line(line)
+        # +1 because the row index occupies field 0, ahead of the named columns.
+        if len(f) < i_disp + 2:
+            sys.exit("error: short 2DA row in %s: %r" % (STOCK_2DA, line))
+        rows.append({
+            "row": int(f[0]),
+            "description": f[i_desc + 1],
+            "resource": f[i_res + 1],
+            "displayname": f[i_disp + 1],
+        })
+    return rows
+
+
+def _stock_mus_dir():
+    for p in STOCK_MUS_CANDIDATES:
+        if os.path.isdir(p):
+            return p
+    return None
+
+
+def _bmu_duration(path):
+    """Seconds, measured. Strips the 8-byte BMU header to a temp file first.
+
+    Piping the stripped stream to ffprobe returns "N/A": the duration of a raw
+    MP3 stream is not knowable without seeking. It has to be a real file.
+    """
+    import tempfile
+    fd, tmp = tempfile.mkstemp(suffix=".mp3")
+    try:
+        with open(path, "rb") as src:
+            head = src.read(len(BMU_HEADER))
+            if head != BMU_HEADER:
+                os.close(fd)
+                fd = None
+                sys.exit("error: %s does not start with the BMU V1.0 header" % path)
+            with os.fdopen(fd, "wb") as out:
+                fd = None
+                shutil.copyfileobj(src, out)
+        measured = sh([need("ffprobe"), "-v", "error",
+                       "-show_entries", "format=duration",
+                       "-of", "csv=p=0", tmp]).stdout.strip()
+        if not measured or measured == "N/A":
+            sys.exit("error: ffprobe could not measure %s" % path)
+        return round(float(measured), 1)
+    finally:
+        if fd is not None:
+            os.close(fd)
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+def build_catalog(live_tracks, previous):
+    """The full pickable catalogue: stock rows 1-137 plus our custom rows.
+
+    `previous` is the committed music/catalog.json keyed by row, so a rerun on a
+    machine with no game install reuses the measured durations instead of
+    failing. A row is only measured when we have no recorded duration for it.
+    """
+    import pathlib
+
+    with open(STOCK_2DA, "r", newline="") as fh:
+        stock_rows = parse_stock_2da(fh.read())
+
+    tlk = None
+    mus_dir = _stock_mus_dir()
+    entries = []
+    excluded = []
+
+    for r in stock_rows:
+        resref = r["resource"]
+        if resref == BLANK:
+            excluded.append((r["row"], "(none)", "reserved silence row"))
+            continue
+        if resref.lower().startswith(BATTLE_PREFIX):
+            excluded.append((r["row"], resref, "battle music"))
+            continue
+
+        # Name: the literal DisplayName if the row has one, else its strref.
+        name = ""
+        if r["displayname"] != BLANK:
+            name = r["displayname"].strip()
+        elif r["description"] != BLANK:
+            if tlk is None:
+                if not os.path.exists(DIALOG_TLK):
+                    sys.exit("error: missing %s -- needed to name the stock rows" % DIALOG_TLK)
+                tlk = _load_gen_palette_map().load_tlk(pathlib.Path(DIALOG_TLK))
+            try:
+                ref = int(r["description"])
+            except ValueError:
+                sys.exit("error: row %d Description %r is neither **** nor a strref"
+                         % (r["row"], r["description"]))
+            if not (0 <= ref < len(tlk)) or not tlk[ref].strip():
+                sys.exit("error: row %d (%s) strref %d resolves to nothing in %s"
+                         % (r["row"], resref, ref, DIALOG_TLK))
+            name = tlk[ref].strip()
+        if not name:
+            sys.exit("error: row %d (%s) has no DisplayName and no Description strref -- "
+                     "cannot name it, and a blank entry in the picker is not acceptable"
+                     % (r["row"], resref))
+        name = ascii_only(name).strip()
+        if not name:
+            sys.exit("error: row %d (%s) name is empty after ASCII folding" % (r["row"], resref))
+
+        dur = previous.get(r["row"], {}).get("duration")
+        if dur is None:
+            if mus_dir is None:
+                sys.exit("error: no stock music folder found (looked in %s) and no recorded "
+                         "duration for row %d (%s). Run this on a machine with the game "
+                         "installed, or restore music/catalog.json."
+                         % (", ".join(STOCK_MUS_CANDIDATES), r["row"], resref))
+            bmu = os.path.join(mus_dir, resref + ".bmu")
+            if not os.path.exists(bmu):
+                sys.exit("error: row %d names %s but %s does not exist. That row's premium "
+                         "content is not installed, so its length cannot be measured."
+                         % (r["row"], resref, bmu))
+            dur = _bmu_duration(bmu)
+        if not dur or dur <= 0:
+            sys.exit("error: row %d (%s) measured a duration of %r" % (r["row"], resref, dur))
+
+        entries.append({"row": r["row"], "resref": resref, "name": name,
+                        "duration": dur, "origin": "stock"})
+
+    for t in live_tracks:
+        dur = t.get("duration")
+        if not dur or dur <= 0:
+            sys.exit("error: custom track %s (row %d) has no duration in %s -- "
+                     "re-run with --apply to measure it" % (t["resref"], t["row"], MANIFEST))
+        entries.append({"row": t["row"], "resref": t["resref"],
+                        "name": ascii_only(t["name"]).strip(),
+                        "duration": round(float(dur), 1), "origin": "custom"})
+
+    entries.sort(key=lambda e: e["row"])
+    return entries, excluded
+
+
+def render_catalog_nss(entries, excluded):
+    body = []
+    body.append("// jb_catalog.nss -- every track the player jukebox can play.")
+    body.append("//")
+    body.append("// AUTO-GENERATED by bin/gen-music-tracks.py --catalog -- do not hand-edit.")
+    body.append("// music/catalog.json is the committed source of truth.")
+    body.append("//")
+    body.append("// This is the PLAYER catalogue: stock rows plus our own. jb_tracks.nss is")
+    body.append("// the separate, admin-only table of just the custom tracks, and the old")
+    body.append("// jb_conv jukebox still reads that one. Do not merge them.")
+    body.append("//")
+    body.append("// Names come from ambientmusic.stock.2da's DisplayName where a row has one")
+    body.append("// and from tlk/dialog.tlk via its Description strref otherwise -- the stock")
+    body.append("// table uses both conventions and neither covers every row.")
+    body.append("//")
+    body.append("// Durations are MEASURED from the stock .bmu files with ffprobe, because a")
+    body.append("// paid queue has to know when a song actually ends and the lengths are not")
+    body.append("// uniform (they run from under a minute to over ten).")
+    body.append("//")
+    body.append("// These are RAW ambientmusic.2da rows -- what MusicBackgroundChangeDay()")
+    body.append("// takes. MusicBackgroundGetDayTrack() returns row MINUS ONE; jb_inc.nss")
+    body.append("// documents both conventions and JB_Start()/JB_Stop() already handle them.")
+    body.append("//")
+    body.append("// Excluded, deliberately (%d row(s)):" % len(excluded))
+    for row, resref, why in excluded:
+        body.append("//   row %-4d %-18s %s" % (row, resref, why))
+    body.append("")
+    body.append("int JB_CatCount();")
+    body.append("int JB_CatRow(int nIndex);")
+    body.append("string JB_CatName(int nIndex);")
+    body.append("int JB_CatDuration(int nIndex);")
+    body.append("")
+    body.append("int JB_CatCount()")
+    body.append("{")
+    body.append("    return %d;" % len(entries))
+    body.append("}")
+    body.append("")
+    body.append("int JB_CatRow(int nIndex)")
+    body.append("{")
+    body.append("    switch (nIndex)")
+    body.append("    {")
+    for i, e in enumerate(entries):
+        body.append("        case %d: return %d;   // %s" % (i, e["row"], e["resref"]))
+    body.append("    }")
+    body.append("    return -1;")
+    body.append("}")
+    body.append("")
+    body.append("string JB_CatName(int nIndex)")
+    body.append("{")
+    body.append("    switch (nIndex)")
+    body.append("    {")
+    for i, e in enumerate(entries):
+        body.append('        case %d: return "%s";' % (i, e["name"].replace('"', "'")))
+    body.append("    }")
+    body.append('    return "";')
+    body.append("}")
+    body.append("")
+    body.append("// Seconds, rounded to a whole second. The queue uses this to decide when")
+    body.append("// the next song starts; it is never zero (the generator refuses to emit a")
+    body.append("// row it could not measure).")
+    body.append("int JB_CatDuration(int nIndex)")
+    body.append("{")
+    body.append("    switch (nIndex)")
+    body.append("    {")
+    for i, e in enumerate(entries):
+        body.append("        case %d: return %d;" % (i, int(round(e["duration"]))))
+    body.append("    }")
+    body.append("    return 0;")
+    body.append("}")
+    body.append("")
+    return "\n".join(body)
+
+
+def load_catalog_json():
+    """{row: entry} from the committed catalogue, or {} when there is none."""
+    if not os.path.exists(CATALOG_JSON):
+        return {}
+    with open(CATALOG_JSON) as fh:
+        data = json.load(fh)
+    return {e["row"]: e for e in data.get("tracks", [])}
+
+
+def cmd_catalog(apply_changes, remeasure):
+    manifest = load_manifest()
+    live = [t for t in manifest["tracks"] if not t.get("retired")]
+    previous = {} if remeasure else load_catalog_json()
+
+    entries, excluded = build_catalog(live, previous)
+
+    n_stock = sum(1 for e in entries if e["origin"] == "stock")
+    n_custom = len(entries) - n_stock
+    print("%d pickable track(s): %d stock + %d custom" % (len(entries), n_stock, n_custom))
+    print("%d row(s) excluded (%d battle, %d reserved)"
+          % (len(excluded),
+             sum(1 for x in excluded if x[2] == "battle music"),
+             sum(1 for x in excluded if x[2] != "battle music")))
+    total = sum(e["duration"] for e in entries)
+    longest = max(entries, key=lambda e: e["duration"])
+    print("total runtime %.1f min; longest is %s (%s) at %.0fs"
+          % (total / 60.0, longest["name"], longest["resref"], longest["duration"]))
+
+    if not apply_changes:
+        print("\ndry run -- nothing written. Re-run with --apply.")
+        return
+
+    with open(CATALOG_JSON, "w") as fh:
+        json.dump({
+            "_comment": "AUTO-GENERATED by bin/gen-music-tracks.py --catalog. "
+                        "Committed so the durations are reviewable in a diff and so the "
+                        "NSS table can be rebuilt without the game installed.",
+            "tracks": entries,
+            "excluded": [{"row": r, "resref": s, "reason": w} for r, s, w in excluded],
+        }, fh, indent=2)
+        fh.write("\n")
+    with open(OUT_CATALOG_NSS, "w") as fh:
+        fh.write(render_catalog_nss(entries, excluded))
+
+    print("wrote %s" % CATALOG_JSON)
+    print("wrote %s" % OUT_CATALOG_NSS)
+
+
 # --------------------------------------------------------------------- main --
 
 def main():
@@ -312,7 +689,18 @@ def main():
     ap.add_argument("--apply", action="store_true", help="write changes (default: dry run)")
     ap.add_argument("--force-encode", action="store_true",
                     help="re-encode every .bmu even if the master is unchanged")
+    ap.add_argument("--catalog", action="store_true",
+                    help="rebuild the player jukebox catalogue instead of encoding")
+    ap.add_argument("--remeasure", action="store_true",
+                    help="with --catalog: re-probe every .bmu instead of reusing catalog.json")
     args = ap.parse_args()
+
+    # The catalogue is built from the stock table, the TLK and the stock .bmu
+    # lengths, so it deliberately runs before -- and without -- the MP3 masters
+    # the encode path below requires.
+    if args.catalog:
+        cmd_catalog(args.apply, args.remeasure)
+        return
 
     if not os.path.isdir(args.src):
         sys.exit("error: MP3 folder not found: %s" % args.src)
