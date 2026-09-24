@@ -7460,13 +7460,30 @@ function commentText(text){
     '<img src="' + url + '" alt="" loading="lazy" class="ho-cimg"></a>');
 }
 
+// A mirrored Discord note carries its provenance twice: `author` is the bot
+// ("Sync Bot") and the body opens with the `Discord — {author} in {thread}
+// ({url}):` header. Rendering both buries the one line that matters -- who said
+// what -- under plumbing, so the header is parsed off (splitDiscordComment) and
+// its author replaces the bot's name. Presentation only: the stored text is
+// untouched, and a note whose header does not parse renders exactly as before.
 function commentsHTML(){
-  const rows = (HO.comments||[]).map(c=>`
+  const rows = (HO.comments||[]).map(c=>{
+    const d = splitDiscordComment(c.text);
+    const im = splitImages(d.body);
+    const who = d.who || c.author || '—';
+    const shots = im.imgs.map(u=>`<a href="${esc(u)}" target="_blank"
+        rel="noopener noreferrer"><img src="${esc(u)}" alt=""
+        loading="lazy" class="ho-cimg"></a>`).join('');
+    // A screenshot the bot could not rehost is named rather than dropped, so
+    // "this report had a picture" survives even when the picture does not.
+    const missing = im.lost.map(x=>`<p class="small">Screenshot: ${esc(x)}</p>`).join('');
+    return `
     <div class="ho-item">
-      <div class="ho-row"><b style="flex:1">${esc(c.author||'—')}</b>
+      <div class="ho-row"><b style="flex:1">${esc(who)}</b>
         <span class="small">${esc(c.date||'')}</span></div>
-      <div class="ho-ctext">${commentText(c.text)}</div>
-    </div>`).join('');
+      <div class="ho-ctext">${commentText(im.text)}${shots}${missing}</div>
+    </div>`;
+  }).join('');
   return `
     <label style="margin-top:10px">Notes &amp; findings
       ${(HO.comments||[]).length?`<span class="ho-badge">${HO.comments.length}</span>`:''}
