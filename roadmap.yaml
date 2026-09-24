@@ -10617,12 +10617,23 @@ ideas:
   - id: mw-henchmen-may-not-despawn-when-you-log-out-or-crash
     title: "MW Henchmen may not despawn when you log out or crash"
     group: meaningwave
-    status: confirmed
+    status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-09-23"
+    commit: 5934f4539fe
     discord: {'thread_id': '1552285777139073035', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1552285777139073035'}
-    notes: "<div>Reported by @Szescian82 , he got disconnected and when rejoined Jocko was still around but no longer following him</div>"
+    notes: "<div>Reported by @Szescian82 , he got disconnected and when rejoined Jocko was still around but no longer following him</div><div><b>Fixed:</b> your Meaningwave guide and your Fell Beast now leave with you when you log out, disconnect or crash, instead of being left standing where you were.</div>"
+    impl_notes: "Guides (MW_SummonGuide) and the Fell Beast (horn_summon) are henchmen, so the engine leaves them in the world when the owner leaves. The only cleanup was the master-lost check in their heartbeats (mw_hench_hb / hench_demon_hb), and a creature's heartbeat stops once no player is in its area, so the orphan stood there until someone walked back in. mod_clientexit (OnClientLeave, which also fires on timeout/disconnect) now calls MW_DismissActiveGuide and FB_DismissExisting next to the existing EpicSummon_Dismiss. FB_DismissExisting + FB_HENCH_TAG moved from horn_summon.nss to the new include fb_hench_inc.nss. mw_unlock_inc.nss is unchanged, so a plain repack is safe."
+    manual_steps:
+      - step: "Summon a Meaningwave guide, log out in an area with no one else in it, log back in and go back to that spot: the guide should be gone, not standing there unfollowing."
+        status: open
+        kind: uat
+        tester: "any player with a guide unlocked"
+      - step: "Same check with the Fell Beast: blow the Horn, log out, return to the spot. The beast should be gone."
+        status: open
+        kind: uat
+        tester: "Horn of the Fell Beast owner"
     comments:
       - author: "Sync Bot"
         date: "2026-09-23"
