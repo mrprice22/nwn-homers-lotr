@@ -26,6 +26,7 @@
 #include "fat_inc"
 #include "devcrit_inc"
 #include "castfeat_inc"
+#include "jb_buff_inc"
 #include "color"
 
 // Legendary feats: re-derive the allotment (which revokes picks a relevel or a
@@ -212,6 +213,14 @@ void main()
     // Delayed past the login flood, after the UUID above has been forced.
     // See pw_inc.nss (roadmap: concerning-pipeweed).
     DelayCommand(8.0, PW_Refresh(oPC));
+
+    // The jukebox listening buff. Effects never survive a logout but the stored
+    // (credit, timestamp) row does, so this re-derives whatever is still live
+    // and clears the row's effects once it has run out. Cheap and idempotent: a
+    // character who has never used a jukebox does one SELECT and returns.
+    // Ordered AFTER BPool_Resync (6.6) - it registers with that ledger, and a
+    // resync afterwards would rebuild over the top of it.
+    DelayCommand(8.2, JB_RefreshBuff(oPC));
 
     // Soul-fatigue: restore this character's stack queue and re-arm the decay
     // ticker where it stopped. Stacks are a persistent debt - they survive a

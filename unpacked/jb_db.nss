@@ -40,6 +40,7 @@ const string JB_DB = "jukeboxdb";
 
 // Area locals owned by this file (the music-state ones belong to jb_inc).
 const string JB_GEN = "JB_GEN";   // generation counter for the armed end-of-track timer
+const string JB_CREDIT_SEC = "JB_CREDIT_SEC";  // seconds of finished music, for jb_credit
 
 // ---------------------------------------------------------------- gold tiers
 //
@@ -131,6 +132,16 @@ void JB_InitDb()
     sqlquery qi = SqlPrepareQueryCampaign(JB_DB,
         "CREATE INDEX IF NOT EXISTS jb_queue_area ON jb_queue(area, tier DESC, id)");
     SqlStep(qi);
+
+    // Listening credit for the jukebox buff (jb_buff_inc.nss). The stored
+    // (credit, timestamp) pair is authoritative and the effects are a
+    // projection of it - effects do not survive a logout, this row does.
+    sqlquery ql = SqlPrepareQueryCampaign(JB_DB,
+        "CREATE TABLE IF NOT EXISTS jb_listen (" +
+        "uuid TEXT NOT NULL PRIMARY KEY," +
+        "credited_sec INTEGER NOT NULL DEFAULT 0," +
+        "updated_at INTEGER NOT NULL)");
+    SqlStep(ql);
 
     sqlquery qp = SqlPrepareQueryCampaign(JB_DB,
         "CREATE TABLE IF NOT EXISTS jb_plays (" +
@@ -301,13 +312,31 @@ void JB_Reconcile(object oArea)
     int nNow = JB_Now();
     string sArea = JB_AreaKey(oArea);
 
-    // 1. Retire whatever has finished.
+    // 1. Retire whatever has finished - but measure it first, because after
+    //    the delete there is nothing left to read. The total is what the room's
+    //    listeners are credited for; see jb_buff_inc.nss for the approximation
+    //    that credit is granted per finished song rather than per second.
+    sqlquery qf = SqlPrepareQueryCampaign(JB_DB,
+        "SELECT COALESCE(SUM(dur_sec), 0) FROM jb_queue WHERE area = @a "
+        + "AND started_at IS NOT NULL AND started_at + dur_sec <= @n");
+    SqlBindString(qf, "@a", sArea);
+    SqlBindInt(qf, "@n", nNow);
+    int nFinished = SqlStep(qf) ? SqlGetInt(qf, 0) : 0;
+
     sqlquery qd = SqlPrepareQueryCampaign(JB_DB,
         "DELETE FROM jb_queue WHERE area = @a AND started_at IS NOT NULL "
         + "AND started_at + dur_sec <= @n");
     SqlBindString(qd, "@a", sArea);
     SqlBindInt(qd, "@n", nNow);
     SqlStep(qd);
+
+    // Handed off through ExecuteScript rather than a direct call: jb_buff_inc
+    // includes this file, so calling it from here would be a circular include.
+    if (nFinished > 0)
+    {
+        SetLocalInt(oArea, JB_CREDIT_SEC, nFinished);
+        ExecuteScript("jb_credit", oArea);
+    }
 
     // 2. Is something still mid-song? After a restart the engine has forgotten
     //    it, so re-assert it rather than leaving a paid song silent. It restarts

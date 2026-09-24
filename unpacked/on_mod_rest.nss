@@ -1,6 +1,7 @@
 #include "legfeat_inc"
 #include "csp_inc"
 #include "pw_inc"
+#include "jb_buff_inc"
 
 void main()
 {
@@ -28,6 +29,12 @@ void main()
     // still in flight when REST_FINISHED fires. See pw_inc.nss.
     if (nEvent == REST_EVENTTYPE_REST_FINISHED)
         DelayCommand(0.5f, PW_Refresh(oPC));
+
+    // Same reasoning as the line above, and the same delay: the rest pass is
+    // what scrubs plain temporary effects, and the stored credit is what lets
+    // the jukebox buff come back from it.
+    if (nEvent == REST_EVENTTYPE_REST_FINISHED)
+        DelayCommand(0.5f, JB_RefreshBuff(oPC));
 
     // Legendary Feats: a rest is the recovery path for a picker that was
     // dismissed, and for any level-60 character that has never seen one. This
