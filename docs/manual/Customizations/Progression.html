@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Character Progression</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link rel="icon" href="../../assets/favicon.png">
+  <script src="../../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../../map/index.html">Map</a>
+      <a href="../../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../../creatures/index.html">All Creatures</a>
+          <a href="../../creatures/by-area/index.html">By Area</a>
+          <a href="../../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../../creatures/by-race/index.html">By Race</a>
+          <a href="../../creatures/search.html">Search</a>
+          <a href="../../creatures/bosses.html">Bosses</a>
+          <a href="../../creatures/pictures.html">Pictures</a>
+          <a href="../../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../../items/index.html">Accessible</a>
+          <a href="../../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../../items/properties/index.html">By Property</a>
+          <a href="../../items/search.html">Search</a>
+          <a href="../../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../../stores/index.html">Stores</a>
+      <a href="../../conversations/index.html">Conversations</a>
+      <a href="../../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/QuestGuide.html">Quest Guide</a>
+<a href="../../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../../characters/online.html">Who&#x27;s Online</a>
+<a href="../../players/index.html">Players</a>
+<a href="../../characters/index.html">Characters</a>
+<a href="../../characters/leaderboards.html">Leaderboards</a>
+<a href="../../players/achievements.html">Hall of Fame</a>
+<a href="../../activity.html">Player Activity</a>
+<a href="../../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../../manual/Customizations/Combat.html">Combat</a>
+<a href="../../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../../manual/Customizations/Progression.html" class="nav-current" aria-current="page">Character Progression</a>
+<a href="../../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+
+  <main>
+  <!-- @menu 'Documents' -->
+  <!-- @order 2 -->
+  <!--
+    One topic page of the player Customizations reference. The hub
+    (docs.manual/Customizations.html) and the three cz: blocks below are
+    GENERATED by bin/gen-customizations-hub.py -- edit the content between
+    them, then re-run that script. Keep every id="..." you publish: old links
+    to Customizations.html#<id> are forwarded here by id, and the gate
+    (tests/check_customizations_hub.py) fails if a published id disappears.
+  -->
+  <!-- cz:style -->
+  <style>
+    .mw-layout { display: flex; gap: 2.5em; align-items: flex-start; }
+    .mw-toc-pane {
+      flex: 0 0 240px; position: sticky; top: 1.5em;
+      max-height: calc(100vh - 3em); overflow-y: auto;
+    }
+    .mw-content { flex: 1; min-width: 0; }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+
+    .toc {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1em 1.2em;
+    }
+    .toc h2 {
+      font-size: 1em; margin: 0 0 0.5em; border: none; padding: 0;
+      color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+    .toc ol ol { margin: 0.15em 0 0.3em 0; font-size: 0.9em; }
+    .toc .cz-here > a { font-weight: 600; }
+    .toc .cz-navsearch { margin: 0 0 0.6em; font-size: 0.92em; }
+
+    .cz-crumb { font-size: 0.9em; color: var(--muted); margin: 0 0 0.4em; }
+    .cz-intro { color: var(--muted); margin-top: -0.3em; }
+
+    .section-header {
+      background: rgba(107,58,28,0.08); border-left: 4px solid var(--accent);
+      padding: 0.5em 1em; margin: 2em 0 0.8em; border-radius: 0 4px 4px 0;
+    }
+    .section-header h2 { margin: 0; border: none; padding: 0; }
+    .section-header .section-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+
+    .tip-box {
+      background: rgba(30,30,60,0.07); border-left: 4px solid var(--accent-soft);
+      border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em;
+    }
+    .tip-box p { margin: 0.3em 0; }
+
+    .warn-box {
+      background: rgba(179,38,30,0.07); border-left: 4px solid #b3261e;
+      border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em;
+    }
+    .warn-box p { margin: 0.3em 0; }
+    .warn-box strong { color: #b3261e; }
+
+    .stock-box {
+      background: rgba(40,90,50,0.08); border: 1px solid var(--accent-soft);
+      border-left: 4px solid #3a7d44; border-radius: 0 4px 4px 0;
+      padding: 0.8em 1.2em; margin: 0.8em 0 1em;
+    }
+    .stock-box dt { font-weight: 600; margin-top: 0.6em; }
+    .stock-box dt:first-child { margin-top: 0; }
+    .stock-box dd { margin: 0.15em 0 0 0; color: var(--muted); font-size: 0.93em; }
+
+    .change-table td, .change-table th { font-size: 0.92em; vertical-align: top; }
+    .change-table th { white-space: nowrap; }
+
+    .tourn-list { columns: 3; column-gap: 1.6em; margin: 0.6em 0 0; padding-left: 1.2em; }
+    .tourn-list li { margin: 0.15em 0; break-inside: avoid; }
+    @media (max-width: 600px) { .tourn-list { columns: 2; } }
+
+    .cz-search {
+      position: sticky; top: 0; z-index: 2; background: var(--bg, inherit);
+      padding: 0.6em 0; margin: 1em 0 0.5em; display: flex; gap: 0.8em;
+      align-items: center; flex-wrap: wrap;
+    }
+    .cz-search input {
+      flex: 1 1 18em; font-size: 1.05em; padding: 0.45em 0.7em;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--card); color: inherit;
+    }
+    .cz-search .cz-count { color: var(--muted); font-size: 0.9em; }
+    .cz-group > h2 { margin-top: 1.6em; }
+    .cz-cards {
+      display: grid; gap: 0.8em;
+      grid-template-columns: repeat(auto-fill, minmax(17em, 1fr));
+    }
+    .cz-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 0.7em 0.9em;
+    }
+    .cz-card h3 { font-size: 1em; margin: 0 0 0.3em; border: none; padding: 0; }
+    .cz-card p { margin: 0.2em 0; font-size: 0.92em; }
+    .cz-card .cz-sub { color: var(--muted); font-size: 0.85em; }
+    .cz-card mark { padding: 0 0.1em; }
+    .cz-card .cz-sub a.cz-hit { font-weight: 700; background: var(--card); outline: 1px solid var(--accent); }
+    .cz-card:target, .cz-group:target > h2 { outline: 2px solid var(--accent); }
+    [hidden] { display: none !important; }
+
+    h2, h3, h4 { scroll-margin-top: 1.5em; }
+  </style>
+  <!-- /cz:style -->
+  <div class="mw-layout">
+  <aside class="mw-toc-pane">
+  <!-- cz:nav -->
+    <nav class="toc" aria-label="Customizations">
+      <h2>Customizations</h2>
+      <p class="cz-navsearch"><a href="../Customizations.html">&#128269; Search every customization</a></p>
+      <ol>
+      <li><a href="NotABug.html">Looks Like a Bug — Isn&#x27;t</a></li>
+      <li><a href="Systems.html">Notable Custom Systems</a></li>
+      <li><a href="Crafting.html">Appearance &amp; Crafting</a></li>
+      <li><a href="Items.html">Custom Gameplay Items</a></li>
+      <li><a href="Factions.html">Good/Evil Faction</a></li>
+      <li><a href="Spells.html">Spell Changes</a></li>
+      <li class="cz-here"><a href="Progression.html">Character Progression</a>
+        <ol>
+          <li><a href="#max-hp">Maximum Hit Points on Level-Up</a></li>
+          <li><a href="#max-ability">Maximum Ability Score Bonus from Items</a></li>
+          <li><a href="#max-attack-bonus">Maximum Attack Bonus: +40</a></li>
+          <li><a href="#four-classes">Up to Four Classes</a></li>
+          <li><a href="#multiclass-xp">No Multiclass XP Penalty</a></li>
+          <li><a href="#kill-xp">Kill XP — How Much a Creature Is Worth</a></li>
+          <li><a href="#legendary-levels">Legendary Levels: 41–60</a></li>
+          <li><a href="#legendary-caster-feats">— Caster feats at legendary levels</a></li>
+          <li><a href="#monk-weapons">Monk Weapons</a></li>
+          <li><a href="#critical-hits">Critical Hits &amp; Devastating Critical</a></li>
+        </ol></li>
+      <li><a href="Combat.html">Combat</a></li>
+      <li><a href="LegendaryFeats.html">Legendary Feats</a></li>
+      <li><a href="Death.html">Death, Dying &amp; Respawn</a></li>
+      <li><a href="Stock.html">Not Changed (Stock Standard)</a></li>
+      </ol>
+    </nav>
+  <!-- /cz:nav -->
+  </aside>
+  <div class="mw-content">
+  <!-- cz:crumb -->
+  <p class="cz-crumb"><a href="../Customizations.html">&larr; All customizations</a> &middot; Character Progression</p>
+  <!-- /cz:crumb -->
+
+<h1 id="progression">Character Progression</h1>
+<p class="cz-intro">Predictable hit points and an extended level ceiling past the normal cap of 40.</p>
+
+<h3 id="max-hp">Maximum Hit Points on Level-Up</h3>
+<p>Every character gains <strong>maximum hit points on every level-up</strong>, server-wide —
+no hit-die roll, no bad rolls. Your HP per level is always the top of your class hit die plus
+Constitution. (Set at module load via the administration <em>max hit points</em> play option.)</p>
+
+<h3 id="max-ability">Maximum Ability Score Bonus from Items</h3>
+<p>The stock NWN cap on ability score bonuses from items and effects is <strong>+12</strong>.
+This server raises it to <strong>+24</strong>, allowing high-end gear and buffs to reach
+higher stat totals without hitting an invisible wall.
+(Set via <code>ruleset.combat.max-ability-bonus</code> in <code>settings.tml</code>.)</p>
+
+<h3 id="max-attack-bonus">Maximum Attack Bonus: +40</h3>
+<p>Stock NWN caps the attack bonus you can get from gear, spells and effects combined at
+<strong>+20</strong>. Anything past that is silently thrown away. This server raises the cap to
+<strong>+40</strong>, so a heavily enchanted weapon no longer cancels out your buffs and
+<a href="Spells.html#stacking-attack-bonuses">stacking spell bonuses</a>. Your base attack bonus
+from levels isn't part of this cap.</p>
+
+<h3 id="four-classes">Up to Four Classes</h3>
+<p>Stock NWN allows a character at most <strong>three</strong> classes. Here you can take
+<strong>four</strong>, and there is no multiclass XP penalty for doing so (below).</p>
+
+<h3 id="multiclass-xp">No Multiclass XP Penalty</h3>
+<p>Stock NWN quietly taxes multiclass characters: if your highest and lowest class levels ever
+differ by more than one, XP you earn is reduced until you level the lagging class back up. This
+server <strong>disables that penalty entirely</strong> — every class combination earns full XP,
+no matter how unevenly your levels are split. With up to <strong>4 classes</strong> stackable per
+character, build experimentation is the point, so there is no XP cost for going wide instead of
+staying balanced.</p>
+
+<h3 id="kill-xp">Kill XP — How Much a Creature Is Worth</h3>
+<p>Experience from a kill depends on <strong>two</strong> things: the creature's Challenge Rating
+(CR) and <strong>your own level</strong>. Every character level raises the CR you need to fight for
+a full payout, so content you farmed happily at one level quietly stops being worth your time a few
+levels later — the game is pushing you onward to harder ground.</p>
+
+<p><strong>The cap is 6,000 XP per kill.</strong> Nothing pays more, at any level, from any creature.
+With a <a href="Systems.html#merit">2&times; premium boost</a> active that becomes 12,000. A kill that falls far
+below your level pays a token 60 &mdash; but "far below" is measured against <em>your</em> level, so a
+brand-new character is paid properly for the rats, skeletons and goblins it is actually meant to be
+fighting: roughly <strong>300 XP</strong> for the weakest creature in the game at level&nbsp;1, and
+around 650 for a CR&nbsp;1.</p>
+
+<p><strong>You are never penalised for punching above your weight.</strong> A low-level character
+who takes down something far above them is paid at least as much as a higher-level character would
+be for the identical kill &mdash; the award for a given CR never rises as you level.</p>
+
+<p>The <em>Full XP at CR</em> column is the point where a kill pays the whole 6,000; anything at or
+above that CR pays the same. Levels between those shown follow the same curve.</p>
+
+<table class="data change-table">
+  <thead><tr>
+    <th>Your level</th><th>Full XP at CR</th><th>CR&nbsp;1</th><th>CR&nbsp;2</th><th>CR&nbsp;5</th><th>CR&nbsp;10</th><th>CR&nbsp;20</th><th>CR&nbsp;30</th><th>CR&nbsp;45</th><th>CR&nbsp;60</th><th>CR&nbsp;80</th><th>CR&nbsp;200</th><th>CR&nbsp;300</th>
+  </tr></thead>
+  <tbody>
+    <tr><td>1</td><td>30</td><td>649</td><td>1,096</td><td>2,000</td><td>3,075</td><td>4,693</td><td>6,000</td><td>6,000</td><td>6,000</td><td>6,000</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>5</td><td>39</td><td>375</td><td>863</td><td>1,708</td><td>2,666</td><td>4,075</td><td>5,198</td><td>6,000</td><td>6,000</td><td>6,000</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>9</td><td>49</td><td>60</td><td>579</td><td>1,428</td><td>2,301</td><td>3,543</td><td>4,518</td><td>5,740</td><td>6,000</td><td>6,000</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>13</td><td>62</td><td>60</td><td>60</td><td>1,138</td><td>1,963</td><td>3,079</td><td>3,935</td><td>4,996</td><td>5,903</td><td>6,000</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>17</td><td>79</td><td>60</td><td>60</td><td>799</td><td>1,637</td><td>2,663</td><td>3,427</td><td>4,360</td><td>5,148</td><td>6,000</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>21</td><td>100</td><td>60</td><td>60</td><td>100</td><td>1,296</td><td>2,280</td><td>2,976</td><td>3,807</td><td>4,501</td><td>5,300</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>25</td><td>109</td><td>60</td><td>60</td><td>60</td><td>1,189</td><td>2,154</td><td>2,827</td><td>3,627</td><td>4,295</td><td>5,062</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>29</td><td>118</td><td>60</td><td>60</td><td>60</td><td>1,082</td><td>2,031</td><td>2,683</td><td>3,455</td><td>4,096</td><td>4,834</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>33</td><td>128</td><td>60</td><td>60</td><td>60</td><td>973</td><td>1,911</td><td>2,543</td><td>3,288</td><td>3,906</td><td>4,615</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>37</td><td>139</td><td>60</td><td>60</td><td>60</td><td>862</td><td>1,795</td><td>2,408</td><td>3,128</td><td>3,722</td><td>4,404</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>41</td><td>150</td><td>60</td><td>60</td><td>60</td><td>79</td><td>252</td><td>500</td><td>964</td><td>1,513</td><td>2,350</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>45</td><td>174</td><td>60</td><td>60</td><td>60</td><td>66</td><td>196</td><td>392</td><td>763</td><td>1,205</td><td>1,882</td><td>6,000</td><td>6,000</td></tr>
+    <tr><td>49</td><td>201</td><td>60</td><td>60</td><td>60</td><td>60</td><td>152</td><td>306</td><td>602</td><td>957</td><td>1,503</td><td>5,963</td><td>6,000</td></tr>
+    <tr><td>53</td><td>233</td><td>60</td><td>60</td><td>60</td><td>60</td><td>118</td><td>238</td><td>473</td><td>758</td><td>1,197</td><td>4,808</td><td>6,000</td></tr>
+    <tr><td>57</td><td>269</td><td>60</td><td>60</td><td>60</td><td>60</td><td>93</td><td>185</td><td>371</td><td>598</td><td>951</td><td>3,872</td><td>6,000</td></tr>
+    <tr><td>60</td><td>301</td><td>60</td><td>60</td><td>60</td><td>60</td><td>79</td><td>153</td><td>308</td><td>499</td><td>798</td><td>3,289</td><td>5,999</td></tr>
+  </tbody>
+</table>
+
+<p class="note">Levels 41&ndash;60 are deliberately steeper: the legendary band expects you to be in
+Mordor- and Gondor-tier content, and low-CR creatures there pay the 60 floor. See
+<a href="#legendary-levels">Legendary Levels</a>. Once you reach level&nbsp;60 your XP simply keeps
+climbing on your character &mdash; kills still pay, the total carries on past the level&nbsp;60
+threshold, and nothing is lost for being at the cap.</p>
+
+<h3 id="legendary-levels">Legendary Levels: 41–60</h3>
+<div class="tip-box">
+<p><strong>In development for Season&nbsp;2.</strong> Levels 41&ndash;60 are being rebuilt as
+<em>real character levels</em>. The experience table below is final and already in the build; the
+level-cap lift and the per-class feat allotments are still being worked on, so the climb past 40 is
+not open yet. Progress is tracked on the <a href="../Roadmap.html">Roadmap</a>.</p>
+<p><strong>Casters:</strong> two things past level&nbsp;40 look broken and are not &mdash; an empty
+spell-selection screen (see <a href="#spellbook-study">Spellbook Study</a>) and feats listed twice
+on your sheet (see <a href="#duplicate-caster-feats">Why a feat can show twice</a>).</p>
+</div>
+
+<p>Standard NWN stops at level 40. On this server, levels 41 to 60 are an extension of the game's
+own level progression rather than a bolt-on side system: you level up the ordinary way, at the
+ordinary spot on the character sheet, by earning the XP the table below asks for. There is no
+separate leveling NPC, no separate area to visit, and no second XP tally to keep track of &mdash;
+your XP bar simply keeps going past level&nbsp;40.</p>
+
+<p>Because they are real levels, each one is a level in a class you choose, and the usual rules for
+what a level gives you apply. Exactly which feats become selectable at these levels is still being
+finalised &mdash; see the Roadmap for the current state of that work.</p>
+
+<p>At level&nbsp;60 you also choose <strong>Legendary Feats</strong>, on top of the normal
+level-60 feat. See <a href="LegendaryFeats.html">Legendary Feats</a> for every feat, what it does,
+what it requires, and how many picks you get.</p>
+
+<div class="tip-box">
+<p><strong>Prestige class cap: 40, not 50.</strong> Any single prestige class can only be leveled up to
+40 &mdash; still a big improvement over the stock limit of 30, but don't expect to push a prestige
+class all the way to the level&nbsp;50 mark some players assume from the level&nbsp;60 total. To reach
+the full legendary cap you'll need to spread your last levels across more than one class (prestige
+and/or base).</p>
+</div>
+
+<table class="data change-table">
+  <thead><tr><th>Level</th><th>XP Required</th></tr></thead>
+  <tbody>
+    <tr><td>41</td><td>828,800</td></tr>
+    <tr><td>44</td><td>1,006,600</td></tr>
+    <tr><td>48</td><td>1,338,700</td></tr>
+    <tr><td>52</td><td>1,825,100</td></tr>
+    <tr><td>56</td><td>2,537,700</td></tr>
+    <tr><td>60</td><td>3,581,000</td></tr>
+  </tbody>
+</table>
+
+<p>These totals are the server's <strong>published experience table</strong> — the same table the
+game itself uses for levels 1&ndash;40, simply extended to 60. That means your <strong>XP bar and
+character sheet agree</strong> past level 40: the numbers above are cumulative totals you can watch
+yourself climb toward, not a separate tally kept by any leveling system. Level&nbsp;41 costs
+<strong>48,800 XP</strong> over level 40, and each level after that costs 10% more than the one
+before it, ending at <strong>3,581,000</strong> total XP for level&nbsp;60. See the
+<a href="../Draft/LevelingGuide.html">Leveling Guide</a> for where to earn that XP.</p>
+
+<h4 id="legendary-caster-slots">Spell slots at legendary levels</h4>
+
+<p>Stock NWN stops handing casters new spell slots at level&nbsp;20 &mdash; a level&nbsp;40 wizard
+has exactly as many slots per spell level as a level&nbsp;20 one. That flat stretch does
+<strong>not</strong> continue through the legendary levels. Every fourth legendary level &mdash;
+<strong>44, 48, 52, 56 and 60</strong> &mdash; grants <strong>one extra slot at every spell level you
+can cast</strong>, on top of the caster level, save&nbsp;DC, duration and damage-cap scaling you were
+already getting.</p>
+
+<p>Paladins and rangers advance on a gentler schedule &mdash; one extra slot at level&nbsp;50 and
+another at 60 &mdash; because for them the legendary levels are mostly a martial payoff already.
+Bonus slots from a high spellcasting ability score stack on top of all of this exactly as they
+always have, and <strong>levels 1&ndash;40 are completely unchanged</strong>.</p>
+
+<div class="tip-box">
+<p><strong>Already past level&nbsp;40?</strong> You do not need to relevel. Slots are recalculated
+from your level whenever you rest, so log in, rest, and the new slots are simply there.</p>
+</div>
+
+<h4 id="spellbook-study">Spellbook Study &mdash; choosing spells past level&nbsp;40</h4>
+
+<p>Casting <em>more</em> spells per day is what the table above changes. <em>Choosing</em> new
+spells is a separate matter, and past level&nbsp;40 it runs into a hard limit in the <strong>game
+client itself</strong> &mdash; not in this server's rules. The level-up screen still asks a wizard
+to choose two spells, but only the cantrip tab has anything in it; every other spell-level tab greys
+out. There is nothing to pick, and the picks were spent anyway when you continued past the screen.
+Every avenue for repairing that screen was tried and none of it works &mdash; it is the client's own
+window, so no rules table, content pack or server script can reach it.</p>
+
+<p><strong>So the server hands the spells out itself.</strong> When a wizard with 41 or more wizard
+levels gains a level, a <strong>Spellbook Study</strong> window opens a few seconds after the
+level-up finishes, listing every arcane spell you do not yet know. Pick a spell level along the top,
+click <em>Learn</em>, and the spell goes straight into your spellbook.</p>
+
+<ul>
+  <li><strong>Two spells per wizard level</strong>, exactly the entitlement the level-up screen was
+  eating. Nothing more, nothing less.</li>
+  <li><strong>Nothing you have already earned is lost.</strong> The first time you log in after this
+  goes live, you are paid for every wizard level you gained past&nbsp;40 while the screen was broken
+  &mdash; a wizard&nbsp;53 is owed 26 spells. It is paid once, and re-levelling cannot earn it
+  twice.</li>
+  <li><strong>You do not have to choose on the spot.</strong> Close the window and your picks are
+  still banked. <strong>Finish a rest</strong> and it opens again; a login message tells you how many
+  you still have waiting.</li>
+  <li>The usual rules still apply: you are only offered spells you can actually cast, never one you
+  already know, and a <strong>specialist wizard</strong> is not offered its opposition school.</li>
+  <li><strong>Scrolls still work too.</strong> Scribing from a scroll is unaffected and costs you
+  none of these picks.</li>
+</ul>
+
+<div class="warning-box">
+<p><strong>Still to come: sorcerers and bards.</strong> For now, treat your repertoire as
+<strong>locked in at level&nbsp;40</strong>. You keep every spell you know and gain more casts per
+day of all of them, but you cannot yet swap a known spell for a better one on level-up. That swap is
+the next piece of this work &mdash; watch the <a href="../Roadmap.html">Roadmap</a>. Nothing
+is being lost in the meantime: sorcerers and bards gain no new spells known past&nbsp;40 under the
+stock rules either, so there are no picks quietly going missing.</p>
+
+<p><strong>Clerics, druids, paladins and rangers are unaffected</strong> &mdash; they know their
+entire class list automatically, so there was never anything to choose. <strong>Multiclass casters
+are unaffected</strong> below 40: the limit only ever applied to a class you have <strong>40 or more
+levels in</strong>, and taking a caster class up from a low level at character level 41+ has always
+worked normally.</p>
+</div>
+
+<h3 id="legendary-caster-feats">&mdash; Caster feats at legendary levels</h3>
+
+<p>The same level-40 blind spot that ate the spell picker also ate most of a caster's
+<strong>feat</strong> list. Once you had 41 or more levels in a casting class, every feat that
+requires you to be able to cast spells of a certain level quietly disappeared from both your
+class bonus feat list and your general feat pick. A pure wizard at 47 was offered exactly three
+feats: <em>Brew Potion</em>, <em>Craft Wand</em> and <em>Epic Spell</em>. Everything else &mdash;
+<em>Spell Focus</em>, <em>Silent Spell</em>, <em>Automatic Still Spell</em>,
+<em>Automatic Quicken Spell</em>, <em>Epic Spell Focus</em> &mdash; was simply not on the list.</p>
+
+<p><strong>Those feats are back.</strong> They are published a second time as class-specific
+entries that the level-up screen can see past level&nbsp;40, and picking one gives you the real
+feat. <strong>Every requirement is unchanged</strong>: Automatic Still Spell still wants Still
+Spell and 27 ranks of Spellcraft, Epic Spell Focus still wants Greater Spell Focus in that school.
+Nothing became easier to get &mdash; it became <em>possible</em> to get.</p>
+
+<h4 id="duplicate-caster-feats">Why a feat can show twice</h4>
+
+<p><strong>A caster at class level&nbsp;40 or above will see some feats listed twice on the
+character sheet, under the same name.</strong> A level&nbsp;48 wizard, for instance, shows
+<em>Extend Spell</em>, <em>Still Spell</em> and <em>Combat Casting</em> twice each. This is
+expected and there is nothing to fix.</p>
+
+<p>One of the pair is the real feat. The other is an <strong>inert stand-in</strong> &mdash; the
+replacement entry described above, which carries the real feat's own name and description rather
+than a made-up one. Holding both is the point:</p>
+
+<ul>
+  <li><strong>It is not a double benefit.</strong> The effect applies once. Nothing stacks, and
+  nothing is being counted twice.</li>
+  <li><strong>It did not cost you a second pick.</strong> You spent one feat slot, exactly as you
+  meant to.</li>
+  <li><strong>It is what stops you wasting a pick.</strong> The level-up screen never offers a feat
+  you already hold &mdash; so by giving you both halves, the server makes sure neither half is ever
+  dangled in front of you again.</li>
+  <li><strong>There is nothing to do about it.</strong> No action, no cleanup, and it cannot be
+  turned off.</li>
+</ul>
+
+<div class="tip-box">
+<p><strong>It can appear on its own, without you picking anything.</strong> If you already had one
+of these feats from below level&nbsp;40, the matching stand-in is added the moment that class
+reaches&nbsp;40 &mdash; so a duplicate can turn up at a level-up or a login where you chose nothing
+at all. That is the pairing being applied in the other direction, and it is the whole reason the
+level-up screen stops offering you feats you own.</p>
+<p><strong>Below class level&nbsp;40 none of this exists.</strong> A level&nbsp;1 wizard or sorcerer
+sees each feat exactly once, and levels 1&ndash;40 pick from exactly the list they always did.</p>
+</div>
+
+<h4 id="caster-feats-reach">How far each class reaches</h4>
+
+<p>A feat that demands you cast spells of a given level is still barred if your class never gets
+there &mdash; that is the original rule, not a new restriction. It is why a bard sees fewer
+replacement entries than a wizard, and no <em>Epic Spell Focus</em> at all.</p>
+
+<table class="data">
+  <thead><tr><th>Class</th><th>Highest spell level</th><th>What that means</th></tr></thead>
+  <tbody>
+    <tr><td>Wizard, Sorcerer, Cleric, Druid</td><td>9th</td><td>The full set, including Epic Spell Focus and the Automatic Still / Silent / Quicken Spell chains.</td></tr>
+    <tr><td>Bard</td><td>6th</td><td>Spell Focus and the metamagic feats. No Epic Spell Focus, no Automatic metamagic &mdash; both need 9th-level spells.</td></tr>
+    <tr><td>Paladin, Ranger</td><td>4th</td><td>The feats that ask for 4th-level spells or less.</td></tr>
+  </tbody>
+</table>
+
+<div class="warning-box">
+<p><strong>This keys on your class level, not your caster level.</strong> The replacement entries
+unlock when your <em>wizard</em> (or cleric, or druid&hellip;) level itself reaches&nbsp;41.
+<strong>Caster levels granted by a prestige class do not count toward that number</strong>, and no
+amount of prestige levelling brings the entries forward.</p>
+
+<p><strong>Pale Master is the only class in the game that advances spellcasting at all</strong>
+&mdash; one arcane caster level for every two Pale Master levels. It will happily let you cast
+higher-level spells sooner than your wizard level alone would, and the ordinary feats below&nbsp;41
+respect that exactly as they always have. What it will not do is unlock the replacement entries
+early. <strong>Dragon Disciple grants no spellcasting advancement whatsoever</strong> in NWN, so it
+has no bearing here in either direction.</p>
+
+<p><strong>In practice this costs nobody a feat.</strong> The client fault these entries work around
+also only begins once a casting class passes&nbsp;40 &mdash; below that the ordinary feats are
+offered normally. The rule is worth knowing so you build with it in mind, not because there is a
+trap in it.</p>
+</div>
+
+<h3 id="monk-weapons">Monk Weapons</h3>
+<p>Three weapons have been reclassified for monks relative to stock NWN:</p>
+<ul>
+  <li><strong>Shuriken</strong> — counts as a monk weapon; also benefits from <em>Weapon Finesse</em>.</li>
+  <li><strong>Quarterstaff</strong> — counts as a monk weapon; also benefits from <em>Weapon Finesse</em>.</li>
+  <li><strong>Katana</strong> — counts as a monk weapon, but still requires <em>Exotic Weapon Proficiency</em>; does <strong>not</strong> benefit from Weapon Finesse.</li>
+</ul>
+
+<h3 id="critical-hits">Critical Hits &amp; Devastating Critical</h3>
+<p><strong>A devastating critical no longer kills outright.</strong> The stock save-or-die is gone —
+for melee weapons, ranged weapons, <em>and</em> unarmed and creature attacks alike. In its place, a
+devastating critical lands as a very large hit: <strong>three extra dice of damage</strong>, of the
+same damage type your weapon already deals, scaled to the weapon you are swinging.</p>
+
+<table class="data change-table">
+  <thead><tr><th>Weapon size</th><th>Extra die</th><th>Devastating Critical</th><th>With Legendary Butcher</th></tr></thead>
+  <tbody>
+    <tr><td>Small (dagger, shuriken, unarmed…)</td><td>d6</td><td>+3d6</td><td>+8d6</td></tr>
+    <tr><td>Medium (longsword, mace…)</td><td>d8</td><td>+3d8</td><td>+8d8</td></tr>
+    <tr><td>Large (greatsword, halberd…)</td><td>d10</td><td>+3d10</td><td>+8d10</td></tr>
+  </tbody>
+</table>
+
+<p><strong>This cuts both ways.</strong> The rule is symmetric — it applies to every creature in the
+module exactly as it applies to you. No more losing a level&nbsp;60 character to one lucky swing from
+a random mob, and no more deleting a boss with one. Nothing else about the feat changed: same threat
+range, same prerequisites.</p>
+
+<div class="tip-box">
+  <p><strong>Legendary Butcher</strong> — a level&nbsp;60 <a href="#legendary-levels">Legendary
+  Feat</a> for those who want to lean into critting. It adds <strong>five extra dice on
+  <em>any</em> critical hit</strong>, not just a devastating one, using the same size scale, and it
+  <strong>stacks</strong> with the devastating-critical dice. A large weapon in the hands of someone
+  with both lands <strong>+8d10</strong>. It requires Devastating Critical with some weapon.</p>
+</div>
+
+<p>Two things worth knowing:</p>
+<ul>
+  <li><strong>The extra damage is typed physical</strong> (piercing/slashing/bludgeoning, matching
+      your weapon), on purpose — so heavy damage reduction and physical immunity eat part of it,
+      just like the rest of your weapon damage.</li>
+  <li><strong>The combat log no longer announces "devastating critical" by name.</strong> Taking the
+      instant kill out at the root also took the message with it. The hit shows as an ordinary
+      critical, with the extra dice rolled into its damage.</li>
+</ul>
+
+<p><strong>Immunity to critical hits is no longer the default on tough enemies.</strong> It went out
+with the same change — once a devastating critical stopped being an instant kill, there was no reason
+to keep blanket immunity on everything dangerous. It now survives only where it makes thematic sense:
+<strong>undead</strong>, and the <strong>Nazgûl</strong>, plus a small hand-picked set of bosses. A
+critical build is a viable build against most of the module.</p>
+
+  </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../../assets/meta.json"></span></footer>
+</body>
+</html>

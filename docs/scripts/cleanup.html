@@ -52,6 +52,17 @@
 <a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
@@ -64,7 +75,74 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>cleanup</code></h1><pre class="nss-source"><code>void TrashObject(object oObject)
+<h1>Script: <code>cleanup</code></h1><pre class="nss-source"><code>// cleanup  --  Area OnExit: once the last PC leaves, clear encounter creatures
+// and dropped loot.
+//
+// Bosses (CR &gt; 60, the same rule bin/gen-boss-registry.py uses) are NOT
+// destroyed: a solo player who dies to one respawns elsewhere, which is an
+// area exit, and deleting the boss there made it vanish mid-fight (roadmap
+// kerfualls-disappearing-act). Instead the boss is left standing for
+// CLN_BOSS_GRACE seconds so the player can run back to a still-wounded boss;
+// if the area is still empty when that expires, the boss is reset in place --
+// healed, rested, cleared of foreign effects and returned to its spawn point.
+
+const float CLN_BOSS_GRACE = 900.0;
+
+int CLN_IsBoss(object oCre)
+{
+    return GetChallengeRating(oCre) &gt; 60.0;
+}
+
+int CLN_AreaHasPC(object oArea)
+{
+    object oPC = GetFirstPC();
+    while (GetIsObjectValid(oPC))
+    {
+        if (GetArea(oPC) == oArea)
+            return TRUE;
+        oPC = GetNextPC();
+    }
+    return FALSE;
+}
+
+void CLN_ResetBoss(object oBoss)
+{
+    // Strip what players put on it; keep what it applied to itself
+    // (nw_c2_default9 gives some creatures permanent spawn effects).
+    effect e = GetFirstEffect(oBoss);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectCreator(e) != oBoss)
+            RemoveEffect(oBoss, e);
+        e = GetNextEffect(oBoss);
+    }
+
+    AssignCommand(oBoss, ClearAllActions(TRUE));
+    ForceRest(oBoss);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectHeal(GetMaxHitPoints(oBoss)), oBoss);
+
+    location lHome = GetLocalLocation(oBoss, &quot;spawn&quot;);
+    if (GetIsObjectValid(GetAreaFromLocation(lHome)))
+        AssignCommand(oBoss, JumpToLocation(lHome));
+}
+
+void CLN_BossGraceExpired(object oArea, int nGen)
+{
+    // A later empty-out re-armed the grace; that newer timer owns the reset.
+    if (GetLocalInt(oArea, &quot;cln_boss_gen&quot;) != nGen || CLN_AreaHasPC(oArea))
+        return;
+
+    object oCre = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oCre))
+    {
+        if (GetIsEncounterCreature(oCre) &amp;&amp; CLN_IsBoss(oCre) &amp;&amp; !GetIsDead(oCre))
+            CLN_ResetBoss(oCre);
+        oCre = GetNextObjectInArea(oArea);
+    }
+}
+
+void TrashObject(object oObject)
 {
     if (GetObjectType(oObject) == OBJECT_TYPE_PLACEABLE) {
         object oItem = GetFirstItemInInventory(oObject);
@@ -80,23 +158,29 @@ void main()
 {
     if(!GetIsPC(GetExitingObject()) ) {
         return; }
-object oPC = GetExitingObject();
-    if (!GetIsPC(oPC))
+    if (CLN_AreaHasPC(OBJECT_SELF))
         return;
-    oPC = GetFirstPC();
-    while (oPC != OBJECT_INVALID)
-    {
-        if (OBJECT_SELF == GetArea(oPC))
-            return;
-        else oPC = GetNextPC();
-    }
+
+    int bBoss = FALSE;
     object oObject = GetFirstObjectInArea(OBJECT_SELF);
     while (oObject != OBJECT_INVALID)
     {
         if (GetIsEncounterCreature(oObject))
-            DestroyObject(oObject);
+        {
+            if (CLN_IsBoss(oObject))
+                bBoss = TRUE;
+            else
+                DestroyObject(oObject);
+        }
         oObject = GetNextObjectInArea(OBJECT_SELF);
-}
+    }
+    if (bBoss)
+    {
+        int nGen = GetLocalInt(OBJECT_SELF, &quot;cln_boss_gen&quot;) + 1;
+        SetLocalInt(OBJECT_SELF, &quot;cln_boss_gen&quot;, nGen);
+        DelayCommand(CLN_BOSS_GRACE, CLN_BossGraceExpired(OBJECT_SELF, nGen));
+    }
+
     object oItem = GetFirstObjectInArea();
     while (GetIsObjectValid(oItem))
     {

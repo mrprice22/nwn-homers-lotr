@@ -52,6 +52,17 @@
 <a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
@@ -81,8 +92,9 @@
 //:: wall-clock source brd_db.nss uses.
 //:://////////////////////////////////////////////
 
+#include &quot;fb_hench_inc&quot;
+
 const string FB_DB       = &quot;fellbeast&quot;;
-const string FB_HENCH_TAG = &quot;fellbeast_h&quot;;
 const int    FB_COOLDOWN  = 3600; // seconds (1 real hour)
 
 // Current wall-clock epoch seconds (server real time).
@@ -92,23 +104,6 @@ int FB_Now()
     if (SqlStep(q))
         return SqlGetInt(q, 0);
     return 0;
-}
-
-// Remove any Fell Beast this PC already has out (mirrors MW_DismissActiveGuide).
-void FB_DismissExisting(object oPC)
-{
-    int i;
-    for (i = 1; i &lt;= 5; i++)
-    {
-        object oH = GetHenchman(oPC, i);
-        if (!GetIsObjectValid(oH)) break;
-        if (GetTag(oH) == FB_HENCH_TAG)
-        {
-            RemoveHenchman(oPC, oH);
-            AssignCommand(oH, ClearAllActions());
-            ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oH);
-        }
-    }
 }
 
 void main()

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Combat</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link rel="icon" href="../../assets/favicon.png">
+  <script src="../../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../../map/index.html">Map</a>
+      <a href="../../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../../creatures/index.html">All Creatures</a>
+          <a href="../../creatures/by-area/index.html">By Area</a>
+          <a href="../../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../../creatures/by-race/index.html">By Race</a>
+          <a href="../../creatures/search.html">Search</a>
+          <a href="../../creatures/bosses.html">Bosses</a>
+          <a href="../../creatures/pictures.html">Pictures</a>
+          <a href="../../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../../items/index.html">Accessible</a>
+          <a href="../../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../../items/properties/index.html">By Property</a>
+          <a href="../../items/search.html">Search</a>
+          <a href="../../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../../stores/index.html">Stores</a>
+      <a href="../../conversations/index.html">Conversations</a>
+      <a href="../../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/QuestGuide.html">Quest Guide</a>
+<a href="../../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../../characters/online.html">Who&#x27;s Online</a>
+<a href="../../players/index.html">Players</a>
+<a href="../../characters/index.html">Characters</a>
+<a href="../../characters/leaderboards.html">Leaderboards</a>
+<a href="../../players/achievements.html">Hall of Fame</a>
+<a href="../../activity.html">Player Activity</a>
+<a href="../../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../../manual/Customizations/Combat.html" class="nav-current" aria-current="page">Combat</a>
+<a href="../../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+
+  <main>
+  <!-- @menu 'Documents' -->
+  <!-- @order 2 -->
+  <!--
+    One topic page of the player Customizations reference. The hub
+    (docs.manual/Customizations.html) and the three cz: blocks below are
+    GENERATED by bin/gen-customizations-hub.py -- edit the content between
+    them, then re-run that script. Keep every id="..." you publish: old links
+    to Customizations.html#<id> are forwarded here by id, and the gate
+    (tests/check_customizations_hub.py) fails if a published id disappears.
+  -->
+  <!-- cz:style -->
+  <style>
+    .mw-layout { display: flex; gap: 2.5em; align-items: flex-start; }
+    .mw-toc-pane {
+      flex: 0 0 240px; position: sticky; top: 1.5em;
+      max-height: calc(100vh - 3em); overflow-y: auto;
+    }
+    .mw-content { flex: 1; min-width: 0; }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+
+    .toc {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1em 1.2em;
+    }
+    .toc h2 {
+      font-size: 1em; margin: 0 0 0.5em; border: none; padding: 0;
+      color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+    .toc ol ol { margin: 0.15em 0 0.3em 0; font-size: 0.9em; }
+    .toc .cz-here > a { font-weight: 600; }
+    .toc .cz-navsearch { margin: 0 0 0.6em; font-size: 0.92em; }
+
+    .cz-crumb { font-size: 0.9em; color: var(--muted); margin: 0 0 0.4em; }
+    .cz-intro { color: var(--muted); margin-top: -0.3em; }
+
+    .section-header {
+      background: rgba(107,58,28,0.08); border-left: 4px solid var(--accent);
+      padding: 0.5em 1em; margin: 2em 0 0.8em; border-radius: 0 4px 4px 0;
+    }
+    .section-header h2 { margin: 0; border: none; padding: 0; }
+    .section-header .section-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+
+    .tip-box {
+      background: rgba(30,30,60,0.07); border-left: 4px solid var(--accent-soft);
+      border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em;
+    }
+    .tip-box p { margin: 0.3em 0; }
+
+    .warn-box {
+      background: rgba(179,38,30,0.07); border-left: 4px solid #b3261e;
+      border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em;
+    }
+    .warn-box p { margin: 0.3em 0; }
+    .warn-box strong { color: #b3261e; }
+
+    .stock-box {
+      background: rgba(40,90,50,0.08); border: 1px solid var(--accent-soft);
+      border-left: 4px solid #3a7d44; border-radius: 0 4px 4px 0;
+      padding: 0.8em 1.2em; margin: 0.8em 0 1em;
+    }
+    .stock-box dt { font-weight: 600; margin-top: 0.6em; }
+    .stock-box dt:first-child { margin-top: 0; }
+    .stock-box dd { margin: 0.15em 0 0 0; color: var(--muted); font-size: 0.93em; }
+
+    .change-table td, .change-table th { font-size: 0.92em; vertical-align: top; }
+    .change-table th { white-space: nowrap; }
+
+    .tourn-list { columns: 3; column-gap: 1.6em; margin: 0.6em 0 0; padding-left: 1.2em; }
+    .tourn-list li { margin: 0.15em 0; break-inside: avoid; }
+    @media (max-width: 600px) { .tourn-list { columns: 2; } }
+
+    .cz-search {
+      position: sticky; top: 0; z-index: 2; background: var(--bg, inherit);
+      padding: 0.6em 0; margin: 1em 0 0.5em; display: flex; gap: 0.8em;
+      align-items: center; flex-wrap: wrap;
+    }
+    .cz-search input {
+      flex: 1 1 18em; font-size: 1.05em; padding: 0.45em 0.7em;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--card); color: inherit;
+    }
+    .cz-search .cz-count { color: var(--muted); font-size: 0.9em; }
+    .cz-group > h2 { margin-top: 1.6em; }
+    .cz-cards {
+      display: grid; gap: 0.8em;
+      grid-template-columns: repeat(auto-fill, minmax(17em, 1fr));
+    }
+    .cz-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 0.7em 0.9em;
+    }
+    .cz-card h3 { font-size: 1em; margin: 0 0 0.3em; border: none; padding: 0; }
+    .cz-card p { margin: 0.2em 0; font-size: 0.92em; }
+    .cz-card .cz-sub { color: var(--muted); font-size: 0.85em; }
+    .cz-card mark { padding: 0 0.1em; }
+    .cz-card .cz-sub a.cz-hit { font-weight: 700; background: var(--card); outline: 1px solid var(--accent); }
+    .cz-card:target, .cz-group:target > h2 { outline: 2px solid var(--accent); }
+    [hidden] { display: none !important; }
+
+    h2, h3, h4 { scroll-margin-top: 1.5em; }
+  </style>
+  <!-- /cz:style -->
+  <div class="mw-layout">
+  <aside class="mw-toc-pane">
+  <!-- cz:nav -->
+    <nav class="toc" aria-label="Customizations">
+      <h2>Customizations</h2>
+      <p class="cz-navsearch"><a href="../Customizations.html">&#128269; Search every customization</a></p>
+      <ol>
+      <li><a href="NotABug.html">Looks Like a Bug — Isn&#x27;t</a></li>
+      <li><a href="Systems.html">Notable Custom Systems</a></li>
+      <li><a href="Crafting.html">Appearance &amp; Crafting</a></li>
+      <li><a href="Items.html">Custom Gameplay Items</a></li>
+      <li><a href="Factions.html">Good/Evil Faction</a></li>
+      <li><a href="Spells.html">Spell Changes</a></li>
+      <li><a href="Progression.html">Character Progression</a></li>
+      <li class="cz-here"><a href="Combat.html">Combat</a>
+        <ol>
+          <li><a href="#sticky-modes">Combat Modes Stay On</a></li>
+          <li><a href="#disarm">Disarmed Weapons Go to Your Pack</a></li>
+        </ol></li>
+      <li><a href="LegendaryFeats.html">Legendary Feats</a></li>
+      <li><a href="Death.html">Death, Dying &amp; Respawn</a></li>
+      <li><a href="Stock.html">Not Changed (Stock Standard)</a></li>
+      </ol>
+    </nav>
+  <!-- /cz:nav -->
+  </aside>
+  <div class="mw-content">
+  <!-- cz:crumb -->
+  <p class="cz-crumb"><a href="../Customizations.html">&larr; All customizations</a> &middot; Combat</p>
+  <!-- /cz:crumb -->
+
+<h1 id="combat">Combat</h1>
+<p class="cz-intro">Small changes to the rules of a fight. Critical hits and Devastating Critical are under
+<a href="Progression.html#critical-hits">Character Progression</a>.</p>
+
+<h3 id="sticky-modes">Combat Modes Stay On</h3>
+<p>In stock NWN, <strong>Power Attack, Expertise, Rapid Shot, Flurry of Blows</strong> and the
+other combat modes switch themselves off when a fight ends, so you have to turn them back on
+every time. Here they <strong>stay on</strong> until you turn them off yourself.</p>
+
+<h3 id="disarm">Disarmed Weapons Go to Your Pack</h3>
+<p>When a monster disarms you, your weapon goes <strong>into your inventory</strong> instead of
+onto the ground. On the ground it could vanish when the area resets, or the monster could pick
+it up. Grab it and re-equip it.</p>
+<ul>
+  <li>If your pack is <strong>full</strong>, the weapon drops to the ground as in stock NWN.</li>
+  <li><strong>PvP is unchanged.</strong> When another player disarms you, stock rules apply,
+  including an unarmed disarm sending your weapon to <em>their</em> pack.</li>
+  <li>The disarm itself works as in stock NWN: the same rolls, weapon-size modifiers and
+  attacks of opportunity.</li>
+</ul>
+
+  </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../../assets/meta.json"></span></footer>
+</body>
+</html>
