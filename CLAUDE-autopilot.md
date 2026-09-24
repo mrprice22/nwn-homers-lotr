@@ -314,9 +314,14 @@ system you just changed, and update it **in the same code commit** (step 7.1). E
   the public page — and never badge a quest as needing a waypoint there; use `Working` (the only
   other badge is `In Development`, for content that is genuinely unbuilt), and track the placement
   in the item's `manual_steps`.
-- **`Customizations.html` especially** must track changes to player-facing customization
-  systems (merit shop, housing, forge, gem socketing pointers, etc.) — if the item
-  touches one of those, update the relevant section.
+- **The Customizations reference especially** must track changes to player-facing
+  customization systems (merit shop, housing, forge, gem socketing pointers, rule changes,
+  etc.) — if the item touches one of those, update the relevant section. The content lives
+  in the topic pages under `docs.manual/Customizations/`; `docs.manual/Customizations.html`
+  is a **generated hub** — edit the topic page, then run
+  `python3 bin/gen-customizations-hub.py`. Keep every published `id=` (old links forward by
+  it), and give a new section an `<h3 id="…">` so it gets a search card. Link to it as
+  `Customizations.html#<id>` — the hub forwards that to the right topic page.
 - Likewise for the other topical pages when the item touches their system:
   `CasterGear.html`, `Gem-Socketing.html`, `LegendaryFeats.html`, `LevelingGuide.html`,
   `MeaningWave.html`, `boss-updates.html`.

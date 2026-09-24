@@ -43,6 +43,20 @@ behavior.
 > **Do NOT run the wiki refresh (`nwn-manager wiki` / `bin/refresh-homers-lotr-wiki`) as part of any edit or roadmap pipeline.** It is expensive and belongs to the **daily reboot/refresh** (or an explicit manual run). When you change source that feeds the wiki (`unpacked/`, `roadmap.yaml`, `docs.manual/`), just edit + commit — leave `docs/` and `module-index/` stale; the scheduled refresh reconciles them. Only run the wiki refresh if the user explicitly asks. (Editing `roadmap.yaml` and running `bin/gen-roadmap.py` to regenerate `Roadmap.html` is fine — that's not the wiki refresh.)
 
 - Manual/narrative pages → add/edit in `docs.manual/` (copied into `docs/manual/` on each wiki rebuild). No `<header>`/`<footer>` — the generator injects them. Start `<body>` with `<main>`. **Start new pages from [ManualPageTemplate.html](ManualPageTemplate.html)** (repo root) — it has the standard two-column layout (sticky left-hand table of contents + content pane) and the shared callout box classes (`tip-box`, `warning-box`, `loot-box`, `tier-header`) so every manual page looks and feels consistent. Copy it into `docs.manual/`, rename, and follow the usage notes in its top comment block.
+- **The player Customizations reference is split: topic pages + a generated hub.** Content
+  lives in `docs.manual/Customizations/<Topic>.html` (one per group: Systems, Crafting,
+  Spells, Progression, …). `docs.manual/Customizations.html` is **generated** by
+  `python3 bin/gen-customizations-hub.py` — a search box over every section's full text,
+  a card per `<h3 id>`, and a forwarding map so the old `Customizations.html#<anchor>` links
+  (Discord, roadmap notes, in-game strings) land on the right topic page. The script also
+  owns the `cz:style` / `cz:nav` / `cz:crumb` blocks in every topic page. **Whenever a change
+  alters what a player experiences** (a new system, a rule change, a new feat), update the
+  matching topic page (or add a section with an `<h3 id="…">`), run the script, and commit
+  both. A new topic page is copied from an existing one; its `<meta name="cz-order">` sets
+  its position. **Never remove or rename a published `id=`** — `tests/customizations_anchors.txt`
+  records every one, and `tests/check_customizations_hub.py` fails the repack if one
+  disappears (map a retired id in the script's `ALIASES`), if the hub is stale, or if any
+  `Customizations.html#x` link in the repo points nowhere.
 - `docs.manual/Roadmap.html` is **generated** from `roadmap.yaml` (repo root) by `bin/gen-roadmap.py` — the public dev roadmap + merit-tracking backlog. Edit `roadmap.yaml`, then run `python3 bin/gen-roadmap.py` to regenerate `Roadmap.html` and commit both — **do not** trigger a wiki refresh (the scheduled/daily refresh folds it into `docs/`). The script joins shipped items to git commit dates and warns (advisory only, by title word-overlap within the same group) on likely duplicate ideas — set `dupe_of` to merge genuine cross-player duplicates, or reword a title if it's a false positive (see [CLAUDE-roadmap.md](CLAUDE-roadmap.md) for the exact rule). Don't hand-edit `Roadmap.html`. For typo-proof editing of the backlog use the GUI editor `python3 bin/roadmap-editor.py` (dropdowns for player/group/status/dupe_of, validates before writing, rewrites only the `ideas:` block). Items that must never reach the public page or the in-game Recent Updates sign get
 `hidden: true`; a multi-part effort hangs its items off an entry in the `epics:` block via
 `epic: <epic-id>`, which publishes them as a single "x/y complete" card instead of one card

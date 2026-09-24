@@ -78,6 +78,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: customizations hub…"
+if python3 "$HERE/check_customizations_hub.py"; then
+  echo "ok: customizations hub"
+else
+  echo "fail: customizations hub"
+  rc=1
+fi
+
 echo "[smoke-test] running: palette coverage…"
 if python3 "$HERE/check_palette_coverage.py"; then
   echo "ok: palette coverage"
