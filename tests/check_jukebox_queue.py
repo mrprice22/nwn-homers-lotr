@@ -159,6 +159,102 @@ else:
             FAIL.append("jb_db.nss no longer contains the %s this gate tests "
                         "(%r)" % (label, needle))
 
+
+# ------------------------------------------------------- the listening buff --
+#
+# The bug this section exists to prevent: credit used to decay from the moment
+# it was granted, while the player was still sitting in the tavern listening.
+# With FULL_SEC == DUR_SEC a credit of c seconds buys a window of exactly c
+# seconds, so listening a further t seconds decayed by t and added t - NET ZERO.
+# The cap was unreachable no matter how long anyone listened. The fix is that
+# accrual touches the raw stored credit and nothing expires until the player
+# leaves the area, so that is what is asserted here.
+
+CAP, FULL, DUR, STEP = 2, 600, 600, 60
+
+
+def magnitude(credited):
+    steps = min(credited // STEP, FULL // STEP)
+    return (CAP * steps) // (FULL // STEP)
+
+
+def duration(credited):
+    steps = min(credited // STEP, FULL // STEP)
+    return (DUR * steps) // (FULL // STEP)
+
+
+# Accrual: four 150-second songs while standing still must reach the cap.
+credited = 0
+for _ in range(4):
+    credited = min(credited + 150, FULL)
+check("accrual must not decay while listening", credited, FULL)
+check("...and that is the full-size bonus", magnitude(credited), CAP)
+check("...for the full duration", duration(credited), DUR)
+
+# The old broken model, kept as a regression witness: decay-then-add pinned the
+# credit at one song's length forever.
+broken = 0
+for _ in range(4):
+    live = max(0, broken - 150)          # decayed by the time the next song ends
+    broken = min(live + 150, FULL)
+check("the old decay-while-listening model was indeed stuck", broken, 150)
+check("...which could never reach the cap", magnitude(broken) < CAP, True)
+
+# Partial listening scales both halves, in 1-minute steps.
+check("one minute earns a tenth of the window", duration(60), 60)
+check("five minutes earns half the window", duration(300), 300)
+check("five minutes earns half the size", magnitude(300), CAP // 2)
+check("under a minute earns nothing", magnitude(59), 0)
+check("over the cap does not overflow", magnitude(FULL * 3), CAP)
+check("over the cap does not extend the window", duration(FULL * 3), DUR)
+
+# Leaving is what starts the clock.
+NOW = 5000
+expires = NOW + duration(FULL)
+check("the buff expires a full window after leaving", expires - NOW, DUR)
+check("half way through, it is still live", expires - (NOW + DUR // 2) > 0, True)
+check("after the window, it is not", expires - (NOW + DUR + 1) > 0, False)
+
+# --------------------------------------------------------- buff-side drift --
+
+BUFF = ROOT / "unpacked" / "jb_buff_inc.nss"
+EXIT_SCRIPTS = ["cleanup.nss", "d_purge.nss"]
+
+if not BUFF.exists():
+    FAIL.append("unpacked/jb_buff_inc.nss is missing")
+else:
+    b = BUFF.read_text(encoding="utf-8")
+    for label, needle in [
+        ("the tuning constants", "JB_BUFF_CAP      = %d" % CAP),
+        ("the full-listen constant", "JB_BUFF_FULL_SEC = %d" % FULL),
+        ("the duration constant", "JB_BUFF_DUR_SEC  = %d" % DUR),
+        ("the step constant", "JB_BUFF_STEP_SEC = %d" % STEP),
+        # The fix itself: accrual reads the raw credit, not a decayed one.
+        ("raw-credit accrual", "JB_Credited(oPC) + nSeconds"),
+        ("payout on leaving", "void JB_GrantOnLeave(object oPC)"),
+        ("the exit hook", "void JB_OnLeaveArea(object oPC, object oArea)"),
+    ]:
+        if needle not in b:
+            FAIL.append("jb_buff_inc.nss no longer contains %s (%r)"
+                        % (label, needle))
+
+    # The guard local is spelled literally in the shared exit scripts, which do
+    # not include jb_buff_inc - so the two spellings must be checked to agree.
+    if 'JB_LISTENING = "jb_listening"' not in b:
+        FAIL.append("jb_buff_inc.nss no longer defines JB_LISTENING as "
+                    '"jb_listening"')
+    for name in EXIT_SCRIPTS:
+        f = ROOT / "unpacked" / name
+        if not f.exists():
+            FAIL.append("unpacked/%s is missing" % name)
+            continue
+        t = f.read_text(encoding="utf-8")
+        if '"jb_listening"' not in t or "jb_area_exit" not in t:
+            FAIL.append("%s no longer hands off to jb_area_exit on the "
+                        '"jb_listening" guard - the buff would never pay out '
+                        "in the areas it owns" % name)
+
+
 if FAIL:
     print("check_jukebox_queue: FAILED")
     for f in FAIL:
@@ -166,4 +262,4 @@ if FAIL:
     sys.exit(1)
 
 print("check_jukebox_queue: ok (queue ordering, advance, restart recovery, "
-      "listing; SQL matches jb_db.nss)")
+      "listing, listening-buff arithmetic; SQL and constants match source)")

@@ -133,15 +133,27 @@ void JB_InitDb()
         "CREATE INDEX IF NOT EXISTS jb_queue_area ON jb_queue(area, tier DESC, id)");
     SqlStep(qi);
 
-    // Listening credit for the jukebox buff (jb_buff_inc.nss). The stored
-    // (credit, timestamp) pair is authoritative and the effects are a
-    // projection of it - effects do not survive a logout, this row does.
+    // Listening credit, while the player is still in the room. This row does
+    // NOT expire and is not time-adjusted: credit stops decaying being the
+    // whole point (see jb_buff_inc.nss). `area` is what says which room earned
+    // it, so leaving some other area cannot cash it in early.
     sqlquery ql = SqlPrepareQueryCampaign(JB_DB,
         "CREATE TABLE IF NOT EXISTS jb_listen (" +
         "uuid TEXT NOT NULL PRIMARY KEY," +
         "credited_sec INTEGER NOT NULL DEFAULT 0," +
+        "area TEXT NOT NULL DEFAULT ''," +
         "updated_at INTEGER NOT NULL)");
     SqlStep(ql);
+
+    // The granted buff, once they have walked out with it. THIS is the row that
+    // carries an expiry, and the clock on it only starts at that moment - the
+    // effects are a projection of it, re-derived at login and after a rest.
+    sqlquery qb = SqlPrepareQueryCampaign(JB_DB,
+        "CREATE TABLE IF NOT EXISTS jb_buff (" +
+        "uuid TEXT NOT NULL PRIMARY KEY," +
+        "mag INTEGER NOT NULL," +
+        "expires_at INTEGER NOT NULL)");
+    SqlStep(qb);
 
     sqlquery qp = SqlPrepareQueryCampaign(JB_DB,
         "CREATE TABLE IF NOT EXISTS jb_plays (" +

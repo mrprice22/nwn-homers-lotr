@@ -81,6 +81,20 @@ void main()
 {
     if(!GetIsPC(GetExitingObject()) ) {
         return; }
+
+    // Jukebox: cash in listening credit for this player. Guarded by a plain
+    // local so an exit from any other area costs one GetLocalInt and no SQL;
+    // the literal "jb_listening" matches JB_LISTENING in jb_buff_inc.nss, and
+    // tests/check_jukebox_queue.py asserts the two stay in step. Handed off
+    // through ExecuteScript rather than an include so this script keeps its
+    // own dependencies.
+    object oJbLeaver = GetExitingObject();
+    if (GetLocalInt(oJbLeaver, "jb_listening"))
+    {
+        SetLocalObject(OBJECT_SELF, "jb_leaver", oJbLeaver);
+        ExecuteScript("jb_area_exit", OBJECT_SELF);
+    }
+
     if (CLN_AreaHasPC(OBJECT_SELF))
         return;
 
