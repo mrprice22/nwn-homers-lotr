@@ -37,6 +37,7 @@
 #include "graf_inc"
 #include "mw_db"
 #include "cp_inc"
+#include "jb_db"
 
 
 void main()
@@ -349,5 +350,12 @@ ExecuteScript("cp_sweep", OBJECT_SELF);
 
 Graf_InitDb();
 Graf_RestoreCanvas();
+
+// The player jukebox's queue and play counts. Creating the tables here is what
+// makes every reader safe; the placeable also calls this defensively, the way
+// graf_use does, so a fresh database cannot produce "no such table" on first
+// use. Note the queue is NOT drained at load: it is paid for, and
+// JB_Reconcile() restarts whatever was mid-song when the server went down.
+JB_InitDb();
 
 }   //end of main

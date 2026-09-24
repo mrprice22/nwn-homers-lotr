@@ -150,6 +150,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: jukebox queue…"
+if python3 "$HERE/check_jukebox_queue.py"; then
+  echo "ok: jukebox queue"
+else
+  echo "fail: jukebox queue"
+  rc=1
+fi
+
 echo "[smoke-test] running: script text is ASCII…"
 if python3 "$HERE/check_ascii_nss.py"; then
   echo "ok: script text is ASCII"

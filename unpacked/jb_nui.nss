@@ -8,8 +8,14 @@
 //
 // The admin jukebox's jb_conv lists 8 tracks a page on custom tokens 7010-7018
 // and knows only our 5 custom songs. The player catalogue is 113 tracks
-// (jb_catalog.nss), which is 15 pages of dialogue to walk and no way to search.
-// A window can filter.
+// (jb_catalog.nss), which is 15 pages of dialogue to walk with no way to search
+// and no way to sort. A window can do both.
+//
+// THE LIST COMES FROM SQL, NOT FROM THE CATALOGUE TABLE. jb_plays carries each
+// track's name beside its play count, so one statement does the filtering, the
+// ordering and the paging. "Sort by most played" is the reason: NWScript has no
+// array, so there is nothing to sort 113 entries in. The catalogue is still the
+// source of the names, durations and rows - jb_db seeds jb_plays from it.
 //
 // SHAPE, and the traps it is built around - all four recorded against this
 // repo's other NUI windows, see csp_nui.nss:18-34:
@@ -32,75 +38,44 @@
 // set is to rebuild the window - which destroys and recreates it, taking the
 // keyboard focus out of the text field. Live filtering would therefore accept
 // exactly one character and then drop focus. The field is read on demand
-// instead, when Search (or Enter-equivalent) is clicked.
+// instead, when Search is clicked.
 #include "nw_inc_nui"
-#include "jb_catalog"
-#include "jb_inc"
+#include "jb_db"
+#include "color"
 
 const string JB_WIN      = "jukebox";
 const string JB_NUI_TOK  = "JB_NUI_TOK";    // PC local: this window's token
 const string JB_NUI_PG   = "JB_NUI_PG";     // PC local: current page, 0-based
 const string JB_NUI_Q    = "JB_NUI_Q";      // PC local: the active search term
+const string JB_NUI_SORT = "JB_NUI_SORT";   // PC local: "" (A-Z) or "plays"
+const string JB_NUI_TIER = "JB_NUI_TIER";   // PC local: chosen priority tier
 
 const string JB_BIND_SEARCH = "jb_search";
 
-const int JB_NUI_PAGE = 15;                 // rows per page; see widget cap above
+const int JB_NUI_PAGE = 12;                 // rows per page; see widget cap above
 
-const float JB_WIN_W    = 520.0;
-const float JB_WIN_H    = 560.0;
-const float JB_LIST_W   = 470.0;
-const float JB_LIST_H   = 330.0;
-const float JB_COL_BTN  = 70.0;
-const float JB_COL_NAME = 300.0;
-const float JB_COL_LEN  = 80.0;
+const float JB_WIN_W    = 560.0;
+const float JB_WIN_H    = 580.0;
+const float JB_LIST_W   = 510.0;
+const float JB_LIST_H   = 300.0;
+const float JB_COL_BTN  = 80.0;
+const float JB_COL_NAME = 270.0;
+const float JB_COL_LEN  = 60.0;
+const float JB_COL_PLAY = 80.0;
 const float JB_ROW_H    = 30.0;
-const float JB_HDR_H    = 26.0;
 
 void JB_NuiOpen(object oPC);
 void JB_NuiClose(object oPC);
 
-// ------------------------------------------------------------------ filter --
+// ------------------------------------------------------------------- state --
 
-// Does the track at catalogue index nIndex match the PC's current search term?
-// Case-insensitive substring over the name. An empty term matches everything.
-int JB_Matches(object oPC, int nIndex)
-{
-    string sQ = GetLocalString(oPC, JB_NUI_Q);
-    if (sQ == "") return TRUE;
-    return FindSubString(GetStringLowerCase(JB_CatName(nIndex)),
-                         GetStringLowerCase(sQ)) >= 0;
-}
-
-// How many tracks the current search matches.
-int JB_MatchCount(object oPC)
-{
-    int i, n = 0;
-    for (i = 0; i < JB_CatCount(); i++)
-        if (JB_Matches(oPC, JB_CatByName(i))) n++;
-    return n;
-}
-
-// The catalogue index of the nth MATCHING track in alphabetical order, or -1.
-//
-// Walked rather than indexed because a filtered list has no closed form and
-// NWScript has no array to cache one in. 113 entries is small enough that the
-// walk is cheaper than any structure that would avoid it.
-int JB_MatchAt(object oPC, int nWanted)
-{
-    int i, n = 0;
-    for (i = 0; i < JB_CatCount(); i++)
-    {
-        int nIndex = JB_CatByName(i);
-        if (!JB_Matches(oPC, nIndex)) continue;
-        if (n == nWanted) return nIndex;
-        n++;
-    }
-    return -1;
-}
+string JB_Query(object oPC) { return GetLocalString(oPC, JB_NUI_Q); }
+string JB_Sort(object oPC)  { return GetLocalString(oPC, JB_NUI_SORT); }
+int    JB_Tier(object oPC)  { return GetLocalInt(oPC, JB_NUI_TIER); }
 
 int JB_PageCount(object oPC)
 {
-    int nTotal = JB_MatchCount(oPC);
+    int nTotal = JB_ListCount(JB_Query(oPC));
     if (nTotal <= 0) return 1;
     return (nTotal + JB_NUI_PAGE - 1) / JB_NUI_PAGE;
 }
@@ -117,7 +92,8 @@ int JB_Page(object oPC)
 // ------------------------------------------------------------------ layout --
 
 // "4:31" - a length a player can weigh before spending on it. Stock tracks run
-// from 19 seconds to over ten minutes, so this is not decoration.
+// from 19 seconds to over ten minutes, so this is not decoration: it is how
+// long the room is committed for.
 string JB_LenStr(int nSeconds)
 {
     int nMin = nSeconds / 60;
@@ -125,39 +101,9 @@ string JB_LenStr(int nSeconds)
     return IntToString(nMin) + ":" + (nSec < 10 ? "0" : "") + IntToString(nSec);
 }
 
-// One list entry: a Play button (id "p<catalogue index>"), the name, the length.
-json JB_Row(object oPC, int nIndex, int nPlayingRow)
-{
-    int bPlaying = (JB_CatRow(nIndex) == nPlayingRow);
-
-    json jRow = JsonArray();
-
-    json jBtn = NuiId(NuiButton(JsonString(bPlaying ? "Playing" : "Play")),
-                      "p" + IntToString(nIndex));
-    // Greyed, not hidden, for the track already playing - the player can still
-    // see where it is in the list. Every other row stays enabled; the action
-    // script is what actually decides, this window is only a snapshot.
-    jBtn = NuiEnabled(jBtn, JsonBool(!bPlaying));
-    jBtn = NuiTooltip(jBtn, JsonString(bPlaying
-        ? "This is what the room is playing now"
-        : "Play this in the room"));
-    jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, JB_COL_BTN));
-
-    json jName = NuiLabel(JsonString(JB_CatName(nIndex)),
-                          JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
-    jName = NuiTooltip(jName, JsonString(JB_CatName(nIndex)));
-    jRow = JsonArrayInsert(jRow, NuiWidth(jName, JB_COL_NAME));
-
-    json jLen = NuiLabel(JsonString(JB_LenStr(JB_CatDuration(nIndex))),
-                         JsonInt(NUI_HALIGN_RIGHT), JsonInt(NUI_VALIGN_MIDDLE));
-    jRow = JsonArrayInsert(jRow, NuiWidth(jLen, JB_COL_LEN));
-
-    return NuiHeight(NuiRow(jRow), JB_ROW_H);
-}
-
-// The catalogue index playing raw 2DA row nRow, or -1. The area records a ROW
-// (JB_ROW), not a catalogue index, because the same room can be driven by the
-// admin item's own table as well as by this window.
+// The catalogue index for a raw 2DA row, or -1. The queue and jb_plays both
+// speak in rows, because a row is what the engine plays and what an area
+// stores; the catalogue index is only a position in a generated table.
 int JB_CatIndexForRow(int nRow)
 {
     int i;
@@ -166,14 +112,52 @@ int JB_CatIndexForRow(int nRow)
     return -1;
 }
 
-// What the room is playing, in words. JB_ON/JB_ROW are area locals owned by
-// jb_inc.nss; the jukebox is area-wide by design, so this is the state of the
-// ROOM, not of the player reading it.
+// One list entry: a Queue button (id "q<raw row>"), the name, length, plays.
+json JB_Row(object oPC, int nRow, int nPlayingRow, int nGold)
+{
+    int nCat = JB_CatIndexForRow(nRow);
+    if (nCat < 0) return JsonNull();
+
+    int bPlaying = (nRow == nPlayingRow);
+    int nCost = JB_TierCost(JB_Tier(oPC));
+
+    json jRow = JsonArray();
+
+    json jBtn = NuiId(NuiButton(JsonString(bPlaying ? "Playing" : "Queue")),
+                      "q" + IntToString(nRow));
+    // Greyed, never hidden, when it is already playing or the player cannot
+    // afford the chosen tier - so the whole list stays readable and a player can
+    // see what they are saving up for. jb_evt re-checks the gold before taking
+    // it; this window is only a snapshot of it.
+    jBtn = NuiEnabled(jBtn, JsonBool(!bPlaying && nGold >= nCost));
+    jBtn = NuiTooltip(jBtn, JsonString(bPlaying
+        ? "The room is playing this now"
+        : "Queue this for " + JB_Gold(nCost) + " gp"));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, JB_COL_BTN));
+
+    json jName = NuiLabel(JsonString(JB_CatName(nCat)),
+                          JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
+    jName = NuiTooltip(jName, JsonString(JB_CatName(nCat)));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jName, JB_COL_NAME));
+
+    json jLen = NuiLabel(JsonString(JB_LenStr(JB_CatDuration(nCat))),
+                         JsonInt(NUI_HALIGN_RIGHT), JsonInt(NUI_VALIGN_MIDDLE));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jLen, JB_COL_LEN));
+
+    int nPlays = JB_PlaysFor(nRow);
+    json jPlays = NuiLabel(JsonString(nPlays == 0 ? "-" : IntToString(nPlays)),
+                           JsonInt(NUI_HALIGN_RIGHT), JsonInt(NUI_VALIGN_MIDDLE));
+    jPlays = NuiTooltip(jPlays, JsonString(nPlays == 1
+        ? "Played once here" : "Played " + IntToString(nPlays) + " times here"));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jPlays, JB_COL_PLAY));
+
+    return NuiHeight(NuiRow(jRow), JB_ROW_H);
+}
+
+// What the room is playing and what is waiting. The jukebox is area-wide by
+// design, so this is the state of the ROOM, not of the player reading it.
 string JB_StatusLine(object oArea, object oPC)
 {
-    int nTotal = JB_MatchCount(oPC);
-    string sQ = GetLocalString(oPC, JB_NUI_Q);
-
     string sNow;
     if (GetLocalInt(oArea, JB_ON))
     {
@@ -185,17 +169,19 @@ string JB_StatusLine(object oArea, object oPC)
     else
         sNow = "Silent. The room is playing its own music.";
 
-    string sFound = IntToString(nTotal) + " track" + (nTotal == 1 ? "" : "s");
-    if (sQ != "") sFound += " matching \"" + sQ + "\"";
+    int nWaiting = JB_QueueLength(oArea);
+    if (nWaiting > 0)
+        sNow += "   " + IntToString(nWaiting) + " waiting.";
 
-    return sNow + "   (" + sFound + ")";
+    return sNow;
 }
 
 json JB_Window(object oPC)
 {
     object oArea = GetArea(oPC);
-    int nPlayingRow = GetLocalInt(oArea, JB_ON)
-                    ? GetLocalInt(oArea, JB_ROW) : -1;
+    int nPlayingRow = GetLocalInt(oArea, JB_ON) ? GetLocalInt(oArea, JB_ROW) : -1;
+    int nGold = GetGold(oPC);
+    int nTier = JB_Tier(oPC);
 
     json jCol = JsonArray();
 
@@ -203,33 +189,60 @@ json JB_Window(object oPC)
     // of unbounded length and a label would drop the tail with no visual cue.
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
         NuiText(JsonString(JB_StatusLine(oArea, oPC)), FALSE, NUI_SCROLLBARS_NONE),
-        JB_LIST_W), 44.0));
+        JB_LIST_W), 40.0));
 
-    // Search row. The field holds its term across rebuilds because the term
-    // lives on the PC, not in the widget - a rebuilt window starts with an
-    // empty field otherwise, and the list it is filtering would disagree with it.
+    // Search row. The term lives on the PC, not in the widget, so a rebuilt
+    // window comes back agreeing with the list it is filtering.
     json jSearch = JsonArray();
-    json jEdit = NuiId(NuiTextEdit(JsonString("Search by name"),
-                                   NuiBind(JB_BIND_SEARCH), 64, FALSE),
-                       "qedit");
-    jSearch = JsonArrayInsert(jSearch, NuiWidth(jEdit, 300.0));
+    jSearch = JsonArrayInsert(jSearch, NuiWidth(
+        NuiId(NuiTextEdit(JsonString("Search by name"), NuiBind(JB_BIND_SEARCH),
+                          64, FALSE), "qedit"), 250.0));
     jSearch = JsonArrayInsert(jSearch, NuiWidth(
         NuiId(NuiButton(JsonString("Search")), "bfind"), 80.0));
     jSearch = JsonArrayInsert(jSearch, NuiWidth(
-        NuiId(NuiButton(JsonString("All")), "ball"), 70.0));
-    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jSearch), JB_HDR_H + 6.0));
+        NuiId(NuiButton(JsonString("All")), "ball"), 60.0));
+    json jSort = NuiId(NuiButton(JsonString(
+        JB_Sort(oPC) == "plays" ? "Most played" : "A-Z")), "bsort");
+    jSort = NuiTooltip(jSort, JsonString("Switch between A-Z and most played"));
+    jSearch = JsonArrayInsert(jSearch, NuiWidth(jSort, 110.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jSearch), 32.0));
+
+    // Priority row. One button that cycles the tier, rather than a control per
+    // tier on every row - five tiers times twelve rows would be sixty extra
+    // widgets for a choice that is made once.
+    json jPrio = JsonArray();
+    json jTier = NuiId(NuiButton(JsonString(
+        "Priority: " + JB_TierName(nTier) + " - " + JB_Gold(JB_TierCost(nTier))
+        + " gp")), "btier");
+    jTier = NuiTooltip(jTier, JsonString(
+        "Click to change how far ahead you pay to jump"));
+    jPrio = JsonArrayInsert(jPrio, NuiWidth(jTier, 330.0));
+
+    int nAhead = JB_AheadOf(oArea, nTier);
+    string sAhead = (nAhead == 0)
+        ? "Nothing outranks this"
+        : IntToString(nAhead) + " ahead of you";
+    jPrio = JsonArrayInsert(jPrio, NuiWidth(
+        NuiLabel(JsonString(sAhead), JsonInt(NUI_HALIGN_LEFT),
+                 JsonInt(NUI_VALIGN_MIDDLE)), 170.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jPrio), 32.0));
 
     // The list. Explicitly sized, vertical scrollbars only, and PAGED - see the
     // widget cap in the header.
     int nPage = JB_Page(oPC);
     int nFrom = nPage * JB_NUI_PAGE;
+    string sQ = JB_Query(oPC);
+    string sSort = JB_Sort(oPC);
+
     json jList = JsonArray();
     int i;
     for (i = 0; i < JB_NUI_PAGE; i++)
     {
-        int nIndex = JB_MatchAt(oPC, nFrom + i);
-        if (nIndex < 0) break;
-        jList = JsonArrayInsert(jList, JB_Row(oPC, nIndex, nPlayingRow));
+        int nRow = JB_ListRowAt(sQ, sSort, nFrom + i);
+        if (nRow < 0) break;
+        json jEntry = JB_Row(oPC, nRow, nPlayingRow, nGold);
+        if (JsonGetType(jEntry) != JSON_TYPE_NULL)
+            jList = JsonArrayInsert(jList, jEntry);
     }
     if (JsonGetLength(jList) == 0)
         jList = JsonArrayInsert(jList, NuiHeight(NuiWidth(
@@ -242,28 +255,27 @@ json JB_Window(object oPC)
     jGroup = NuiHeight(jGroup, JB_LIST_H);
     jCol = JsonArrayInsert(jCol, jGroup);
 
-    // Paging and the stop control.
+    // Paging, purse, and the way out.
     json jFoot = JsonArray();
     json jPrev = NuiId(NuiButton(JsonString("< Prev")), "bprev");
     jPrev = NuiEnabled(jPrev, JsonBool(nPage > 0));
-    jFoot = JsonArrayInsert(jFoot, NuiWidth(jPrev, 80.0));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(jPrev, 75.0));
 
     jFoot = JsonArrayInsert(jFoot, NuiWidth(
         NuiLabel(JsonString("page " + IntToString(nPage + 1) + " of "
                             + IntToString(JB_PageCount(oPC))),
-                 JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 110.0));
+                 JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 100.0));
 
     json jNext = NuiId(NuiButton(JsonString("Next >")), "bnext");
     jNext = NuiEnabled(jNext, JsonBool(nPage + 1 < JB_PageCount(oPC)));
-    jFoot = JsonArrayInsert(jFoot, NuiWidth(jNext, 80.0));
-
-    json jStop = NuiId(NuiButton(JsonString("Stop")), "bstop");
-    jStop = NuiEnabled(jStop, JsonBool(GetLocalInt(oArea, JB_ON)));
-    jStop = NuiTooltip(jStop, JsonString("Give the room its own music back"));
-    jFoot = JsonArrayInsert(jFoot, NuiWidth(jStop, 80.0));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(jNext, 75.0));
 
     jFoot = JsonArrayInsert(jFoot, NuiWidth(
-        NuiId(NuiButton(JsonString("Close")), "bclose"), 80.0));
+        NuiLabel(JsonString(JB_Gold(nGold) + " gp"), JsonInt(NUI_HALIGN_RIGHT),
+                 JsonInt(NUI_VALIGN_MIDDLE)), 180.0));
+
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(
+        NuiId(NuiButton(JsonString("Close")), "bclose"), 75.0));
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
 
     return NuiWindow(NuiCol(jCol), JsonString("Jukebox"),
@@ -282,14 +294,16 @@ void JB_NuiClose(object oPC)
     int nTok = GetLocalInt(oPC, JB_NUI_TOK);
     if (nTok) NuiDestroy(oPC, nTok);
     DeleteLocalInt(oPC, JB_NUI_TOK);
-    // The next player to walk up starts on page one with no filter, rather than
-    // wherever the last one left off.
+    // The next time anyone opens it they start on page one with no filter,
+    // rather than wherever the last visit left off. The chosen tier is kept:
+    // it is a spending decision, not a view.
     DeleteLocalInt(oPC, JB_NUI_PG);
     DeleteLocalString(oPC, JB_NUI_Q);
+    DeleteLocalString(oPC, JB_NUI_SORT);
 }
 
 // Open, or rebuild in place. Destroying any stale instance first is how the
-// list refreshes after a pick, exactly as legfeat_nui does.
+// list refreshes after an action, exactly as legfeat_nui does.
 void JB_NuiOpen(object oPC)
 {
     if (!GetIsPC(oPC)) return;
@@ -300,8 +314,7 @@ void JB_NuiOpen(object oPC)
     int nTok = NuiCreate(oPC, JB_Window(oPC), JB_WIN, "jb_evt");
     SetLocalInt(oPC, JB_NUI_TOK, nTok);
 
-    // Put the active term back in the field after a rebuild, so the box agrees
-    // with the list it filtered.
-    NuiSetBind(oPC, nTok, JB_BIND_SEARCH,
-               JsonString(GetLocalString(oPC, JB_NUI_Q)));
+    // Put the active term back in the field after a rebuild, so the box always
+    // agrees with the list it filtered.
+    NuiSetBind(oPC, nTok, JB_BIND_SEARCH, JsonString(JB_Query(oPC)));
 }
