@@ -4951,7 +4951,13 @@ PAGE = r"""<!doctype html>
              border-radius:3px; }
   .wtab .x:hover { color:var(--err); background:#3a3f4a; }
   #banner:empty { display:none; }
-  #banner { margin:8px 18px 0; }
+  #banner { margin:8px 18px 0; position:relative; padding-right:32px; }
+  #banner .bnr-x { position:absolute; top:4px; right:6px; background:none;
+                   border:none; color:var(--mut); font-size:18px; line-height:1;
+                   padding:2px 5px; border-radius:3px; cursor:pointer; }
+  #banner .bnr-x:hover { color:var(--err); background:#3a3f4a; }
+  #banner .linkbtn { font-size:inherit; }
+  #banner .bnr-ign { color:var(--mut); margin-left:8px; }
 
   /* ---- Filter bar (one per view, both driven by FILTERS) --------------- */
   .filterbar { display:flex; flex-wrap:wrap; gap:6px; align-items:center;
@@ -5904,10 +5910,16 @@ function activate(key, opts){
   const t = tabFor(key); if (!t) return;
   const prev = activeTab();
   if (prev && prev !== t){
-    // Idea forms lean on three module globals. They are per-TAB state, so they
+    // Idea forms lean on five module globals. They are per-TAB state, so they
     // ride with the tab rather than following whichever form rendered last.
+    // RT (the notes/impl editors) and HO (the hand-off panel's steps, questions
+    // and UAT credits) used to stay behind: switching back to a tab left them
+    // pointing at the LAST-rendered tab's widgets, so Save wrote that other
+    // idea's notes and UAT steps into this one (gondor-scribe's landed on
+    // tournament-maug-doublesword that way).
     if (prev.kind === 'idea'){
       prev.sel = sel; prev.selRef = selRef; prev.formSnapshot = formSnapshot;
+      prev.RT = RT; prev.HO = HO;
     }
     captureScroll(prev);
     prev.pane.remove();
@@ -5916,6 +5928,9 @@ function activate(key, opts){
   if (t.pane.parentNode !== $('#panes')) $('#panes').appendChild(t.pane);
   if (t.kind === 'idea'){
     sel = t.sel; selRef = t.selRef; formSnapshot = t.formSnapshot;
+    // A tab that has never rendered has none yet; its render sets both.
+    RT = t.RT || {};
+    HO = t.HO || {design_questions: [], manual_steps: [], uat_credits: []};
   } else { selRef = null; formSnapshot = null; }
   // A panel's own controls (Recent changes' "30 days", the queue's refresh)
   // re-render through panelHTML(), so the target has to stay pointed at the
@@ -7942,7 +7957,67 @@ function todayISO(){
   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
 }
 
-function banner(cls,msg){ const b=$('#banner'); b.className=cls; b.textContent=msg; }
+function banner(cls,msg){ const b=$('#banner'); b.className=cls;
+  b.innerHTML = msg ? bannerText(msg) + BANNER_X : ''; }
+
+// Banner text as HTML: escaped, with every quoted '<id>' that names a real idea
+// turned into a link that opens it in its own tab (the validator's duplicate
+// warnings quote ids this way). Anything else quoted stays plain text.
+const BANNER_X = '<button class="bnr-x" title="Dismiss">×</button>';
+function bannerText(msg){
+  const ids = new Set(((DATA && DATA.ideas) || []).map(x=>x.id));
+  return esc(msg).replace(/'([^'\s]+)'/g, (m, id) => ids.has(id)
+    ? `'<button class="linkbtn" data-idea="${id}" title="Open ${id}">${id}</button>'`
+    : m);
+}
+
+// Save-result banner. Warnings the user chose to ignore (exact text, kept per
+// browser) are filtered out; an "Ignore these warnings" button sits after the
+// "Warnings:" heading, and a "show again" link undoes it. Display only — the
+// validator and roadmap-lint still see every warning.
+const IGNWARN_LS = 'roadmap.ignoredWarnings';
+function ignoredWarnings(){
+  try { return new Set(JSON.parse(localStorage.getItem(IGNWARN_LS) || '[]')); }
+  catch(e){ return new Set(); }
+}
+function setIgnoredWarnings(set){
+  try { localStorage.setItem(IGNWARN_LS, JSON.stringify([...set])); } catch(e){}
+}
+let lastSaveBanner = null;
+function saveBanner(head, warnings, tail){
+  lastSaveBanner = {head, warnings, tail};
+  const ign = ignoredWarnings();
+  const all = warnings || [];
+  const shown = all.filter(w => !ign.has(w));
+  const hidden = all.length - shown.length;
+  const b = $('#banner');
+  b.className = shown.length ? 'warn' : 'ok';
+  let html = bannerText(head);
+  if (shown.length)
+    html += '\n\nWarnings: <button class="linkbtn" data-bnr="ignore">'
+      + 'Ignore these warnings</button>\n• '
+      + shown.map(bannerText).join('\n• ');
+  if (hidden)
+    html += `\n<span class="bnr-ign">${hidden} ignored warning${hidden===1?'':'s'} — `
+      + '<button class="linkbtn" data-bnr="unignore">show again</button></span>';
+  if (tail) html += '\n\n' + bannerText(tail);
+  b.innerHTML = html + BANNER_X;
+}
+
+document.addEventListener('click', e=>{
+  const b = $('#banner'); if (!b || !b.contains(e.target)) return;
+  const btn = e.target.closest('button'); if (!btn) return;
+  if (btn.classList.contains('bnr-x')){ b.className=''; b.innerHTML=''; lastSaveBanner=null; return; }
+  if (btn.dataset.idea){ openIdea(btn.dataset.idea); return; }
+  const s = lastSaveBanner;
+  if (btn.dataset.bnr === 'ignore' && s){
+    const ign = ignoredWarnings(); s.warnings.forEach(w=>ign.add(w));
+    setIgnoredWarnings(ign); saveBanner(s.head, s.warnings, s.tail);
+  } else if (btn.dataset.bnr === 'unignore'){
+    setIgnoredWarnings(new Set());
+    if (s) saveBanner(s.head, s.warnings, s.tail);
+  }
+});
 
 // ---- unsaved-changes guard ----------------------------------------------
 // The form lives entirely in the DOM until Save folds it into DATA, so anything
@@ -8088,10 +8163,7 @@ async function commit(endpoint, force, opts){
     if (res.reverted !== undefined){ await load(); reselect(keepId); }
     return false;
   }
-  let msg = res.message || 'Saved.';
-  if (res.warnings && res.warnings.length) msg += '\n\nWarnings:\n• '+res.warnings.join('\n• ');
-  if (res.output) msg += '\n\n'+res.output;
-  banner(res.warnings&&res.warnings.length ? 'warn':'ok', msg);
+  saveBanner(res.message || 'Saved.', res.warnings, res.output);
   await load();
   if (!inIdeaForm()) return true;
   // Save holds the idea you saved. It used to advance to the next row of the
@@ -8139,7 +8211,7 @@ function retargetIdeaTab(id){
 // Reload the latest (losing in-page edits) or Force-overwrite it.
 function conflictBanner(endpoint, conflictMsg){
   const b=$('#banner'); b.className='warn';
-  b.innerHTML='';
+  b.innerHTML=BANNER_X;
   const msg=document.createElement('div');
   msg.textContent = conflictMsg
     || '⚠ roadmap.yaml changed on disk since you opened it (external edit '
@@ -10222,7 +10294,7 @@ setInterval(async ()=>{
     const d=await (await api('/api/version')).json();
     if (d.version && baseVersion && d.version!==baseVersion){
       const b=$('#banner');
-      if (!b.querySelector('button')){   // don't stomp an active conflict banner
+      if (!b.querySelector('.bar button')){   // don't stomp an active conflict banner
         // A public viewer has no edits to merge and no file to reason about --
         // "roadmap.yaml changed on disk" would be a warning about somebody
         // else's working copy. They just need to know the page is behind.

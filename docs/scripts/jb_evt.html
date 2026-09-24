@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script jb_evt</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>jb_evt</code></h1><pre class="nss-source"><code>// jb_evt.nss - NUI event handler for the player jukebox&#x27;s song browser.
+// Registered per-window via the sEventScript arg of NuiCreate in jb_nui.
+#include &quot;jb_nui&quot;
+
+void main()
+{
+    if (NuiGetEventType() != &quot;click&quot;) return;   // buttons send &quot;click&quot;
+
+    object oPC   = NuiGetEventPlayer();
+    object oArea = GetArea(oPC);
+    string sElem = NuiGetEventElement();
+
+    if (sElem == &quot;bclose&quot;)
+    {
+        JB_NuiClose(oPC);
+        return;
+    }
+
+    // Search. The term is read from the bind HERE rather than watched, so the
+    // text field keeps keyboard focus while it is being typed - see the header
+    // of jb_nui.nss. Any change to the filter or the sort resets to page one,
+    // because the page the player was on almost certainly does not exist in the
+    // new list.
+    if (sElem == &quot;bfind&quot;)
+    {
+        int nTok = GetLocalInt(oPC, JB_NUI_TOK);
+        SetLocalString(oPC, JB_NUI_Q,
+            JsonGetString(NuiGetBind(oPC, nTok, JB_BIND_SEARCH)));
+        SetLocalInt(oPC, JB_NUI_PG, 0);
+        JB_NuiOpen(oPC);
+        return;
+    }
+
+    if (sElem == &quot;ball&quot;)
+    {
+        DeleteLocalString(oPC, JB_NUI_Q);
+        SetLocalInt(oPC, JB_NUI_PG, 0);
+        JB_NuiOpen(oPC);
+        return;
+    }
+
+    if (sElem == &quot;bsort&quot;)
+    {
+        SetLocalString(oPC, JB_NUI_SORT,
+                       JB_Sort(oPC) == &quot;plays&quot; ? &quot;&quot; : &quot;plays&quot;);
+        SetLocalInt(oPC, JB_NUI_PG, 0);
+        JB_NuiOpen(oPC);
+        return;
+    }
+
+    // Cycle the priority tier. One button rather than a control per tier per
+    // row; the choice is made once and then spent.
+    if (sElem == &quot;btier&quot;)
+    {
+        int nTier = JB_Tier(oPC) + 1;
+        if (nTier &gt; JB_TIER_MAX) nTier = 0;
+        SetLocalInt(oPC, JB_NUI_TIER, nTier);
+        JB_NuiOpen(oPC);
+        return;
+    }
+
+    if (sElem == &quot;bprev&quot;)
+    {
+        SetLocalInt(oPC, JB_NUI_PG, GetLocalInt(oPC, JB_NUI_PG) - 1);
+        JB_NuiOpen(oPC);
+        return;
+    }
+
+    if (sElem == &quot;bnext&quot;)
+    {
+        SetLocalInt(oPC, JB_NUI_PG, GetLocalInt(oPC, JB_NUI_PG) + 1);
+        JB_NuiOpen(oPC);
+        return;
+    }
+
+    // &quot;q&lt;raw 2DA row&gt;&quot; - pay for it and put it in the queue.
+    if (GetStringLeft(sElem, 1) != &quot;q&quot;) return;
+    int nRow = StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1));
+    int nCat = JB_CatIndexForRow(nRow);
+    if (nCat &lt; 0) return;
+
+    int nTier = JB_Tier(oPC);
+    int nCost = JB_TierCost(nTier);
+
+    // THE GOLD IS RE-CHECKED HERE, not trusted from the window. The greyed
+    // button is a snapshot taken when the list was drawn, and the player may
+    // have spent since - the same rule legfeat_nui states for its prerequisites
+    // (legfeat_nui.nss:238) and brc_wheel has taken bets under since long
+    // before that.
+    if (GetGold(oPC) &lt; nCost)
+    {
+        SendMessageToPC(oPC, ColorString(
+            &quot;[Jukebox] That costs &quot; + JB_Gold(nCost) + &quot; gp and you have &quot;
+            + JB_Gold(GetGold(oPC)) + &quot;.&quot;, COLOR_LIGHT_BLUE));
+        JB_NuiOpen(oPC);
+        return;
+    }
+
+    TakeGoldFromCreature(nCost, oPC, TRUE);
+    JB_Enqueue(oArea, nRow, JB_CatDuration(nCat), nTier, nCost, oPC);
+
+    // Settle immediately: if the room was silent this starts the song now,
+    // otherwise it simply leaves it in the queue behind whatever is playing.
+    JB_Reconcile(oArea);
+
+    if (GetLocalInt(oArea, JB_ROW) == nRow)
+        SendMessageToPC(oPC, ColorString(
+            &quot;[Jukebox] &quot; + JB_CatName(nCat) + &quot;, playing now. &quot;
+            + JB_Gold(nCost) + &quot; gp.&quot;, COLOR_LIGHT_BLUE));
+    else
+    {
+        int nAhead = JB_AheadOf(oArea, nTier);
+        SendMessageToPC(oPC, ColorString(
+            &quot;[Jukebox] &quot; + JB_CatName(nCat) + &quot; is in the queue for &quot;
+            + JB_Gold(nCost) + &quot; gp, behind &quot; + IntToString(nAhead + 1)
+            + ((nAhead == 0) ? &quot; song.&quot; : &quot; songs.&quot;), COLOR_LIGHT_BLUE));
+    }
+
+    // Rebuild so the purse, the queue length and the playing row all agree with
+    // what just happened.
+    JB_NuiOpen(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

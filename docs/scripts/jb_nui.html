@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script jb_nui</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>jb_nui</code></h1><pre class="nss-source"><code>// jb_nui.nss - the player jukebox&#x27;s song browser.
+//
+// Opened from the placeable (jb_plc_used). Event handling is in jb_evt.nss,
+// registered per-window via NuiCreate&#x27;s sEventScript - this module has no
+// central NUI dispatcher, every window carries its own handler.
+//
+// WHY A WINDOW AND NOT THE CONVERSATION
+//
+// The admin jukebox&#x27;s jb_conv lists 8 tracks a page on custom tokens 7010-7018
+// and knows only our 5 custom songs. The player catalogue is 113 tracks
+// (jb_catalog.nss), which is 15 pages of dialogue to walk with no way to search
+// and no way to sort. A window can do both.
+//
+// THE LIST COMES FROM SQL, NOT FROM THE CATALOGUE TABLE. jb_plays carries each
+// track&#x27;s name beside its play count, so one statement does the filtering, the
+// ordering and the paging. &quot;Sort by most played&quot; is the reason: NWScript has no
+// array, so there is nothing to sort 113 entries in. The catalogue is still the
+// source of the names, durations and rows - jb_db seeds jb_plays from it.
+//
+// SHAPE, and the traps it is built around - all four recorded against this
+// repo&#x27;s other NUI windows, see csp_nui.nss:18-34:
+//
+//   * EVERY child gets an explicit width and the list group an explicit size.
+//     Otherwise the group sizes to its longest label, grows a horizontal
+//     scrollbar and clips the header.
+//   * Nothing long goes in a TOOLTIP. A NUI tooltip renders one line, never
+//     clips it, and silently strips newlines. Track names are bounded by the
+//     name column, so the tooltips here are short by construction.
+//   * Too many widgets in one window fails outright with &quot;Error constructing
+//     window from json&quot;. dye_nui_inc caps at 48 cells for this reason, so the
+//     list is PAGED at JB_NUI_PAGE rows rather than rendering all 113.
+//   * The window is REBUILT rather than updated after an action, which is the
+//     house convention (legfeat_nui, csp_nui).
+//
+// WHY SEARCH IS A BUTTON AND NOT LIVE FILTERING
+//
+// A watched bind fires on every keystroke, and the only way to change the row
+// set is to rebuild the window - which destroys and recreates it, taking the
+// keyboard focus out of the text field. Live filtering would therefore accept
+// exactly one character and then drop focus. The field is read on demand
+// instead, when Search is clicked.
+#include &quot;nw_inc_nui&quot;
+#include &quot;jb_db&quot;
+#include &quot;color&quot;
+
+const string JB_WIN      = &quot;jukebox&quot;;
+const string JB_NUI_TOK  = &quot;JB_NUI_TOK&quot;;    // PC local: this window&#x27;s token
+const string JB_NUI_PG   = &quot;JB_NUI_PG&quot;;     // PC local: current page, 0-based
+const string JB_NUI_Q    = &quot;JB_NUI_Q&quot;;      // PC local: the active search term
+const string JB_NUI_SORT = &quot;JB_NUI_SORT&quot;;   // PC local: &quot;&quot; (A-Z) or &quot;plays&quot;
+const string JB_NUI_TIER = &quot;JB_NUI_TIER&quot;;   // PC local: chosen priority tier
+
+const string JB_BIND_SEARCH = &quot;jb_search&quot;;
+
+const int JB_NUI_PAGE = 12;                 // rows per page; see widget cap above
+
+const float JB_WIN_W    = 560.0;
+const float JB_WIN_H    = 580.0;
+const float JB_LIST_W   = 510.0;
+const float JB_LIST_H   = 300.0;
+const float JB_COL_BTN  = 80.0;
+const float JB_COL_NAME = 270.0;
+const float JB_COL_LEN  = 60.0;
+const float JB_COL_PLAY = 80.0;
+const float JB_ROW_H    = 30.0;
+
+void JB_NuiOpen(object oPC);
+void JB_NuiClose(object oPC);
+
+// ------------------------------------------------------------------- state --
+
+string JB_Query(object oPC) { return GetLocalString(oPC, JB_NUI_Q); }
+string JB_Sort(object oPC)  { return GetLocalString(oPC, JB_NUI_SORT); }
+int    JB_Tier(object oPC)  { return GetLocalInt(oPC, JB_NUI_TIER); }
+
+int JB_PageCount(object oPC)
+{
+    int nTotal = JB_ListCount(JB_Query(oPC));
+    if (nTotal &lt;= 0) return 1;
+    return (nTotal + JB_NUI_PAGE - 1) / JB_NUI_PAGE;
+}
+
+int JB_Page(object oPC)
+{
+    int nPage = GetLocalInt(oPC, JB_NUI_PG);
+    int nMax  = JB_PageCount(oPC) - 1;
+    if (nPage &lt; 0) nPage = 0;
+    if (nPage &gt; nMax) nPage = nMax;
+    return nPage;
+}
+
+// ------------------------------------------------------------------ layout --
+
+// &quot;4:31&quot; - a length a player can weigh before spending on it. Stock tracks run
+// from 19 seconds to over ten minutes, so this is not decoration: it is how
+// long the room is committed for.
+string JB_LenStr(int nSeconds)
+{
+    int nMin = nSeconds / 60;
+    int nSec = nSeconds % 60;
+    return IntToString(nMin) + &quot;:&quot; + (nSec &lt; 10 ? &quot;0&quot; : &quot;&quot;) + IntToString(nSec);
+}
+
+// The catalogue index for a raw 2DA row, or -1. The queue and jb_plays both
+// speak in rows, because a row is what the engine plays and what an area
+// stores; the catalogue index is only a position in a generated table.
+int JB_CatIndexForRow(int nRow)
+{
+    int i;
+    for (i = 0; i &lt; JB_CatCount(); i++)
+        if (JB_CatRow(i) == nRow) return i;
+    return -1;
+}
+
+// One list entry: a Queue button (id &quot;q&lt;raw row&gt;&quot;), the name, length, plays.
+json JB_Row(object oPC, int nRow, int nPlayingRow, int nGold)
+{
+    int nCat = JB_CatIndexForRow(nRow);
+    if (nCat &lt; 0) return JsonNull();
+
+    int bPlaying = (nRow == nPlayingRow);
+    int nCost = JB_TierCost(JB_Tier(oPC));
+
+    json jRow = JsonArray();
+
+    json jBtn = NuiId(NuiButton(JsonString(bPlaying ? &quot;Playing&quot; : &quot;Queue&quot;)),
+                      &quot;q&quot; + IntToString(nRow));
+    // Greyed, never hidden, when it is already playing or the player cannot
+    // afford the chosen tier - so the whole list stays readable and a player can
+    // see what they are saving up for. jb_evt re-checks the gold before taking
+    // it; this window is only a snapshot of it.
+    jBtn = NuiEnabled(jBtn, JsonBool(!bPlaying &amp;&amp; nGold &gt;= nCost));
+    jBtn = NuiTooltip(jBtn, JsonString(bPlaying
+        ? &quot;The room is playing this now&quot;
+        : &quot;Queue this for &quot; + JB_Gold(nCost) + &quot; gp&quot;));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, JB_COL_BTN));
+
+    json jName = NuiLabel(JsonString(JB_CatName(nCat)),
+                          JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
+    jName = NuiTooltip(jName, JsonString(JB_CatName(nCat)));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jName, JB_COL_NAME));
+
+    json jLen = NuiLabel(JsonString(JB_LenStr(JB_CatDuration(nCat))),
+                         JsonInt(NUI_HALIGN_RIGHT), JsonInt(NUI_VALIGN_MIDDLE));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jLen, JB_COL_LEN));
+
+    int nPlays = JB_PlaysFor(nRow);
+    json jPlays = NuiLabel(JsonString(nPlays == 0 ? &quot;-&quot; : IntToString(nPlays)),
+                           JsonInt(NUI_HALIGN_RIGHT), JsonInt(NUI_VALIGN_MIDDLE));
+    jPlays = NuiTooltip(jPlays, JsonString(nPlays == 1
+        ? &quot;Played once here&quot; : &quot;Played &quot; + IntToString(nPlays) + &quot; times here&quot;));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jPlays, JB_COL_PLAY));
+
+    return NuiHeight(NuiRow(jRow), JB_ROW_H);
+}
+
+// What the room is playing and what is waiting. The jukebox is area-wide by
+// design, so this is the state of the ROOM, not of the player reading it.
+string JB_StatusLine(object oArea, object oPC)
+{
+    string sNow;
+    if (GetLocalInt(oArea, JB_ON))
+    {
+        int nCat = JB_CatIndexForRow(GetLocalInt(oArea, JB_ROW));
+        // A row the catalogue does not carry means the admin item is playing one
+        // of the excluded rows. Say something true rather than an empty name.
+        sNow = &quot;Now playing: &quot; + ((nCat &gt;= 0) ? JB_CatName(nCat) : &quot;an unlisted track&quot;);
+    }
+    else
+        sNow = &quot;Silent. The room is playing its own music.&quot;;
+
+    int nWaiting = JB_QueueLength(oArea);
+    if (nWaiting &gt; 0)
+        sNow += &quot;   &quot; + IntToString(nWaiting) + &quot; waiting.&quot;;
+
+    return sNow;
+}
+
+json JB_Window(object oPC)
+{
+    object oArea = GetArea(oPC);
+    int nPlayingRow = GetLocalInt(oArea, JB_ON) ? GetLocalInt(oArea, JB_ROW) : -1;
+    int nGold = GetGold(oPC);
+    int nTier = JB_Tier(oPC);
+
+    json jCol = JsonArray();
+
+    // Status. A text widget rather than a label: the line carries a track name
+    // of unbounded length and a label would drop the tail with no visual cue.
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
+        NuiText(JsonString(JB_StatusLine(oArea, oPC)), FALSE, NUI_SCROLLBARS_NONE),
+        JB_LIST_W), 40.0));
+
+    // Search row. The term lives on the PC, not in the widget, so a rebuilt
+    // window comes back agreeing with the list it is filtering.
+    json jSearch = JsonArray();
+    jSearch = JsonArrayInsert(jSearch, NuiWidth(
+        NuiId(NuiTextEdit(JsonString(&quot;Search by name&quot;), NuiBind(JB_BIND_SEARCH),
+                          64, FALSE), &quot;qedit&quot;), 250.0));
+    jSearch = JsonArrayInsert(jSearch, NuiWidth(
+        NuiId(NuiButton(JsonString(&quot;Search&quot;)), &quot;bfind&quot;), 80.0));
+    jSearch = JsonArrayInsert(jSearch, NuiWidth(
+        NuiId(NuiButton(JsonString(&quot;All&quot;)), &quot;ball&quot;), 60.0));
+    json jSort = NuiId(NuiButton(JsonString(
+        JB_Sort(oPC) == &quot;plays&quot; ? &quot;Most played&quot; : &quot;A-Z&quot;)), &quot;bsort&quot;);
+    jSort = NuiTooltip(jSort, JsonString(&quot;Switch between A-Z and most played&quot;));
+    jSearch = JsonArrayInsert(jSearch, NuiWidth(jSort, 110.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jSearch), 32.0));
+
+    // Priority row. One button that cycles the tier, rather than a control per
+    // tier on every row - five tiers times twelve rows would be sixty extra
+    // widgets for a choice that is made once.
+    json jPrio = JsonArray();
+    json jTier = NuiId(NuiButton(JsonString(
+        &quot;Priority: &quot; + JB_TierName(nTier) + &quot; - &quot; + JB_Gold(JB_TierCost(nTier))
+        + &quot; gp&quot;)), &quot;btier&quot;);
+    jTier = NuiTooltip(jTier, JsonString(
+        &quot;Click to change how far ahead you pay to jump&quot;));
+    jPrio = JsonArrayInsert(jPrio, NuiWidth(jTier, 330.0));
+
+    int nAhead = JB_AheadOf(oArea, nTier);
+    string sAhead = (nAhead == 0)
+        ? &quot;Nothing outranks this&quot;
+        : IntToString(nAhead) + &quot; ahead of you&quot;;
+    jPrio = JsonArrayInsert(jPrio, NuiWidth(
+        NuiLabel(JsonString(sAhead), JsonInt(NUI_HALIGN_LEFT),
+                 JsonInt(NUI_VALIGN_MIDDLE)), 170.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jPrio), 32.0));
+
+    // The list. Explicitly sized, vertical scrollbars only, and PAGED - see the
+    // widget cap in the header.
+    int nPage = JB_Page(oPC);
+    int nFrom = nPage * JB_NUI_PAGE;
+    string sQ = JB_Query(oPC);
+    string sSort = JB_Sort(oPC);
+
+    json jList = JsonArray();
+    int i;
+    for (i = 0; i &lt; JB_NUI_PAGE; i++)
+    {
+        int nRow = JB_ListRowAt(sQ, sSort, nFrom + i);
+        if (nRow &lt; 0) break;
+        json jEntry = JB_Row(oPC, nRow, nPlayingRow, nGold);
+        if (JsonGetType(jEntry) != JSON_TYPE_NULL)
+            jList = JsonArrayInsert(jList, jEntry);
+    }
+    if (JsonGetLength(jList) == 0)
+        jList = JsonArrayInsert(jList, NuiHeight(NuiWidth(
+            NuiLabel(JsonString(&quot;Nothing by that name.&quot;),
+                     JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)),
+            JB_LIST_W), JB_ROW_H));
+
+    json jGroup = NuiGroup(NuiCol(jList), TRUE, NUI_SCROLLBARS_Y);
+    jGroup = NuiWidth(jGroup, JB_LIST_W);
+    jGroup = NuiHeight(jGroup, JB_LIST_H);
+    jCol = JsonArrayInsert(jCol, jGroup);
+
+    // Paging, purse, and the way out.
+    json jFoot = JsonArray();
+    json jPrev = NuiId(NuiButton(JsonString(&quot;&lt; Prev&quot;)), &quot;bprev&quot;);
+    jPrev = NuiEnabled(jPrev, JsonBool(nPage &gt; 0));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(jPrev, 75.0));
+
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(
+        NuiLabel(JsonString(&quot;page &quot; + IntToString(nPage + 1) + &quot; of &quot;
+                            + IntToString(JB_PageCount(oPC))),
+                 JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 100.0));
+
+    json jNext = NuiId(NuiButton(JsonString(&quot;Next &gt;&quot;)), &quot;bnext&quot;);
+    jNext = NuiEnabled(jNext, JsonBool(nPage + 1 &lt; JB_PageCount(oPC)));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(jNext, 75.0));
+
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(
+        NuiLabel(JsonString(JB_Gold(nGold) + &quot; gp&quot;), JsonInt(NUI_HALIGN_RIGHT),
+                 JsonInt(NUI_VALIGN_MIDDLE)), 180.0));
+
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(
+        NuiId(NuiButton(JsonString(&quot;Close&quot;)), &quot;bclose&quot;), 75.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
+
+    return NuiWindow(NuiCol(jCol), JsonString(&quot;Jukebox&quot;),
+        NuiRect(-1.0, -1.0, JB_WIN_W, JB_WIN_H),
+        JsonBool(FALSE),   // resizable
+        JsonBool(FALSE),   // collapsed
+        JsonBool(TRUE),    // closable
+        JsonBool(FALSE),   // transparent
+        JsonBool(TRUE));   // border
+}
+
+// ----------------------------------------------------------------- open it --
+
+void JB_NuiClose(object oPC)
+{
+    int nTok = GetLocalInt(oPC, JB_NUI_TOK);
+    if (nTok) NuiDestroy(oPC, nTok);
+    DeleteLocalInt(oPC, JB_NUI_TOK);
+    // The next time anyone opens it they start on page one with no filter,
+    // rather than wherever the last visit left off. The chosen tier is kept:
+    // it is a spending decision, not a view.
+    DeleteLocalInt(oPC, JB_NUI_PG);
+    DeleteLocalString(oPC, JB_NUI_Q);
+    DeleteLocalString(oPC, JB_NUI_SORT);
+}
+
+// Open, or rebuild in place. Destroying any stale instance first is how the
+// list refreshes after an action, exactly as legfeat_nui does.
+void JB_NuiOpen(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+
+    int nOld = NuiFindWindow(oPC, JB_WIN);
+    if (nOld) NuiDestroy(oPC, nOld);
+
+    int nTok = NuiCreate(oPC, JB_Window(oPC), JB_WIN, &quot;jb_evt&quot;);
+    SetLocalInt(oPC, JB_NUI_TOK, nTok);
+
+    // Put the active term back in the field after a rebuild, so the box always
+    // agrees with the list it filtered.
+    NuiSetBind(oPC, nTok, JB_BIND_SEARCH, JsonString(JB_Query(oPC)));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script jb_buff_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>jb_buff_inc</code></h1><pre class="nss-source"><code>// jb_buff_inc.nss - the reward for sitting and listening to the jukebox.
+//
+// TWO STATES, AND THE CLOCK ONLY RUNS IN THE SECOND ONE
+//
+//   LISTENING  - you are in the room, songs are finishing, and credit is piling
+//                up. Nothing is applied and NOTHING EXPIRES.
+//   CARRYING   - you have left the room. The credit is spent, once, into a buff
+//                of a size and a duration both scaled by how long you listened,
+//                and that buff now runs down.
+//
+// THE FIRST BUILD GOT THIS WRONG AND THE BUG IS WORTH RECORDING, because the
+// arithmetic hid it. Credit decayed from the moment it was granted, while the
+// player was still sitting there listening. With JB_BUFF_FULL_SEC equal to
+// JB_BUFF_DUR_SEC, a credit of c seconds buys a window of exactly c seconds -
+// so listening for a further t seconds decayed the credit by t and added t.
+// Net zero. The credit was pinned at roughly one song&#x27;s length forever and the
+// cap was unreachable no matter how long anyone sat there. The buffs cancelled
+// themselves out.
+//
+// Hence: accrual adds to the RAW stored credit and never decays it, and the
+// expiry timestamp is not written until the player leaves. This is also what
+// the roadmap item asked for in the first place - &quot;the buff applies once you
+// leave the area and the server confirms the buff info to the player&quot;.
+//
+// HOW LEAVING IS DETECTED, without displacing anything
+//
+// Every jukebox area already had an OnExit owner (cleanup, d_purge) or none at
+// all. Rather than replace or chain those, the two shared scripts call
+// jb_area_exit through ExecuteScript, and the three areas that had no OnExit
+// point at jb_area_exit directly. The call in the shared scripts is guarded by
+// a plain PC local so that an area exit anywhere else in the module costs one
+// GetLocalInt and no SQL.
+//
+// A LOGOUT IS NOT AN EXIT. Area OnExit does not fire when a player disconnects,
+// so JB_RefreshBuff() also converts a listening row to a buff at login when the
+// player comes back somewhere other than the room they were listening in.
+//
+// THE NUMBERS SHIP DELIBERATELY LOW. The roadmap item asks for +10 attack, +10
+// damage and +10 to every ability score. The mechanic here is exactly that one;
+// the caps are constants, and raising them is a tuning decision rather than a
+// code change. Two reasons to start small: this realm raises the engine attack
+// ceiling to 40 (NWN_MAX_ATTACK_BONUS) and the ledger can sum past it without
+// telling you, and +10 to all six abilities for ten minutes is a large thing to
+// hand out for standing still.
+//
+// ATTACK AND DAMAGE GO THROUGH THE LEDGER, NOT THROUGH EffectAttackIncrease.
+// Same-type attack effects do not stack in NWN - the engine keeps the highest
+// and discards the rest - so an unpooled bonus would not merely fail to add, it
+// would SUPPRESS every smaller pooled bonus for as long as it lasted. That is
+// how Legendary Prowess&#x27;s +5 silently swallowed Bard Song. bonus_pool_inc.nss
+// is the only place those two effects are built, and tests/check_bonus_pool.py
+// fails the repack if anything else builds them.
+//
+// THE ABILITY BONUSES ARE NOT POOLED, AND THAT HAS A CONSEQUENCE WORTH KNOWING:
+// EffectAbilityIncrease is max-of per ability just as the attack channel is, so
+// a jukebox +2 Strength and a Bull&#x27;s Strength do NOT add - the larger wins.
+// There is no ability ledger to register with, so this is a real limitation
+// rather than a bug.
+//
+// THE STORED ROW IS AUTHORITATIVE; THE EFFECTS ARE A PROJECTION OF IT. Plain
+// DURATION_TYPE_TEMPORARY effects are scrubbed by the engine&#x27;s rest pass and
+// never survive a logout, so jb_buff is the record and the effects are
+// re-derived from it at login and after a rest. That is the pw_inc.nss model
+// (pw_inc.nss:9-15), and the effects are tagged so stripping only takes ours.
+//
+// THE APPROXIMATION IN ACCRUAL. Credit is granted when a track ENDS, to whoever
+// is in the room, for that track&#x27;s full length - there is no per-player
+// attendance timer, because the module has no scheduler and heartbeats are not
+// its style. So walking in halfway through a song is credited for all of it and
+// leaving halfway is credited for none of it. Over a sitting these cancel.
+// Credit only accrues while a PAID song is playing, so an empty tavern cannot
+// be idled for a buff.
+#include &quot;jb_db&quot;
+#include &quot;bonus_pool_inc&quot;
+#include &quot;color&quot;
+
+// ------------------------------------------------------------------ tuning --
+
+const int JB_BUFF_CAP      = 2;    // the cap the roadmap item puts at 10
+const int JB_BUFF_FULL_SEC = 600;  // listening time that earns the full cap
+const int JB_BUFF_DUR_SEC  = 600;  // how long the full buff lasts once earned
+const int JB_BUFF_STEP_SEC = 60;   // the &quot;1 minute increments&quot; of the LERP
+
+const string JB_EFFECT_TAG = &quot;jb_listen_buff&quot;;
+
+// PC local, the cheap guard the shared OnExit scripts test before doing any
+// work. cleanup.nss and d_purge.nss spell this literally because they do not
+// include this file; tests/check_jukebox_queue.py asserts the two agree.
+const string JB_LISTENING = &quot;jb_listening&quot;;
+
+// ------------------------------------------------------------------- shape --
+
+// How big the bonus is for a given amount of listening, in 1-minute steps.
+int JB_BuffMagnitude(int nCreditedSec)
+{
+    if (nCreditedSec &lt;= 0) return 0;
+    int nSteps = nCreditedSec / JB_BUFF_STEP_SEC;
+    int nMax   = JB_BUFF_FULL_SEC / JB_BUFF_STEP_SEC;
+    if (nSteps &gt; nMax) nSteps = nMax;
+    return (JB_BUFF_CAP * nSteps) / nMax;
+}
+
+// How long it lasts, in seconds, for that same amount of listening.
+int JB_BuffDuration(int nCreditedSec)
+{
+    if (nCreditedSec &lt;= 0) return 0;
+    int nSteps = nCreditedSec / JB_BUFF_STEP_SEC;
+    int nMax   = JB_BUFF_FULL_SEC / JB_BUFF_STEP_SEC;
+    if (nSteps &gt; nMax) nSteps = nMax;
+    return (JB_BUFF_DUR_SEC * nSteps) / nMax;
+}
+
+// ---------------------------------------------------------------- listening --
+
+int JB_Credited(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT credited_sec FROM jb_listen WHERE uuid = @u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// The area they were listening in, or &quot;&quot; - used at login to tell &quot;still in the
+// tavern&quot; from &quot;logged out there and came back somewhere else&quot;.
+string JB_ListenArea(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT area FROM jb_listen WHERE uuid = @u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    return SqlStep(q) ? SqlGetString(q, 0) : &quot;&quot;;
+}
+
+void JB_SetCredited(object oPC, int nSec, string sArea, int nWhen)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;INSERT INTO jb_listen(uuid, credited_sec, area, updated_at) &quot; +
+        &quot;VALUES(@u,@c,@a,@w) ON CONFLICT(uuid) DO UPDATE SET &quot; +
+        &quot;credited_sec = @c, area = @a, updated_at = @w&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nSec);
+    SqlBindString(q, &quot;@a&quot;, sArea);
+    SqlBindInt(q, &quot;@w&quot;, nWhen);
+    SqlStep(q);
+}
+
+void JB_ClearListening(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;DELETE FROM jb_listen WHERE uuid = @u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlStep(q);
+    DeleteLocalInt(oPC, JB_LISTENING);
+}
+
+// ----------------------------------------------------------------- carrying --
+
+int JB_BuffMag(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT mag FROM jb_buff WHERE uuid = @u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+int JB_BuffLeft(object oPC, int nNow)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT expires_at - @n FROM jb_buff WHERE uuid = @u&quot;);
+    SqlBindInt(q, &quot;@n&quot;, nNow);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    if (!SqlStep(q)) return 0;
+    int nLeft = SqlGetInt(q, 0);
+    return (nLeft &gt; 0) ? nLeft : 0;
+}
+
+void JB_ClearBuffRow(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;DELETE FROM jb_buff WHERE uuid = @u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlStep(q);
+}
+
+// -------------------------------------------------------------- projection --
+
+void JB_StripBuff(object oPC)
+{
+    effect e = GetFirstEffect(oPC);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectTag(e) == JB_EFFECT_TAG) RemoveEffect(oPC, e);
+        e = GetNextEffect(oPC);
+    }
+    BPool_Clear(oPC, BPOOL_CH_ATTACK, BPOOL_SRC_MUSIC);
+    BPool_Clear(oPC, BPOOL_CH_DAMAGE, BPOOL_SRC_MUSIC);
+}
+
+// Rebuild the effects from the stored buff row. Idempotent, and cheap for a
+// character who has never used a jukebox: one SELECT and out.
+void JB_ApplyBuff(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+
+    int nNow  = JB_Now();
+    int nMag  = JB_BuffMag(oPC);
+    int nLeft = JB_BuffLeft(oPC, nNow);
+
+    JB_StripBuff(oPC);
+
+    if (nMag &lt;= 0 || nLeft &lt;= 0)
+    {
+        if (nMag &gt; 0) JB_ClearBuffRow(oPC);   // expired; tidy the row away
+        return;
+    }
+
+    float fDur = IntToFloat(nLeft);
+
+    // Attack and damage through the ledger - never EffectAttackIncrease here.
+    BPool_Set(oPC, BPOOL_CH_ATTACK, BPOOL_SRC_MUSIC, nMag, fDur);
+    BPool_Set(oPC, BPOOL_CH_DAMAGE, BPOOL_SRC_MUSIC, nMag, fDur);
+
+    // Abilities are not pooled (there is no ability ledger), so they are applied
+    // directly - tagged, so JB_StripBuff only ever takes ours back off.
+    int nAbility;
+    for (nAbility = ABILITY_STRENGTH; nAbility &lt;= ABILITY_CHARISMA; nAbility++)
+        ApplyEffectToObject(DURATION_TYPE_TEMPORARY,
+            TagEffect(EffectAbilityIncrease(nAbility, nMag), JB_EFFECT_TAG),
+            oPC, fDur);
+}
+
+// ------------------------------------------------------------------ accrual --
+
+// Credit everyone in the room for a song that just finished. Called from the
+// queue when a paid track ends.
+//
+// NOTE the raw JB_Credited() here rather than anything time-adjusted: while a
+// player is listening their credit does not decay. That is the whole fix.
+void JB_CreditListeners(object oArea, int nSeconds)
+{
+    if (!GetIsObjectValid(oArea) || nSeconds &lt;= 0) return;
+
+    int nNow = JB_Now();
+    string sArea = JB_AreaKey(oArea);
+
+    object oPC = GetFirstPC();
+    while (GetIsObjectValid(oPC))
+    {
+        if (GetArea(oPC) == oArea &amp;&amp; !GetIsDM(oPC))
+        {
+            int nCred = JB_Credited(oPC) + nSeconds;
+            if (nCred &gt; JB_BUFF_FULL_SEC) nCred = JB_BUFF_FULL_SEC;
+
+            JB_SetCredited(oPC, nCred, sArea, nNow);
+            SetLocalInt(oPC, JB_LISTENING, TRUE);
+        }
+        oPC = GetNextPC();
+    }
+}
+
+// ------------------------------------------------------------------- payout --
+
+// Spend the listening credit into a buff. Called when the player leaves the
+// room they were listening in - and at login, if they logged out in it.
+//
+// Takes the BETTER of what they already carry and what they just earned, rather
+// than summing: two sittings should not stack into something the cap was never
+// meant to allow, and the player should never be punished for walking out with
+// a fresh, smaller drink.
+void JB_GrantOnLeave(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    int nCred = JB_Credited(oPC);
+    JB_ClearListening(oPC);
+    if (nCred &lt;= 0) return;
+
+    int nMag = JB_BuffMagnitude(nCred);
+    int nDur = JB_BuffDuration(nCred);
+    if (nMag &lt;= 0 || nDur &lt;= 0) return;
+
+    int nNow = JB_Now();
+    int nHaveMag = JB_BuffMag(oPC);
+    int nHaveLeft = JB_BuffLeft(oPC, nNow);
+
+    if (nHaveMag &gt; nMag || (nHaveMag == nMag &amp;&amp; nHaveLeft &gt; nDur))
+    {
+        // What they are already carrying is better; leave it alone and say
+        // nothing, rather than quietly shortening it.
+        JB_ApplyBuff(oPC);
+        return;
+    }
+
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;INSERT INTO jb_buff(uuid, mag, expires_at) VALUES(@u,@m,@e) &quot; +
+        &quot;ON CONFLICT(uuid) DO UPDATE SET mag = @m, expires_at = @e&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@m&quot;, nMag);
+    SqlBindInt(q, &quot;@e&quot;, nNow + nDur);
+    SqlStep(q);
+
+    JB_ApplyBuff(oPC);
+
+    SendMessageToPC(oPC, ColorString(
+        &quot;[Jukebox] You carry the music out with you - you stand a little &quot;
+        + &quot;taller for it (+&quot; + IntToString(nMag) + &quot; to your swing, your blows &quot;
+        + &quot;and every measure of you) for the next &quot; + IntToString(nDur / 60)
+        + &quot; minute&quot; + ((nDur / 60 == 1) ? &quot;&quot; : &quot;s&quot;) + &quot;.&quot;, COLOR_GREEN));
+}
+
+// Called from jb_area_exit when a PC leaves an area. Only pays out if this is
+// the room they were actually listening in - walking out of some other area
+// while carrying credit must not cash it in early.
+void JB_OnLeaveArea(object oPC, object oArea)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+    if (!GetLocalInt(oPC, JB_LISTENING)) return;
+    if (JB_ListenArea(oPC) != JB_AreaKey(oArea)) return;
+
+    JB_GrantOnLeave(oPC);
+}
+
+// Login and after-rest re-derivation. Cheap and idempotent.
+void JB_RefreshBuff(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+
+    // A reconnecting PC comes back from the server TURD with its locals intact
+    // (mod_cliententer.nss:225-232), so this guard local must never be trusted
+    // across a login - it is rebuilt from the row below.
+    DeleteLocalInt(oPC, JB_LISTENING);
+
+    string sListen = JB_ListenArea(oPC);
+    if (sListen != &quot;&quot;)
+    {
+        if (sListen == JB_AreaKey(GetArea(oPC)))
+            // Still in the tavern: keep listening, pay out when they leave.
+            SetLocalInt(oPC, JB_LISTENING, TRUE);
+        else
+            // They logged out listening and came back elsewhere. Area OnExit
+            // never fired, so settle up now rather than strand the credit.
+            JB_GrantOnLeave(oPC);
+    }
+
+    JB_ApplyBuff(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

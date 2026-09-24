@@ -149,6 +149,78 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: player-accessible-juke-box
+    title: "Player-accessible Juke Box"
+    group: qol
+    status: implemented
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-24"
+    commit: c4477686636
+    docs: none
+    discord: {'thread_id': '1552669723311865957', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1552669723311865957'}
+    notes: "<div>A <b>jukebox</b> now stands in the taverns and at the Well of Eru. Walk up to it, pick a song, and it plays for the whole room.</div><div><br></div><ul><li><b>113 songs</b> to choose from -- the game's own music as well as the five custom tracks. There is a search box, and you can sort by what has been played most.</li><li><b>100 gp</b> a song. If someone is already playing something, yours joins the queue and the jukebox shows you how many are ahead of you.</li><li><b>Pay to jump the queue.</b> Four levels of priority above the ordinary price, rising steeply -- a higher one goes ahead of everything below it, and between two of the same, first come first served.</li><li>Each song plays <b>once</b> and then the next one starts. When the queue runs dry the room goes back to its own music.</li><li><b>Stay and listen</b> and the music stays with you: a bonus to your attack, your damage and every ability score that grows the longer you listen, and fades once you stop. It survives logging out.</li></ul><div><br></div><div>Battle music is held back while a song plays, so a fight will not cut it off, and the Music slider in your sound options is the volume knob.</div><div><br></div><div>Fixed 2026-09-24.</div>"
+    notes_h: 295
+    impl_notes: "<div>Six commits, each standalone: 398843f0b75 catalogue, b21c2bdf404 placeable, 75742a80439 NUI, 0a58d78dad9 queue/gold, 31add75a065 buff, c4477686636 buff clock fix.</div><div><br></div><div><b>Catalogue.</b> <code>bin/gen-music-tracks.py --catalog</code> emits <code>unpacked/jb_catalog.nss</code> + <code>music/catalog.json</code>: 113 pickable tracks (108 stock + 5 custom), excluding row 0 and 29 <code>mus_bat_*</code> battle rows. Names come from two places because <code>ambientmusic.stock.2da</code> uses two conventions -- a literal DisplayName on the Tyrants/Daggerford rows, a dialog.tlk strref on the OC/SoU/HotU ones -- resolved offline with <code>gen-palette-map.py</code>'s <code>load_tlk()</code>. Durations are MEASURED with ffprobe against the stock .bmu files; <b>ffprobe cannot measure a .bmu through a pipe</b> (a streamed MP3's duration needs a seek, it returns N/A), so the 8-byte BMU header is stripped to a real file first. Lengths run 19s to 468s, which is why a single assumed length was not an option. <code>JB_CatByName</code> bakes alphabetical order in: NWScript has no array to sort 113 entries in.</div><div><br></div><div><b>The numbering trap, avoided.</b> <code>JB_Start()</code> takes an index into <code>jb_tracks.nss</code> (the 5 custom tracks); the catalogue is a different numbering entirely, so passing a catalogue index would have silently played the wrong song. <code>jb_inc.nss</code> gained a seam: <code>JB_StartRow()</code> takes a RAW ambientmusic.2da row and holds the logic, <code>JB_Start()</code> keeps its signature as a wrapper. New area local <code>JB_ROW</code> records the raw row, since <code>JB_TRACK</code> cannot represent a stock track; the admin menu's \"[playing]\" marker now compares rows rather than indices.</div><div><br></div><div><b>Placeable</b> <code>jb_jukebox_plc</code> (appearance 15390 \"Musical - Harp 1\", verified against the module's EFFECTIVE placeables.2da, since CEP replaces that table), in <code>thewelloferu</code>, <code>theprancingpo001</code>, <code>brandywineinn</code>, <code>greendragoninn</code>, <code>whitfurrowinn</code>, <code>theelvenglassinn</code>, <code>lastinn001</code>, <code>laketownthetipss</code>. Each instance clones a neighbour from its own area's list: shapes differ per area (theelvenglassinn 55 fields, the rest 56). <code>whitfurrowinn</code> had an EMPTY placeable list and borrows lastinn001's shape -- the one placement worth a second look. <code>thelandinntown</code> was dropped: it is the town outside the Last Inn (area flag 4), not a tavern.</div><div><br></div><div><b>Queue</b> (<code>jb_db.nss</code>, campaign DB <code>jukeboxdb</code>): <code>jb_queue</code> ordered <code>tier DESC, id ASC</code>; tiers 100 / 5,000 / 150,000 / 4,000,000 / 100,000,000 gp. Persistent, unlike the admin jukebox, because players pay -- <code>JB_Reconcile()</code> re-asserts a song whose window has not elapsed, so a restart mid-song does not eat it (it restarts from the beginning; MusicBackgroundPlay cannot seek). Time is settled lazily against stored wall-clock epochs, never the game clock; the one timer is a single <code>DelayCommand</code> at track end guarded by a generation counter and assigned to the AREA, not to the player who clicked. Gold is re-checked inside the action script, never trusted from the greyed button. Identity is <code>GetObjectUUID()</code>.</div><div><br></div><div><b>Track names live in <code>jb_plays</code></b> beside the play count, which is what makes \"sort by most played\" possible at all -- one SQL statement does filter, order and page. Seeding is <code>INSERT OR IGNORE</code> so adding a track never resets existing counts.</div><div><br></div><div><b>Admin Stop now clears the room's queue</b> (<code>jb_stopa</code>). Calling <code>JB_Stop</code> alone left the paid queue in place and the next reconcile restarted it, so the admin's deliberate act looked broken. Nothing is refunded -- a stated gap, not an oversight: it is an admin override and a refund would have to price a half-played song.</div><div><br></div><div><b>Buff, and the bug found in review.</b> The first build (31add75a065) decayed listening credit from the moment it was granted, while the player was still in the room. With <code>JB_BUFF_FULL_SEC</code> equal to <code>JB_BUFF_DUR_SEC</code>, credit of c seconds buys a window of exactly c seconds -- so listening a further t seconds decayed by t and added t, NET ZERO. Credit was pinned at about one song's length and the cap was unreachable however long anyone sat there. Fixed in c4477686636.</div><div><br></div><div>Two states now, and the clock runs only in the second: LISTENING (in the room, credit piling up on the RAW stored value, nothing applied and nothing expiring) and CARRYING (left the room; credit spent once into a buff whose size and duration both scale with how long they listened, and that is what runs down). <code>jb_listen</code> gains <code>area</code> so leaving some other area cannot cash credit in early; new <code>jb_buff(uuid, mag, expires_at)</code> is the only row with a clock. A second sitting takes the BETTER of carried and earned rather than summing.</div><div><br></div><div><b>Exit detection without displacing an owner.</b> <code>cleanup.nss</code> and <code>d_purge.nss</code> keep their behaviour and gain a guarded hand-off to <code>jb_area_exit</code> via ExecuteScript; the three areas with no OnExit at all point at it directly. The guard is a plain PC local (<code>jb_listening</code>), so an exit anywhere else in the module costs one GetLocalInt and no SQL. The hand-off in <code>cleanup.nss</code> sits BEFORE its \"is the area now empty\" early return, or only the last player out would be paid. Taking over OnExit and chaining to the previous owner was rejected: a wrong mapping would silently stop encounter and loot cleanup in a tavern. A LOGOUT IS NOT AN EXIT, so <code>JB_RefreshBuff</code> settles a listening row at login when the player returns somewhere other than the room they were listening in, and clears the guard local undelayed (a reconnecting PC keeps its locals through the TURD).</div><div><br></div><div><code>JB_BUFF_CAP = 2</code>, NOT the item's 10: the mechanic is exactly as specified but the caps ship low as constants, because this realm lifts the attack ceiling to 40 via NWN_MAX_ATTACK_BONUS and the ledger can sum past it silently. Attack and damage register as <code>BPOOL_SRC_MUSIC</code>, a 13th bonus-pool source -- key, count and walk all three, since an unpooled bonus SUPPRESSES every smaller pooled one. <b>The ability half is not pooled and cannot be</b>: EffectAbilityIncrease is max-of per ability, so jukebox +2 STR and Bull's Strength do not add. Effects are a tagged projection of <code>jb_buff</code>, re-derived at login (8.2s, after BPool_Resync at 6.6) and after rest.</div><div><br></div><div><b>Accrual approximation:</b> credit is granted at track END to whoever is in the room, for that track's length -- there is no per-player attendance timer, because the module has no scheduler and heartbeats are not its style. Walk in halfway and you are credited for the whole song; leave halfway and you get nothing. Over a sitting these cancel. Credit accrues only while a PAID song plays.</div><div><br></div><div><code>jb_credit.nss</code> exists only to break an include cycle (jb_buff_inc includes jb_db). Finished songs are measured BEFORE the delete that retires them.</div><div><br></div><div><b>New build gate</b> <code>tests/check_jukebox_queue.py</code>: queue ordering, advance, restart recovery, the picker's filter/sort/page against real SQLite, and the listening-buff arithmetic -- including the old decay model as a regression witness, proving it could never reach the cap. Plus drift assertions that each SQL statement still appears in <code>jb_db.nss</code>, that accrual still reads the raw credit, and that the literal <code>\"jb_listening\"</code> in the two shared exit scripts still matches <code>JB_LISTENING</code>. The gate was verified to FAIL when the bug is reintroduced, not merely to pass today. Full smoke suite 33/33.</div><div><br></div><div>Module-only change: no hak content moved, so no NWSync refresh is needed.</div>"
+    manual_steps:
+      - step: "BLOCKER FOR THE REST: confirm each of the eight jukeboxes is actually reachable and does not stand in a wall, a doorway or a fireplace. Coordinates came from bin/place-helper.py --suggest, which proves a spot is clear of other placeables but cannot tell you it looks right. Areas: thewelloferu, theprancingpo001, brandywineinn, greendragoninn, whitfurrowinn, theelvenglassinn, lastinn001, laketownthetipss. whitfurrowinn is the one to check first -- it had no placeables at all, so its instance shape was borrowed from another area."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Open the jukebox and confirm the window draws with no horizontal scrollbar and no 'Error constructing window from json'. Page through the whole list with Next; search for 'city' and confirm it narrows; press All to clear it; switch to Most played and back to A-Z."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "VERIFY THE SONG IS THE ONE NAMED, not its neighbour. This is the off-by-one that the first custom-music build shipped broken (UAT 2026-09-11): pick a stock track by name, confirm what plays is that track, then check a second one. If it is off by one, JB_StartRow in jb_inc.nss is the only place to look."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Queue three songs at the ordinary 100 gp and confirm they play one after another in the order queued, that gold actually leaves the purse each time, and that after the last one the room returns to its OWN music rather than looping."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "With two ordinary songs waiting, queue one at a higher priority tier and confirm it plays next instead of last, and that the window's 'N ahead of you' agreed with what happened. Then queue a second at the same tier and confirm the two of them keep first-come order between themselves."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Confirm a player with less gold than the chosen tier sees the Queue buttons greyed out, and that clicking through anyway (by switching tier after the list was drawn) refuses with a message rather than queueing for free."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Start a long song, restart the server while it is still playing, then walk up to the jukebox again: it should be playing that song from the beginning rather than silent, and the queue behind it should be intact. This is the paid-queue-survives-restart path."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "THE BUFF CLOCK -- this is the bug fixed in c4477686636, so test it deliberately. Sit through several whole songs WITHOUT leaving: no buff message should appear and nothing should be ticking down. Then walk out of the area: the in-character line arrives on the way out, and the bonus should reflect the WHOLE time you sat there, not one song's worth. Sitting through ten minutes of music must reach the full cap; under the old code it was stuck at about one song's length forever."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Check the buff pays out in all three kinds of area, because they detect leaving in two different ways: an area whose OnExit is 'cleanup' (theprancingpo001, brandywineinn, theelvenglassinn, lastinn001), the one that is 'd_purge' (whitfurrowinn), and the three that now point straight at jb_area_exit (thewelloferu, greendragoninn, laketownthetipss). One from each group is enough."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Confirm the tavern cleanup those scripts exist for still works after the hand-off was added: leave a tavern empty with dropped loot and encounter creatures in it and check they are still cleared as before. The jukebox call was inserted ahead of cleanup's own early return, so this is the regression worth ruling out."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Log out INSIDE a tavern while credit is accrued, then log back in somewhere else: the buff should be waiting for you, since area OnExit never fires on a disconnect and the credit is settled at login instead. Separately, log out while carrying the buff and log back in: about eight seconds after entering the world it should return at whatever is left of it, not reset to full. Then rest and confirm the same."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Confirm the buff does NOT stack wrongly with Bard Song: attack and damage should ADD (both go through the bonus pool), while an ability bonus from a potion or spell larger than the jukebox's will simply win, which is expected and not a fault."
+        status: open
+        kind: uat
+        tester: "any bard, or any character with Bard Song nearby"
+      - step: "Take the admin jukebox ITEM from the Castle Homeless chest into a room with a placeable jukebox. Confirm the item's menu still works, that its '[playing]' marker is right while a stock track from the placeable is playing, and that its Stop silences the room AND clears the queue rather than letting the next visitor restart it."
+        status: open
+        kind: uat
+        tester: "admin (can_chest)"
+      - step: "Decide whether JB_BUFF_CAP stays at 2 or moves toward the 10 this item asked for, having seen it in play. It is one constant in jb_buff_inc.nss. Note the realm's attack ceiling is 40 and the bonus pool can sum past it without reporting."
+        status: open
+        kind: admin
+      - step: "Decide whether the three upper floors (theprancingpo002, ponyinn3, brandywinesecflo) should get their own jukebox. They were deliberately skipped: music is area-scoped, so a second box upstairs is a second independent jukebox rather than the same one heard from above."
+        status: open
+        kind: admin
   - id: can-complete-meaningwave-questline-for-free-on-characters
     title: "Can complete meaningwave questline for free on characters with same name"
     group: quests-areas
@@ -256,7 +328,7 @@ ideas:
   - id: anaralia-spider-queen-second-drop
     title: "Anaralia (spider queen) second drop"
     group: items-gear
-    status: wip
+    status: confirmed
     type: Defect
     player: "Fugdish (Try_this)"
     date: "2026-09-02"
@@ -272,7 +344,7 @@ ideas:
   - id: bard-curse-song-not-lowering-concentration-skill
     title: "Bard curse song not lowering concentration skill"
     group: combat-classes
-    status: wip
+    status: confirmed
     type: Defect
     player: "Sync (Shync)"
     date: "2026-09-02"
@@ -401,7 +473,7 @@ ideas:
   - id: level-drain-property-not-removable-from-forge
     title: "Level drain property not removable from Forge"
     group: forge
-    status: wip
+    status: confirmed
     type: Defect
     player: "Sync (Shync)"
     date: "2026-08-31"
@@ -423,6 +495,7 @@ ideas:
     type: Enhancement
     player: Tukwut
     date: "2026-08-31"
+    discord: {'thread_id': '1549086576993243146', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549086576993243146'}
     notes: "<div><a href=\"https://nwn.fandom.com/wiki/Divine_might\" target=\"_blank\" rel=\"noopener\">Divine might's bonus</a> punches through damage reduction and damage immunity outright, making it harder to balance bosses against</div><div>Divine might should count toward standard resistance/immunity reduction</div><div><br></div><div>as is:<br><div><div><div><span>i think its a fun part of theory crafting though - sacrificing STR for CHA to boost the amount of damage, and sacrificing 1 of the 4 classes for paladin or BG which are not that optimal otherwise</span></div></div><div><div></div></div></div><div><div> <div><span>but cap of 20 cha modifier seems like a lot</span></div></div><div><div></div></div></div><div><div> <div><span>dual wield kama or katana monk can pump 200 guaranteed damage per round lol</span></div></div><div><div><div></div><div></div><span><div></div></span></div></div><div><div></div></div></div><div><div> <div><span>dury of valar is what 160 ontop of how powerful those gloves already are</span></div></div></div><br></div>"
   - id: more-combat-dummys-request
     title: "More combat dummys request"
@@ -431,6 +504,7 @@ ideas:
     type: Enhancement
     player: "Sync (Shync)"
     date: "2026-08-29"
+    discord: {'thread_id': '1549086621306196028', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549086621306196028'}
     notes: "<div><div><div><div><span>Another idea is to have a separate dummy with generic boss resists</span></div></div><div><div><span></span></div></div></div></div><div><div> <div><span>Like 80-90 ac and damage resist/immunities</span></div></div></div><div><div> <div><span>Or just add sauron as a punching bag </span><span><img src=\"https://discord.com/assets/e5bddb2a9171637d.svg\" alt=\"🤣\"></span></div></div></div><div><br></div><div>HomelessSon:<div><div><div><span>yeah I could add at least one more, and track stats against those, maybe one for a 'mid tier' boss and another for like an 'end tier' boss, I could literally spawn in one of the bosses and replace their scripts for this, they would keep all their items and feats/abilities</span></div></div><div><div></div></div></div><div><div> <div><span>heck maybe even a dojo where you can spawn in any boss for testing dps against</span></div></div></div>\n\n</div>"
     notes_h: 537
   - id: combat-dummy-can-be-slain
@@ -501,7 +575,7 @@ ideas:
   - id: balrog-mass-harm-review
     title: "Balrog mass harm review"
     group: bosses
-    status: manual
+    status: implemented
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-23"
@@ -625,7 +699,7 @@ ideas:
   - id: kerfualls-disappearing-act
     title: "Kerfuall's disappearing act"
     group: bosses
-    status: manual
+    status: implemented
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-23"
@@ -893,7 +967,7 @@ ideas:
     title: "Wiki AC calc off (balorg of moria example)"
     group: bosses
     epic: difficulty-increase
-    status: manual
+    status: implemented
     type: Defect
     player: "Sync (Shync)"
     date: "2026-09-23"
@@ -986,7 +1060,7 @@ ideas:
   - id: tensors-transformation-not-merging-items-reliably
     title: "Tensor's Transformation not merging items reliably (X4 multiper issue)"
     group: combat-classes
-    status: manual
+    status: implemented
     type: Exploit
     player: "Sync (Shync)"
     date: "2026-09-23"
@@ -1364,6 +1438,7 @@ ideas:
     player: "-Methonash-"
     date: "2026-08-27"
     commit: 93a4b2baa4e
+    discord: {'thread_id': '1549087009849610280', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549087009849610280'}
     notes: "<div>The <b>Ologai Troll</b> and <b>Ologai Battle Troll</b> were standing down instead of fighting. They were filed as townsfolk rather than as enemies, so they would not attack and would not be attacked -- you could walk straight past them.</div><div><br></div><div>It turned out not to be only the trolls: <b>the entire Mount Gundabad garrison</b> was the same -- the Uruk Hai Slayers, the Black Numenorean Shadow Masters, Mages, Militia and Priestesses, and Gorg the General. All 49 of them, across both levels of the dungeon. They now fight, as do the Ologai Trolls that come out of the encounters in the <b>Ettenmoors</b>, <b>Angmar</b> and the <b>Angmar Mountains</b>.</div><div><br></div><div>They have been made <b>Evil</b> rather than simply hostile, which is what the Uruk-hai fighting beside them already were. The practical difference: if you have sworn yourself to the Evil side at the Well of Eru, the garrison still treats you as one of its own and leaves you be. Good and Neutral characters get the fight they were always supposed to get.</div>"
     impl_notes: "<div><b>FactionID 2 (Commoner) -&gt; 5 (Evil)</b> on 8 creature blueprints and all 49 placed instance overrides. Commit 93a4b2baa4e. No script change -- this is pure blueprint/instance data.</div><div><br></div><div><b>Blueprints:</b> ogreboss001 (Ologai Troll, CR 23), ogreboss002 (Ologai Battle Troll, CR 50), urukai012 (Uruk Hai Slayer, CR 91), drowrogue021_2 (B.N. Shadow Master), drowmage002 (B.N. Mage), numenoreanmili_3 (B.N. Militia), drowcler024_3 (B.N. Priestess), gntfire003 (Gorg the General, CR 191). Neither troll has \"troll\" in its resref, which is why they are easy to miss.</div><div><br></div><div><b>Instances:</b> every entry of Creature List in mountgundabad001.git.json (20) and mountgundabadlev.git.json (29) -- both areas were wholly populated by those 8 blueprints, all at faction 2. Both sides had to move in the same commit: FactionID is part of identity_key() in tests/check_divergent_creatures.py and there is no allowlist, so a blueprint changed without its placements fails the repack (and an unsynced instance silently reverts on first respawn anyway).</div><div><br></div><div><b>Why 5 and not 1.</b> invisobj002.utp.json (Tag Evilfaction) -- the anchor faction_db.nss::Faction_ApplyLive runs AdjustReputation against -- is itself Faction 5, and invisobj001 (Goodfaction) is 6. So an Evil-allegiance character gets +1000 with faction 5 and the garrison goes friendly to them. That is already the behaviour of every Uruk-hai in the same encounter pools (urukai001/002/003/004/009/014, urukaibowman, urukhaifirstborn) and of trollking (CR 155). Faction 1 (Hostile) would have attacked Evil players too and broken ranks with their own warband. Admin decision, taken deliberately; the other trolls in the module (ogre003 \"A Cave Troll\", ogremage002/003, ogremageboss001) are faction 1, so if Gundabad should be hostile to everyone the change is 5 -&gt; 1 in the same places.</div><div><br></div><div><b>No encounter edit needed, and the encounters were already Evil.</b> Encounter CreatureList slots carry only Appearance / CR / ResRef / SingleSpawn -- no per-creature faction -- so ettenmoors.ute.json and the ettenmoors / urukaiangmar / carndumoutside instances in ettenmoors.git.json, angmar.git.json, theangmarmountai.git.json and greateastroadd.git.json inherit the blueprint change for free. Worth recording: the <i>encounter</i> Faction on all of those is <b>already 5</b> -- they are part of the 48 Evil-tagged encounters catalogued in <a href=\"#idea-are-some-encounters-dynamic-based-on-alignment-set-in-the\">the encounter-faction investigation</a>, so an Evil-allegiance character never saw those trolls spawn even before this change. The blueprint now agrees with the encounter that spawns it, where previously an Evil encounter was spawning Commoner trolls.</div><div><br></div><div><b>Consequence for <a href=\"#idea-allegiance-locks-15-creatures-out-of-the-bestiary\">the allegiance/bestiary lock-out item</a>:</b> this adds the 8 Gundabad types, Gorg the General among them, to the set an Evil-allegiance character is not attacked by -- and Gorg is a Roll of the Fallen registry entry (brd_db.nss:166, tag ms_gund27). It is a <i>softer</i> lock than the encounter case in that item: these are <b>placed</b> creatures, not encounter spawns, so they are physically present and an Evil character should still be able to force-attack them for the bestiary and the boss board rather than being unable to meet them at all. UAT step 2 checks exactly that. If it turns out the boss board is genuinely unreachable for Evil characters, the targeted fix is gntfire003 alone back to faction 1.</div><div><br></div><div><b>Also updated:</b> the 8 leaves in creaturepalcus.itp.json carried FACTION \"Commoner\"; now \"Evil\", so the toolset palette label agrees with the blueprint.</div><div><br></div><div><b>Checked clear:</b> none of the 8 has a Conversation, none is Plot or immortal, and no .nss or .dlg keys off their tags (ms_gund27/28/34, OlogaiTroll, BlackNumenorian*) -- the only tag references are brd_db.nss and the wdbmax005/006 drop items, so no quest breaks by making them hostile. Boss registry unaffected: gen-boss-registry.py reads faction only for its Merchant exclusion, Gorg the General stays registered, and its output is byte-identical before and after. check_divergent_creatures, check_palette_coverage and the full smoke-test all pass.</div><div><br></div><div><b>Noted, not fixed here:</b> 73 faction-2 blueprints module-wide have CR &gt;= 15. Most are legitimately friendly (Gandalf, the guides, hobbits, pets, gate NPCs), so there is no safe blanket sweep -- but it is worth spot-checking other dungeons for the same \"whole room is Commoner\" pattern. Separately, 3 blueprints carry out-of-range FactionIDs (akulatraxas001=19, gorgotha001=21, m3q04h07klaus001=24) against a FactionList of only 8.</div>"
     manual_steps:
@@ -1388,6 +1463,7 @@ ideas:
     player: "-Methonash-"
     date: "2026-08-24"
     commit: dcf4361f24d
+    discord: {'thread_id': '1549087056028893385', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549087056028893385'}
     notes: "<span>once you're level 60, some encounters isn't working properly, like not giving the right enemies. In Dimholt for example the </span><a href=\"https://homerslotr.com/creatures/thingofthedark\" target=\"_blank\" rel=\"noreferrer noopener\"><span>Thing of the Dark</span></a><span> doesn't spawn with it's encounter.\n\nIn Mirkwood Central South, the high level spiders doesn't spawn, instead you get only Giant Spiders and a Spider-Queen, CR 21 and CR 27.\nMost definitely happens after level 41+, I imagine.</span> <span><span></span></span><div><br></div><div><b>Fixed 2026-08-24.</b> The encounters were reading stale numbers about their own creatures. Every encounter keeps its own note of how tough each creature in its pool is, written down once when the creature was added and never updated since. The creatures were rebalanced for levels 41-60; those notes were not.</div><div><br></div><div>The game fills an encounter by working down from the toughest creature it thinks is in the pool until it has spent the difficulty budget for your level. In Mirkwood Central South the Giant Spider was written down as more than seven times its real strength, so the game spent almost the whole budget summoning what it believed was the deadliest thing in the forest and was really the weakest -- and the Sword Spiders, Death Weepers and Black Spear Spiders behind it never got in. Dimholt was skipping the Thing of the Dark for the same reason.</div><div><br></div><div>124 of those notes were wrong across the module, and 516 encounters were also recorded as \"Very Easy\" while actually set to Hard or Impossible -- Mirkwood Central South and Dimholt among them. All of it is corrected, and the build now refuses to complete if any of it drifts again. No creature was made stronger or weaker, and no XP or gold reward changed: the encounters simply pick the right monsters now.</div>"
     impl_notes: "<div><b>Two stale caches in the encounter GFF, both fixed by data resync; no script change.</b> Encounters here are pure engine behaviour -- all 778 instances have empty OnEntered/OnExhausted/OnHeartbeat, there are no nw_e0_* overrides in unpacked/, and no scripted spawner touches them, so the stored fields are the whole of the behaviour.</div><div><br></div><div><b>1. CreatureList[].CR</b> caches the blueprint ChallengeRating, written once by the toolset when the creature was added to the list and never refreshed. 124 entries stale. The engine sorts the pool high-&gt;low and adds creatures while CR &lt;= the remaining budget, so a wrong cache misdirects the whole selection: spidgiant001 cached 147 vs blueprint 21 (21 entries), spiderboss001 45 vs 27 (20), thingofthedark 60 vs 40 (6). Worst absolute drift azagoth001 1691 vs 555.</div><div><br></div><div><b>2. Difficulty</b> caches encdifficulty.2da VALUE for the DifficultyIndex row (VeryEasy=0 Easy=1 Normal=2 Hard=5 Impossible=9). 516 encounters (44 .ute blueprints + 472 .git instances) carried Difficulty 0 against an index of Hard or Impossible -- hardspiders is index 4, dimwald index 3, both at 0.</div><div><br></div><div><b>bin/audit-encounter-crs.py</b> resyncs both from source (dry-run by default, --apply writes, --full lists every row). <b>tests/check_encounter_crs.py</b> imports its scan() as a build gate wired into tests/smoke-test, so gate and fixer can never disagree -- the arrangement check_map_notes.py uses with gen-map-notes.py. Entries whose resref has no .utc.json are skipped: 171 encounter resrefs are stock base-game creatures (nw_*, x2_*, zep_*) with no local blueprint.</div><div><br></div><div><b>Blueprint ChallengeRating deliberately untouched</b> -- it is read live on every kill for XP (sha_xpsystem.nss:649), gold (gpondeath.nss, iGP = iCR*8+d20), the bestiary (bst_ondeath.nss:25) and the boss board CR&gt;60 rule (gen-boss-registry.py). Only the encounter copy moved; gen-boss-registry.py output is byte-identical before and after, and the summanus instance now agrees with the 2938.0 brd_db.nss already seeded.</div><div><br></div><div><b>Caveat for UAT:</b> the engine CR-budget formula is hardcoded and undocumented (nwn.wiki gave up measuring it). The corrected data is right regardless, but only in-game observation shows whether it is <i>sufficient</i> at 41-60. If not, the next lever is NWNX_Encounter (not currently enabled: needs unpacked/nwnx_encounter.nss, NWNX_ENCOUNTER_SKIP=n, restart) whose Get/SetEncounterCreatureByIndex could rewrite the live CR list at module load, still without touching blueprint CR.</div><div><br></div><div>Separately noted, not fixed here: 230 of 778 encounter instances have an empty SpawnPointList, so the engine picks its own spawn spot (worst: shelobslair x12, ~37 across the northern-forest areas). Neither reported area is affected -- every hardspiders and dimwald instance has a spawn point -- so it is a placement-quality issue, not a selection one.</div>"
     manual_steps:
@@ -4038,7 +4114,7 @@ ideas:
   - id: balrog-not-healing
     title: "Balrog not healing itself"
     group: bosses
-    status: manual
+    status: implemented
     type: Defect
     player: Tukwut
     date: "2026-09-23"
@@ -4105,6 +4181,7 @@ ideas:
     status: later
     type: Enhancement
     player: Tukwut
+    discord: {'thread_id': '1549090212347514943', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549090212347514943'}
 
   # ---- Endgame difficulty design brief (docs.manual/boss-updates.html) -----
   - id: boss-stat-tuning-pass
@@ -8563,7 +8640,8 @@ ideas:
   - id: anaralias-what
     title: "Anaralia's what"
     group: quests-areas
-    status: wip
+    status: confirmed
+    hidden: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-09-07"
@@ -8711,12 +8789,39 @@ ideas:
   - id: crafting-items-triggers-the-party-roll-in-groups-sometimes
     title: "Crafting items triggers the party roll in groups sometimes."
     group: forge
-    status: wip
+    status: implemented
     type: Defect
     player: "Balendin (Balendin_2222)"
-    date: "2026-09-02"
+    date: "2026-09-24"
+    commit: 167555f70db
     discord: {'thread_id': '1544611005638910013', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1544611005638910013'}
-    notes: "<div>Crafting items triggers the party roll in groups sometimes.</div>"
+    notes: "<div>Fixed: crafting, dyeing or reverting an item at the forge no longer starts a party Need / Greed / Pass roll, and neither does picking your own weapon back up after you have been disarmed.</div><div><br></div><div>A roll now only happens for <b>loot that came out of the world</b> — a corpse, a boss, a chest, or a bag you found in one. An item the game hands you, a purchase, a trade, a pickpocket, something off the ground, or moving things around inside your own pack are all silent. Corpse and chest loot rolls exactly as before.</div>"
+    impl_notes: "<div><b>Root cause.</b> <code>PL_OnItemAcquired()</code> (<code>inc_partyloot.nss</code>) decided “is this loot?” with a negative list — store, PC trade, living creature — and wrapped the entire test in <code>GetIsObjectValid(oFrom)</code>. <code>GetModuleItemAcquiredFrom()</code> is <code>OBJECT_INVALID</code> for every item the engine materialises into a pack (<code>CreateItemOnObject</code>, <code>CopyItem</code>, <code>CopyItemAndModify</code>, <code>CopyObject</code>), so those items skipped the guard entirely and were treated as looted.</div><div><br></div><div><b>The two reported paths.</b> Crafting and dye rebuild the item onto the player: <code>zep_inc_craft.nss</code> (<code>CopyItemAndModify</code>, ~10 call sites), <code>dye_nui_inc.nss</code>, <code>dye_dyeitem.nss</code>, <code>ForgeRevertToBlueprint</code> (<code>forge_inc.nss:1205</code>) and stock <code>x2_inc_craft.nss</code> (brew / scribe / craft wand, plus the work-container path that ends in <code>CopyObject(oNew, GetLocation(oPC), oPC)</code>). The forge <i>enchant</i> path was always safe — <code>modifyitem.nss</code> mutates in place, no new object. Disarm is the severe half: <code>disarm_catch.nss:70</code> copies the disarmed weapon back into the owner's pack so it cannot despawn, and on a Need/Greed win <code>PL_Resolve</code> then transferred the player's own weapon to the winner.</div><div><br></div><div><b>Why “sometimes”.</b> Four invisible gates have to line up: value ≥ the leader's threshold (default 10,000 gp); at least one <i>other</i> in-area, non-opted-out party member (hence “in groups”); the <code>pl_rolled</code> one-shot, which <code>bCopyVars=TRUE</code> deliberately carries along a copied item's lineage, so only the first craft/dye/disarm of a given item instance rolled; and unidentified items skip the threshold pre-check and go through the public Lore broadcast instead.</div><div><br></div><div><b>Fix.</b> The filter now asks for positive evidence of loot: a valid source that is a dead non-PC creature, a placeable, or a container held by someone other than the looter. Nothing outside <code>inc_partyloot.nss</code> changed — no per-site suppression flags and no edits to the third-party <code>zep_*</code> / <code>x2_*</code> frameworks. Requiring a valid source costs no real loot path: the only <code>CreateObject(OBJECT_TYPE_ITEM, …, lLoc)</code> in <code>unpacked/</code> is stock <code>x2_inc_compon.nss</code> component harvesting, so nothing in the module drops loot on the ground. Same shape as the earlier <a href=\"#idea-party-loot-pickpocket\">party loot and pickpocket</a> fix (<code>ddbd2bdd8cb</code>).</div><div><br></div><div>The player-facing <code>Customizations/Systems.html#party-loot</code> section gained a bullet saying what counts as loot; it previously only said “when you pick up a valuable item”. Module-only change, no hak or TLK content moved, so no NWSync refresh. There is no automated party-loot gate in <code>tests/</code> — the in-game party checks below are the only regression cover.</div>"
+    manual_steps:
+      - step: "Craft, dye or forge-revert an item worth 10,000 gp or more while partied with another player in the same area: no Need / Greed / Pass window should appear for anybody. This is the reported bug."
+        status: open
+        kind: uat
+        tester: "any, partied, with a 10k+ gp item to work on"
+      - step: "Get disarmed by an NPC and pick your weapon back up while partied: no roll. Under the old code a party member could win the roll and walk off with your weapon, so also confirm the weapon is still yours afterwards."
+        status: open
+        kind: uat
+        tester: "any, partied, melee with a 10k+ gp weapon"
+      - step: "Regression, and it matters as much as the fix: loot a 10,000 gp+ item off a boss corpse while partied and confirm the roll still fires, still shows the item's properties, and still hands the item to the winner."
+        status: open
+        kind: uat
+        tester: "two PCs partied, at any registry boss"
+      - step: "Regression: open a chest (a Setti coffer in Noirinan is the sharpest test) while partied and confirm taking the item out still rolls. Chests and corpses are the two sources that must keep working."
+        status: open
+        kind: uat
+        tester: "two PCs partied, Numenor access"
+      - step: "Regression: pickpocket a living NPC while partied and confirm there is still no roll (the party-loot-pickpocket fix), and that buying from a store and trading player to player are still silent."
+        status: open
+        kind: uat
+        tester: "any, partied, with Pick Pocket"
+      - step: "Take an item worth 10,000 gp or more out of a bag in your own pack while partied: no roll. This is new behaviour in this fix — previously shuffling your own inventory could start one."
+        status: open
+        kind: uat
+        tester: "any, partied, with a magic bag"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8806,12 +8911,14 @@ ideas:
   - id: divine-might-divine-wrath
     title: "Divine Might/Divine Wrath"
     group: combat-classes
-    status: planned
+    status: wip
     type: Enhancement
     player: "-Methonash-"
-    date: "2026-09-09"
+    date: "2026-09-24"
     discord: {'thread_id': '1547363550626840627', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1547363550626840627'}
-    notes: "<div>The player requests that the duration and damage of Divine Might and Divine Wrath scale with Strength.</div>"
+    notes: "<div>The player requests that the duration and damage of Divine Might and Divine Wrath scale with Strength.</div>\n<p><b>Proposal (not yet built — numbers may still change):</b></p>\n<p><b>1. Divine Might and Divine Wrath become resistible, for everyone.</b> Today their bonus is a damage-increase effect, which ignores damage resistance and immunity entirely. Under this proposal the bonus lands as its own line of divine damage on every hit, so a target's divine resistance or immunity reduces it like any other divine damage. The old +20 ceiling on the bonus goes away.</p>\n<p><b>2. A consolation for everyone who uses them without a legendary feat</b>, so it is only a loss against divine-resistant targets:</p>\n<ul>\n<li><b>Divine Might</b> lasts twice as long: 2 × your Charisma modifier in rounds, in line with every other player buff.</li>\n<li><b>Divine Wrath</b> deals +3 more divine damage at every tier (6 up to 20, instead of 3 up to 17).</li>\n</ul>\n<p><b>3. Two new legendary feats</b> (level 60):</p>\n<ul>\n<li><b>Legendary Divine Might</b> — Divine Might adds your Charisma <i>and</i> Strength modifiers as divine damage per hit, and lasts 2 × (Charisma + Strength modifier) rounds. Requires Divine Might, base Strength 28+, base Charisma 18+, BAB 35+.</li>\n<li><b>Legendary Champion's Wrath</b> — one extra Divine Wrath per day for every 10 Divine Champion levels (up to 5 a day), and it lasts (Charisma + Strength modifier) rounds, doubled as usual. Requires Divine Champion level 30+, base Charisma 20+, base Strength 24+.</li>\n</ul>"
+    notes_h: 366
+    impl_notes: "<p><b>Dev note:</b> full design plan at <code>divine-might-divine-wrath-plan.md</code> (repo root), 2026-09-24.</p>\n<p>Routes: bonus moves off <code>EffectDamageIncrease</code> (ignores resist/immunity) to a per-hit <code>EffectDamage(DIVINE)</code> via a new <code>divdmg_inc.nss</code> gated by one local int in <code>devcrit_atk.nss</code>; new override <code>x0_s2_divmight.nss</code> + edits to <code>x2_s2_divwrath.nss</code>. Legendary feats would be rows 1134/1135 (<code>kind=hook</code>) — <b>pending admin sign-off per feat</b>; extra Wrath uses via IncrementRemainingFeatUses refund + a rest-reset counter persisted like pers_state_inc. Named Legendary Champion's Wrath because llf-divine-wrath already claims “Legendary Divine Wrath”. Hak + TLK + NWSync on publish. Balance nerf for every paladin/DC — season promotion needs a release note.</p>"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8880,7 +8987,7 @@ ideas:
   - id: rune-of-expansion
     title: "Rune of Expansion"
     group: items-gear
-    status: wip
+    status: confirmed
     type: Enhancement
     player: "Rajmund (Ray)"
     date: "2026-09-09"

@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script jb_db</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>jb_db</code></h1><pre class="nss-source"><code>// jb_db.nss - the player jukebox&#x27;s queue, play counts and gold tiers.
+//
+// WHAT IS PERSISTENT AND WHY
+//
+// The admin jukebox is deliberately not persistent: its state is area locals
+// and it dies at reboot (jb_inc.nss). That is right for a free admin toy and
+// wrong here, because players PAY. A queue that vanished on restart would take
+// their gold with it, so the queue lives in SQLite and survives.
+//
+// What is NOT persisted is the engine&#x27;s music state, which cannot be: after a
+// restart the room is playing its own music again and nothing knows otherwise.
+// JB_Reconcile() handles that by treating a song whose window has not yet
+// elapsed as one to (re)start, so a player who paid hears their song even if
+// the server went down in the middle of it. It restarts from the beginning
+// because MusicBackgroundPlay cannot seek.
+//
+// TIME IS SETTLED LAZILY, the way boost_db.nss does it - a stored wall-clock
+// epoch compared to now, never the game clock (an in-game hour is about two
+// real minutes). The one honest exception is that a song has to end even when
+// nobody is clicking, so JB_Arm() sets a single DelayCommand at track end,
+// guarded by a generation counter so a superseded timer no-ops. That is the
+// idiom bonus_pool_inc and fat_inc already use for expiry. A per-area
+// OnHeartbeat poll would be the alternative and is not this module&#x27;s style.
+//
+// WHY THE TRACK NAMES ARE IN THE DATABASE
+//
+// jb_plays carries the name as well as the count, seeded from jb_catalog.nss.
+// That lets one SQL statement do the filtering, the ordering and the paging the
+// picker needs - including &quot;sort by most played&quot;, which cannot be done in
+// NWScript at all: there is no array to sort 113 entries in.
+//
+// IDENTITY is GetObjectUUID(), never the engine&#x27;s derived campaign key. See
+// mw_db.nss:1-40 for what that key cost the last time: it is account name plus
+// character name truncated, two characters on one account collided, and a
+// re-roll claimed a permanent reward seven times.
+#include &quot;jb_catalog&quot;
+#include &quot;jb_inc&quot;
+
+const string JB_DB = &quot;jukeboxdb&quot;;
+
+// Area locals owned by this file (the music-state ones belong to jb_inc).
+const string JB_GEN = &quot;JB_GEN&quot;;   // generation counter for the armed end-of-track timer
+const string JB_CREDIT_SEC = &quot;JB_CREDIT_SEC&quot;;  // seconds of finished music, for jb_credit
+
+// ---------------------------------------------------------------- gold tiers
+//
+// Tier 0 is the ordinary price. Tiers 1-4 buy PRIORITY: a higher tier jumps the
+// whole queue ahead of every lower one, and ties break first-come. The step is
+// steeply exponential, and the top of it is the roadmap item&#x27;s own ceiling -
+// 100 million is meant to be a thing somebody does once, not a way to own the
+// room.
+const int JB_TIER_MAX = 4;
+
+int JB_TierCost(int nTier)
+{
+    switch (nTier)
+    {
+        case 0: return 100;
+        case 1: return 5000;
+        case 2: return 150000;
+        case 3: return 4000000;
+        case 4: return 100000000;
+    }
+    return 100;
+}
+
+string JB_TierName(int nTier)
+{
+    switch (nTier)
+    {
+        case 0: return &quot;Ordinary&quot;;
+        case 1: return &quot;Sooner&quot;;
+        case 2: return &quot;Much sooner&quot;;
+        case 3: return &quot;Next but one&quot;;
+        case 4: return &quot;Next, and be quiet about it&quot;;
+    }
+    return &quot;Ordinary&quot;;
+}
+
+// &quot;1,234,567&quot; - the module&#x27;s one gold formatter lives in store_appr_inc, which
+// this file does not otherwise need, so the grouping is repeated here rather
+// than dragging a whole store include into the jukebox.
+string JB_Gold(int n)
+{
+    if (n &lt; 0) return IntToString(n);
+    string sOut = &quot;&quot;;
+    string sIn = IntToString(n);
+    int nLen = GetStringLength(sIn);
+    int i;
+    for (i = 0; i &lt; nLen; i++)
+    {
+        if (i &gt; 0 &amp;&amp; (nLen - i) % 3 == 0) sOut += &quot;,&quot;;
+        sOut += GetSubString(sIn, i, 1);
+    }
+    return sOut;
+}
+
+// ------------------------------------------------------------------- helpers
+
+int JB_Now()
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// The key a queue is filed under. An area&#x27;s resref is stable across reboots,
+// which ObjectToString is not.
+string JB_AreaKey(object oArea)
+{
+    return GetResRef(oArea);
+}
+
+// ------------------------------------------------------------------- schema
+
+void JB_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;CREATE TABLE IF NOT EXISTS jb_queue (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;area TEXT NOT NULL,&quot; +            // area resref
+        &quot;row INTEGER NOT NULL,&quot; +          // RAW ambientmusic.2da row
+        &quot;dur_sec INTEGER NOT NULL,&quot; +      // measured length, from the catalogue
+        &quot;tier INTEGER NOT NULL DEFAULT 0,&quot; +
+        &quot;paid INTEGER NOT NULL DEFAULT 0,&quot; +
+        &quot;uuid TEXT,&quot; +                     // GetObjectUUID of the buyer
+        &quot;buyer_name TEXT,&quot; +
+        &quot;queued_at INTEGER NOT NULL,&quot; +
+        &quot;started_at INTEGER)&quot;);            // NULL until it is the one playing
+    SqlStep(q);
+
+    sqlquery qi = SqlPrepareQueryCampaign(JB_DB,
+        &quot;CREATE INDEX IF NOT EXISTS jb_queue_area ON jb_queue(area, tier DESC, id)&quot;);
+    SqlStep(qi);
+
+    // Listening credit, while the player is still in the room. This row does
+    // NOT expire and is not time-adjusted: credit stops decaying being the
+    // whole point (see jb_buff_inc.nss). `area` is what says which room earned
+    // it, so leaving some other area cannot cash it in early.
+    sqlquery ql = SqlPrepareQueryCampaign(JB_DB,
+        &quot;CREATE TABLE IF NOT EXISTS jb_listen (&quot; +
+        &quot;uuid TEXT NOT NULL PRIMARY KEY,&quot; +
+        &quot;credited_sec INTEGER NOT NULL DEFAULT 0,&quot; +
+        &quot;area TEXT NOT NULL DEFAULT &#x27;&#x27;,&quot; +
+        &quot;updated_at INTEGER NOT NULL)&quot;);
+    SqlStep(ql);
+
+    // The granted buff, once they have walked out with it. THIS is the row that
+    // carries an expiry, and the clock on it only starts at that moment - the
+    // effects are a projection of it, re-derived at login and after a rest.
+    sqlquery qb = SqlPrepareQueryCampaign(JB_DB,
+        &quot;CREATE TABLE IF NOT EXISTS jb_buff (&quot; +
+        &quot;uuid TEXT NOT NULL PRIMARY KEY,&quot; +
+        &quot;mag INTEGER NOT NULL,&quot; +
+        &quot;expires_at INTEGER NOT NULL)&quot;);
+    SqlStep(qb);
+
+    sqlquery qp = SqlPrepareQueryCampaign(JB_DB,
+        &quot;CREATE TABLE IF NOT EXISTS jb_plays (&quot; +
+        &quot;row INTEGER PRIMARY KEY,&quot; +
+        &quot;name TEXT NOT NULL,&quot; +
+        &quot;plays INTEGER NOT NULL DEFAULT 0)&quot;);
+    SqlStep(qp);
+
+    // Seed (and re-seed) the names from the generated catalogue. Only done when
+    // the counts disagree, so a normal module load does no work: adding a track
+    // is the only thing that changes this, and it changes the count.
+    sqlquery qc = SqlPrepareQueryCampaign(JB_DB, &quot;SELECT COUNT(*) FROM jb_plays&quot;);
+    int nHave = SqlStep(qc) ? SqlGetInt(qc, 0) : 0;
+    if (nHave == JB_CatCount()) return;
+
+    int i;
+    for (i = 0; i &lt; JB_CatCount(); i++)
+    {
+        // INSERT OR IGNORE, not REPLACE: a replace would reset the play count
+        // of every existing track every time a new one was added.
+        sqlquery qn = SqlPrepareQueryCampaign(JB_DB,
+            &quot;INSERT OR IGNORE INTO jb_plays(row, name, plays) VALUES(@r, @n, 0)&quot;);
+        SqlBindInt(qn, &quot;@r&quot;, JB_CatRow(i));
+        SqlBindString(qn, &quot;@n&quot;, JB_CatName(i));
+        SqlStep(qn);
+
+        // A renamed track still updates its label without touching the count.
+        sqlquery qu = SqlPrepareQueryCampaign(JB_DB,
+            &quot;UPDATE jb_plays SET name = @n WHERE row = @r&quot;);
+        SqlBindInt(qu, &quot;@r&quot;, JB_CatRow(i));
+        SqlBindString(qu, &quot;@n&quot;, JB_CatName(i));
+        SqlStep(qu);
+    }
+}
+
+// ------------------------------------------------------------- play counting
+
+void JB_BumpPlays(int nRow)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;UPDATE jb_plays SET plays = plays + 1 WHERE row = @r&quot;);
+    SqlBindInt(q, &quot;@r&quot;, nRow);
+    SqlStep(q);
+}
+
+int JB_PlaysFor(int nRow)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT plays FROM jb_plays WHERE row = @r&quot;);
+    SqlBindInt(q, &quot;@r&quot;, nRow);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// ------------------------------------------------------------------- listing
+//
+// One statement does filter, order and page, which is the whole reason the
+// names are in the table. sSort is &quot;plays&quot; or &quot;name&quot;; anything else is treated
+// as &quot;name&quot; rather than interpolated, because this string reaches SQL.
+
+string JB_OrderBy(string sSort)
+{
+    if (sSort == &quot;plays&quot;) return &quot;plays DESC, name ASC&quot;;
+    return &quot;name ASC&quot;;
+}
+
+int JB_ListCount(string sQuery)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT COUNT(*) FROM jb_plays WHERE name LIKE @q&quot;);
+    SqlBindString(q, &quot;@q&quot;, &quot;%&quot; + sQuery + &quot;%&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// The RAW row at position nOffset of the filtered, sorted list, or -1.
+int JB_ListRowAt(string sQuery, string sSort, int nOffset)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT row FROM jb_plays WHERE name LIKE @q ORDER BY &quot;
+        + JB_OrderBy(sSort) + &quot; LIMIT 1 OFFSET @o&quot;);
+    SqlBindString(q, &quot;@q&quot;, &quot;%&quot; + sQuery + &quot;%&quot;);
+    SqlBindInt(q, &quot;@o&quot;, nOffset);
+    return SqlStep(q) ? SqlGetInt(q, 0) : -1;
+}
+
+// --------------------------------------------------------------------- queue
+
+int JB_QueueLength(object oArea)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT COUNT(*) FROM jb_queue WHERE area = @a AND started_at IS NULL&quot;);
+    SqlBindString(q, &quot;@a&quot;, JB_AreaKey(oArea));
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// The entry currently playing in this area, as its raw row, or -1.
+int JB_PlayingRow(object oArea)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT row FROM jb_queue WHERE area = @a AND started_at IS NOT NULL &quot;
+        + &quot;ORDER BY started_at DESC LIMIT 1&quot;);
+    SqlBindString(q, &quot;@a&quot;, JB_AreaKey(oArea));
+    return SqlStep(q) ? SqlGetInt(q, 0) : -1;
+}
+
+void JB_Enqueue(object oArea, int nRow, int nDur, int nTier, int nPaid, object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;INSERT INTO jb_queue(area, row, dur_sec, tier, paid, uuid, buyer_name, &quot;
+        + &quot;queued_at, started_at) VALUES(@a, @r, @d, @t, @p, @u, @n, @q, NULL)&quot;);
+    SqlBindString(q, &quot;@a&quot;, JB_AreaKey(oArea));
+    SqlBindInt(q, &quot;@r&quot;, nRow);
+    SqlBindInt(q, &quot;@d&quot;, nDur);
+    SqlBindInt(q, &quot;@t&quot;, nTier);
+    SqlBindInt(q, &quot;@p&quot;, nPaid);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@n&quot;, GetName(oPC));
+    SqlBindInt(q, &quot;@q&quot;, JB_Now());
+    SqlStep(q);
+}
+
+// How many are waiting ahead of a given tier - what a player wants to know
+// before paying to jump them.
+int JB_AheadOf(object oArea, int nTier)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT COUNT(*) FROM jb_queue WHERE area = @a AND started_at IS NULL &quot;
+        + &quot;AND tier &gt; @t&quot;);
+    SqlBindString(q, &quot;@a&quot;, JB_AreaKey(oArea));
+    SqlBindInt(q, &quot;@t&quot;, nTier);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+void JB_Reconcile(object oArea);
+void JB_OnTrackEnd(object oArea, int nGen);
+
+// Arm the single end-of-track timer. The generation counter is what makes a
+// superseded timer harmless: Stop, or any reconcile that promotes a different
+// entry, bumps JB_GEN and the old DelayCommand finds a number it does not
+// recognise and returns.
+//
+// Assigned to the AREA, not to the player who clicked: a delayed command dies
+// with the object that owns it, and the player may well walk out or log off
+// before the song ends. The area does not.
+void JB_Arm(object oArea, int nSeconds)
+{
+    int nGen = GetLocalInt(oArea, JB_GEN) + 1;
+    SetLocalInt(oArea, JB_GEN, nGen);
+    AssignCommand(oArea, DelayCommand(IntToFloat(nSeconds) + 1.0,
+                                      JB_OnTrackEnd(oArea, nGen)));
+}
+
+void JB_OnTrackEnd(object oArea, int nGen)
+{
+    if (GetLocalInt(oArea, JB_GEN) != nGen) return;   // superseded; do nothing
+    JB_Reconcile(oArea);
+}
+
+// Settle this area&#x27;s queue against the wall clock: retire a finished song,
+// promote the next one, and stop when there is nothing left.
+//
+// Safe to call at any time and from anywhere - opening the window, queueing,
+// the armed timer. It is the only thing that starts or stops the music on the
+// player path.
+void JB_Reconcile(object oArea)
+{
+    if (!GetIsObjectValid(oArea)) return;
+
+    int nNow = JB_Now();
+    string sArea = JB_AreaKey(oArea);
+
+    // 1. Retire whatever has finished - but measure it first, because after
+    //    the delete there is nothing left to read. The total is what the room&#x27;s
+    //    listeners are credited for; see jb_buff_inc.nss for the approximation
+    //    that credit is granted per finished song rather than per second.
+    sqlquery qf = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT COALESCE(SUM(dur_sec), 0) FROM jb_queue WHERE area = @a &quot;
+        + &quot;AND started_at IS NOT NULL AND started_at + dur_sec &lt;= @n&quot;);
+    SqlBindString(qf, &quot;@a&quot;, sArea);
+    SqlBindInt(qf, &quot;@n&quot;, nNow);
+    int nFinished = SqlStep(qf) ? SqlGetInt(qf, 0) : 0;
+
+    sqlquery qd = SqlPrepareQueryCampaign(JB_DB,
+        &quot;DELETE FROM jb_queue WHERE area = @a AND started_at IS NOT NULL &quot;
+        + &quot;AND started_at + dur_sec &lt;= @n&quot;);
+    SqlBindString(qd, &quot;@a&quot;, sArea);
+    SqlBindInt(qd, &quot;@n&quot;, nNow);
+    SqlStep(qd);
+
+    // Handed off through ExecuteScript rather than a direct call: jb_buff_inc
+    // includes this file, so calling it from here would be a circular include.
+    if (nFinished &gt; 0)
+    {
+        SetLocalInt(oArea, JB_CREDIT_SEC, nFinished);
+        ExecuteScript(&quot;jb_credit&quot;, oArea);
+    }
+
+    // 2. Is something still mid-song? After a restart the engine has forgotten
+    //    it, so re-assert it rather than leaving a paid song silent. It restarts
+    //    from the beginning: MusicBackgroundPlay cannot seek.
+    sqlquery qc = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT row, started_at + dur_sec - @n FROM jb_queue WHERE area = @a &quot;
+        + &quot;AND started_at IS NOT NULL ORDER BY started_at DESC LIMIT 1&quot;);
+    SqlBindString(qc, &quot;@a&quot;, sArea);
+    SqlBindInt(qc, &quot;@n&quot;, nNow);
+    if (SqlStep(qc))
+    {
+        int nRow  = SqlGetInt(qc, 0);
+        int nLeft = SqlGetInt(qc, 1);
+        if (GetLocalInt(oArea, JB_ROW) != nRow)
+        {
+            JB_StartRow(oArea, nRow);
+            JB_Arm(oArea, nLeft);
+        }
+        return;
+    }
+
+    // 3. Nothing playing. Promote the head of the queue: highest tier first,
+    //    first-come within a tier.
+    sqlquery qn = SqlPrepareQueryCampaign(JB_DB,
+        &quot;SELECT id, row, dur_sec FROM jb_queue WHERE area = @a &quot;
+        + &quot;AND started_at IS NULL ORDER BY tier DESC, id ASC LIMIT 1&quot;);
+    SqlBindString(qn, &quot;@a&quot;, sArea);
+    if (!SqlStep(qn))
+    {
+        // Empty queue. Give the room its own music back - this is what &quot;does
+        // not loop forever&quot; means.
+        if (GetLocalInt(oArea, JB_ON))
+        {
+            SetLocalInt(oArea, JB_GEN, GetLocalInt(oArea, JB_GEN) + 1);
+            JB_Stop(oArea);
+        }
+        return;
+    }
+
+    int nId  = SqlGetInt(qn, 0);
+    int nRow = SqlGetInt(qn, 1);
+    int nDur = SqlGetInt(qn, 2);
+
+    sqlquery qs = SqlPrepareQueryCampaign(JB_DB,
+        &quot;UPDATE jb_queue SET started_at = @n WHERE id = @i&quot;);
+    SqlBindInt(qs, &quot;@n&quot;, nNow);
+    SqlBindInt(qs, &quot;@i&quot;, nId);
+    SqlStep(qs);
+
+    JB_StartRow(oArea, nRow);
+    JB_BumpPlays(nRow);
+    JB_Arm(oArea, nDur);
+}
+
+// Clear an area&#x27;s queue and silence it. The refund question is deliberately not
+// answered here: nothing calls this on the player path, and an admin who stops
+// a room is doing it on purpose.
+void JB_ClearQueue(object oArea)
+{
+    sqlquery q = SqlPrepareQueryCampaign(JB_DB,
+        &quot;DELETE FROM jb_queue WHERE area = @a&quot;);
+    SqlBindString(q, &quot;@a&quot;, JB_AreaKey(oArea));
+    SqlStep(q);
+
+    SetLocalInt(oArea, JB_GEN, GetLocalInt(oArea, JB_GEN) + 1);
+    JB_Stop(oArea);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

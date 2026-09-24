@@ -101,7 +101,7 @@
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
 <h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+7</td></tr>
 <tr><th>Save vs. Reflex</th><td>+5</td></tr>
-<tr><th>Skill Bonuses</th><td>Hide +10, Listen +5, Move Silently +10, Spot +5</td></tr>
+<tr><th>Skill Bonuses</th><td>Hide +20, Listen +5, Move Silently +20, Spot +5</td></tr>
 <tr><th>Damage Reduction</th><td>Soak10, bypass +10</td></tr>
 <tr><th>Misc Abilities</th><td>Darkvision</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
 <h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/item026.html">Devil&#x27;s Advocate</a></td><td>dagger</td><td>Melee</td><td>+65/+60/+55/+50</td><td>1d4+13 (14–17) + Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d12, Damage Bonus Piercing 2d12, Damage Bonus vs. Alignment Group Good 2d12, Damage Bonus vs. Alignment Group Good 2d12, Massive Criticals 1d12</td><td>19-20/x2</td></tr>
@@ -118,16 +118,27 @@
 <tr><td>Right hand</td><td><a href="../items/item026.html">Devil&#x27;s Advocate</a></td><td><span style="color:#888">No</span></td></tr>
 <tr><td>Left hand</td><td><a href="../items/item026.html">Devil&#x27;s Advocate</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(29)</small></h2><ul class="featlist"><li>AnimalCompanion</li><li>ArmProfHvy</li><li>ArmProfLgt</li><li>ArmProfMed</li><li>FEAT_EPIC_ARMOR_SKIN</li><li>FEAT_EPIC_PROWESS</li><li>FEAT_EPIC_SKILL_FOCUS_ANIMAL_EMPATHY</li><li>FEAT_EPIC_TOUGHNESS_1</li><li>FEAT_EPIC_TOUGHNESS_2</li><li>FEAT_EPIC_TOUGHNESS_3</li><li>FEAT_EPIC_TOUGHNESS_5</li><li>FEAT_EPIC_TOUGHNESS_6</li><li>FEAT_EPIC_TOUGHNESS_7</li><li>FEAT_EPIC_TOUGHNESS_8</li><li>FEAT_EPIC_TOUGHNESS_9</li><li>hardinessenchantment</li><li>immunitysleep</li><li>ImpTwo</li><li>keensense</li><li>LowLightVision</li><li>RangerDual</li><li>Shield</li><li>skillaffinitylisten</li><li>skillaffinitysearch</li><li>skillaffinityspot</li><li>TracklessStep</li><li>WeapProfElf</li><li>WeapProfMar</li><li>WeapProfSim</li></ul>
-<h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Animal Empathy</td><td>20</td></tr>
-<tr><td>Concentration</td><td>21</td></tr>
-<tr><td>Discipline</td><td>65</td></tr>
-<tr><td>Heal</td><td>21</td></tr>
-<tr><td>Hide</td><td>20</td></tr>
-<tr><td>Lore</td><td>1</td></tr>
-<tr><td>Parry</td><td>20</td></tr>
-<tr><td>Craft Trap</td><td>1</td></tr>
-<tr><td>Craft Armor</td><td>1</td></tr>
-<tr><td>Craft Weapon</td><td>1</td></tr></tbody></table>
+<h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th><th>Total</th><th>Breakdown</th></tr></thead><tbody><tr><td>Animal Empathy</td><td>20</td><td><strong>+43</strong></td><td class="muted">20 ranks +13 Cha +10 FEAT_EPIC_SKILL_FOCUS_ANIMAL_EMPATHY</td></tr>
+<tr><td>Concentration</td><td>21</td><td><strong>+33</strong></td><td class="muted">21 ranks +12 Con</td></tr>
+<tr><td>Discipline</td><td>65</td><td><strong>+78</strong></td><td class="muted">65 ranks +13 Str</td></tr>
+<tr><td>Heal</td><td>21</td><td><strong>+34</strong></td><td class="muted">21 ranks +13 Wis</td></tr>
+<tr><td>Hide</td><td>20</td><td><strong>+53</strong></td><td class="muted">20 ranks +14 Dex +20 items -1 armor check</td></tr>
+<tr><td>Listen</td><td>0</td><td><strong>+20</strong></td><td class="muted">0 ranks +13 Wis +2 skillaffinitylisten +5 items</td></tr>
+<tr><td>Lore</td><td>1</td><td><strong>+14</strong></td><td class="muted">1 ranks +13 Int</td></tr>
+<tr><td>Move Silently</td><td>0</td><td><strong>+33</strong></td><td class="muted">0 ranks +14 Dex +20 items -1 armor check</td></tr>
+<tr><td>Parry</td><td>20</td><td><strong>+33</strong></td><td class="muted">20 ranks +14 Dex -1 armor check</td></tr>
+<tr><td>Perform</td><td>0</td><td><strong>+13</strong></td><td class="muted">0 ranks +13 Cha</td></tr>
+<tr><td>Persuade</td><td>0</td><td><strong>+13</strong></td><td class="muted">0 ranks +13 Cha</td></tr>
+<tr><td>Search</td><td>0</td><td><strong>+15</strong></td><td class="muted">0 ranks +13 Int +2 skillaffinitysearch</td></tr>
+<tr><td>Spot</td><td>0</td><td><strong>+20</strong></td><td class="muted">0 ranks +13 Wis +2 skillaffinityspot +5 items</td></tr>
+<tr><td>Taunt</td><td>0</td><td><strong>+13</strong></td><td class="muted">0 ranks +13 Cha</td></tr>
+<tr><td>Appraise</td><td>0</td><td><strong>+13</strong></td><td class="muted">0 ranks +13 Int</td></tr>
+<tr><td>Craft Trap</td><td>1</td><td><strong>+14</strong></td><td class="muted">1 ranks +13 Int</td></tr>
+<tr><td>Bluff</td><td>0</td><td><strong>+13</strong></td><td class="muted">0 ranks +13 Cha</td></tr>
+<tr><td>Intimidate</td><td>0</td><td><strong>+13</strong></td><td class="muted">0 ranks +13 Cha</td></tr>
+<tr><td>Craft Armor</td><td>1</td><td><strong>+14</strong></td><td class="muted">1 ranks +13 Int</td></tr>
+<tr><td>Craft Weapon</td><td>1</td><td><strong>+14</strong></td><td class="muted">1 ranks +13 Int</td></tr>
+<tr><td>Ride</td><td>0</td><td><strong>+14</strong></td><td class="muted">0 ranks +14 Dex</td></tr></tbody></table><p class="muted">Total = ranks + key ability + skill feats + equipped items + armor check penalty. Spells and scripted effects the creature gains in play are not included.</p>
 <h2>Scripts</h2>
 <table class="data"><thead><tr><th>Event</th><th>Script</th></tr></thead><tbody><tr><td>ScriptHeartbeat</td><td>x2_def_heartbeat</td></tr>
 <tr><td>ScriptOnNotice</td><td>x2_def_percept</td></tr>

@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script jb_catalog</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>jb_catalog</code></h1><pre class="nss-source"><code>// jb_catalog.nss -- every track the player jukebox can play.
+//
+// AUTO-GENERATED by bin/gen-music-tracks.py --catalog -- do not hand-edit.
+// music/catalog.json is the committed source of truth.
+//
+// This is the PLAYER catalogue: stock rows plus our own. jb_tracks.nss is
+// the separate, admin-only table of just the custom tracks, and the old
+// jb_conv jukebox still reads that one. Do not merge them.
+//
+// Names come from ambientmusic.stock.2da&#x27;s DisplayName where a row has one
+// and from tlk/dialog.tlk via its Description strref otherwise -- the stock
+// table uses both conventions and neither covers every row.
+//
+// Durations are MEASURED from the stock .bmu files with ffprobe, because a
+// paid queue has to know when a song actually ends and the lengths are not
+// uniform (they run from under a minute to over ten).
+//
+// These are RAW ambientmusic.2da rows -- what MusicBackgroundChangeDay()
+// takes. MusicBackgroundGetDayTrack() returns row MINUS ONE; jb_inc.nss
+// documents both conventions and JB_Start()/JB_Stop() already handle them.
+//
+// Excluded, deliberately (30 row(s)):
+//   row 0    (none)             reserved silence row
+//   row 34   mus_bat_rural1     battle music
+//   row 35   mus_bat_forest1    battle music
+//   row 36   mus_bat_forest2    battle music
+//   row 37   mus_bat_dung1      battle music
+//   row 38   mus_bat_dung2      battle music
+//   row 39   mus_bat_dung3      battle music
+//   row 40   mus_bat_city1      battle music
+//   row 41   mus_bat_city2      battle music
+//   row 42   mus_bat_city3      battle music
+//   row 43   mus_bat_citboss    battle music
+//   row 44   mus_bat_forboss    battle music
+//   row 45   mus_bat_lizboss    battle music
+//   row 46   mus_bat_dragon     battle music
+//   row 47   mus_bat_aribeth    battle music
+//   row 48   mus_bat_endboss    battle music
+//   row 57   mus_bat_x0desert   battle music
+//   row 60   mus_bat_x0winter   battle music
+//   row 70   mus_bat_x2small    battle music
+//   row 71   mus_bat_x2med      battle music
+//   row 72   mus_bat_x2large    battle music
+//   row 73   mus_bat_x2hell     battle music
+//   row 74   mus_bat_x2boss1    battle music
+//   row 75   mus_bat_x2boss2    battle music
+//   row 88   mus_bat_wcchase    battle music
+//   row 91   mus_bat_wcbattle   battle music
+//   row 116  mus_bat_tm_drag    battle music
+//   row 117  mus_bat_tm_arena   battle music
+//   row 118  mus_bat_tm_ship    battle music
+//   row 119  mus_bat_tm_orcus   battle music
+
+int JB_CatCount();
+int JB_CatRow(int nIndex);
+string JB_CatName(int nIndex);
+int JB_CatDuration(int nIndex);
+int JB_CatByName(int nOrder);
+
+int JB_CatCount()
+{
+    return 113;
+}
+
+int JB_CatRow(int nIndex)
+{
+    switch (nIndex)
+    {
+        case 0: return 1;   // mus_ruralday1
+        case 1: return 2;   // mus_ruralday2
+        case 2: return 3;   // mus_ruralnite
+        case 3: return 4;   // mus_forestday1
+        case 4: return 5;   // mus_forestday2
+        case 5: return 6;   // mus_forestnite
+        case 6: return 7;   // mus_gendungeon1
+        case 7: return 8;   // mus_sewer
+        case 8: return 9;   // mus_mines1
+        case 9: return 10;   // mus_mines2
+        case 10: return 11;   // mus_crypt1
+        case 11: return 12;   // mus_crypt2
+        case 12: return 13;   // mus_evildungeon1
+        case 13: return 14;   // mus_evildungeon2
+        case 14: return 15;   // mus_cityslumday
+        case 15: return 16;   // mus_cityslumnite
+        case 16: return 17;   // mus_citydockday
+        case 17: return 18;   // mus_citydocknite
+        case 18: return 19;   // mus_citywealthy
+        case 19: return 20;   // mus_citymarket
+        case 20: return 21;   // mus_citynite
+        case 21: return 22;   // mus_tavern1
+        case 22: return 23;   // mus_tavern2
+        case 23: return 24;   // mus_tavern3
+        case 24: return 25;   // mus_richhouse
+        case 25: return 26;   // mus_store
+        case 26: return 27;   // mus_templegood
+        case 27: return 28;   // mus_templeevil
+        case 28: return 29;   // mus_theme_nwn
+        case 29: return 30;   // mus_theme_chap1
+        case 30: return 31;   // mus_theme_chap2
+        case 31: return 32;   // mus_theme_chap3
+        case 32: return 33;   // mus_theme_chap4
+        case 33: return 49;   // mus_templegood2
+        case 34: return 50;   // mus_castle
+        case 35: return 51;   // mus_theme_aribgd
+        case 36: return 52;   // mus_theme_aribev
+        case 37: return 53;   // mus_theme_argend
+        case 38: return 54;   // mus_theme_maugrm
+        case 39: return 55;   // mus_theme_morag
+        case 40: return 56;   // mus_tavern4
+        case 41: return 58;   // mus_x0desertday
+        case 42: return 59;   // mus_x0winterday
+        case 43: return 61;   // mus_x0desertngt
+        case 44: return 62;   // mus_x2theme
+        case 45: return 63;   // mus_x2waterdeep
+        case 46: return 64;   // mus_x2undermtn
+        case 47: return 65;   // mus_x2rebelcamp
+        case 48: return 66;   // mus_x2fireplane
+        case 49: return 67;   // mus_x2queen
+        case 50: return 68;   // mus_x2frozenhell
+        case 51: return 69;   // mus_x2draco
+        case 52: return 76;   // mus_dd_kingmaker
+        case 53: return 77;   // mus_dd_shadowgua
+        case 54: return 78;   // mus_dd_witchwake
+        case 55: return 79;   // mus_dd_islands
+        case 56: return 80;   // mus_dd_pirates
+        case 57: return 81;   // mus_dd_infdun
+        case 58: return 82;   // mus_wc_ogma
+        case 59: return 83;   // mus_wc_openroad
+        case 60: return 84;   // mus_wc_smokeash
+        case 61: return 85;   // mus_wc_rural
+        case 62: return 86;   // mus_wc_ruralg
+        case 63: return 87;   // mus_wc_tears
+        case 64: return 89;   // mus_wc_theme
+        case 65: return 90;   // mus_wc_armchair
+        case 66: return 92;   // mus_wc_solace
+        case 67: return 93;   // mus_wc_knighted
+        case 68: return 94;   // mus_wc_opening
+        case 69: return 95;   // mus_wc_morfen
+        case 70: return 96;   // mus_tm_tyrants
+        case 71: return 97;   // mus_tm_voonlar
+        case 72: return 98;   // mus_tm_chauntea
+        case 73: return 99;   // mus_tm_shindroad
+        case 74: return 100;   // mus_tm_elventree
+        case 75: return 101;   // mus_tm_hillsfar
+        case 76: return 102;   // mus_tm_arenacell
+        case 77: return 103;   // mus_tm_cormanthr
+        case 78: return 104;   // mus_tm_elmwood
+        case 79: return 105;   // mus_tm_melvaunt
+        case 80: return 106;   // mus_tm_mulmaster
+        case 81: return 107;   // mus_tm_thar
+        case 82: return 108;   // mus_tm_kurtharsu
+        case 83: return 109;   // mus_tm_thentia
+        case 84: return 110;   // mus_tm_zhentil
+        case 85: return 111;   // mus_tm_inn1
+        case 86: return 112;   // mus_tm_inn2
+        case 87: return 113;   // mus_tm_inn3
+        case 88: return 114;   // mus_tm_inn4
+        case 89: return 115;   // mus_tm_inn5
+        case 90: return 120;   // mus_dag_theme
+        case 91: return 121;   // mus_dag_mines
+        case 92: return 122;   // mus_dag_rural
+        case 93: return 123;   // mus_dag_theme2
+        case 94: return 124;   // mus_dag_tavern
+        case 95: return 125;   // mus_dag_bhaal
+        case 96: return 126;   // mus_dag_blackinn
+        case 97: return 127;   // mus_dag_chateau
+        case 98: return 128;   // mus_dag_cliffs
+        case 99: return 129;   // mus_dag_dagnight
+        case 100: return 130;   // mus_dag_forest
+        case 101: return 131;   // mus_dag_happycou
+        case 102: return 132;   // mus_dag_happycow
+        case 103: return 133;   // mus_dag_hills
+        case 104: return 134;   // mus_dag_illefarn
+        case 105: return 135;   // mus_dag_lizards
+        case 106: return 136;   // mus_dag_pastures
+        case 107: return 137;   // mus_dag_wilds
+        case 108: return 138;   // mus_hl_drowning
+        case 109: return 139;   // mus_hl_excalibur
+        case 110: return 140;   // mus_hl_gonnamake
+        case 111: return 141;   // mus_hl_mashur
+        case 112: return 142;   // mus_hl_weliketo
+    }
+    return -1;
+}
+
+string JB_CatName(int nIndex)
+{
+    switch (nIndex)
+    {
+        case 0: return &quot;Rural Day 1&quot;;
+        case 1: return &quot;Rural Day 2&quot;;
+        case 2: return &quot;Rural Night&quot;;
+        case 3: return &quot;Forest Day 1&quot;;
+        case 4: return &quot;Forest Day 2&quot;;
+        case 5: return &quot;Forest Night&quot;;
+        case 6: return &quot;Generic Dungeon&quot;;
+        case 7: return &quot;Sewer&quot;;
+        case 8: return &quot;Mines 1&quot;;
+        case 9: return &quot;Mines 2&quot;;
+        case 10: return &quot;Crypt 1&quot;;
+        case 11: return &quot;Crypt 2&quot;;
+        case 12: return &quot;Evil Dungeon 1&quot;;
+        case 13: return &quot;Evil Dungeon 2&quot;;
+        case 14: return &quot;City Slum Day&quot;;
+        case 15: return &quot;City Slum Night&quot;;
+        case 16: return &quot;City Docks Day&quot;;
+        case 17: return &quot;City Docks Night&quot;;
+        case 18: return &quot;City Wealthy&quot;;
+        case 19: return &quot;City Marketplace&quot;;
+        case 20: return &quot;City Night&quot;;
+        case 21: return &quot;Tavern 1&quot;;
+        case 22: return &quot;Tavern 2&quot;;
+        case 23: return &quot;Tavern 3&quot;;
+        case 24: return &quot;Generic Wealthy House&quot;;
+        case 25: return &quot;Generic Store&quot;;
+        case 26: return &quot;Good Temple&quot;;
+        case 27: return &quot;Evil Temple&quot;;
+        case 28: return &quot;NWN City Theme&quot;;
+        case 29: return &quot;NWN Chapter 1&quot;;
+        case 30: return &quot;NWN Chapter 2&quot;;
+        case 31: return &quot;NWN Chapter 3&quot;;
+        case 32: return &quot;NWN Chapter 4&quot;;
+        case 33: return &quot;Good Temple 2&quot;;
+        case 34: return &quot;Generic Castle Interior&quot;;
+        case 35: return &quot;Aribeth Theme 1&quot;;
+        case 36: return &quot;Aribeth Theme 2&quot;;
+        case 37: return &quot;Theme Aarin Gend&quot;;
+        case 38: return &quot;Theme Maugrim&quot;;
+        case 39: return &quot;Theme Morag&quot;;
+        case 40: return &quot;Tavern 4&quot;;
+        case 41: return &quot;Desert Day&quot;;
+        case 42: return &quot;Winter Day&quot;;
+        case 43: return &quot;Desert Night&quot;;
+        case 44: return &quot;XP2 - Theme&quot;;
+        case 45: return &quot;XP2 - Waterdeep&quot;;
+        case 46: return &quot;XP2 - Undermountain&quot;;
+        case 47: return &quot;XP2 - Rebel Camp&quot;;
+        case 48: return &quot;XP2 - Beholder Caves&quot;;
+        case 49: return &quot;XP2 - Queen of the Shattered Mirror&quot;;
+        case 50: return &quot;XP2 - Chapter 3&quot;;
+        case 51: return &quot;XP2 - Dracolich&quot;;
+        case 52: return &quot;PM - Kingmaker Theme&quot;;
+        case 53: return &quot;PM - ShadowGuard Theme&quot;;
+        case 54: return &quot;PM - Witch&#x27;s Wake Theme&quot;;
+        case 55: return &quot;PM - Pirates Theme&quot;;
+        case 56: return &quot;PM - Pirates Theme Variation&quot;;
+        case 57: return &quot;PM - Infinite Dungeons&quot;;
+        case 58: return &quot;PM - Wyvern Crown Ogma&quot;;
+        case 59: return &quot;PM - Wyvern Crown Open Road&quot;;
+        case 60: return &quot;PM - Wyvern Crown Smoke and Ash&quot;;
+        case 61: return &quot;PM - Wyvern Crown Rural&quot;;
+        case 62: return &quot;PM - Wyvern Crown Rural Guitar&quot;;
+        case 63: return &quot;PM - Wyvern Crown Tears&quot;;
+        case 64: return &quot;PM - Wyvern Crown Theme&quot;;
+        case 65: return &quot;PM - Wyvern Crown Armchair&quot;;
+        case 66: return &quot;PM - Wyvern Crown Solace&quot;;
+        case 67: return &quot;PM - Wyvern Crown Knighted&quot;;
+        case 68: return &quot;PM - Wyvern Crown Opening&quot;;
+        case 69: return &quot;PM - Wyvern Crown Morfen&quot;;
+        case 70: return &quot;Tyrants - Main Theme&quot;;
+        case 71: return &quot;Tyrants - Voonlar&quot;;
+        case 72: return &quot;Tyrants - Temple of Chauntea&quot;;
+        case 73: return &quot;Tyrants - Shind Road&quot;;
+        case 74: return &quot;Tyrants - Elventree&quot;;
+        case 75: return &quot;Tyrants - Hillsfar&quot;;
+        case 76: return &quot;Tyrants - Arena Cell&quot;;
+        case 77: return &quot;Tyrants - Cormanthor Forest&quot;;
+        case 78: return &quot;Tyrants - Elmwood&quot;;
+        case 79: return &quot;Tyrants - Melvaunt&quot;;
+        case 80: return &quot;Tyrants - Mulmaster&quot;;
+        case 81: return &quot;Tyrants - Thar&quot;;
+        case 82: return &quot;Tyrants - Kur-Tharsu&quot;;
+        case 83: return &quot;Tyrants - Thentia&quot;;
+        case 84: return &quot;Tyrants - Zhentil Keep&quot;;
+        case 85: return &quot;Tyrants - Tavern 1&quot;;
+        case 86: return &quot;Tyrants - Tavern 2&quot;;
+        case 87: return &quot;Tyrants - Tavern 3&quot;;
+        case 88: return &quot;Tyrants - Tavern 4&quot;;
+        case 89: return &quot;Tyrants - Tavern 5&quot;;
+        case 90: return &quot;Daggerford - Main Theme&quot;;
+        case 91: return &quot;Daggerford - Mines&quot;;
+        case 92: return &quot;Daggerford - Rural&quot;;
+        case 93: return &quot;Daggerford - Theme 2&quot;;
+        case 94: return &quot;Daggerford - Tavern&quot;;
+        case 95: return &quot;Daggerford - Echoes of Bhaal&quot;;
+        case 96: return &quot;Daggerford - Black Stone Inn&quot;;
+        case 97: return &quot;Daggerford - Chateau Elite Inn&quot;;
+        case 98: return &quot;Daggerford - Sword Coast Cliffs&quot;;
+        case 99: return &quot;Daggerford - Daggerford, Nighttime&quot;;
+        case 100: return &quot;Daggerford - Trollbark Forest&quot;;
+        case 101: return &quot;Daggerford - Happy Cow Tavern, Upstairs&quot;;
+        case 102: return &quot;Daggerford - Happy Cow Tavern, Main Floor&quot;;
+        case 103: return &quot;Daggerford - Wild Hills&quot;;
+        case 104: return &quot;Daggerford - Illefarn Mine Tunnels&quot;;
+        case 105: return &quot;Daggerford - Lizardfolk Village&quot;;
+        case 106: return &quot;Daggerford - Wild Pastures&quot;;
+        case 107: return &quot;Daggerford - Desolate Wilderness&quot;;
+        case 108: return &quot;Drowning Pool - Bodies&quot;;
+        case 109: return &quot;Excalibur (Balloon Remix) - Nick Skitz&quot;;
+        case 110: return &quot;Gonna Make You Sweat (Everybody Dance Now)&quot;;
+        case 111: return &quot;MASHUR &amp; KEVLAR - FINALE&quot;;
+        case 112: return &quot;We Like to Party! (The Vengabus)&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// Seconds, rounded to a whole second. The queue uses this to decide when
+// the next song starts; it is never zero (the generator refuses to emit a
+// row it could not measure).
+int JB_CatDuration(int nIndex)
+{
+    switch (nIndex)
+    {
+        case 0: return 100;
+        case 1: return 76;
+        case 2: return 105;
+        case 3: return 97;
+        case 4: return 100;
+        case 5: return 122;
+        case 6: return 103;
+        case 7: return 94;
+        case 8: return 121;
+        case 9: return 81;
+        case 10: return 118;
+        case 11: return 70;
+        case 12: return 100;
+        case 13: return 67;
+        case 14: return 95;
+        case 15: return 106;
+        case 16: return 92;
+        case 17: return 96;
+        case 18: return 93;
+        case 19: return 71;
+        case 20: return 106;
+        case 21: return 111;
+        case 22: return 85;
+        case 23: return 99;
+        case 24: return 71;
+        case 25: return 67;
+        case 26: return 69;
+        case 27: return 93;
+        case 28: return 125;
+        case 29: return 62;
+        case 30: return 78;
+        case 31: return 79;
+        case 32: return 68;
+        case 33: return 66;
+        case 34: return 72;
+        case 35: return 38;
+        case 36: return 32;
+        case 37: return 38;
+        case 38: return 38;
+        case 39: return 40;
+        case 40: return 99;
+        case 41: return 114;
+        case 42: return 92;
+        case 43: return 91;
+        case 44: return 93;
+        case 45: return 135;
+        case 46: return 134;
+        case 47: return 131;
+        case 48: return 128;
+        case 49: return 123;
+        case 50: return 132;
+        case 51: return 132;
+        case 52: return 160;
+        case 53: return 144;
+        case 54: return 107;
+        case 55: return 99;
+        case 56: return 127;
+        case 57: return 116;
+        case 58: return 131;
+        case 59: return 115;
+        case 60: return 114;
+        case 61: return 96;
+        case 62: return 47;
+        case 63: return 116;
+        case 64: return 135;
+        case 65: return 82;
+        case 66: return 95;
+        case 67: return 19;
+        case 68: return 94;
+        case 69: return 82;
+        case 70: return 94;
+        case 71: return 94;
+        case 72: return 65;
+        case 73: return 66;
+        case 74: return 89;
+        case 75: return 90;
+        case 76: return 69;
+        case 77: return 76;
+        case 78: return 88;
+        case 79: return 85;
+        case 80: return 93;
+        case 81: return 61;
+        case 82: return 63;
+        case 83: return 84;
+        case 84: return 97;
+        case 85: return 63;
+        case 86: return 88;
+        case 87: return 101;
+        case 88: return 67;
+        case 89: return 82;
+        case 90: return 150;
+        case 91: return 66;
+        case 92: return 97;
+        case 93: return 85;
+        case 94: return 72;
+        case 95: return 109;
+        case 96: return 62;
+        case 97: return 150;
+        case 98: return 108;
+        case 99: return 94;
+        case 100: return 67;
+        case 101: return 68;
+        case 102: return 71;
+        case 103: return 106;
+        case 104: return 108;
+        case 105: return 105;
+        case 106: return 95;
+        case 107: return 67;
+        case 108: return 210;
+        case 109: return 468;
+        case 110: return 247;
+        case 111: return 341;
+        case 112: return 224;
+    }
+    return 0;
+}
+
+// Catalogue indices in alphabetical order by name, so the picker can list
+// tracks as a player expects to read them. The catalogue itself stays in
+// 2DA row order, which is the order rows were allocated and must not change.
+//
+// Sorted here rather than in game because NWScript has no array to sort and
+// the order never varies at run time -- it is a property of the table.
+int JB_CatByName(int nOrder)
+{
+    switch (nOrder)
+    {
+        case 0: return 35;   // Aribeth Theme 1
+        case 1: return 36;   // Aribeth Theme 2
+        case 2: return 16;   // City Docks Day
+        case 3: return 17;   // City Docks Night
+        case 4: return 19;   // City Marketplace
+        case 5: return 20;   // City Night
+        case 6: return 14;   // City Slum Day
+        case 7: return 15;   // City Slum Night
+        case 8: return 18;   // City Wealthy
+        case 9: return 10;   // Crypt 1
+        case 10: return 11;   // Crypt 2
+        case 11: return 96;   // Daggerford - Black Stone Inn
+        case 12: return 97;   // Daggerford - Chateau Elite Inn
+        case 13: return 99;   // Daggerford - Daggerford, Nighttime
+        case 14: return 107;   // Daggerford - Desolate Wilderness
+        case 15: return 95;   // Daggerford - Echoes of Bhaal
+        case 16: return 102;   // Daggerford - Happy Cow Tavern, Main Floor
+        case 17: return 101;   // Daggerford - Happy Cow Tavern, Upstairs
+        case 18: return 104;   // Daggerford - Illefarn Mine Tunnels
+        case 19: return 105;   // Daggerford - Lizardfolk Village
+        case 20: return 90;   // Daggerford - Main Theme
+        case 21: return 91;   // Daggerford - Mines
+        case 22: return 92;   // Daggerford - Rural
+        case 23: return 98;   // Daggerford - Sword Coast Cliffs
+        case 24: return 94;   // Daggerford - Tavern
+        case 25: return 93;   // Daggerford - Theme 2
+        case 26: return 100;   // Daggerford - Trollbark Forest
+        case 27: return 103;   // Daggerford - Wild Hills
+        case 28: return 106;   // Daggerford - Wild Pastures
+        case 29: return 41;   // Desert Day
+        case 30: return 43;   // Desert Night
+        case 31: return 108;   // Drowning Pool - Bodies
+        case 32: return 12;   // Evil Dungeon 1
+        case 33: return 13;   // Evil Dungeon 2
+        case 34: return 27;   // Evil Temple
+        case 35: return 109;   // Excalibur (Balloon Remix) - Nick Skitz
+        case 36: return 3;   // Forest Day 1
+        case 37: return 4;   // Forest Day 2
+        case 38: return 5;   // Forest Night
+        case 39: return 34;   // Generic Castle Interior
+        case 40: return 6;   // Generic Dungeon
+        case 41: return 25;   // Generic Store
+        case 42: return 24;   // Generic Wealthy House
+        case 43: return 110;   // Gonna Make You Sweat (Everybody Dance Now)
+        case 44: return 26;   // Good Temple
+        case 45: return 33;   // Good Temple 2
+        case 46: return 111;   // MASHUR &amp; KEVLAR - FINALE
+        case 47: return 8;   // Mines 1
+        case 48: return 9;   // Mines 2
+        case 49: return 29;   // NWN Chapter 1
+        case 50: return 30;   // NWN Chapter 2
+        case 51: return 31;   // NWN Chapter 3
+        case 52: return 32;   // NWN Chapter 4
+        case 53: return 28;   // NWN City Theme
+        case 54: return 57;   // PM - Infinite Dungeons
+        case 55: return 52;   // PM - Kingmaker Theme
+        case 56: return 55;   // PM - Pirates Theme
+        case 57: return 56;   // PM - Pirates Theme Variation
+        case 58: return 53;   // PM - ShadowGuard Theme
+        case 59: return 54;   // PM - Witch&#x27;s Wake Theme
+        case 60: return 65;   // PM - Wyvern Crown Armchair
+        case 61: return 67;   // PM - Wyvern Crown Knighted
+        case 62: return 69;   // PM - Wyvern Crown Morfen
+        case 63: return 58;   // PM - Wyvern Crown Ogma
+        case 64: return 59;   // PM - Wyvern Crown Open Road
+        case 65: return 68;   // PM - Wyvern Crown Opening
+        case 66: return 61;   // PM - Wyvern Crown Rural
+        case 67: return 62;   // PM - Wyvern Crown Rural Guitar
+        case 68: return 60;   // PM - Wyvern Crown Smoke and Ash
+        case 69: return 66;   // PM - Wyvern Crown Solace
+        case 70: return 63;   // PM - Wyvern Crown Tears
+        case 71: return 64;   // PM - Wyvern Crown Theme
+        case 72: return 0;   // Rural Day 1
+        case 73: return 1;   // Rural Day 2
+        case 74: return 2;   // Rural Night
+        case 75: return 7;   // Sewer
+        case 76: return 21;   // Tavern 1
+        case 77: return 22;   // Tavern 2
+        case 78: return 23;   // Tavern 3
+        case 79: return 40;   // Tavern 4
+        case 80: return 37;   // Theme Aarin Gend
+        case 81: return 38;   // Theme Maugrim
+        case 82: return 39;   // Theme Morag
+        case 83: return 76;   // Tyrants - Arena Cell
+        case 84: return 77;   // Tyrants - Cormanthor Forest
+        case 85: return 78;   // Tyrants - Elmwood
+        case 86: return 74;   // Tyrants - Elventree
+        case 87: return 75;   // Tyrants - Hillsfar
+        case 88: return 82;   // Tyrants - Kur-Tharsu
+        case 89: return 70;   // Tyrants - Main Theme
+        case 90: return 79;   // Tyrants - Melvaunt
+        case 91: return 80;   // Tyrants - Mulmaster
+        case 92: return 73;   // Tyrants - Shind Road
+        case 93: return 85;   // Tyrants - Tavern 1
+        case 94: return 86;   // Tyrants - Tavern 2
+        case 95: return 87;   // Tyrants - Tavern 3
+        case 96: return 88;   // Tyrants - Tavern 4
+        case 97: return 89;   // Tyrants - Tavern 5
+        case 98: return 72;   // Tyrants - Temple of Chauntea
+        case 99: return 81;   // Tyrants - Thar
+        case 100: return 83;   // Tyrants - Thentia
+        case 101: return 71;   // Tyrants - Voonlar
+        case 102: return 84;   // Tyrants - Zhentil Keep
+        case 103: return 112;   // We Like to Party! (The Vengabus)
+        case 104: return 42;   // Winter Day
+        case 105: return 48;   // XP2 - Beholder Caves
+        case 106: return 50;   // XP2 - Chapter 3
+        case 107: return 51;   // XP2 - Dracolich
+        case 108: return 49;   // XP2 - Queen of the Shattered Mirror
+        case 109: return 47;   // XP2 - Rebel Camp
+        case 110: return 44;   // XP2 - Theme
+        case 111: return 46;   // XP2 - Undermountain
+        case 112: return 45;   // XP2 - Waterdeep
+    }
+    return -1;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
