@@ -36,7 +36,9 @@
 
 // ---------------------------------------------------------------- area state
 const string JB_ON       = "JB_ON";        // TRUE while this area is overridden
-const string JB_TRACK    = "JB_TRACK";     // index into the jb_tracks table
+const string JB_TRACK    = "JB_TRACK";     // index into the jb_tracks table,
+                                           // or UNSET when a stock track plays
+const string JB_ROW      = "JB_ROW";       // the RAW ambientmusic.2da row playing
 const string JB_ORIG_DAY = "JB_ORIG_DAY";  // all three stored ALREADY +1'd
 const string JB_ORIG_NGT = "JB_ORIG_NGT";
 const string JB_ORIG_BAT = "JB_ORIG_BAT";
@@ -49,6 +51,8 @@ const string JB_PAGE       = "jb_page";    // on the PC, not the area
 int  JB_IsOn(object oArea);
 int  JB_GetCurrent(object oArea);
 void JB_Start(object oArea, int nIndex);
+void JB_StartRow(object oArea, int nRow);
+int  JB_IndexForRow(int nRow);
 void JB_Stop(object oArea);
 void JB_BuildMenu(object oPC);
 int  JB_SlotIndex(object oPC, int nSlot);
@@ -65,12 +69,34 @@ int JB_GetCurrent(object oArea)
     return GetLocalInt(oArea, JB_TRACK);
 }
 
+// The custom-table index that plays raw row nRow, or -1 if nRow is not one of
+// ours. Lets the admin menu keep naming its own tracks while a stock track from
+// the player catalogue is playing, instead of mistaking row for index.
+int JB_IndexForRow(int nRow)
+{
+    int i;
+    for (i = 0; i < JB_GetTrackCount(); i++)
+        if (JB_GetTrackRow(i) == nRow) return i;
+    return -1;
+}
+
+// Play a track by its index in the CUSTOM table (jb_tracks.nss). This is the
+// admin jukebox's entry point and its signature is unchanged.
 void JB_Start(object oArea, int nIndex)
 {
-    if (!GetIsObjectValid(oArea)) return;
-
     int nRow = JB_GetTrackRow(nIndex);
     if (nRow < 0) return;              // index outside the generated table
+
+    JB_StartRow(oArea, nRow);
+    if (GetLocalInt(oArea, JB_ON)) SetLocalInt(oArea, JB_TRACK, nIndex);
+}
+
+// Play a track by its RAW ambientmusic.2da row. This is the seam the player
+// catalogue uses, and it is where the real work lives.
+void JB_StartRow(object oArea, int nRow)
+{
+    if (!GetIsObjectValid(oArea)) return;
+    if (nRow < 0) return;
 
     // Snapshot the area's own music the FIRST time only. Switching tracks while
     // the jukebox is already running must NOT re-snapshot -- otherwise "stop"
@@ -84,7 +110,12 @@ void JB_Start(object oArea, int nIndex)
         SetLocalInt(oArea, JB_ORIG_BAT, MusicBackgroundGetBattleTrack(oArea) + 1);
         SetLocalInt(oArea, JB_ON, TRUE);
     }
-    SetLocalInt(oArea, JB_TRACK, nIndex);
+    // The row is the authoritative record of what is playing; JB_TRACK is only
+    // meaningful when the pick came from the custom table, so it is cleared here
+    // and re-set by JB_Start when it did.
+    SetLocalInt(oArea, JB_ROW, nRow);
+    DeleteLocalInt(oArea, JB_TRACK);
+    DeleteLocalInt(oArea, JB_ROW);
 
     // Raw row -- Change() is NOT 1-based. See the header note.
     MusicBackgroundStop(oArea);
@@ -139,7 +170,6 @@ void JB_BuildMenu(object oPC)
 
     int nOff = nPage * JB_SLOTS;
     int nOn  = GetLocalInt(oArea, JB_ON);
-    int nNow = GetLocalInt(oArea, JB_TRACK);
 
     int i;
     for (i = 0; i < JB_SLOTS; i++)
@@ -151,7 +181,8 @@ void JB_BuildMenu(object oPC)
             // Stored +1 so that 0 unambiguously means "this slot is empty".
             SetLocalInt(oPC, sVar, nIndex + 1);
             string sLabel = JB_GetTrackName(nIndex);
-            if (nOn && nNow == nIndex) sLabel += "   [playing]";
+            if (nOn && GetLocalInt(oArea, JB_ROW) == JB_GetTrackRow(nIndex))
+                sLabel += "   [playing]";
             SetCustomToken(JB_TOKEN_BASE + i, sLabel);
         }
         else
@@ -167,7 +198,12 @@ void JB_BuildMenu(object oPC)
 
     string sStatus;
     if (nOn)
-        sStatus = "Now playing: " + JB_GetTrackName(nNow);
+    {
+        int nOurs = JB_IndexForRow(GetLocalInt(oArea, JB_ROW));
+        sStatus = (nOurs >= 0)
+                ? "Now playing: " + JB_GetTrackName(nOurs)
+                : "Now playing: a track from the jukebox in this room.";
+    }
     else
         sStatus = "Idle. This area is playing its own music.";
     if (nPages > 1)

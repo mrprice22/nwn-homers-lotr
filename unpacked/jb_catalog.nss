@@ -55,6 +55,7 @@ int JB_CatCount();
 int JB_CatRow(int nIndex);
 string JB_CatName(int nIndex);
 int JB_CatDuration(int nIndex);
+int JB_CatByName(int nOrder);
 
 int JB_CatCount()
 {
@@ -425,4 +426,131 @@ int JB_CatDuration(int nIndex)
         case 112: return 224;
     }
     return 0;
+}
+
+// Catalogue indices in alphabetical order by name, so the picker can list
+// tracks as a player expects to read them. The catalogue itself stays in
+// 2DA row order, which is the order rows were allocated and must not change.
+//
+// Sorted here rather than in game because NWScript has no array to sort and
+// the order never varies at run time -- it is a property of the table.
+int JB_CatByName(int nOrder)
+{
+    switch (nOrder)
+    {
+        case 0: return 35;   // Aribeth Theme 1
+        case 1: return 36;   // Aribeth Theme 2
+        case 2: return 16;   // City Docks Day
+        case 3: return 17;   // City Docks Night
+        case 4: return 19;   // City Marketplace
+        case 5: return 20;   // City Night
+        case 6: return 14;   // City Slum Day
+        case 7: return 15;   // City Slum Night
+        case 8: return 18;   // City Wealthy
+        case 9: return 10;   // Crypt 1
+        case 10: return 11;   // Crypt 2
+        case 11: return 96;   // Daggerford - Black Stone Inn
+        case 12: return 97;   // Daggerford - Chateau Elite Inn
+        case 13: return 99;   // Daggerford - Daggerford, Nighttime
+        case 14: return 107;   // Daggerford - Desolate Wilderness
+        case 15: return 95;   // Daggerford - Echoes of Bhaal
+        case 16: return 102;   // Daggerford - Happy Cow Tavern, Main Floor
+        case 17: return 101;   // Daggerford - Happy Cow Tavern, Upstairs
+        case 18: return 104;   // Daggerford - Illefarn Mine Tunnels
+        case 19: return 105;   // Daggerford - Lizardfolk Village
+        case 20: return 90;   // Daggerford - Main Theme
+        case 21: return 91;   // Daggerford - Mines
+        case 22: return 92;   // Daggerford - Rural
+        case 23: return 98;   // Daggerford - Sword Coast Cliffs
+        case 24: return 94;   // Daggerford - Tavern
+        case 25: return 93;   // Daggerford - Theme 2
+        case 26: return 100;   // Daggerford - Trollbark Forest
+        case 27: return 103;   // Daggerford - Wild Hills
+        case 28: return 106;   // Daggerford - Wild Pastures
+        case 29: return 41;   // Desert Day
+        case 30: return 43;   // Desert Night
+        case 31: return 108;   // Drowning Pool - Bodies
+        case 32: return 12;   // Evil Dungeon 1
+        case 33: return 13;   // Evil Dungeon 2
+        case 34: return 27;   // Evil Temple
+        case 35: return 109;   // Excalibur (Balloon Remix) - Nick Skitz
+        case 36: return 3;   // Forest Day 1
+        case 37: return 4;   // Forest Day 2
+        case 38: return 5;   // Forest Night
+        case 39: return 34;   // Generic Castle Interior
+        case 40: return 6;   // Generic Dungeon
+        case 41: return 25;   // Generic Store
+        case 42: return 24;   // Generic Wealthy House
+        case 43: return 110;   // Gonna Make You Sweat (Everybody Dance Now)
+        case 44: return 26;   // Good Temple
+        case 45: return 33;   // Good Temple 2
+        case 46: return 111;   // MASHUR & KEVLAR - FINALE
+        case 47: return 8;   // Mines 1
+        case 48: return 9;   // Mines 2
+        case 49: return 29;   // NWN Chapter 1
+        case 50: return 30;   // NWN Chapter 2
+        case 51: return 31;   // NWN Chapter 3
+        case 52: return 32;   // NWN Chapter 4
+        case 53: return 28;   // NWN City Theme
+        case 54: return 57;   // PM - Infinite Dungeons
+        case 55: return 52;   // PM - Kingmaker Theme
+        case 56: return 55;   // PM - Pirates Theme
+        case 57: return 56;   // PM - Pirates Theme Variation
+        case 58: return 53;   // PM - ShadowGuard Theme
+        case 59: return 54;   // PM - Witch's Wake Theme
+        case 60: return 65;   // PM - Wyvern Crown Armchair
+        case 61: return 67;   // PM - Wyvern Crown Knighted
+        case 62: return 69;   // PM - Wyvern Crown Morfen
+        case 63: return 58;   // PM - Wyvern Crown Ogma
+        case 64: return 59;   // PM - Wyvern Crown Open Road
+        case 65: return 68;   // PM - Wyvern Crown Opening
+        case 66: return 61;   // PM - Wyvern Crown Rural
+        case 67: return 62;   // PM - Wyvern Crown Rural Guitar
+        case 68: return 60;   // PM - Wyvern Crown Smoke and Ash
+        case 69: return 66;   // PM - Wyvern Crown Solace
+        case 70: return 63;   // PM - Wyvern Crown Tears
+        case 71: return 64;   // PM - Wyvern Crown Theme
+        case 72: return 0;   // Rural Day 1
+        case 73: return 1;   // Rural Day 2
+        case 74: return 2;   // Rural Night
+        case 75: return 7;   // Sewer
+        case 76: return 21;   // Tavern 1
+        case 77: return 22;   // Tavern 2
+        case 78: return 23;   // Tavern 3
+        case 79: return 40;   // Tavern 4
+        case 80: return 37;   // Theme Aarin Gend
+        case 81: return 38;   // Theme Maugrim
+        case 82: return 39;   // Theme Morag
+        case 83: return 76;   // Tyrants - Arena Cell
+        case 84: return 77;   // Tyrants - Cormanthor Forest
+        case 85: return 78;   // Tyrants - Elmwood
+        case 86: return 74;   // Tyrants - Elventree
+        case 87: return 75;   // Tyrants - Hillsfar
+        case 88: return 82;   // Tyrants - Kur-Tharsu
+        case 89: return 70;   // Tyrants - Main Theme
+        case 90: return 79;   // Tyrants - Melvaunt
+        case 91: return 80;   // Tyrants - Mulmaster
+        case 92: return 73;   // Tyrants - Shind Road
+        case 93: return 85;   // Tyrants - Tavern 1
+        case 94: return 86;   // Tyrants - Tavern 2
+        case 95: return 87;   // Tyrants - Tavern 3
+        case 96: return 88;   // Tyrants - Tavern 4
+        case 97: return 89;   // Tyrants - Tavern 5
+        case 98: return 72;   // Tyrants - Temple of Chauntea
+        case 99: return 81;   // Tyrants - Thar
+        case 100: return 83;   // Tyrants - Thentia
+        case 101: return 71;   // Tyrants - Voonlar
+        case 102: return 84;   // Tyrants - Zhentil Keep
+        case 103: return 112;   // We Like to Party! (The Vengabus)
+        case 104: return 42;   // Winter Day
+        case 105: return 48;   // XP2 - Beholder Caves
+        case 106: return 50;   // XP2 - Chapter 3
+        case 107: return 51;   // XP2 - Dracolich
+        case 108: return 49;   // XP2 - Queen of the Shattered Mirror
+        case 109: return 47;   // XP2 - Rebel Camp
+        case 110: return 44;   // XP2 - Theme
+        case 111: return 46;   // XP2 - Undermountain
+        case 112: return 45;   // XP2 - Waterdeep
+    }
+    return -1;
 }
