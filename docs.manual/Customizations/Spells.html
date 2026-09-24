@@ -136,10 +136,13 @@
           <li><a href="#shape-merge">Shapeshifting: Full Equipment Merge</a></li>
           <li><a href="#scaled-summons">Scaled Summons &amp; Animal Companions</a></li>
           <li><a href="#other-spells">Other Spell Changes</a></li>
+          <li><a href="#stacking-attack-bonuses">Attack Bonuses from Spells Stack</a></li>
+          <li><a href="#companion-friendly-fire">Your Companions&#x27; Area Spells Don&#x27;t Hit You</a></li>
           <li><a href="#soul-fatigue">Soul-fatigue on Heal</a></li>
           <li><a href="#spell-duration">Doubled Spell &amp; Effect Duration</a></li>
         </ol></li>
       <li><a href="Progression.html">Character Progression</a></li>
+      <li><a href="Combat.html">Combat</a></li>
       <li><a href="LegendaryFeats.html">Legendary Feats</a></li>
       <li><a href="Death.html">Death, Dying &amp; Respawn</a></li>
       <li><a href="Stock.html">Not Changed (Stock Standard)</a></li>
@@ -278,6 +281,9 @@ attacks.</p>
   <strong>combat log</strong> shows the real to-hit and damage &mdash; see
   <a href="NotABug.html#not-a-bug">Looks Like a Bug &mdash; Isn't</a>.</p>
 </div>
+<p id="polymorph-items"><strong>You can use items while shifted.</strong> Stock NWN locks your
+inventory the moment you polymorph. Here you can still drink potions, read scrolls and use other
+items from your pack in any form.</p>
 
 <h3 id="scaled-summons">Scaled Summons &amp; Animal Companions</h3>
 <p>Your <strong>summoned creatures and animal companion grow with you</strong>. The moment one
@@ -303,17 +309,71 @@ Spell Focus). Summons from other classes (e.g. a wizard's) are unaffected.</p>
   Focus: Conjuration to see the pet get stronger.</p>
 </div>
 
+<h4 id="epic-plus-normal-summon">An epic summon and a normal summon at the same time</h4>
+<p>Stock NWN lets you have one summoned creature at a time, so casting <em>Mummy Dust</em> or
+<em>Dragon Knight</em> sent your <em>Summon Creature</em> away. Here the two epic summons take a
+different slot, so you can have <strong>one epic summon out alongside one normal summon</strong>.
+Mummy Dust and Dragon Knight still replace each other, and normal summons are still one at a time.</p>
+
+<h4 id="summon-ix-amulets">Summon Creature IX: amulets change what answers</h4>
+<p>Wear one of these amulets when you cast <strong>Summon Creature IX</strong> and, instead of the
+usual elemental, one of three creatures tied to the amulet answers, picked at random each cast:</p>
+<table class="data change-table">
+  <thead><tr><th>Amulet (neck slot)</th><th>Where it comes from</th><th>Summons one of</th></tr></thead>
+  <tbody>
+    <tr><td><a href="../../items/amuletofplanar.html">Amulet of the Planes</a></td>
+        <td>Carried by the Balrog of Moria</td>
+        <td>Summoned Planar King, Summoned Dark Mage, Summoned Animated Armour</td></tr>
+    <tr><td><a href="../../items/amuletofwild.html">Amulet of the Wild</a></td>
+        <td>Carried by Thranduil, King of Eryn Lasgalen (Thranduil's Hall, Mirkwood)</td>
+        <td>Summoned Troll Seer, Summoned Umber Hulk Shaman, Summoned Kobold Renegade</td></tr>
+  </tbody>
+</table>
+
 <h3 id="other-spells">Other Spell Changes</h3>
 <ul>
   <li><strong>Summon Creature I–IX</strong> — fixed <em>duration</em> of 24 hours; the duration no
   longer scales with caster level. (The summoned creature's <em>stats</em> still scale with you —
   see <a href="#scaled-summons">Scaled Summons &amp; Animal Companions</a> above.)</li>
+  <li><strong>Negative Energy Burst</strong> — the bonus damage is your <em>full</em> caster level
+  (d8 + caster level). Stock NWN caps that bonus at +20.</li>
 </ul>
 
 <div class="warn-box">
   <p><strong>Time Stop is disabled.</strong> It cannot be cast on this server — attempting to cast it
   does nothing.</p>
 </div>
+
+<h3 id="stacking-attack-bonuses">Attack Bonuses from Spells Stack</h3>
+<p>In stock NWN, attack bonuses from spells and effects <strong>don't add up</strong>: the game
+keeps only the single largest one. A permanent +5 from a feat would make a +2 from
+<em>War Cry</em> worth nothing at all.</p>
+<p>Here these sources are <strong>added together</strong> instead:</p>
+<ul>
+  <li>the spells <strong>Bless, Aid, Prayer, War Cry, Divine Favor, Divine Power</strong> and the
+  Divine Champion's <strong>Divine Wrath</strong>;</li>
+  <li><strong>Bard Song</strong>;</li>
+  <li>legendary feats such as <a href="LegendaryFeats.html#lf-legendary-prowess">Legendary Prowess</a>,
+  <a href="LegendaryFeats.html#lf-legendary-grip">Legendary Grip</a> and
+  <a href="LegendaryFeats.html#lf-legendary-reaping">Legendary Reaping</a>.</li>
+</ul>
+<p>Bard Song's and the legendary feats' damage bonuses stack the same way. Your weapon's
+enchantment adds on top, as it always has. Stock spells not listed here still follow the
+largest-only rule. Your total attack bonus is still capped, but the cap is higher here
+&mdash; see
+<a href="Progression.html#max-attack-bonus">Maximum Attack Bonus</a>.</p>
+
+<h3 id="companion-friendly-fire">Your Companions' Area Spells Don't Hit You</h3>
+<p>This server runs on <a href="Stock.html#server-settings">Hardcore</a> rules, where area spells
+hurt everyone in the blast, including your friends. A companion's Hellball could flatten the
+player who summoned it.</p>
+<p>Now, when a player's <strong>henchman, summon, familiar or animal companion</strong> casts an
+area spell (Hellball, Fireball, Meteor Swarm, Ice Storm, Cone of Cold, Firestorm, Horrid Wilting,
+Wail of the Banshee, Implosion, Blade Barrier, Creeping Doom and the like), it
+<strong>can't hurt you, anyone in your party, or your party's pets and summons</strong>. It still
+hurts enemies normally.</p>
+<p>This only works one way. <strong>Your own</strong> area spells still hit your henchmen and
+party, exactly as in stock Hardcore rules, so watch where you aim.</p>
 
 <h3 id="soul-fatigue">Soul-fatigue on Heal</h3>
 <p><strong>Healing is a timed resource, not a button you hold.</strong> Being healed by one of the
