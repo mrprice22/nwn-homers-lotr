@@ -88,7 +88,7 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 # required; the rest are emitted only when present.
 FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "merit_awarded", "type",
-               "player", "date", "commit", "discord", "discord_request",
+               "player", "date", "commit", "docs", "discord", "discord_request",
                "notes", "notes_h", "impl_notes", "impl_notes_h",
                "triage", "dupe_candidates", "dupe_of", "depends_on",
                "design_questions", "manual_steps",
@@ -6768,6 +6768,11 @@ function select(i){
       <div><label>Commit (optional git ref)</label>
         <input id="f_commit" value="${esc(it.commit||'')}"></div>
     </div>
+    <label>Player docs <span class="small">&mdash; where players read about this:
+      a manual page + anchor, e.g. <code>Customizations/Spells.html#soul-fatigue</code>,
+      or <code>none</code>. Shown as a &ldquo;How it works&rdquo; link on the public roadmap.</span></label>
+    <input id="f_docs" value="${esc(it.docs||'')}"
+           placeholder="Customizations/<Topic>.html#<anchor>  or  none">
     <div id="dbar">${discordBarHTML(it)}</div>
     <label>id (stable key; lowercase-hyphen)</label>
     <input id="f_id" value="${esc(it.id||'')}">
@@ -7898,6 +7903,7 @@ function readForm(){
     player: $('#f_player').value.trim(),
     date: $('#f_date').value.trim(),
     commit: $('#f_commit').value.trim(),
+    docs: $('#f_docs').value.trim(),
     notes: notes,
     notes_h: (notes && notes_h && notes_h!==NOTES_DEFAULT_H) ? notes_h : '',
     impl_notes: impl,
@@ -7915,7 +7921,7 @@ function readForm(){
 // idea untouched — readForm() only knows about the form, so without this merge
 // the unknown key would be gone before the save even leaves the browser.
 // Mirrors emit_unknown()/serialize_ideas() in the Python half.
-const FORM_FIELDS = ['id','title','group','epic','status','hidden','merit_awarded','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps','uat_credits'];
+const FORM_FIELDS = ['id','title','group','epic','status','hidden','merit_awarded','type','player','date','commit','docs','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps','uat_credits'];
 function pruneEmpty(o, src){
   const r={};
   for (const k of FORM_FIELDS)

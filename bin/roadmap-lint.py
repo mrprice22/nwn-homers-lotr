@@ -36,6 +36,20 @@ def load_editor():
     return mod
 
 
+# Shipped statuses, and the day the `docs:` field was introduced. An Enhancement
+# (the one type that changes what a player experiences; a Defect or Exploit fix
+# restores documented behaviour) shipped on or after this date without `docs:`
+# is warned about on every run; older ones are listed by --docs-backlog instead.
+SHIPPED = {"implemented", "manual", "confirmed", "deployed"}
+DOCS_SINCE = "2026-09-23"
+
+
+def needs_docs(idea: dict) -> bool:
+    return (idea.get("type") == "Enhancement" and idea.get("status") in SHIPPED
+            and not idea.get("hidden") and not idea.get("dupe_of")
+            and not idea.get("docs"))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -43,10 +57,21 @@ def main() -> int:
                     help="print nothing when the file is valid")
     ap.add_argument("--warnings", action="store_true",
                     help="also print advisory warnings (duplicate-idea hints)")
+    ap.add_argument("--docs-backlog", action="store_true",
+                    help="list every shipped Enhancement with no `docs:` field "
+                         "(the player-docs backfill worklist), then exit")
     args = ap.parse_args()
 
     ED = load_editor()
     data = ED.read_yaml()
+
+    undocumented = [i for i in (data.get("ideas") or []) if needs_docs(i)]
+    if args.docs_backlog:
+        for i in sorted(undocumented, key=lambda i: str(i.get("date") or "")):
+            print(f"{i.get('date') or '----------'}  {i['id']:<44} {i.get('title', '')}")
+        print(f"{len(undocumented)} shipped Enhancement(s) with no docs: field",
+              file=sys.stderr)
+        return 0
     errors, warnings = ED.validate_document(
         data.get("ideas") or [],
         data.get("groups") or [],
@@ -68,8 +93,18 @@ def main() -> int:
             f"no thread yet gain anything from being trimmed now — a thread name "
             f"is fixed at creation and nwnbot has no rename action."]
 
-    if args.warnings:
-        for w in warnings:
+    # Advisory: a player-facing change shipped since the field existed, with nowhere
+    # to read about it. Older items are the --docs-backlog worklist, not a warning.
+    recent = [i["id"] for i in undocumented if str(i.get("date") or "") >= DOCS_SINCE]
+    if recent:
+        warnings = list(warnings) + [
+            f"{len(recent)} shipped Enhancement(s) have no docs: field -- document the "
+            f"change (docs.manual/Customizations/, then bin/gen-customizations-hub.py) and "
+            f"set docs:, or set docs: none if players have nothing to read: "
+            + ", ".join(recent)]
+
+    if args.warnings or recent:
+        for w in warnings if args.warnings else warnings[-1:]:
             print(f"  [warn] {w}", file=sys.stderr)
     if errors:
         print(f"roadmap.yaml has {len(errors)} error(s) — the editor will refuse "

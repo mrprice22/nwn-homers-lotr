@@ -394,6 +394,9 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
      and note that `implemented` is now the step at which the admin pays the submitter's
      merit — the status alone never pays, but do not claim it lightly.
    - `commit:` the hash from step 1
+   - `docs:` for an **Enhancement** — the player page + anchor you documented it at in
+     step 3 (e.g. `Customizations/Spells.html#soul-fatigue`), or `none` if players have
+     nothing to read. `bin/roadmap-lint.py` warns when it is missing.
    - `date:` **always set to today's actual date** (`YYYY-MM-DD` — check the real current
      date, don't guess or leave the original report date)
    - `notes`: append a `Fixed YYYY-MM-DD` line (what/why/how), **plus testing/UAT

@@ -13,7 +13,8 @@ the forwarding map for old links). This gate fails the build when:
   3. docs.manual/Customizations/LegendaryFeats.html no longer matches FEATS in
      bin/gen-legendary-feats.py -- a feat shipped (or changed) without its page;
   4. a link in this repo to Customizations.html#<anchor> (roadmap.yaml, the manual,
-     an in-game string, the CLAUDE docs) points at an anchor that does not exist.
+     an in-game string, the CLAUDE docs) points at an anchor that does not exist;
+  5. a roadmap idea's `docs:` field names a page or anchor that does not exist.
 
 The generators' own --check modes cover 1-3, so this gate and the tool can never
 disagree about them.
@@ -38,6 +39,29 @@ SCAN = ["roadmap.yaml", "docs.manual/**/*.html", "unpacked/*.nss", "unpacked/*.d
 RE_LINK = re.compile(r"Customizations\.html#([A-Za-z0-9_-]+)")
 
 
+def bad_docs_fields(amap: dict) -> list[str]:
+    """Every roadmap `docs:` value that does not resolve to a real page + anchor."""
+    import yaml
+    manual = ROOT / "docs.manual"
+    out = []
+    for idea in (yaml.safe_load((ROOT / "roadmap.yaml").read_text(encoding="utf-8"))
+                 .get("ideas") or []):
+        docs = idea.get("docs")
+        if docs is None or docs == "none":
+            continue
+        where = f"roadmap.yaml '{idea.get('id')}': docs {docs!r}"
+        page, _, anchor = str(docs).partition("#")
+        path = (manual / page).resolve()
+        if ".." in page or manual.resolve() not in path.parents or not path.is_file():
+            out.append(f"{where} -- no such page under docs.manual/")
+        elif anchor and page == "Customizations.html":
+            if anchor not in amap:
+                out.append(f"{where} -- no such anchor")
+        elif anchor and f'id="{anchor}"' not in path.read_text(encoding="utf-8"):
+            out.append(f"{where} -- no such anchor on {page}")
+    return out
+
+
 def main() -> int:
     rc = gen.build(check=True)
     feats = subprocess.run([sys.executable, str(ROOT / "bin" / "gen-legendary-feats-doc.py"),
@@ -55,6 +79,7 @@ def main() -> int:
                 if m.group(1) not in amap:
                     line = text.count("\n", 0, m.start()) + 1
                     broken.append(f"{path.relative_to(ROOT)}:{line}: #{m.group(1)}")
+    broken += bad_docs_fields(amap)
     if broken:
         print("customizations link check FAILED -- these links point at no anchor on any "
               "docs.manual/Customizations/ page (fix the link, or add the anchor):")

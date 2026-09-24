@@ -162,6 +162,11 @@ IDEA_FIELDS = {
     "id", "title", "group", "epic", "status", "hidden", "merit_awarded",
     "type", "player",
     "date", "commit", "notes", "notes_h", "impl_notes", "impl_notes_h",
+    # Where a player reads about this change: a docs.manual/-relative page and
+    # anchor ("Customizations/Spells.html#soul-fatigue"), or "none" for a change
+    # with nothing to explain. Rendered as a "How it works" link on the card;
+    # tests/check_customizations_hub.py fails the repack if it points nowhere.
+    "docs",
     "dupe_of", "design_questions", "manual_steps", "uat_credits",
     # Set by nwnbot: which forum thread this idea is mirrored to. Nothing on
     # the public board renders it; it is the link the sync bot reads back.
@@ -345,6 +350,15 @@ def validate(data: dict) -> list[str]:
                     and not isinstance(step["tester"], str):
                 errors.append(f"'{iid}': manual_step tester must be text, got "
                               f"{step['tester']!r}")
+        # `docs` is typed by hand in the editor. A malformed value is advisory here
+        # (the card just omits the link); tests/check_customizations_hub.py is what
+        # holds it to pointing at a real page and anchor, at repack time.
+        docs = idea.get("docs")
+        if docs is not None and docs != "none" and not (isinstance(docs, str)
+                                                        and DOCS_RE.match(docs)):
+            print(f"  [warn] '{iid}': docs {docs!r} is not a docs.manual/ page link "
+                  f"like Customizations/Spells.html#soul-fatigue (or 'none')",
+                  file=sys.stderr)
         # Advisory, never fatal: the field is kept on save, but no renderer reads
         # it, so it is almost always a typo or a retired experiment.
         for key in idea:
@@ -594,9 +608,24 @@ def idea_row(idea: dict, shipped: bool) -> str:
         f'<li class="rm-item" id="idea-{idea["id"]}">'
         f'<div class="rm-title">{amp(idea["title"])}</div>'
         f'<div class="rm-meta">{"".join(bits)}</div>'
-        f'{notes}'
+        f'{notes}{docs_link_html(idea)}'
         '</li>'
     )
+
+
+# A `docs:` value the card may link to: a plain docs.manual/-relative path to an
+# .html page, optionally with an #anchor. Nothing else is rendered -- no scheme,
+# no "..", no query -- so the field can never smuggle an outside link onto the page.
+DOCS_RE = re.compile(r"^(?!.*\.\.)[A-Za-z0-9_][A-Za-z0-9_./-]*\.html(#[A-Za-z0-9_-]+)?$")
+
+
+def docs_link_html(idea: dict) -> str:
+    """The card's "How it works" link. Roadmap.html sits in docs.manual/ itself,
+    so a docs.manual/-relative path is already the right relative href."""
+    docs = idea.get("docs")
+    if not isinstance(docs, str) or docs == "none" or not DOCS_RE.match(docs):
+        return ""
+    return f'<div class="rm-docs"><a href="{amp(docs)}">How it works &rarr;</a></div>'
 
 
 def epic_row(card: dict, shipped: bool) -> str:
@@ -822,6 +851,8 @@ STYLE = """  <style>
     .rm-notes { margin: 0.4em 0 0; font-size: 0.88em; color: var(--muted); }
     .rm-notes ul, .rm-notes ol { margin: 0.3em 0; padding-left: 1.4em; }
     .rm-notes a { color: var(--link); }
+    .rm-docs { margin: 0.3em 0 0; font-size: 0.88em; }
+    .rm-docs a { color: var(--link); }
     .rm-notes code { font-family: ui-monospace, monospace; font-size: 0.92em; }
     /* A default <pre> does not wrap: without this it pushes its card wider
        than the content column and the grid goes with it. */
