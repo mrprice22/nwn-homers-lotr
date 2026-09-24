@@ -9,9 +9,10 @@
     new right-hand item, so animal forms never benefited from a weapon).
 
     Power balance: merged properties are bounded by the player's own
-    forge-capped gear, and duplicate property types on a single item take
-    highest-only, so hide-merging yields the best item of each kind rather
-    than a stacked sum.
+    forge-capped gear. Duplicate property types on a single item take
+    highest-only, which is right for most properties but wrong for the two
+    that stack across separate items when unshifted - AC bonuses (by type) and
+    ability bonuses. Those two never go onto the hide; see ROUND 5.
 
     Roadmap item shifter-stats-defect adds the other half. Merging properties
     was not enough, for two reasons:
@@ -121,7 +122,7 @@
 
     IPWildShapeCopyItemProperties adds every source property blindly, so it can
     only ever produce that collision. The merge now splits in two:
-    ShapeCopyPropsExceptBonus for everything that really does just add, and
+    ShapeCopyPropsExcept for everything that really does just add, and
     ShapeMergeWeaponBonus to RESOLVE the attack bonus down to a single property
     - the better of the form weapon's own and the caster's, with the loser
     removed rather than left to shadow it. On a creature weapon the same split
@@ -132,6 +133,33 @@
     weapon never carries both bonuses at once - is now a build gate,
     tests/check_ab_enhance.py. It was not one before, and three obtainable
     weapons were violating it.
+
+    ROUND 5. With the merge firing and delivering, Sync's next reports were
+    about the NUMBERS, in every shape: AC far too high ("dragon ends with 130
+    AC with a +10 AC item") and ability scores too low (Tenser's CON 26 where
+    the form's 18 plus +24 of gear should read 42). One cause for both - every
+    slot's properties were piled onto the form's single hide:
+
+      - The engine types an item's AC bonus by its base item
+        (baseitems.2da AC_Enchant: armour -> armour enchantment, amulet ->
+        natural, boots -> dodge, rings/cloak/helm/belt/gloves -> deflection),
+        and a creature hide is deflection. So on the hide every AC bonus from
+        every slot collapsed into ONE deflection bonus. On top of that, the
+        natural-AC top-up measured the lost armour with GetItemACValue, which
+        is the item's TOTAL AC - so the armour's own +N was paid out a second
+        time as natural AC.
+      - Ability bonuses from separate items add up (to the server's
+        max-ability-bonus); several on one hide pay only the best one.
+
+    So AC_BONUS and ABILITY_BONUS properties are no longer merged onto any
+    form item. ShapeGearStatsOf() reads them off the pre-shift snapshot and
+    ShapeMergeStatFloor() links them into the polymorph as effects: one AC
+    effect per engine AC type (highest per type, dodge summed, natural =
+    form bonus + BASE armour/shield AC + best natural gear), and an ability
+    increase per ability summed across items and capped at the server limit.
+    Weapon ability bonuses are handled the same way, which also closes a
+    smaller overcount - a +6 STR weapon merged onto three claws was three
+    separate items' worth of +6 STR.
 
     For reference, the row this was chased on - stock polymorph.2da 28,
     POLYMORPH_DOOM_KNIGHT: AppearanceType 40, HideItem NW_IT_CREITEM005,
@@ -172,13 +200,19 @@ const int SHAPE_TOPUP_MAX = 60;
 // the top-up is emitted in chunks of this size.
 const int SHAPE_TOPUP_CHUNK = 6;
 
+// Ceiling on the gear's summed ability bonus, per ability. Must match
+// NWN_MAX_ABILITY_BONUS in server.env: the chunked effects above bypass the
+// engine's own cap, so without this a shape would pay out more gear bonus than
+// the same character gets unshifted.
+const int SHAPE_GEAR_ABILITY_CAP = 24;
+
 // Temporary instrumentation. Set on the module object by dbg_combat (rest menu
 // -> Admin Options -> "[Admin] Combat diagnostics on/off"), which is already
 // gated on the admindb whitelist - so nothing here needs to read admindb, and
 // the six spell scripts that include this file stay free of a DB hit.
 //
 // When it is on, every rung of the merge ladder reports what it saw in the
-// equipment slots. Delete this constant, ShapeMergeDebug(), the three call
+// equipment slots. Delete this constant, ShapeMergeDebug(), its call
 // sites and the dbg_combat line once tensors-transformation-not-merging-items
 // -reliably is closed.
 const string SHAPE_VAR_DEBUG = "SHAPE_MERGE_DEBUG";
@@ -366,10 +400,16 @@ void ShapeIPStrip(object oItem, int nType)
     }
 }
 
-// IPWildShapeCopyItemProperties, minus the two bonuses above. Everything else
-// merges the way it always has; the attack bonus is resolved separately by the
-// callers, because it is the one property where "add both" is wrong.
-void ShapeCopyPropsExceptBonus(object oSrc, object oDst, int bWeapon = FALSE)
+// IPWildShapeCopyItemProperties with two optional exclusions:
+//   bSkipBonus - the generic enhancement and attack bonus, which the weapon
+//                callers resolve separately (round 4: "add both" is wrong);
+//   bSkipStats - the generic AC and ability bonuses, which never go onto a
+//                form item at all and are applied as effects instead by
+//                ShapeMergeStatFloor (round 5: one item cannot stack them).
+// The conditional variants (AC vs race, ability penalties, ...) are separate
+// property types and keep merging as before.
+void ShapeCopyPropsExcept(object oSrc, object oDst, int bWeapon,
+                          int bSkipBonus, int bSkipStats)
 {
     if (!GetIsObjectValid(oSrc) || !GetIsObjectValid(oDst)) return;
     if (bWeapon && GetWeaponRanged(oSrc) != GetWeaponRanged(oDst)) return;
@@ -378,11 +418,15 @@ void ShapeCopyPropsExceptBonus(object oSrc, object oDst, int bWeapon = FALSE)
     while (GetIsItemPropertyValid(ip))
     {
         int nType = GetItemPropertyType(ip);
-        if (nType != ITEM_PROPERTY_ENHANCEMENT_BONUS &&
-            nType != ITEM_PROPERTY_ATTACK_BONUS)
-        {
+        int bSkip = FALSE;
+        if (bSkipBonus && (nType == ITEM_PROPERTY_ENHANCEMENT_BONUS ||
+                           nType == ITEM_PROPERTY_ATTACK_BONUS))
+            bSkip = TRUE;
+        if (bSkipStats && (nType == ITEM_PROPERTY_AC_BONUS ||
+                           nType == ITEM_PROPERTY_ABILITY_BONUS))
+            bSkip = TRUE;
+        if (!bSkip)
             AddItemProperty(DURATION_TYPE_PERMANENT, ip, oDst);
-        }
         ip = GetNextItemProperty(oSrc);
     }
 }
@@ -454,10 +498,10 @@ void ShapeCopyToCreatureWeapon(object oSrc, object oClaw)
     if (!GetIsObjectValid(oSrc) || !GetIsObjectValid(oClaw)) return;
 
     // The ranged-mismatch guard: do not hand the form a bow's properties on
-    // its claws. ShapeCopyPropsExceptBonus applies the same test itself.
+    // its claws. ShapeCopyPropsExcept applies the same test itself.
     if (GetWeaponRanged(oSrc) != GetWeaponRanged(oClaw)) return;
 
-    ShapeCopyPropsExceptBonus(oSrc, oClaw, TRUE);
+    ShapeCopyPropsExcept(oSrc, oClaw, TRUE, TRUE, TRUE);
 
     int nSrcEnh = ShapeIPMax(oSrc, ITEM_PROPERTY_ENHANCEMENT_BONUS);
     int nSrcAB  = ShapeIPMax(oSrc, ITEM_PROPERTY_ATTACK_BONUS);
@@ -505,6 +549,21 @@ void ShapeCopyToCreatureWeapon(object oSrc, object oClaw)
     }
 }
 
+// Link a +nAmount increase to nAbility into eLink, in SHAPE_TOPUP_CHUNK-sized
+// pieces so that the server's max-ability-bonus does not eat it (see the
+// constant). Callers are responsible for their own ceiling.
+effect ShapeLinkAbility(effect eLink, int nAbility, int nAmount)
+{
+    while (nAmount > 0)
+    {
+        int nChunk = nAmount;
+        if (nChunk > SHAPE_TOPUP_CHUNK) nChunk = SHAPE_TOPUP_CHUNK;
+        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(nAbility, nChunk));
+        nAmount -= nChunk;
+    }
+    return eLink;
+}
+
 // Link the top-up for one ability into eLink, per the rule in the file header:
 // the character keeps their own base score and gains what the form is worth
 // over a stock-rules character (SHAPE_BASE_ANCHOR).
@@ -523,14 +582,170 @@ effect ShapeAbilityTopUp(object oShifter, int nPoly, string sColumn,
     if (nTopUp <= 0) return eLink;  // the form already beats the target
     if (nTopUp > SHAPE_TOPUP_MAX) nTopUp = SHAPE_TOPUP_MAX;
 
-    while (nTopUp > 0)
+    return ShapeLinkAbility(eLink, nAbility, nTopUp);
+}
+
+// What the caster's gear was worth in the two property kinds that stack across
+// SEPARATE items and so cannot be merged onto one hide (round 5). AC is kept
+// per engine AC type, abilities per ability.
+struct ShapeGearStats
+{
+    int nNatural;     // best natural-typed AC bonus (amulet)
+    int nArmour;      // best armour-enchantment AC bonus (armour, bracers)
+    int nShield;      // best shield-enchantment AC bonus
+    int nDeflect;     // best deflection AC bonus (rings, cloak, helm, ...)
+    int nDodge;       // dodge AC bonuses, summed - dodge stacks
+    int nArmourBase;  // the armour's own AC, enchantment excluded
+    int nShieldBase;  // the shield's own AC, enchantment excluded
+    int nStr;
+    int nDex;
+    int nCon;
+    int nInt;
+    int nWis;
+    int nCha;
+};
+
+// Highest generic ability bonus oItem carries for nAbility. IP_CONST_ABILITY_*
+// and ABILITY_* are the same numbers, so the subtype compares directly.
+int ShapeIPAbilityMax(object oItem, int nAbility)
+{
+    int nMax = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
     {
-        int nChunk = nTopUp;
-        if (nChunk > SHAPE_TOPUP_CHUNK) nChunk = SHAPE_TOPUP_CHUNK;
-        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(nAbility, nChunk));
-        nTopUp -= nChunk;
+        if (GetItemPropertyType(ip) == ITEM_PROPERTY_ABILITY_BONUS &&
+            GetItemPropertySubType(ip) == nAbility)
+        {
+            int nVal = GetItemPropertyCostTableValue(ip);
+            if (nVal > nMax) nMax = nVal;
+        }
+        ip = GetNextItemProperty(oItem);
     }
-    return eLink;
+    return nMax;
+}
+
+// Add one item's AC and ability bonuses into s, the way the engine credits
+// them unshifted. The AC type comes from baseitems.2da AC_Enchant, which holds
+// exactly the AC_*_BONUS constant the engine uses for that base item (armour
+// 2, amulet 1, boots 0, shields 3, rings/cloak/helm/belt/gloves 4). Within a
+// type only the best item counts, except dodge, which stacks.
+struct ShapeGearStats ShapeGearAddItem(struct ShapeGearStats s, object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return s;
+
+    int nAC = ShapeIPMax(oItem, ITEM_PROPERTY_AC_BONUS);
+    if (nAC > 0)
+    {
+        string sType = Get2DAString("baseitems", "AC_Enchant",
+                                    GetBaseItemType(oItem));
+        int nType = AC_DEFLECTION_BONUS;
+        if (sType != "") nType = StringToInt(sType);
+
+        switch (nType)
+        {
+            case AC_DODGE_BONUS:
+                s.nDodge += nAC; break;
+            case AC_NATURAL_BONUS:
+                if (nAC > s.nNatural) s.nNatural = nAC; break;
+            case AC_ARMOUR_ENCHANTMENT_BONUS:
+                if (nAC > s.nArmour) s.nArmour = nAC; break;
+            case AC_SHIELD_ENCHANTMENT_BONUS:
+                if (nAC > s.nShield) s.nShield = nAC; break;
+            default:
+                if (nAC > s.nDeflect) s.nDeflect = nAC; break;
+        }
+    }
+
+    s.nStr += ShapeIPAbilityMax(oItem, ABILITY_STRENGTH);
+    s.nDex += ShapeIPAbilityMax(oItem, ABILITY_DEXTERITY);
+    s.nCon += ShapeIPAbilityMax(oItem, ABILITY_CONSTITUTION);
+    s.nInt += ShapeIPAbilityMax(oItem, ABILITY_INTELLIGENCE);
+    s.nWis += ShapeIPAbilityMax(oItem, ABILITY_WISDOM);
+    s.nCha += ShapeIPAbilityMax(oItem, ABILITY_CHARISMA);
+    return s;
+}
+
+// The armour's own AC, enchantment excluded: parts_chest.2da ACBONUS for the
+// torso model, the module's established idiom (q_dwd_inc). NOT GetItemACValue,
+// which is the item's total and is what paid the armour's +N out twice.
+int ShapeArmourBaseAC(object oArmor)
+{
+    if (!GetIsObjectValid(oArmor)) return 0;
+    if (GetBaseItemType(oArmor) != BASE_ITEM_ARMOR) return 0;
+    return StringToInt(Get2DAString("parts_chest", "ACBONUS",
+        GetItemAppearance(oArmor, ITEM_APPR_TYPE_ARMOR_MODEL,
+                          ITEM_APPR_ARMOR_MODEL_TORSO)));
+}
+
+// The shield's own AC, enchantment excluded: baseitems.2da BaseAC.
+int ShapeShieldBaseAC(object oShield)
+{
+    if (!GetIsObjectValid(oShield)) return 0;
+    return StringToInt(Get2DAString("baseitems", "BaseAC",
+                                    GetBaseItemType(oShield)));
+}
+
+// Everything the snapshot's gear contributes in AC and ability bonuses, over
+// the same set of items ShapeMergeAll would otherwise have merged - so the
+// SHAPE_MERGE_* switches and the ranged-weapon guard still decide what counts.
+struct ShapeGearStats ShapeGearStatsOf(struct ShapeGearStats s,
+                                       struct ShapeMergeGear gear)
+{
+    if (SHAPE_MERGE_WEAPON && GetIsObjectValid(gear.oWeapon) &&
+        !GetWeaponRanged(gear.oWeapon))
+        s = ShapeGearAddItem(s, gear.oWeapon);
+
+    if (SHAPE_MERGE_ARMOR)
+    {
+        s = ShapeGearAddItem(s, gear.oArmor);
+        s = ShapeGearAddItem(s, gear.oHelmet);
+        s = ShapeGearAddItem(s, gear.oShield);
+        s.nArmourBase = ShapeArmourBaseAC(gear.oArmor);
+        s.nShieldBase = ShapeShieldBaseAC(gear.oShield);
+    }
+
+    if (SHAPE_MERGE_ITEMS)
+    {
+        s = ShapeGearAddItem(s, gear.oRing1);
+        s = ShapeGearAddItem(s, gear.oRing2);
+        s = ShapeGearAddItem(s, gear.oAmulet);
+        s = ShapeGearAddItem(s, gear.oCloak);
+        s = ShapeGearAddItem(s, gear.oBoots);
+        s = ShapeGearAddItem(s, gear.oBelt);
+    }
+
+    // Gloves count whichever way they merge: onto the hide with the other
+    // items, or onto the natural attacks for an unarmed caster.
+    if (SHAPE_MERGE_ITEMS ||
+        (SHAPE_MERGE_WEAPON && !GetIsObjectValid(gear.oWeapon)))
+        s = ShapeGearAddItem(s, gear.oGloves);
+
+    return s;
+}
+
+// Gear ability bonus, capped the way it is unshifted.
+effect ShapeLinkGearAbility(effect eLink, int nAbility, int nAmount)
+{
+    if (nAmount > SHAPE_GEAR_ABILITY_CAP) nAmount = SHAPE_GEAR_ABILITY_CAP;
+    return ShapeLinkAbility(eLink, nAbility, nAmount);
+}
+
+// Link one AC effect of nType if there is anything to give.
+effect ShapeLinkAC(effect eLink, int nType, int nAmount)
+{
+    if (nAmount <= 0) return eLink;
+    return EffectLinkEffects(eLink, EffectACIncrease(nAmount, nType));
+}
+
+// The natural AC the shape ends up with: the form's own bonus, plus the base
+// AC of the armour and shield that stop applying (plate's own 8 cannot merge
+// as a property), plus the gear's natural-typed bonus. Natural is the type the
+// form's NATURALACBONUS uses and only the highest of a type counts, so this
+// supersedes the form's own rather than stacking with it.
+int ShapeNaturalAC(int nPoly, struct ShapeGearStats s)
+{
+    return ShapeFormStat(nPoly, "NATURALACBONUS") +
+           s.nArmourBase + s.nShieldBase + s.nNatural;
 }
 
 effect ShapeMergeStatFloor(object oShifter, int nPoly, effect ePoly,
@@ -542,21 +757,28 @@ effect ShapeMergeStatFloor(object oShifter, int nPoly, effect ePoly,
     ePoly = ShapeAbilityTopUp(oShifter, nPoly, "CON", ABILITY_CONSTITUTION, ePoly);
     ePoly = ShapeAbilityTopUp(oShifter, nPoly, "DEX", ABILITY_DEXTERITY,    ePoly);
 
-    // Armour and shield stop applying while shifted. Their PROPERTIES merge
-    // onto the hide, but plate's own 8 AC cannot - hand it back, on top of the
-    // form's natural bonus, so AC ends up "your AC plus what the form adds".
-    // Natural is the same bonus type the form's own NATURALACBONUS uses and
-    // only the highest of a type counts, so this supersedes it rather than
-    // stacking with it. It also sidesteps MAX_AC_DODGE_MOD, which would eat
-    // part of an AC_DODGE_BONUS.
-    int nLost = 0;
-    if (GetIsObjectValid(gear.oArmor))  nLost += GetItemACValue(gear.oArmor);
-    if (GetIsObjectValid(gear.oShield)) nLost += GetItemACValue(gear.oShield);
+    // Round 5: the gear's AC and ability bonuses, which ShapeMergeAll no
+    // longer puts on the hide. The result is "your gear's AC, typed as it is
+    // unshifted, plus what the form adds" - one effect per type.
+    struct ShapeGearStats s;
+    s = ShapeGearStatsOf(s, gear);
 
-    if (nLost > 0)
-        ePoly = EffectLinkEffects(ePoly,
-            EffectACIncrease(ShapeFormStat(nPoly, "NATURALACBONUS") + nLost,
-                             AC_NATURAL_BONUS));
+    int nFormNatural = ShapeFormStat(nPoly, "NATURALACBONUS");
+    int nNatural     = ShapeNaturalAC(nPoly, s);
+    if (nNatural > nFormNatural)
+        ePoly = ShapeLinkAC(ePoly, AC_NATURAL_BONUS, nNatural);
+
+    ePoly = ShapeLinkAC(ePoly, AC_ARMOUR_ENCHANTMENT_BONUS, s.nArmour);
+    ePoly = ShapeLinkAC(ePoly, AC_SHIELD_ENCHANTMENT_BONUS, s.nShield);
+    ePoly = ShapeLinkAC(ePoly, AC_DEFLECTION_BONUS,         s.nDeflect);
+    ePoly = ShapeLinkAC(ePoly, AC_DODGE_BONUS,              s.nDodge);
+
+    ePoly = ShapeLinkGearAbility(ePoly, ABILITY_STRENGTH,     s.nStr);
+    ePoly = ShapeLinkGearAbility(ePoly, ABILITY_DEXTERITY,    s.nDex);
+    ePoly = ShapeLinkGearAbility(ePoly, ABILITY_CONSTITUTION, s.nCon);
+    ePoly = ShapeLinkGearAbility(ePoly, ABILITY_INTELLIGENCE, s.nInt);
+    ePoly = ShapeLinkGearAbility(ePoly, ABILITY_WISDOM,       s.nWis);
+    ePoly = ShapeLinkGearAbility(ePoly, ABILITY_CHARISMA,     s.nCha);
 
     return ePoly;
 }
@@ -689,7 +911,7 @@ int ShapeMergeAll(object oShifter, struct ShapeMergeGear gear, int nSeq = 0)
             //
             // Two calls, because the attack bonus cannot just be added on top
             // of the form weapon's own: see ShapeMergeWeaponBonus.
-            ShapeCopyPropsExceptBonus(oWeaponSrc, oWeaponNew, TRUE);
+            ShapeCopyPropsExcept(oWeaponSrc, oWeaponNew, TRUE, TRUE, TRUE);
             ShapeMergeWeaponBonus(oWeaponSrc, oWeaponNew);
 
             // New: natural attacks. Gloves carry no ranged flag, so the
@@ -718,9 +940,9 @@ int ShapeMergeAll(object oShifter, struct ShapeMergeGear gear, int nSeq = 0)
 
     if (SHAPE_MERGE_ARMOR && GetIsObjectValid(oHideNew))
     {
-        IPWildShapeCopyItemProperties(gear.oArmor,  oHideNew);
-        IPWildShapeCopyItemProperties(gear.oHelmet, oHideNew);
-        IPWildShapeCopyItemProperties(gear.oShield, oHideNew);
+        ShapeCopyPropsExcept(gear.oArmor, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oHelmet, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oShield, oHideNew, FALSE, FALSE, TRUE);
         if (GetIsObjectValid(gear.oArmor) || GetIsObjectValid(gear.oHelmet) ||
             GetIsObjectValid(gear.oShield))
             bMergedSomething = TRUE;
@@ -728,13 +950,13 @@ int ShapeMergeAll(object oShifter, struct ShapeMergeGear gear, int nSeq = 0)
 
     if (SHAPE_MERGE_ITEMS && GetIsObjectValid(oHideNew))
     {
-        IPWildShapeCopyItemProperties(gear.oRing1,  oHideNew);
-        IPWildShapeCopyItemProperties(gear.oRing2,  oHideNew);
-        IPWildShapeCopyItemProperties(gear.oAmulet, oHideNew);
-        IPWildShapeCopyItemProperties(gear.oCloak,  oHideNew);
-        IPWildShapeCopyItemProperties(gear.oBoots,  oHideNew);
-        IPWildShapeCopyItemProperties(gear.oBelt,   oHideNew);
-        IPWildShapeCopyItemProperties(gear.oGloves, oHideNew);
+        ShapeCopyPropsExcept(gear.oRing1, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oRing2, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oAmulet, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oCloak, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oBoots, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oBelt, oHideNew, FALSE, FALSE, TRUE);
+        ShapeCopyPropsExcept(gear.oGloves, oHideNew, FALSE, FALSE, TRUE);
         if (GetIsObjectValid(gear.oRing1) || GetIsObjectValid(gear.oRing2) ||
             GetIsObjectValid(gear.oAmulet) || GetIsObjectValid(gear.oCloak) ||
             GetIsObjectValid(gear.oBoots) || GetIsObjectValid(gear.oBelt) ||
@@ -837,7 +1059,8 @@ void ShapeMergeAttempt(object oShifter, int nPoly, struct ShapeMergeGear gear,
         " cwB="  + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CWEAPON_B, gear) +
         sBonus +
         " ready=" + IntToString(bReady) + " merged=" + IntToString(bMerged) +
-        ShapeMergeAbilityDesc(oShifter));
+        ShapeMergeAbilityDesc(oShifter) +
+        " ac=" + IntToString(GetAC(oShifter)));
 }
 
 void ShapeMergeWhenReady(object oShifter, int nPoly, struct ShapeMergeGear gear)
@@ -858,7 +1081,29 @@ void ShapeMergeWhenReady(object oShifter, int nPoly, struct ShapeMergeGear gear)
         " boots="  + ShapeMergeGearDesc(gear.oBoots) +
         " belt="   + ShapeMergeGearDesc(gear.oBelt) +
         " gloves=" + ShapeMergeGearDesc(gear.oGloves) +
-        ShapeMergeAbilityDesc(oShifter));
+        ShapeMergeAbilityDesc(oShifter) +
+        " ac=" + IntToString(GetAC(oShifter)));
+
+    // Round 5: what ShapeMergeStatFloor linked in, and the armour's AC both
+    // ways - GetItemACValue beside the 2DA base answers whether it includes
+    // the enchantment (legfeat_atk_inc assumes it does not).
+    struct ShapeGearStats s;
+    s = ShapeGearStatsOf(s, gear);
+    ShapeMergeDebug(oShifter, "gear ac nat=" +
+        IntToString(ShapeNaturalAC(nPoly, s)) +
+        "(form " + IntToString(ShapeFormStat(nPoly, "NATURALACBONUS")) +
+        " armBase " + IntToString(s.nArmourBase) +
+        "/itemAC " + IntToString(GetItemACValue(gear.oArmor)) +
+        " shdBase " + IntToString(s.nShieldBase) +
+        " amulet " + IntToString(s.nNatural) + ")" +
+        " arm=" + IntToString(s.nArmour) +
+        " shd=" + IntToString(s.nShield) +
+        " dfl=" + IntToString(s.nDeflect) +
+        " dge=" + IntToString(s.nDodge) +
+        " abil str+" + IntToString(s.nStr) + " dex+" + IntToString(s.nDex) +
+        " con+" + IntToString(s.nCon) + " int+" + IntToString(s.nInt) +
+        " wis+" + IntToString(s.nWis) + " cha+" + IntToString(s.nCha) +
+        " (cap " + IntToString(SHAPE_GEAR_ABILITY_CAP) + ")");
 
     // Usually the swap is already done and the first rung is the one that
     // merges. The rest are headroom, and - since round 3 - a watch: a rung
