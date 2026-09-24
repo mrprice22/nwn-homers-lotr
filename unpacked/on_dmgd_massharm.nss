@@ -1,23 +1,31 @@
 #include "nw_i0_generic"
 
+// Will save DC to halve Mass Harm. Negative-energy immunity (Shadow Shield)
+// still blocks it outright.
+const int MH_SAVE_DC = 60;
+
 void harm()
 {
+    effect eVis = EffectVisualEffect(246);
+    int nDamage = d100(5) + 100;
+    location lSelf = GetLocation(OBJECT_SELF);
 
-effect eVis = EffectVisualEffect(246);
-int nDamage = d100(5) + 100;
-effect eDam = EffectDamage(nDamage,DAMAGE_TYPE_NEGATIVE);
-
-object oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));
-    while(GetIsObjectValid(oTarget) && oTarget != OBJECT_SELF)
+    // Iterate the whole sphere. The old loop condition stopped at the first
+    // object that was OBJECT_SELF, so everyone after the Balrog was skipped.
+    object oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, lSelf);
+    while (GetIsObjectValid(oTarget))
     {
+        if (oTarget != OBJECT_SELF && GetIsEnemy(oTarget) && !GetIsDead(oTarget))
         {
-          ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
-          DelayCommand(1.0, ApplyEffectToObject(DURATION_TYPE_INSTANT, eDam, oTarget));
+            int nThis = nDamage;
+            if (WillSave(oTarget, MH_SAVE_DC, SAVING_THROW_TYPE_NEGATIVE, OBJECT_SELF))
+                nThis = nDamage / 2;
+            ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
+            DelayCommand(1.0, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                EffectDamage(nThis, DAMAGE_TYPE_NEGATIVE), oTarget));
         }
-        //Get the next target in the specified area around the caster
-        oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));
+        oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, lSelf);
     }
-
 }
 
 
@@ -25,10 +33,15 @@ void main()
 {
 
 
-int roll = d10();
- if (roll >= 9)
+// OnDamaged fires once per hit taken, so an uncapped roll here scaled with
+// the party's attacks per round and stacked several harms in one round.
+// Cap it at one chance per round.
+if (!GetLocalInt(OBJECT_SELF, "MH_COOLDOWN"))
    {
-   harm();
+   SetLocalInt(OBJECT_SELF, "MH_COOLDOWN", 1);
+   DelayCommand(6.0, DeleteLocalInt(OBJECT_SELF, "MH_COOLDOWN"));
+   if (d10() >= 9)
+       harm();
    }
 
 
