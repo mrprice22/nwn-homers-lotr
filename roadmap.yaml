@@ -501,12 +501,23 @@ ideas:
   - id: balrog-mass-harm-review
     title: "Balrog mass harm review"
     group: bosses
-    status: confirmed
+    status: manual
     type: Defect
     player: "Balendin (Balendin_2222)"
-    date: "2026-08-29"
+    date: "2026-09-23"
+    commit: 017d7fe253d
     discord: {'thread_id': '1549086654440935535', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549086654440935535'}
-    notes: "<div><span>Balrog in test harmed me for 350 damage and I died even though I had 1k+ hp, was weird</span></div><div><span><br></span></div><div><span>Sync:</span></div><div>\n<span>never been a fan of those unavoidable scripted damage in your face like it or not things (maybe add a save chance?)</span></div><div><span><br></span></div><div>\n<span><span>-Methonash-</span></span><span><span><i> </i></span></span><span>Or get this </span><a href=\"https://homerslotr.com/items/masterstombofmag\" target=\"_blank\" rel=\"noreferrer noopener\"><span>book</span></a><span> from Isengard magic shop or Elvalia in Lothlorien. And use Shadow Shield to be 100% immune to balrog's harm on hi</span>\n\n<br></div>"
+    notes: "<div><b>The Balrog's Mass Harm was firing far more often than intended.</b> It rolled its chance on <i>every hit he took</i> rather than once a round, so a party landing thirty hits a round could set off several harms back to back - that is how one hit of 350 turned into dying from over 1,000 HP.</div><div><br></div><div>Now it gets <b>at most one chance per round</b>, it only hurts his enemies, and every target gets a <b>Will save (DC 60) to take half</b>. The damage of a single harm is unchanged, and immunity to negative energy (Shadow Shield) still blocks it completely.</div>"
+    impl_notes: "<div><b>on_dmgd_massharm.nss</b> is the OnDamaged handler of azagoth001 only (identical in the 2009 fork, so this was never a regression). Three defects: (1) <i>d10() &gt;= 9</i> ran per damage event, so procs scaled with incoming attacks; each proc is d100(5)+100 negative (105-600, avg ~352) to everything in RADIUS_SIZE_COLOSSAL with no save - several procs in one round explains the 1k+ HP death. (2) The loop was <i>while(GetIsObjectValid(oTarget) &amp;&amp; oTarget != OBJECT_SELF)</i>, which terminated at the Balrog himself, so everything after him in shape order was skipped (and nothing was hit if he came first) - erratic. (3) No hostility filter.</div><div><br></div><div>Fix: local int MH_COOLDOWN set on the first damage event of a round and cleared by DelayCommand(6.0), the 20% roll now happens under it; loop walks the whole sphere with <i>oTarget != OBJECT_SELF &amp;&amp; GetIsEnemy &amp;&amp; !GetIsDead</i>; per-target WillSave(MH_SAVE_DC=60, SAVING_THROW_TYPE_NEGATIVE) halves. The stock retarget code below is untouched. Nothing includes the script, so a plain repack rebuilt it (verified MH_COOLDOWN in the packed .ncs).</div><div><hr><b>Original report (kept from notes):</b></div><div><span>Balrog in test harmed me for 350 damage and I died even though I had 1k+ hp, was weird</span></div><div><span><br></span></div><div><span>Sync:</span></div><div>\n<span>never been a fan of those unavoidable scripted damage in your face like it or not things (maybe add a save chance?)</span></div><div><span><br></span></div><div>\n<span><span>-Methonash-</span></span><span><span><i> </i></span></span><span>Or get this </span><a href=\"https://homerslotr.com/items/masterstombofmag\" target=\"_blank\" rel=\"noreferrer noopener\"><span>book</span></a><span> from Isengard magic shop or Elvalia in Lothlorien. And use Shadow Shield to be 100% immune to balrog's harm on hi</span>\n\n<br></div>"
+    manual_steps:
+      - step: "UAT: fight the Balrog of Moria with a party hitting him hard. Mass Harm (negative-energy burst on everyone within 10m) should land at most once per round, never two stacked in the same round."
+        status: open
+        kind: uat
+        tester: "level 60 party"
+      - step: "UAT: the combat log shows a Will save vs DC 60 for each target of Mass Harm; a successful save takes half damage. With Shadow Shield up you take none."
+        status: open
+        kind: uat
+        tester: "level 60 party"
   - id: add-more-rapiers-and-scimitars
     title: "Add more weapons rapiers and scimitars"
     group: items-gear
@@ -882,13 +893,27 @@ ideas:
     title: "Wiki AC calc off (balorg of moria example)"
     group: bosses
     epic: difficulty-increase
-    status: confirmed
+    status: manual
     type: Defect
     player: "Sync (Shync)"
-    date: "2026-08-26"
+    date: "2026-09-23"
+    commit: 017d7fe253d
     discord: {'thread_id': '1549090882790363156', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549090882790363156'}
-    notes: "<div><div><div><a href=\"https://homerslotr.com/creatures/azagoth001\" target=\"_blank\" rel=\"noopener\">The balrog of moria</a></div></div><div><div></div></div></div><div><div> <div><span>Wiki says 84ac but log was reporting misses on rolls of 90+ </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div><div><div></div></div></div><div><div> <div><span>Eventually killed him anyways but it took a loooooooong time, thanks to monk apr xD</span></div></div><div><div></div></div></div><div><div> <div><br></div><div><br></div><div>\n<div><div><div><span>DM Notes:</span></div><div><span>Wiki is def. wrong</span></div></div><div><div><div><div><div><div><div><a href=\"https://img.homerslotr.com/rescued/01/01ff4efc97c26addc77a060aefb797ba.webp\"></a><div><div><img src=\"https://img.homerslotr.com/rescued/01/01ff4efc97c26addc77a060aefb797ba.webp\" alt=\"Image\"><img alt=\"\"></div><div>FIrst, his attack damage is off in his character sheet -- it's not reflecting <a href=\"https://homerslotr.com/items/it_crewpsp022\" target=\"_blank\" rel=\"noopener\">Balrogs Battle Claw</a>, which I can see equipped as a creature weapon when I examine the blueprint in the nwn toolset.</div><div><br></div></div></div><div><div></div><div></div></div><div></div></div></div></div></div></div></div><div><div></div></div></div><div><div> <div><span>Second, Balrog is wearing a shield I was not expecting (Shield of The Fleet Elf), and when I take it off him he goes back to 84 AC like wiki says,</span> <span><span></span></span></div></div><div><div><div><div><div><div><div><a href=\"https://img.homerslotr.com/rescued/82/82ffa455c7e44881d6eed091b887bca3.webp\"></a><div><div><img src=\"https://img.homerslotr.com/rescued/bb/bbe928278191fd4590a058b1b6fe9dd1.webp\" alt=\"Image\"><img alt=\"\"></div></div></div><div><div></div><div></div></div><div></div></div></div></div></div></div></div><div><div></div></div></div><div><div> <div><span>he also is not using the whip he's supposed to be using.. he missing a feat for it (exotic weapon proficency)</span></div></div><div><div><div><div><div><div><div><a href=\"https://img.homerslotr.com/rescued/95/95336c684712fc66e6f33cc9dd4cd24d.webp\"></a><div><div><img src=\"https://img.homerslotr.com/rescued/95/95336c684712fc66e6f33cc9dd4cd24d.webp\" alt=\"Image\"></div><div><br></div><div>For Balrog specifically, I think I want to to a deeper compare to the 2009 fork version which seems to make this creature 2x harder, <br>(2009  →Baseline)<b>cr</b>: 1285 → 555<b>feat_count</b>: 65 → 48<b>hp</b>: 10002 → 8100<b>natural_ac</b>: 56 → 40Does the 2009 version use weapons or creature claws? Is the loot any different/more powerful?</div><div><br></div><div>For creatures in general, I want a build gate that:</div><div><ul><li> looks for items they start with equipped but game engine forces them to unequip immoderately because they lack the required feat (not a factor in the balrog example but I've seen this happen with other creatuers)</li><li>Looks for items in creature's inventory that typical creature AI will have them equip, but in the resting blueprint that item is not equipped (IS the case with our shield of the fleet elf in the balrog example)</li></ul><div>Both cases cause the wiki generation to show inaccurate data.</div></div></div></div></div></div></div></div></div></div></div>\n\n<br></div></div></div>"
+    notes: "<div><b>The Balrog of Moria now fights the way he looks on the wiki - and he is a lot tougher.</b></div><div><br></div><div>He was picking up the <b>Shield of the Fleet Elf</b> from his own pack when combat started, which is why his AC in the fight was well above the number on the wiki. He can no longer use a shield (it still drops as loot). He also finally <b>wields his Whip of Fire</b>, which he had been carrying unused because he lacked the proficiency for it.</div><div><br></div><div>He has also been brought up to the strength of the classic 2009 Balrog: about 10,000 HP, higher natural armour, the full whip feat line, Evasion, Blind-Fight, Great Cleave, Self-Concealment, a Dragon Fear aura and a boss ring. Bring a proper party.</div>"
     notes_h: 463
+    impl_notes: "<div>azagoth001.utc.json (encounter-spawned only via moriabyss.ute; no placed instance, so no divergence gate involvement). Compared against ../nwn_homers_lotr_2009/unpacked/azagoth001.utc.json. Added the 22 feats the 2009 version had and this one lacked: 44 WeapProfEx, 206 Evasion, 391 GreatCleave, 408 BlindFight, 532/746 epic creature devastating/overwhelming crit, 584 Epic Prowess, 656/694 epic creature WF/WS, 697/698 Improved Ki Strike 4/5, 748/749/750 Self-Concealment, 884 Superior WF, 885 Ki Critical, 993/994/997/998/1000 whip chain, 1001 Epic Character. Kept the five only this version had (20, 21, 41, 145, 940). <b>Removed feat 32 Shield</b> so the stock AI's combat-start equip can no longer put shieldofthero001 on him - that was the wiki-vs-fight AC gap.</div><div><br></div><div>whipoffire001 (Whip of Fire EPIC, already undroppable in his inventory) moved to the right-hand slot, undroppable. 2009's sfcraft_whip001 does not exist here. He has no martial/simple proficiency, so the whip is the only hand weapon the AI can pick. Claws stay in the creature slots. Equipped the current module's bossring (undroppable) as 2009 did; <b>skipped craftedring</b> - that resref is a different item here (fork resref collision) and the 2009 one grants crit immunity, against the devcrit audit. Added SpecAbility 412 Aura Dragon Fear; <b>left out 2009's Pulse: Death x2</b> (unavoidable save-or-die on top of Mass Harm). HitPoints/Current 7902, MaxHitPoints 10002, NaturalAC 56 (2009 values). CR left at 555, so the boss registry is unchanged.</div><div><br></div><div>The general creature build gate asked for in this report is split out as <b>creature-gear-proficiency-gate</b>. The wiki numbers catch up at the next scheduled wiki refresh.</div><div><hr><b>Original report (kept from notes):</b></div><div><div><div><a href=\"https://homerslotr.com/creatures/azagoth001\" target=\"_blank\" rel=\"noopener\">The balrog of moria</a></div></div><div><div></div></div></div><div><div> <div><span>Wiki says 84ac but log was reporting misses on rolls of 90+ </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div><div><div></div></div></div><div><div> <div><span>Eventually killed him anyways but it took a loooooooong time, thanks to monk apr xD</span></div></div><div><div></div></div></div><div><div> <div><br></div><div><br></div><div>\n<div><div><div><span>DM Notes:</span></div><div><span>Wiki is def. wrong</span></div></div><div><div><div><div><div><div><div><a href=\"https://img.homerslotr.com/rescued/01/01ff4efc97c26addc77a060aefb797ba.webp\"></a><div><div><img src=\"https://img.homerslotr.com/rescued/01/01ff4efc97c26addc77a060aefb797ba.webp\" alt=\"Image\"><img alt=\"\"></div><div>FIrst, his attack damage is off in his character sheet -- it's not reflecting <a href=\"https://homerslotr.com/items/it_crewpsp022\" target=\"_blank\" rel=\"noopener\">Balrogs Battle Claw</a>, which I can see equipped as a creature weapon when I examine the blueprint in the nwn toolset.</div><div><br></div></div></div><div><div></div><div></div></div><div></div></div></div></div></div></div></div><div><div></div></div></div><div><div> <div><span>Second, Balrog is wearing a shield I was not expecting (Shield of The Fleet Elf), and when I take it off him he goes back to 84 AC like wiki says,</span> <span><span></span></span></div></div><div><div><div><div><div><div><div><a href=\"https://img.homerslotr.com/rescued/82/82ffa455c7e44881d6eed091b887bca3.webp\"></a><div><div><img src=\"https://img.homerslotr.com/rescued/bb/bbe928278191fd4590a058b1b6fe9dd1.webp\" alt=\"Image\"><img alt=\"\"></div></div></div><div><div></div><div></div></div><div></div></div></div></div></div></div></div><div><div></div></div></div><div><div> <div><span>he also is not using the whip he's supposed to be using.. he missing a feat for it (exotic weapon proficency)</span></div></div><div><div><div><div><div><div><div><a href=\"https://img.homerslotr.com/rescued/95/95336c684712fc66e6f33cc9dd4cd24d.webp\"></a><div><div><img src=\"https://img.homerslotr.com/rescued/95/95336c684712fc66e6f33cc9dd4cd24d.webp\" alt=\"Image\"></div><div><br></div><div>For Balrog specifically, I think I want to to a deeper compare to the 2009 fork version which seems to make this creature 2x harder, <br>(2009  →Baseline)<b>cr</b>: 1285 → 555<b>feat_count</b>: 65 → 48<b>hp</b>: 10002 → 8100<b>natural_ac</b>: 56 → 40Does the 2009 version use weapons or creature claws? Is the loot any different/more powerful?</div><div><br></div><div>For creatures in general, I want a build gate that:</div><div><ul><li> looks for items they start with equipped but game engine forces them to unequip immoderately because they lack the required feat (not a factor in the balrog example but I've seen this happen with other creatuers)</li><li>Looks for items in creature's inventory that typical creature AI will have them equip, but in the resting blueprint that item is not equipped (IS the case with our shield of the fleet elf in the balrog example)</li></ul><div>Both cases cause the wiki generation to show inaccurate data.</div></div></div></div></div></div></div></div></div></div></div>\n\n<br></div></div></div>"
+    manual_steps:
+      - step: "UAT: examine the Balrog of Moria in combat - he holds the Whip of Fire in his hand, has no shield on, and his AC is the wiki's number (after the next wiki refresh) rather than higher."
+        status: open
+        kind: uat
+        tester: "level 60 party"
+      - step: "UAT: kill him and check loot - the Shield of the Fleet Elf and the regular Whip of Fire still drop; the EPIC whip, Boss Ring and Heal potion do not."
+        status: open
+        kind: uat
+        tester: "level 60 party"
+      - step: "Toolset: open azagoth001 and confirm the character sheet shows ~10002 HP and the whip in the right hand (the toolset recomputes HP from HitPoints + Con; adjust if it lands far off)."
+        status: open
+        kind: toolset
   - id: house-of-the-guards-of-mordor-map-note
     title: "House of the Guards of Mordor (map note)"
     group: quests-areas
@@ -4013,11 +4038,23 @@ ideas:
   - id: balrog-not-healing
     title: "Balrog not healing itself"
     group: bosses
-    status: unlikely
+    status: manual
     type: Defect
     player: Tukwut
-    date: "2026-06-08"
-    notes: "<div>This is working as intended: <a href=\"https://homerslotr.com/creatures/azagoth001\">The Balrog</a> currently has no heal potions or spells, should we add some?</div>"
+    date: "2026-09-23"
+    commit: 017d7fe253d
+    discord: {'thread_id': '1552538981697331303', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1552538981697331303'}
+    notes: "<div>The Balrog of Moria now carries <b>one Potion of Heal</b>, as he did in the classic 2009 module. Push him below half health and expect him to drink it once and come back to full. It is his own and does not drop.</div>"
+    impl_notes: "<div>it_mpotion013 (Cast Spell: Heal, self) added to azagoth001's ItemList, Dropable 0, same as the 2009 blueprint. He runs the stock x2_def_* AI, whose TalentHealingSelf drinks a healing potion from inventory below 50% HP. Stock Heal restores full HP, so this is one full heal per spawn.</div>"
+    manual_steps:
+      - step: "UAT: get the Balrog of Moria below half health - he should drink a Heal potion once and return to full, and not a second time."
+        status: open
+        kind: uat
+        tester: "level 60 party"
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-23"
+        text: "Discord — HomelessSon in Balrog not healing itself (https://discord.com/channels/514343293761486848/1552538981697331303):\n\n😈"
   - id: sauron-minion-faction
     title: "Sauron's Chosen Minion fights his own faction (faction looks wrong)"
     group: bosses
@@ -10625,7 +10662,7 @@ ideas:
   - id: tournament-maug-doublesword
     title: "Tournament Maug DoubleSword"
     group: items-gear
-    status: confirmed
+    status: soon
     type: Enhancement
     player: Szescian82
     date: "2026-09-18"
@@ -10648,9 +10685,9 @@ ideas:
   - id: mw-henchmen-may-not-despawn-when-you-log-out-or-crash
     title: "MW Henchmen may not despawn when you log out or crash"
     group: meaningwave
-    status: manual
+    status: implemented
     type: Defect
-    player: "HomelessSon (Server Admin)"
+    player: Szescian82
     date: "2026-09-23"
     commit: 5934f4539fe
     discord: {'thread_id': '1552285777139073035', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1552285777139073035'}
@@ -10702,3 +10739,13 @@ ideas:
     docs: Customizations/Spells.html#bigbys-crushing-hand
     notes: "<div>Crushing Hand holds most targets in place instead of paralyzing them, and its grapple is easier than stock. Both come from BioWare's old pre-Enhanced-Edition code, which EE fixed. Decide whether to re-import the EE version.</div>"
     impl_notes: "<div><b>Found</b> 2026-09-23 by diffing unpacked/ against the stock script (nwn_resman_cat &lt;script&gt;.nss). Documented publicly as current behaviour in Customizations/Spells.html; update that entry (and <code>docs:</code>) with whatever is decided.</div><div><b>unpacked/x0_s0_bigby5.nss</b> is the pre-EE BioWare script (its <i>/*NEED GetBaseAttackBonus*/</i> note is BioWare's). Grapple target roll: no d20, and <code>GetAbilityModifier(ABILITY_STRENGTH)</code> with no target = the <b>caster's</b> Strength. Immunity check <code>GetIsImmune(oTarget, EFFECT_TYPE_PARALYZE) == FALSE</code> passes EFFECT_TYPE_PARALYZE (27), which as an immunity type is IMMUNITY_TYPE_SKILL_DECREASE, and the test is inverted: so almost every target gets EffectCutsceneImmobilize instead of EffectParalyze. EE stock: d20 + BAB + size + target Str, and immobilise only paralysis/mind-immune targets. Fix = re-import the EE stock script verbatim.</div>"
+  - id: creature-gear-proficiency-gate
+    title: "Build gate: creature gear the engine/AI changes at spawn"
+    group: bosses
+    epic: difficulty-increase
+    status: confirmed
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-23"
+    notes: "<div>Split out of wiki-ac-calc-off-balorg-of-moria-example. A build gate over every creature blueprint that flags (a) items equipped on the blueprint that the engine unequips because the creature lacks the required proficiency feat, and (b) items in inventory the stock AI will equip at combat start (weapons/shields it is proficient with) while the blueprint leaves them unequipped. Both make the wiki show stats the creature does not fight with. The Balrog of Moria was case (b): Shield of the Fleet Elf.</div>"
