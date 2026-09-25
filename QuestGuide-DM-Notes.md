@@ -650,6 +650,50 @@ Both files should be updated in the same commit whenever a quest ships or change
     (journal 1) and a heirloom turn-in (journal 2 + reward) via new scripts `sc_glsn_have` and
     `at_glsn_rwd`.
 
+### The Mystic's Heirloom
+
+- **Journal tag:** `mystic_heirloom` (added 2026-09-24, roadmap `anaralias-what`). Before that the
+  quest had **no journal at all**, so it never appeared on the wiki's quest list.
+- **Giver:** *Oliah The Mystic* (`oilahthemystic.utc`, conversation `mystics.dlg`), placed in
+  `area006` (Esgaroth / Lake Town). Players also spell her "Olira".
+- **Flow:** accept R7 (`at_066`, `mystichelp=1`, journal 1). Refusing sets `mystichelp=10`
+  (`at_065`, start `sc_038` = sent away). Turn-in R8 is gated by `sc_041` (has `AnaraliasEye`).
+  `at_069` takes the Eye, and E9 runs `at_068` (100,000 gp + `themysticheirloo`) and writes
+  journal 2 (End). Its line R8 said "heart" until 2026-09-24; the item has always been
+  *Anaralia's Eye* (`anaraliasheart.uti`, tag `AnaraliasEye`).
+- **Target:** `anaraliathewidow` (CR 198) in `mirkwoodcentrale`, carrying the Eye.
+- **The heirloom** (tag `TheMysticHeirloom`) is what `sc_042` checks on `relicmaster.dlg`, the
+  Relic Master in `thesilvermountai`, who lets its keeper through via `mtnpass`. The check is
+  party-wide (`CheckPartyForItem`).
+- **Open point — farmable:** all quest state is a plain `SetLocalInt` on the PC, which is not
+  persistent. After a reboot Oliah starts over, so the 100k gp and the heirloom can be earned again
+  every time Anaralia respawns. Filed as a hidden roadmap idea (`mystic-theoden-quest-state`).
+
+### The White Hand Blockade
+
+- **Journal tag:** `isengard`. `theoden.dlg` has written to it since the original module (R8 =
+  entry 1, E11 = entry 2), but **the category never existed** in `module.jrl.json`, so the engine
+  dropped both writes silently. The category was added 2026-09-24 under the exact tag, with no
+  dialog change. `tests/check_journal_refs.py` now fails the repack on any write to a missing tag.
+- **Giver:** *Theoden* (`theoden002.utc`, conversation `theoden.dlg`) in `theodenshall`.
+- **Flow:** accept R8 (`at_035`, `theodenq=1`). Turn-in start E10 needs `sc_020` (`theodenq==1`).
+  R11 needs `sc_021` (has `NW_WPLMSC004`). `at_036` takes the scythe and pays `RewardPartyGP(10000)`
+  + `RewardPartyXP(2000)`. E11 (`at_040`, `theodenq=3`) offers the choice: `at_037` spear,
+  `at_038` helm, `at_039` shield. After that the start `sc_023` greets you as done.
+- **Target:** *The White Hand Destroyer* (`urukai010`, CR 374) in `isengardouterrim`. The proof is
+  equipped as droppable `wplmsc005` with tag `NW_WPLMSC004`.
+- **Open point — bypassable and farmable:** Tagget's *Weapon and Armor Store*
+  (`taggetssmithshop`) sells stock `nw_wplmsc004`, which has the **same tag**, so the kill can be
+  skipped with a purchase. The same non-persistent local-int state also makes the rewards
+  repeatable after a reboot. Both are in the same hidden roadmap idea.
+
+### Goblins of the South Greenway (rumour only)
+
+- **Journal tag:** `goblinsofsgreenway`, written by Barliman's "heard any good gossip?" line
+  (`barliman.dlg` E1). This was another write to a missing category; the category was added
+  2026-09-24 as a single pointer entry. It has no turn-in and no reward, so there is deliberately
+  no card on the public page.
+
 ### The Thirteenth Ent
 
 - **Journal tag:** `thirteenthent` (category Comment `@group 'Lord of the Rings'` / `@order 31`)

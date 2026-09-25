@@ -222,6 +222,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: journal tag references…"
+if python3 "$HERE/check_journal_refs.py"; then
+  echo "ok: journal tag references"
+else
+  echo "fail: journal tag references"
+  rc=1
+fi
+
 echo "[smoke-test] running: roadmap note nesting…"
 if python3 "$HERE/check_roadmap_notes.py"; then
   echo "ok: roadmap note nesting"

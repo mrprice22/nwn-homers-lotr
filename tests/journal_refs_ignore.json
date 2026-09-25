@@ -1,0 +1,9 @@
+{
+  "_comment": "Scripts that write to journal tags with no category in module.jrl.json, on purpose: dead code that no area, encounter, trigger or module event reaches. Key = script resref or fnmatch glob (no .nss), value = why it is safe. Ignored scripts also stop counting as a reason a conversation is reachable. Dialogs need no entry here: tests/check_journal_refs.py skips a .dlg that nothing live can open.",
+  "m2q2*": "Original-campaign Chapter 2 plot scripts (m2q2_Jax / _Lenton / _Revat). No area, encounter or module event hooks any of them; only other m2q2* files reference them.",
+  "m3q04*": "Original-campaign Chapter 3 plot scripts (M3Q04_*). None is hooked by an area, encounter or module event. The two placed m3q04g06 archers in greenwaysouth run only stock nw_c2_default* scripts.",
+  "m3q4*": "Original-campaign Chapter 3 plot scripts; only other m3q04*/m3q4* files reference them.",
+  "m3nodie": "Original-campaign OnDeath (M3Q04_H07_KLAU) on blueprint m3q04h07klaus001, which is not placed or in any encounter.",
+  "m3plotinclude": "Original-campaign include (M3Q2F_DOOROF3); only m3q04* legacy scripts include it.",
+  "mod_enter": "Retired OnClientEnter (gguild journal); module.ifo hooks mod_cliententer instead."
+}
