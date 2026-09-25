@@ -1513,8 +1513,25 @@ string ForgeProjectedStatus(object oPC, object oItem)
     if (nProps > nMaxProps)
         s += ", and bears " + IntToString(nProps) + " enchantments where the law "
             + "allows but " + IntToString(nMaxProps);
-    return s + ". Strike more to bring it within the law."
-        + ForgeUnlistedNote(oItem);
+    s += ".";
+    // An untouched relic over the caps is lawful ONLY because no forge has
+    // worked it (ForgeItemLegality). Any strike makes it forged work judged by
+    // the caps, so the commit reply stays hidden until the plan clears them -
+    // which read as "the forge will not strike this property" (roadmap
+    // level-drain-property-not-removable-from-forge). Say why. The plan above
+    // may already be staged, so judge the item's CURRENT state, not nVal.
+    if (!ForgeIsPlayerModified(oItem)
+        && (ForgeItemValue(oItem, TRUE) > nCeil
+            || ForgeCountProps(oItem) > nMaxProps))
+        s += " No forge has touched this relic, and that alone is why the law"
+            + " lets it be, for it stands far beyond what any smith may lawfully"
+            + " make. Strike even one enchantment and it becomes forged work,"
+            + " judged like any other: I can strike your plan only once it"
+            + " brings the piece within the lawful " + ForgeGold(nCeil)
+            + " gold and " + IntToString(nMaxProps) + " enchantments.";
+    else
+        s += " Strike more to bring it within the law.";
+    return s + ForgeUnlistedNote(oItem);
 }
 
 // TRUE when the plan is non-empty AND the projected result is lawful (worth
