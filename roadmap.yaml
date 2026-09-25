@@ -357,6 +357,39 @@ ideas:
       - author: "Sync Bot"
         date: "2026-09-14"
         text: "Discord — HomelessSon in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nlogged, thank you!"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — HomelessSon in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nFound part of the issue: \nWiki was only showing skill ranks, not the total with all the ability score bonuses and any bonuses from items included. \nDev realm wiki updated for now, https://dev.homerslotr.com/creatures/creature023_2\nnormal prod wiki will refresh with this tomorrow morning -- Skinner shows 125 total, not 90 anymore, but still doesnt explain why you were seeing 124 in the combat log\n\nImages:\n- https://img.homerslotr.com/discord/5c/5c66e3ad718507deefc32eb94bc0ea0d.webp"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — HomelessSon in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nLeading hypothesis: Sync is a bard multiclass with 8–11 Bard levels. The curse works as designed at tier −1.\n@Sync (Shync)  what character were you seeing this on, how many levels of bard?"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nIt was with a build with 30bard and like 115 taunt, using curse didnt do anything"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nMax is 125 so using curse -18 if it worked taunt wouldnt fail"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nThink skinner was pretty much the only one i couldnt taunt 😅"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nIt was with a build with 30bard and like 110 taunt, using curse didnt do anything"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — HomelessSon in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nwere you seeing 125 dc every time or did it vary?"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nI was even with snezcian something pic guy"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nIt was always showing dc 124"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nBut the examine window showed he was cursed"
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — Sync in Bard curse song (https://discord.com/channels/514343293761486848/1544494197791526942):\n\nIt was long ago tho, when i was actually getting those katanas"
   - id: lag-issue-with-playtimedb-reported
     title: "Lag + Issue with playtimedb reported"
     group: wiki-tools
@@ -473,12 +506,28 @@ ideas:
   - id: level-drain-property-not-removable-from-forge
     title: "Level drain property not removable from Forge"
     group: forge
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Sync (Shync)"
-    date: "2026-08-31"
+    date: "2026-09-24"
+    commit: b80b31454eb
+    docs: Customizations/Crafting.html#forge-disenchant
     discord: {'thread_id': '1549086537449472000', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1549086537449472000'}
-    notes: "<div>Related to work done by ideas <a href=\"#idea-smith-can-disenchant-negative-abilities\">smith can disenchant negative abilities</a> and <a href=\"#idea-smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure\">negative arcance spell failure (reduced spell failure) might count as negetive property on items for smithing, but it's a positive (good) thing to have</a></div><div>It seems like 'level drain' on weapons might be counting as a negative property. Investigate, and document in customizations doc what properties smith counts and positive (boon) vs negative (penalty that can't be removed). The ability to drain levels on your opponent when you hit them is a boon.</div><div><br></div><ul><li><div><div><span><span>Sync</span></span><span><span><i>:</i></span></span><span> Oh i tried to remove the lvl drain from the </span><span>katana of dol guldur,</span><span> but doesnt let me. Guess its either cos its millions over the cap or has more than 7 properties </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div></li></ul><ul><li><div><div><span><span>HomelessSon</span><span><span>: </span></span></span><span>huh, i wonder if the 'drain' keyword tripped up claude and made it think it's a negative property that has to always stay /sigh</span></div></div></li></ul><div><ul><li>Sync: <span>Probably, it lets me select it but doesn't give me the option to strip it off</span></li></ul></div>"
+    notes: "<div>Related to work done by ideas <a href=\"#idea-smith-can-disenchant-negative-abilities\">smith can disenchant negative abilities</a> and <a href=\"#idea-smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure\">negative arcance spell failure (reduced spell failure) might count as negetive property on items for smithing, but it's a positive (good) thing to have</a></div><div>It seems like 'level drain' on weapons might be counting as a negative property. Investigate, and document in customizations doc what properties smith counts and positive (boon) vs negative (penalty that can't be removed). The ability to drain levels on your opponent when you hit them is a boon.</div><div><br></div><ul><li><div><div><span><span>Sync</span></span><span><span><i>:</i></span></span><span> Oh i tried to remove the lvl drain from the </span><span>katana of dol guldur,</span><span> but doesnt let me. Guess its either cos its millions over the cap or has more than 7 properties </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div></li></ul><ul><li><div><div><span><span>HomelessSon</span><span><span>: </span></span></span><span>huh, i wonder if the 'drain' keyword tripped up claude and made it think it's a negative property that has to always stay /sigh</span></div></div></li></ul><div><ul><li>Sync: <span>Probably, it lets me select it but doesn't give me the option to strip it off</span></li></ul></div><div><br></div><div><b>Resolved (2026-09-24):</b> Level Drain was never treated as a drawback — the forge has always let you strike it. The real block was the Katana of Dol Guldur itself: it is worth over 14 million gp with 9 enchantments, and an untouched relic like that is only lawful <i>because</i> no forge has worked it. Striking Level Drain alone would have left a forged item millions over the 900,000 gp / 7 enchantment limits (contraband), so the smith quietly held back the Strike option. The smith now tells you exactly that, and the forge only offers to strike once your plan brings the item within both limits. Everything the forge will and won't strike (enchantments, drawbacks, restrictions) is now listed in the <a href=\"Customizations.html#forge-disenchant\">Customizations guide</a>.</div>"
+    impl_notes: "Root cause was not the drawback classifier: ForgeIsDetrimentalProp (forge_inc.nss) never listed ON_HIT_PROPERTIES, so Level Drain (type 48 / subtype 17) was always in the REMOVABLE set. The staged anvil commit reply is gated by forge_stg_ok -&gt; ForgeStagePlanIsLawful, which requires the projected result within ForgeEffectiveCeil and ForgeItemMaxProps. katanaofdolguldu is 14,141,494 gp with 9 counted props; it is legal only via ForgeItemLegality's !ForgeIsPlayerModified early return, and ForgeItemDeviatesFromBlueprint treats fewer-than-blueprint as deviant, so any strip short of full legality would mint contraband. Admin decision: keep the refusal, explain it. ForgeProjectedStatus (token 6119, all four anvils) now appends a relic explanation when the item is not player-modified and its CURRENT state is over either cap; otherwise the old 'Strike more' line. No dialog edits. forge_inc is an include, so shipped via repack-homers-lotr-clean; verified the string in forge_stg_open.ncs. Docs: new Crafting.html#forge-disenchant section (replaced the stale 'pick exactly one property' tip)."
+    manual_steps:
+      - step: "Put the Katana of Dol Guldur on any forge anvil and open 'Strip an enchantment'. Plan only On Hit: Level Drain. Confirm the status line explains that no forge has touched this relic and names the lawful gold and enchantment limits, and that no Strike option is offered."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "On the same katana, keep planning removals until the projected worth is under the lawful ceiling and at most 7 enchantments. Confirm the Strike option appears and the committed item is not flagged as contraband at the Well of Eru."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Put an ordinary lawful item (under 900k gp, 7 or fewer enchantments) on the anvil and plan a removal. Confirm the relic sentence does NOT appear."
+        status: open
+        kind: uat
+        tester: "any"
   - id: rng-based-gear-diablo-world-of-warcraft-style
     title: "RNG based GEAR (Diablo/World of Warcraft Style)"
     group: items-gear
