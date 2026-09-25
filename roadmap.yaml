@@ -8689,13 +8689,33 @@ ideas:
   - id: anaralias-what
     title: "Anaralia's what"
     group: quests-areas
-    status: confirmed
+    status: implemented
     hidden: true
     type: Defect
     player: "Rajmund (Ray)"
-    date: "2026-09-07"
+    date: "2026-09-24"
+    commit: a636fa0ef63
+    docs: none
     discord: {'thread_id': '1546598668205826151', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1546598668205826151'}
-    notes: "<div>The quest item is Anaralia's Eye, although the quest conversation refers to it as Anaralia's heart.</div>"
+    notes: "<div>The quest item is Anaralia's Eye, although the quest conversation refers to it as Anaralia's heart.</div><div><br></div><div><b>Resolved (2026-09-24):</b> The mystic now says she was brought her sister's <i>eye</i>, matching the quest item. The quest was missing from the wiki because it never wrote to your journal. It now does, as <b>The Mystic's Heirloom</b> (see the <a href=\"QuestGuide.html#mystic-heirloom\">Quest Guide</a>). A search for other quests with the same problem found two more: King Théoden's quest, now <b>The White Hand Blockade</b> (<a href=\"QuestGuide.html#white-hand-blockade\">Quest Guide</a>), and Barliman's rumour of goblins on the South Greenway. Both now show in your journal, and all three will show on the wiki's quest list after the next refresh. Journal entries appear when you next talk to the quest-giver; progress you made before this fix does not add them backdated.</div>"
+    impl_notes: "<div><b>Audit:</b> every conversation something can open (placed instance, a used blueprint, or named by a script) and every journal write (DLG Quest/QuestEntry, AddJournalQuestEntry literal or const) was checked against module.jrl.json.</div><ul><li><code>mystics.dlg</code> (Oliah, area006): no journal at all. New category <code>mystic_heirloom</code>: R7 accept = entry 1, E9 reward = entry 2 (End). R8 text changed from heart to eye (the item is <code>anaraliasheart.uti</code>, tag <code>AnaraliasEye</code>).</li><li><code>theoden.dlg</code>: wrote to <code>isengard</code> entries 1 and 2, but the category never existed, so the engine dropped them silently. Category added under the exact tag, with no dialog change.</li><li><code>barliman.dlg</code> E1: wrote to the missing <code>goblinsofsgreenway</code>. Added as a one-entry pointer (no turn-in exists).</li><li>Not live, so left alone: <code>m2q2_*</code> / <code>M3Q04_*</code> / <code>M3Q2F_DOOROF3</code> (original-campaign content, unplaced) and <code>gguild</code> (only in <code>mod_enter.nss</code>, which module.ifo does not hook).</li></ul><div><b>New gate:</b> <code>tests/check_journal_refs.py</code> is in the smoke chain and fails the repack when a write goes to a missing tag or entry. Dead legacy scripts are in <code>tests/journal_refs_ignore.json</code>. Player docs: QuestGuide cards <code>#mystic-heirloom</code> and <code>#white-hand-blockade</code>; admin detail in QuestGuide-DM-Notes.md. Found during the audit and filed separately as hidden idea <code>mystic-theoden-quest-state</code>: both quests use non-persistent local ints (rewards farmable per reboot), and Théoden's proof scythe can be bought at Tagget's.</div>"
+    manual_steps:
+      - step: "Oliah the Mystic (Lake Town): accept the quest. The journal gains The Mystic's Heirloom, entry 1."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Kill Anaralia, the Widow Maker (Mirkwood: Central East) and return the Eye. The turn-in line reads \"the eye of your long lost sister\", and journal entry 2 marks the quest complete."
+        status: open
+        kind: uat
+        tester: "level 40+ or a strong party (CR 198)"
+      - step: "Theoden (Theoden's Hall): accept the quest. The journal gains The White Hand Blockade, entry 1. Turning in the scythe completes it with entry 2."
+        status: open
+        kind: uat
+        tester: "end-game (CR 374 target)"
+      - step: "Barliman (Prancing Pony): ask about gossip. The journal gains Goblins of the South Greenway."
+        status: open
+        kind: uat
+        tester: "any"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -10905,3 +10925,13 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-09-23"
     notes: "<div>Split out of wiki-ac-calc-off-balorg-of-moria-example. A build gate over every creature blueprint that flags (a) items equipped on the blueprint that the engine unequips because the creature lacks the required proficiency feat, and (b) items in inventory the stock AI will equip at combat start (weapons/shields it is proficient with) while the blueprint leaves them unequipped. Both make the wiki show stats the creature does not fight with. The Balrog of Moria was case (b): Shield of the Fleet Elf.</div>"
+  - id: mystic-theoden-quest-state
+    title: "Mystic's Heirloom and White Hand Blockade: quest state resets on reboot (farmable rewards)"
+    group: quests-areas
+    status: confirmed
+    hidden: true
+    type: Exploit
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-24"
+    notes: "<div>Found while fixing <a href=\"#idea-anaralias-what\">Anaralia's what</a>. Oliah the Mystic's quest (100,000 gp + The Mystic Heirloom) and King Théoden's quest (10,000 gp + 2,000 XP + a Rohan spear, helm or shield) track progress on a temporary character variable, which clears on every server reboot. After a reboot both quest-givers start over, so a character can repeat the quest and collect the rewards again whenever the boss has respawned.</div><div>Separately, Théoden accepts any item tagged like the White Hand Destroyer's scythe, and Tagget's Weapon and Armor Store sells one, so the boss can be skipped with a purchase.</div>"
+    impl_notes: "<div>State: <code>mystichelp</code> (at_065/066/067, sc_038/039/040) and <code>theodenq</code> (at_035/040, sc_020/023) are plain <code>SetLocalInt</code> on the PC. Proposed fix: stamp completion in <code>questcddb</code> via <code>quest_cd_inc</code> (<code>QCD_Stamp</code>, one-time key) and gate the start and turn-in conditionals on it. Scythe: the Destroyer (<code>urukai010</code>, isengardouterrim) carries <code>wplmsc005</code> with tag <code>NW_WPLMSC004</code>, which is the same tag as stock <code>nw_wplmsc004</code> sold in the taggetssmithshop store instance. Retag the drop to a unique quest tag (blueprint + instance) and update <code>sc_021</code> / <code>at_036</code>.</div><div><b>Design call for the admin:</b> should these become one-time-per-character quests, or repeatable on a cooldown like the dailies?</div>"
