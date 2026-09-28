@@ -153,6 +153,7 @@ ideas:
     title: "Player-accessible Juke Box"
     group: qol
     status: implemented
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-09-24"
@@ -350,6 +351,7 @@ ideas:
     date: "2026-09-02"
     discord: {'thread_id': '1544494197791526942', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1544494197791526942'}
     notes: "<span>Curse song is supposed to lower skill by 18 according to the wiki but I have noticed against certain caster mobs/bosses that keep having max concentration even after being cursed (124)\n\nFor example wiki says rancid skinner has 90 concentration but after being cursed it keeps saying it has a dc of 124 when Taunting \n\nUnless its intended so you cant actually taunt him....</span>"
+    impl_notes: "<div><b>Investigated 2026-09-24 (Claude Code session 1f2f3b52-2947-4ea1-be3c-bee1afefbe0d) — no code changed yet.</b> Full plan: <code>bard-curse-song-concentration-plan.md</code> (repo root).</div><div><b>Ruled out:</b> the Curse Song ladder (Sync is Bard 30, so skill is -2 or worse and -18 at Perform 80+); boss immunity or cleansing (the Skinner has no skill-decrease immunity, no Restoration or dispel, no Skill Focus, and no spawn-time skill buffs); a rolled DC (Sync always sees 124); wiki ranks vs total (the dev wiki now shows 125 total).</div><div><b>Open, two explanations:</b> (1) the curse doesn't lower the engine's Concentration total, most likely because the <code>eff_dur_x2.nss</code> rebuild of the PC-created link mangles the SKILL_ALL_SKILLS component, or because the engine nets ALL_SKILLS oddly against the belt's +10 Concentration; or (2) the curse works but the engine's Taunt DC is capped near 124. The fact that 124 shows on several caster bosses, many with estimated totals of 135-168, points at (2).</div><div><b>Next step when resumed:</b> an admin-only diagnostic in <code>x2_s2_cursesong.nss</code> that reports the target's GetSkillRank(CONCENTRATION) before/after and the SKILL_DECREASE effect params (GetEffectInteger 0/1). Then curse and taunt a low-, a mid- (the Skinner) and a high-Concentration target on dev.</div>"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -528,6 +530,10 @@ ideas:
         status: open
         kind: uat
         tester: "any"
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-24"
+        text: "Discord — HomelessSon in Level drain property not removable from Forge (https://discord.com/channels/514343293761486848/1549086537449472000):\n\n\n\nImages:\n- https://img.homerslotr.com/discord/8f/8f91f0d06b8ac883d5edf9eb5bbb6eb8.webp"
   - id: rng-based-gear-diablo-world-of-warcraft-style
     title: "RNG based GEAR (Diablo/World of Warcraft Style)"
     group: items-gear
@@ -625,6 +631,7 @@ ideas:
     title: "Balrog mass harm review"
     group: bosses
     status: implemented
+    merit_awarded: true
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-23"
@@ -749,6 +756,7 @@ ideas:
     title: "Kerfuall's disappearing act"
     group: bosses
     status: implemented
+    merit_awarded: true
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-23"
@@ -1017,6 +1025,7 @@ ideas:
     group: bosses
     epic: difficulty-increase
     status: implemented
+    merit_awarded: true
     type: Defect
     player: "Sync (Shync)"
     date: "2026-09-23"
@@ -1110,6 +1119,7 @@ ideas:
     title: "Tensor's Transformation not merging items reliably (X4 multiper issue)"
     group: combat-classes
     status: implemented
+    merit_awarded: true
     type: Exploit
     player: "Sync (Shync)"
     date: "2026-09-23"
@@ -4164,6 +4174,7 @@ ideas:
     title: "Balrog not healing itself"
     group: bosses
     status: implemented
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-09-23"
@@ -8690,7 +8701,7 @@ ideas:
     title: "Anaralia's what"
     group: quests-areas
     status: implemented
-    hidden: true
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-09-24"
@@ -8859,6 +8870,7 @@ ideas:
     title: "Crafting items triggers the party roll in groups sometimes."
     group: forge
     status: implemented
+    merit_awarded: true
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-24"
@@ -10862,6 +10874,7 @@ ideas:
     title: "MW Henchmen may not despawn when you log out or crash"
     group: meaningwave
     status: implemented
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-09-23"
@@ -10935,3 +10948,41 @@ ideas:
     date: "2026-09-24"
     notes: "<div>Found while fixing <a href=\"#idea-anaralias-what\">Anaralia's what</a>. Oliah the Mystic's quest (100,000 gp + The Mystic Heirloom) and King Théoden's quest (10,000 gp + 2,000 XP + a Rohan spear, helm or shield) track progress on a temporary character variable, which clears on every server reboot. After a reboot both quest-givers start over, so a character can repeat the quest and collect the rewards again whenever the boss has respawned.</div><div>Separately, Théoden accepts any item tagged like the White Hand Destroyer's scythe, and Tagget's Weapon and Armor Store sells one, so the boss can be skipped with a purchase.</div>"
     impl_notes: "<div>State: <code>mystichelp</code> (at_065/066/067, sc_038/039/040) and <code>theodenq</code> (at_035/040, sc_020/023) are plain <code>SetLocalInt</code> on the PC. Proposed fix: stamp completion in <code>questcddb</code> via <code>quest_cd_inc</code> (<code>QCD_Stamp</code>, one-time key) and gate the start and turn-in conditionals on it. Scythe: the Destroyer (<code>urukai010</code>, isengardouterrim) carries <code>wplmsc005</code> with tag <code>NW_WPLMSC004</code>, which is the same tag as stock <code>nw_wplmsc004</code> sold in the taggetssmithshop store instance. Retag the drop to a unique quest tag (blueprint + instance) and update <code>sc_021</code> / <code>at_036</code>.</div><div><b>Design call for the admin:</b> should these become one-time-per-character quests, or repeatable on a cooldown like the dailies?</div>"
+  - id: it-looks-like-the-bard-cant-take-spells-at-higher-levels
+    title: "It looks like the bard can't take spells at higher levels :/"
+    group: combat-classes
+    status: planned
+    hidden: true
+    type: Defect
+    player: Szescian82
+    date: "2026-09-27"
+    discord: {'thread_id': '1553763201215103076', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1553763201215103076'}
+    triage: true
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-27"
+        text: "Discord — Szescian82 in It looks like the bard can't take spells at higher levels :/ (https://discord.com/channels/514343293761486848/1553763201215103076):\n\n\n\nImages:\n- https://img.homerslotr.com/discord/4e/4e9b75ac67145d8e8f982bd24ea40231.webp"
+      - author: "Sync Bot"
+        date: "2026-09-27"
+        text: "Discord — Szescian82 in It looks like the bard can't take spells at higher levels :/ (https://discord.com/channels/514343293761486848/1553763201215103076):\n\nAfter 40 lvl he cant pick new spells"
+      - author: "Sync Bot"
+        date: "2026-09-27"
+        text: "Discord — -Methonash- in It looks like the bard can't take spells at higher levels :/ (https://discord.com/channels/514343293761486848/1553763201215103076):\n\nSame for all casters I think, it's the engine, unless homeless found a way around it 🤔"
+      - author: "Sync Bot"
+        date: "2026-09-28"
+        text: "Discord — Rajmund in It looks like the bard can't take spells at higher levels :/ (https://discord.com/channels/514343293761486848/1553763201215103076):\n\nWizard can. He implemented some workaround"
+  - id: transition-missing
+    title: "Transition missing?"
+    group: travel
+    status: planned
+    hidden: true
+    type: Defect
+    player: "Fugdish (Try_this)"
+    date: "2026-09-27"
+    discord: {'thread_id': '1553813776535650514', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1553813776535650514'}
+    notes: "<div>On the map for Dol Guldur Tower of black magic…there is a door but no transition to the previous map. Not sure if this is intentional.</div><div>Thanks,</div>"
+    triage: true
+    comments:
+      - author: "Sync Bot"
+        date: "2026-09-27"
+        text: "Discord — Fugdish in Transition missing? (https://discord.com/channels/514343293761486848/1553813776535650514):\n\nOn the map for Dol Guldur Tower of black magic…there is a door but no transition to the previous map. Not sure if this is intentional.\nThanks,"
