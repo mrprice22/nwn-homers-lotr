@@ -50,11 +50,23 @@ internal static class AdminGate
         bool allowed = false;
         try
         {
-            IntPtr query = NWScript.SqlPrepareQueryCampaign(Database, Query);
-            NWScript.SqlBindString(query, "@cdkey", cdKey);
-            if (NWScript.SqlStep(query) == NWScript.TRUE)
+            // The statement MUST be finalized before this returns. The raw
+            // NWScript.SqlPrepareQueryCampaign handle this used to be leaked
+            // mid-step (LIMIT 1 returns a row, so it is never stepped to DONE),
+            // and an unfinalized SQLite statement keeps its read transaction
+            // open: this process then held a SHARED lock on the shared admindb
+            // until it restarted. Every other realm's write to admindb -- dev's
+            // Admin_InitDb() at module load -- got SQLITE_BUSY, which nwserver
+            // reports as "database unavailable" and aborts on. That was the
+            // dev crash loop that only ever healed at the 03:00 reboot.
+            using SQLQuery query = NwModule.Instance.PrepareCampaignSQLQuery(Database, Query);
+            query.BindParam("@cdkey", cdKey);
+            query.Execute();
+            // Drain rather than break: stepping to DONE ends the read
+            // transaction even before the statement is disposed.
+            foreach (SQLResult row in query.Results)
             {
-                allowed = NWScript.SqlGetInt(query, 0) != 0;
+                allowed = row.GetInt(0) != 0;
             }
         }
         catch (Exception ex)
