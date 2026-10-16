@@ -456,13 +456,18 @@ object HW_SpawnPumpkin(location lAt, string sKind, int nBossSlot = -1, string sK
     return oPk;
 }
 
-// Re-plant every stored cursed pumpkin (module load).
-void HW_RestoreWild()
+// Re-plant stored cursed pumpkins (module load), 100 rows per script run:
+// a year's worth can reach a few thousand, and one run doing them all would
+// hit the instruction limit and silently stop part-way.
+void HW_RestoreWildFrom(int nOffset)
 {
     sqlquery q = SqlPrepareQueryCampaign(HW_DB,
-        "SELECT pkey, area, x, y, z, f FROM hw_pumpkin");
+        "SELECT pkey, area, x, y, z, f FROM hw_pumpkin ORDER BY pkey LIMIT 100 OFFSET @o");
+    SqlBindInt(q, "@o", nOffset);
+    int n = 0;
     while (SqlStep(q))
     {
+        n++;
         object oArea = HW_AreaByResRef(SqlGetString(q, 1));
         if (!GetIsObjectValid(oArea)) continue;
         location l = Location(oArea,
@@ -470,6 +475,12 @@ void HW_RestoreWild()
             SqlGetFloat(q, 5));
         HW_SpawnPumpkin(l, "cursed", -1, SqlGetString(q, 0));
     }
+    if (n == 100) DelayCommand(0.2, HW_RestoreWildFrom(nOffset + 100));
+}
+
+void HW_RestoreWild()
+{
+    HW_RestoreWildFrom(0);
 }
 
 // Boss ring slot nSlot = boss index * HW_BOSS_RING + k. Position is fixed:
@@ -512,12 +523,12 @@ void HW_RespawnBossSlot(int nSlot)
 
 // Plant every boss ring slot that is not on a respawn cooldown, and schedule
 // the rest for when they come due. Module load (and the Oct 15 rollover) only.
-void HW_PlantBossRings()
+// One boss's ring: its HW_BOSS_RING slots, re-grown now or when due.
+void HW_PlantBossRing(int nBoss)
 {
     int nNow = HW_Now();
-    int nSlots = HW_BOSS_HOME_COUNT * HW_BOSS_RING;
     int i;
-    for (i = 0; i < nSlots; i++)
+    for (i = nBoss * HW_BOSS_RING; i < (nBoss + 1) * HW_BOSS_RING; i++)
     {
         sqlquery q = SqlPrepareQueryCampaign(HW_DB,
             "SELECT cleared_at FROM hw_bossring WHERE slot=@s");
@@ -529,6 +540,14 @@ void HW_PlantBossRings()
         else
             HW_RespawnBossSlot(i);
     }
+}
+
+// Every boss's ring, one boss per script run (see HW_RestoreWildFrom).
+void HW_PlantBossRings()
+{
+    int i;
+    for (i = 0; i < HW_BOSS_HOME_COUNT; i++)
+        DelayCommand(0.1 * IntToFloat(i), HW_PlantBossRing(i));
 }
 
 // ---------------------------------------------------------------- skeletons
@@ -813,21 +832,30 @@ void HW_PlantDoorPumpkin(object oDoor)
     }
 }
 
+void HW_PlantDoorPumpkinsIn(object oArea)
+{
+    object o = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(o))
+    {
+        if (GetObjectType(o) == OBJECT_TYPE_DOOR) HW_PlantDoorPumpkin(o);
+        o = GetNextObjectInArea(oArea);
+    }
+}
+
+// One area per script run: walking every object of 64 towns in one go blew
+// the instruction limit and killed the rest of HW_Begin (no board, no King).
 void HW_PlantDoorPumpkins()
 {
     HW_DestroyTag(HW_TAG_DOOR);
+    float fDelay = 0.5;
     object oArea = GetFirstArea();
     while (GetIsObjectValid(oArea))
     {
         string sRes = GetResRef(oArea);
         if (!GetIsAreaInterior(oArea) && !HW_AreaExcluded(sRes) && HW_AreaTier(sRes) == 0)
         {
-            object o = GetFirstObjectInArea(oArea);
-            while (GetIsObjectValid(o))
-            {
-                if (GetObjectType(o) == OBJECT_TYPE_DOOR) HW_PlantDoorPumpkin(o);
-                o = GetNextObjectInArea(oArea);
-            }
+            DelayCommand(fDelay, HW_PlantDoorPumpkinsIn(oArea));
+            fDelay += 0.2;
         }
         oArea = GetNextArea();
     }
@@ -938,26 +966,34 @@ void HW_DrainAbandoned(int nBeat)
 
 // The window opened (module load inside it, or the Oct 15 rollover on a
 // running server). A new year wipes last October's leftovers first.
-void HW_Begin()
+void HW_DarkenAll()
 {
-    sqlquery q = SqlPrepareQueryCampaign(HW_DB,
-        "DELETE FROM hw_pumpkin WHERE year <> @y");
-    SqlBindInt(q, "@y", HW_Year());
-    SqlStep(q);
-    // Darken every area now, not on a PC's first visit: the server holds the
-    // area's light values and hands them to each client as it loads the area,
-    // so there is no fade-in after the loading screen.
     object oA = GetFirstArea();
     while (GetIsObjectValid(oA))
     {
         HW_DarkenArea(oA, 0.0);
         oA = GetNextArea();
     }
-    HW_PlantDoorPumpkins();
-    HW_RestoreWild();
-    HW_PlantBossRings();
-    HW_SpawnKing();
+}
+
+void HW_Begin()
+{
+    sqlquery q = SqlPrepareQueryCampaign(HW_DB,
+        "DELETE FROM hw_pumpkin WHERE year <> @y");
+    SqlBindInt(q, "@y", HW_Year());
+    SqlStep(q);
+    // The cheap, visible pieces first, then each heavy pass in its own script
+    // run: one run doing everything hits the instruction limit, and the engine
+    // silently drops whatever was left.
     HW_SpawnBoard();
+    HW_SpawnKing();
+    // Darken every area now, not on a PC's first visit: the server holds the
+    // area's light values and hands them to each client as it loads the area,
+    // so there is no fade-in after the loading screen.
+    DelayCommand(0.5, HW_DarkenAll());
+    DelayCommand(1.0, HW_RestoreWild());
+    DelayCommand(2.0, HW_PlantBossRings());
+    DelayCommand(3.0, HW_PlantDoorPumpkins());
 }
 
 // A spooky noise from one pumpkin near the PC now and then. Driven from the
