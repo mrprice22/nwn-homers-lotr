@@ -5,11 +5,12 @@
 //   * darkens the PC's area the first time anyone is in it;
 //   * every other beat, re-registers the pumpkin attack aura for the PC's
 //     area (once per area per beat, however many PCs share it);
-//   * if the PC has moved 5m+ since the last beat, rolls for a pumpkin
-//     (town areas often, hostile areas rarely);
+//   * counts the distance the PC walks and drops a pumpkin every 40-100m in
+//     town areas, every 150-300m in hostile ones (test realms say so in chat);
 //   * now and then plays a spooky sound from a nearby pumpkin.
 
 #include "hw_inc"
+#include "season_prof_inc"
 
 void main()
 {
@@ -63,17 +64,34 @@ void main()
 
             location lNow = GetLocation(oPC);
             location lWas = GetLocalLocation(oPC, "hw_last");
-            if (GetAreaFromLocation(lWas) == oArea
-                && GetDistanceBetweenLocations(lNow, lWas) >= 5.0)
+            if (GetAreaFromLocation(lWas) == oArea)
             {
+                // Cap a beat's distance so an in-area jump is not a free pumpkin.
+                float fMoved = GetDistanceBetweenLocations(lNow, lWas);
+                if (fMoved > 40.0) fMoved = 40.0;
+                float fWalked = GetLocalFloat(oPC, "hw_walked") + fMoved;
                 int nTier = HW_AreaTier(GetResRef(oArea));
-                if (nTier == 0)
+                int nDue = GetLocalInt(oPC, "hw_walk_due");
+                if (nDue <= 0)
                 {
-                    if (Random(HW_TRAVEL_CHANCE_TOWN) == 0)
-                        HW_SpawnPumpkin(HW_Scatter(lNow, 4.0, 8.0), "town");
+                    nDue = (nTier == 0)
+                        ? HW_TRAVEL_TOWN_MIN + Random(HW_TRAVEL_TOWN_SPAN + 1)
+                        : HW_TRAVEL_HOSTILE_MIN + Random(HW_TRAVEL_HOSTILE_SPAN + 1);
+                    SetLocalInt(oPC, "hw_walk_due", nDue);
                 }
-                else if (Random(HW_TRAVEL_CHANCE_HOSTILE) == 0)
-                    HW_SpawnPumpkin(HW_Scatter(lNow, 4.0, 8.0), "cursed");
+                if (fWalked >= IntToFloat(nDue))
+                {
+                    object oPk = HW_SpawnPumpkin(HW_Scatter(lNow, 4.0, 8.0),
+                                                 nTier == 0 ? "town" : "cursed");
+                    if (SP_DEV_TOOLS)
+                        SendMessageToPC(oPC, "[HW dev] travel pumpkin after "
+                            + IntToString(FloatToInt(fWalked)) + "m (tier "
+                            + IntToString(nTier) + "): "
+                            + (GetIsObjectValid(oPk) ? "spawned" : "refused (area cap)"));
+                    fWalked = 0.0;
+                    DeleteLocalInt(oPC, "hw_walk_due");
+                }
+                SetLocalFloat(oPC, "hw_walked", fWalked);
             }
             SetLocalLocation(oPC, "hw_last", lNow);
 

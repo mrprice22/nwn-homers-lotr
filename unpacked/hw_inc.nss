@@ -58,8 +58,12 @@ const string HW_TAG_KING   = "hw_pking";
 const string HW_TAG_BOARD  = "hw_board";
 
 // Tunables.
-const int   HW_TRAVEL_CHANCE_TOWN    = 15;    // 1 in N per heartbeat while moving
-const int   HW_TRAVEL_CHANCE_HOSTILE = 60;
+// Travel pumpkins come by distance walked, not a per-heartbeat dice roll:
+// one every MIN..MIN+SPAN metres (re-rolled after each), counted across areas.
+const int   HW_TRAVEL_TOWN_MIN       = 40;    // town: one per 40-100m
+const int   HW_TRAVEL_TOWN_SPAN      = 60;
+const int   HW_TRAVEL_HOSTILE_MIN    = 150;   // hostile: one per 150-300m
+const int   HW_TRAVEL_HOSTILE_SPAN   = 150;
 const int   HW_KILL_CHANCE_PCT       = 15;
 const int   HW_AREA_CAP              = 20;    // cursed pumpkins per area
 const int   HW_TOWN_CAP              = 8;     // live town pumpkins per area

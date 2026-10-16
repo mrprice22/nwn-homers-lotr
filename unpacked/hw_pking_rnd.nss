@@ -1,6 +1,8 @@
-// hw_pking_rnd - Pumpkin King end-of-round: every third round he raises a
-// cursed pumpkin beside himself (which feeds the attack aura around him), then
-// the stock combat round runs.
+// hw_pking_rnd - Pumpkin King end-of-round: every third round he raises three
+// cursed pumpkins around himself (which feed the attack aura around him) and
+// calls up a band of skeletons exactly as a smashed pumpkin does (Power Word
+// Kill burst, 1-3 skeletons scaled to the area tier or his foe, whichever is
+// higher, sent at that foe). Then the stock combat round runs.
 
 #include "hw_inc"
 
@@ -11,13 +13,25 @@ void main()
     SetLocalInt(oKing, "hw_round", n);
     if (n % 3 == 0 && HW_Phase() == HW_PHASE_ACTIVE)
     {
-        object oPk = HW_SpawnPumpkin(HW_Scatter(GetLocation(oKing), 2.0, 5.0), "cursed");
-        if (GetIsObjectValid(oPk))
+        location lKing = GetLocation(oKing);
+        int i;
+        for (i = 0; i < 3; i++)
         {
-            ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                EffectVisualEffect(VFX_IMP_PULSE_FIRE), oPk);
-            SpeakString("Grow, my pretties!");
+            object oPk = HW_SpawnPumpkin(HW_Scatter(lKing, 2.0, 6.0), "cursed");
+            if (GetIsObjectValid(oPk))
+                ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                    EffectVisualEffect(VFX_IMP_PULSE_FIRE), oPk);
         }
+
+        object oFoe = GetAttackTarget(oKing);
+        if (!GetIsObjectValid(oFoe)) oFoe = GetAttemptedAttackTarget();
+        if (!GetIsObjectValid(oFoe))
+            oFoe = GetNearestCreature(CREATURE_TYPE_PLAYER_CHAR, PLAYER_CHAR_IS_PC, oKing);
+        location lSkel = HW_Scatter(lKing, 3.0, 6.0);
+        ApplyEffectAtLocation(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_PWKILL), lSkel);
+        HW_SpawnSkeletons(lSkel, HW_AreaTier(GetResRef(GetArea(oKing))), oFoe, 1 + Random(3));
+
+        SpeakString("Grow, my pretties! Rise!");
     }
     ExecuteScript("x2_def_endcombat", oKing);
 }
