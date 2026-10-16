@@ -1183,7 +1183,7 @@ Roadmap `seasonal-update`. Unjournaled, date-driven, no admin lever.
   recreates skeletons from areas empty for 2+ beats beside the King (`hw_army`, no lifetime, cap
   `HW_ARMY_CAP` 15) and broadcasts a taunt at most every `HW_TAUNT_EVERY` 300s. `hw_pking_hb`
   makes nearby skeletons follow him; `hw_pking_rnd` sends them at his foe; `hw_pking_dmg` (his OnDamaged, chained by
-  `bst_ondamage`) sacrifices one within 10m for 15% HP when he is below 80%, at most once per 40s,
+  `bst_ondamage`) sacrifices one within 10m for 30% HP when he is below 80%, at most once per 40s,
   and raises 3 pumpkins + a skeleton band every 18s he is fought. Both are on real-time timers
   because OnEndCombatRound does not fire while he is held or stunned.
 - **Campaign DB `halloweendb`:** `hw_pumpkin` (persistent cursed pumpkins), `hw_bossring`

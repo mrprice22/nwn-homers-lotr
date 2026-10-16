@@ -24,6 +24,21 @@ void main()
         CreateObject(OBJECT_TYPE_ITEM, "hw26_charm", l);
     ApplyEffectAtLocation(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_PWKILL), l);
 
+    // His army dies with him: a respawned King starts with no leftovers. Not
+    // kills, so no guts and no pumpkins.
+    int i = 0;
+    object oSk = GetObjectByTag(HW_TAG_SKEL, i);
+    while (GetIsObjectValid(oSk))
+    {
+        if (GetLocalInt(oSk, "hw_army") && !GetIsDead(oSk))
+        {
+            ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+                EffectVisualEffect(VFX_IMP_DEATH_L), GetLocation(oSk));
+            DestroyObject(oSk, 0.3);
+        }
+        oSk = GetObjectByTag(HW_TAG_SKEL, ++i);
+    }
+
     string sMsg = COLOR_ORANGE + "[Harvest of Shadows] The Pumpkin King has been cut down"
         + (GetIsPC(oKiller) ? " by " + GetName(oKiller) : "")
         + " in the Dead Marshes! He will rise again within the hour." + COLOR_END;

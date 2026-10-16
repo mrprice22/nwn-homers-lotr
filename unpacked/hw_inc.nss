@@ -81,7 +81,7 @@ const int   HW_ARMY_CAP              = 15;    // skeletons marching with the Kin
 const int   HW_TAUNT_EVERY           = 300;   // seconds between server-wide taunts
 const int   HW_SAC_EVERY             = 40;    // seconds between King sacrifices
 const int   HW_SAC_BELOW_PCT         = 80;    // King sacrifices only below this HP %
-const int   HW_SAC_HEAL_PCT          = 15;
+const int   HW_SAC_HEAL_PCT          = 30;
 
 const string HW_KING_AREA = "deadmarshes";
 // The King's theme: ambientmusic.2da row of mus_hl_pumpkins (music/tracks.json,
@@ -900,8 +900,8 @@ int HW_ArmySize()
 
 // A skeleton marches to the King: created fresh beside him (a jumped creature
 // would be leashed back to its spawn area, and its 10-minute lifetime cannot be
-// cancelled), with no lifetime - it serves until it is killed or the realm
-// reboots.
+// cancelled), with no lifetime - it serves until it is killed, the King falls
+// (hw_pking_death crumbles the whole army) or the realm reboots.
 object HW_RecruitToArmy(string sRes, object oKing)
 {
     int nLevel = 60;
@@ -920,24 +920,26 @@ object HW_RecruitToArmy(string sRes, object oKing)
     return oSk;
 }
 
-string HW_TauntLine(int nArmy)
+// nJoined: how many just marched in; nArmy: his army now, including them.
+string HW_TauntLine(int nJoined, int nArmy)
 {
+    string sJ = IntToString(nJoined);
     string sN = IntToString(nArmy);
     switch (Random(5))
     {
-        case 0: return "Run, little lanterns! Your dead walk to me now. My harvest grows - " + sN + " strong!";
-        case 1: return "Every bone you leave behind is mine. " + sN + " march in the Marshes tonight!";
-        case 2: return "You flee, and I reap! " + sN + " skeletons stand at my side. Come and take them back!";
-        case 3: return "Cowards make the finest soldiers. My army is " + sN + " strong and growing!";
+        case 0: return "Run, little lanterns! " + sJ + " of your dead walk to me now. My harvest grows - " + sN + " strong!";
+        case 1: return "Every bone you leave behind is mine. " + sJ + " more march in the Marshes tonight - " + sN + " in all!";
+        case 2: return "You flee, and I reap! " + sJ + " more skeletons stand at my side, " + sN + " now. Come and take them back!";
+        case 3: return "Cowards make the finest soldiers. " + sJ + " more join me - my army is " + sN + " strong and growing!";
     }
-    return "Hear me, harvest-thieves! The Dead Marshes swell with " + sN + " of your leavings!";
+    return "Hear me, harvest-thieves! " + sJ + " of your leavings swell my ranks to " + sN + "!";
 }
 
 // The King shouts: heard as a shout in the Marshes, as a chat line everywhere
 // else. Same PC loop as CP_Broadcast (cp_inc), which this file does not include.
-void HW_KingTaunt(object oKing, int nArmy)
+void HW_KingTaunt(object oKing, int nJoined, int nArmy)
 {
-    string sLine = HW_TauntLine(nArmy);
+    string sLine = HW_TauntLine(nJoined, nArmy);
     AssignCommand(oKing, SpeakString(sLine, TALKVOLUME_SHOUT));
     object oArea = GetArea(oKing);
     object oPC = GetFirstPC();
@@ -998,7 +1000,7 @@ int HW_DrainAbandoned(int nBeat)
     if (nNow - GetLocalInt(oMod, "hw_taunt_at") >= HW_TAUNT_EVERY)
     {
         SetLocalInt(oMod, "hw_taunt_at", nNow);
-        HW_KingTaunt(oKing, nArmy);
+        HW_KingTaunt(oKing, nJoined, nArmy);
     }
     return nJoined;
 }
