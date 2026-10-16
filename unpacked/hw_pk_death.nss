@@ -20,6 +20,7 @@ void main()
     object oArea = GetArea(oPk);
     location l   = GetLocation(oPk);
     string sKind = GetLocalString(oPk, "hw_kind");
+    if (sKind == "door") return;   // plot decoration; unreachable, but never pays
     int nTier    = GetLocalInt(oPk, "hw_tier");
 
     object oKiller = HW_OwnerPC(GetLastDamager(oPk));

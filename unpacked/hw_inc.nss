@@ -56,6 +56,7 @@ const string HW_TAG_BOSS   = "hw_pk_b";    // boss-ring pumpkin, respawns
 const string HW_TAG_SKEL   = "hw_skel";
 const string HW_TAG_KING   = "hw_pking";
 const string HW_TAG_BOARD  = "hw_board";
+const string HW_TAG_DOOR   = "hw_pk_d";    // plot decoration beside a town door
 
 // Tunables.
 // Travel pumpkins come by distance walked, not a per-heartbeat dice roll:
@@ -75,6 +76,11 @@ const int   HW_BOSS_RESPAWN          = 1800;  // 30 minutes
 const float HW_KING_RESPAWN          = 3600.0;
 const float HW_SKEL_LIFETIME         = 600.0;
 const int   HW_TIER3_MIN_GUTS        = 25;
+const int   HW_ARMY_CAP              = 15;    // skeletons marching with the King
+const int   HW_TAUNT_EVERY           = 300;   // seconds between server-wide taunts
+const int   HW_SAC_EVERY             = 40;    // seconds between King sacrifices
+const int   HW_SAC_BELOW_PCT         = 80;    // King sacrifices only below this HP %
+const int   HW_SAC_HEAL_PCT          = 15;
 
 const string HW_KING_AREA = "deadmarshes";
 
@@ -758,6 +764,7 @@ void HW_SweepAll(int bKeepBoard)
     HW_DestroyTag(HW_TAG_TOWN);
     HW_DestroyTag(HW_TAG_CURSED);
     HW_DestroyTag(HW_TAG_BOSS);
+    HW_DestroyTag(HW_TAG_DOOR);
     HW_DestroyTag(HW_TAG_SKEL);
     HW_DestroyTag(HW_TAG_KING);
     if (!bKeepBoard) HW_DestroyTag(HW_TAG_BOARD);
@@ -768,6 +775,165 @@ void HW_SweepAll(int bKeepBoard)
         DeleteLocalInt(oArea, "hw_town_n");
         oArea = GetNextArea();
     }
+}
+
+
+// ---------------------------------------------------------------- door pumpkins
+
+// One plot jack-o'-lantern beside every door of every exterior peaceful area
+// (towns and the Well of Eru). Decoration only: not usable, not smashable, no
+// guts, no cap, no DB row - re-planted (on a fresh random side) every boot.
+void HW_PlantDoorPumpkin(object oDoor)
+{
+    object oArea = GetArea(oDoor);
+    vector v = GetPosition(oDoor);
+    float f = GetFacing(oDoor);
+    int nStart = Random(4);
+    int i;
+    for (i = 0; i < 4; i++)
+    {
+        int k = (nStart + i) % 4;
+        float fSide  = (k & 1) ? 90.0 : -90.0;   // left or right of the frame
+        float fFront = (k & 2) ? 0.9 : -0.9;      // either face of the wall
+        vector p = Vector(v.x + 1.8 * cos(f + fSide) + fFront * cos(f),
+                          v.y + 1.8 * sin(f + fSide) + fFront * sin(f), v.z);
+        location l = Location(oArea, p, f);
+        if (!HW_Walkable(l)) continue;
+        p.z = GetGroundHeight(l);
+        object oPk = CreateObject(OBJECT_TYPE_PLACEABLE,
+            "hw_pumpkin" + IntToString(1 + Random(4)),
+            Location(oArea, p, IntToFloat(Random(360))), FALSE, HW_TAG_DOOR);
+        if (!GetIsObjectValid(oPk)) return;
+        SetPlotFlag(oPk, TRUE);
+        SetUseableFlag(oPk, FALSE);
+        SetLocalString(oPk, "hw_kind", "door");
+        ApplyEffectToObject(DURATION_TYPE_PERMANENT,
+            SupernaturalEffect(EffectVisualEffect(VFX_DUR_LIGHT_ORANGE_10)), oPk);
+        return;
+    }
+}
+
+void HW_PlantDoorPumpkins()
+{
+    HW_DestroyTag(HW_TAG_DOOR);
+    object oArea = GetFirstArea();
+    while (GetIsObjectValid(oArea))
+    {
+        string sRes = GetResRef(oArea);
+        if (!GetIsAreaInterior(oArea) && !HW_AreaExcluded(sRes) && HW_AreaTier(sRes) == 0)
+        {
+            object o = GetFirstObjectInArea(oArea);
+            while (GetIsObjectValid(o))
+            {
+                if (GetObjectType(o) == OBJECT_TYPE_DOOR) HW_PlantDoorPumpkin(o);
+                o = GetNextObjectInArea(oArea);
+            }
+        }
+        oArea = GetNextArea();
+    }
+}
+
+// ---------------------------------------------------------------- the King's army
+
+int HW_ArmySize()
+{
+    int n = 0, i = 0;
+    object o = GetObjectByTag(HW_TAG_SKEL, i);
+    while (GetIsObjectValid(o))
+    {
+        if (GetLocalInt(o, "hw_army") && !GetIsDead(o)) n++;
+        o = GetObjectByTag(HW_TAG_SKEL, ++i);
+    }
+    return n;
+}
+
+// A skeleton marches to the King: created fresh beside him (a jumped creature
+// would be leashed back to its spawn area, and its 10-minute lifetime cannot be
+// cancelled), with no lifetime - it serves until it is killed or the realm
+// reboots.
+object HW_RecruitToArmy(string sRes, object oKing)
+{
+    int nLevel = 60;
+    if (sRes == "hw_skel_1")      nLevel = 15;
+    else if (sRes == "hw_skel_2") nLevel = 30;
+    else if (sRes == "hw_skel_3") nLevel = 45;
+    object oSk = CreateObject(OBJECT_TYPE_CREATURE, sRes,
+        HW_Scatter(GetLocation(oKing), 3.0, 8.0), FALSE, HW_TAG_SKEL);
+    if (!GetIsObjectValid(oSk)) return OBJECT_INVALID;
+    SetLocalInt(oSk, "SE_NO_RESPAWN", 1);
+    SetLocalInt(oSk, "hw_army", 1);
+    effect e = EffectLinkEffects(EffectTemporaryHitpoints(nLevel * 20),
+                                 EffectACIncrease(nLevel / 5));
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, SupernaturalEffect(e), oSk);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_SUMMON_UNDEAD), oSk);
+    return oSk;
+}
+
+string HW_TauntLine(int nArmy)
+{
+    string sN = IntToString(nArmy);
+    switch (Random(5))
+    {
+        case 0: return "Run, little lanterns! Your dead walk to me now. My harvest grows - " + sN + " strong!";
+        case 1: return "Every bone you leave behind is mine. " + sN + " march in the Marshes tonight!";
+        case 2: return "You flee, and I reap! " + sN + " skeletons stand at my side. Come and take them back!";
+        case 3: return "Cowards make the finest soldiers. My army is " + sN + " strong and growing!";
+    }
+    return "Hear me, harvest-thieves! The Dead Marshes swell with " + sN + " of your leavings!";
+}
+
+// The King shouts: heard as a shout in the Marshes, as a chat line everywhere
+// else. Same PC loop as CP_Broadcast (cp_inc), which this file does not include.
+void HW_KingTaunt(object oKing, int nArmy)
+{
+    string sLine = HW_TauntLine(nArmy);
+    AssignCommand(oKing, SpeakString(sLine, TALKVOLUME_SHOUT));
+    object oArea = GetArea(oKing);
+    object oPC = GetFirstPC();
+    while (GetIsObjectValid(oPC))
+    {
+        if (!GetIsDM(oPC) && GetArea(oPC) != oArea)
+            SendMessageToPC(oPC, COLOR_ORANGE + "The Pumpkin King shouts: \"" + sLine + "\"" + COLOR_END);
+        oPC = GetNextPC();
+    }
+}
+
+// Once per tick (hw_tick marks every occupied area with hw_pc_beat first):
+// skeletons left in an area no PC has stood in for two beats (~12s, enough
+// grace for a zone-bounce) march to the King. Nothing happens while he is down.
+void HW_DrainAbandoned(int nBeat)
+{
+    object oKing = GetObjectByTag(HW_TAG_KING);
+    if (!GetIsObjectValid(oKing) || GetIsDead(oKing)) return;
+    object oKingArea = GetArea(oKing);
+
+    int nArmy = HW_ArmySize();
+    int nJoined = 0;
+    int i = 0;
+    object oSk = GetObjectByTag(HW_TAG_SKEL, i);
+    while (GetIsObjectValid(oSk))
+    {
+        object oArea = GetArea(oSk);
+        if (!GetIsDead(oSk) && !GetLocalInt(oSk, "hw_army") && oArea != oKingArea
+            && GetIsObjectValid(oArea) && nBeat - GetLocalInt(oArea, "hw_pc_beat") >= 2)
+        {
+            string sRes = GetResRef(oSk);
+            DestroyObject(oSk);
+            if (nArmy < HW_ARMY_CAP && GetIsObjectValid(HW_RecruitToArmy(sRes, oKing)))
+            {
+                nArmy++;
+                nJoined++;
+            }
+        }
+        oSk = GetObjectByTag(HW_TAG_SKEL, ++i);
+    }
+
+    if (nJoined == 0) return;
+    object oMod = GetModule();
+    int nNow = HW_Now();
+    if (nNow - GetLocalInt(oMod, "hw_taunt_at") < HW_TAUNT_EVERY) return;
+    SetLocalInt(oMod, "hw_taunt_at", nNow);
+    HW_KingTaunt(oKing, nArmy);
 }
 
 // The window opened (module load inside it, or the Oct 15 rollover on a
@@ -787,6 +953,7 @@ void HW_Begin()
         HW_DarkenArea(oA, 0.0);
         oA = GetNextArea();
     }
+    HW_PlantDoorPumpkins();
     HW_RestoreWild();
     HW_PlantBossRings();
     HW_SpawnKing();
@@ -805,6 +972,8 @@ void HW_Spook(object oPC)
         oPk = GetNearestObjectByTag(HW_TAG_TOWN, oPC);
     if (!GetIsObjectValid(oPk) || GetDistanceBetween(oPk, oPC) > 25.0)
         oPk = GetNearestObjectByTag(HW_TAG_BOSS, oPC);
+    if (!GetIsObjectValid(oPk) || GetDistanceBetween(oPk, oPC) > 25.0)
+        oPk = GetNearestObjectByTag(HW_TAG_DOOR, oPC);
     if (!GetIsObjectValid(oPk) || GetDistanceBetween(oPk, oPC) > 25.0) return;
 
     string sSnd;

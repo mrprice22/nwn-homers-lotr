@@ -7,7 +7,8 @@
 //     area (once per area per beat, however many PCs share it);
 //   * counts the distance the PC walks and drops a pumpkin every 40-100m in
 //     town areas, every 150-300m in hostile ones (test realms say so in chat);
-//   * now and then plays a spooky sound from a nearby pumpkin.
+//   * now and then plays a spooky sound from a nearby pumpkin;
+//   * sends skeletons abandoned in an emptied area to the Pumpkin King.
 
 #include "hw_inc"
 #include "season_prof_inc"
@@ -51,6 +52,9 @@ void main()
     while (GetIsObjectValid(oPC))
     {
         object oArea = GetArea(oPC);
+        // Occupancy, for HW_DrainAbandoned: any PC counts, dead or not.
+        if (!GetIsDM(oPC) && GetIsObjectValid(oArea))
+            SetLocalInt(oArea, "hw_pc_beat", nBeat);
         if (!GetIsDM(oPC) && !GetIsDead(oPC) && GetIsObjectValid(oArea)
             && !HW_AreaExcluded(GetResRef(oArea)))
         {
@@ -99,4 +103,7 @@ void main()
         }
         oPC = GetNextPC();
     }
+
+    // Skeletons left behind in an emptied area march to the Pumpkin King.
+    HW_DrainAbandoned(nBeat);
 }

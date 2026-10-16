@@ -1174,8 +1174,16 @@ Roadmap `seasonal-update`. Unjournaled, date-driven, no admin lever.
   `hw_pk_used` / `hw_pk_death` (pumpkins), `hw_board` / `hw_board_turn` / `hw_board_claim`,
   `hw_pking_hb` / `hw_pking_rnd` / `hw_pking_death`.
 - **Blueprints:** `hw_pumpkin1-4.utp` (one per CEP jack-o'-lantern appearance; retagged at spawn
-  to `hw_pk_t` town / `hw_pk_c` cursed / `hw_pk_b` boss ring), `hw_board.utp`, `hw_guts.uti`,
-  `hw_prize_crown/shroud/lantern.uti`, `hw_skel_1-4.utc` (level bands), `hw_pking.utc`.
+  to `hw_pk_t` town / `hw_pk_c` cursed / `hw_pk_b` boss ring / `hw_pk_d` plot door decoration),
+  `hw_board.utp`, `hw_guts.uti`, the `hw26_*.uti` prizes, `hw_skel_1-4.utc` (level bands),
+  `hw_pking.utc`, `hw_sentinel.utc`, `hw_hearth.utp`.
+- **Door pumpkins:** `HW_PlantDoorPumpkins()` at `HW_Begin`, one per door in every exterior
+  peaceful area (64 areas, ~257 doors), plot and unusable, re-planted each boot.
+- **The King's army:** `hw_tick` stamps `hw_pc_beat` on every occupied area; `HW_DrainAbandoned`
+  recreates skeletons from areas empty for 2+ beats beside the King (`hw_army`, no lifetime, cap
+  `HW_ARMY_CAP` 15) and broadcasts a taunt at most every `HW_TAUNT_EVERY` 300s. `hw_pking_hb`
+  makes nearby skeletons follow him; `hw_pking_rnd` sends them at his foe and sacrifices one within
+  10m for 15% HP when he is below 80%, at most once per 40s.
 - **Campaign DB `halloweendb`:** `hw_pumpkin` (persistent cursed pumpkins), `hw_bossring`
   (cleared_at per ring slot), `hw_guts` (year, character, count, claimed tier). To wipe the board
   mid-event, delete that year's `hw_guts` rows with the server down.
@@ -1183,7 +1191,7 @@ Roadmap `seasonal-update`. Unjournaled, date-driven, no admin lever.
   Eru; the King spawns at a random marsh placeable in `deadmarshes`; boss rings come from
   `HW_BossHome()` in the generated `hw_areas_inc.nss` (re-run `bin/gen-halloween-areas.py --write`
   after area or boss changes; the build gate says when).
-- **Prize stats are a draft** pending the admin's answer on the roadmap design question.
+- **Prize stats** are the approved catalogue, open for retuning (roadmap design question).
 
 ## Unfinished / partly journalled threads
 
