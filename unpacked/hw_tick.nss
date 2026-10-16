@@ -105,5 +105,20 @@ void main()
     }
 
     // Skeletons left behind in an emptied area march to the Pumpkin King.
-    HW_DrainAbandoned(nBeat);
+    int nMarched = HW_DrainAbandoned(nBeat);
+    if (SP_DEV_TOOLS && nMarched != 0)
+    {
+        // Test realms only; the "King is down" line repeats at most once a minute.
+        string sDev = "";
+        if (nMarched > 0)
+            sDev = "[HW dev] " + IntToString(nMarched) + " abandoned skeleton(s) marched to the Pumpkin King.";
+        else if (nBeat % 10 == 0)
+            sDev = "[HW dev] " + IntToString(-nMarched) + " abandoned skeleton(s) wait: the Pumpkin King is not up.";
+        object oDev = GetFirstPC();
+        while (sDev != "" && GetIsObjectValid(oDev))
+        {
+            SendMessageToPC(oDev, sDev);
+            oDev = GetNextPC();
+        }
+    }
 }

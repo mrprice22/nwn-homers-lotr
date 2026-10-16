@@ -76,6 +76,7 @@ const int   HW_BOSS_RESPAWN          = 1800;  // 30 minutes
 const float HW_KING_RESPAWN          = 3600.0;
 const float HW_SKEL_LIFETIME         = 600.0;
 const int   HW_TIER3_MIN_GUTS        = 25;
+const int   HW_KING_GUTS             = 25;    // to each party member at a King kill
 const int   HW_ARMY_CAP              = 15;    // skeletons marching with the King
 const int   HW_TAUNT_EVERY           = 300;   // seconds between server-wide taunts
 const int   HW_SAC_EVERY             = 40;    // seconds between King sacrifices
@@ -929,10 +930,23 @@ void HW_KingTaunt(object oKing, int nArmy)
 // Once per tick (hw_tick marks every occupied area with hw_pc_beat first):
 // skeletons left in an area no PC has stood in for two beats (~12s, enough
 // grace for a zone-bounce) march to the King. Nothing happens while he is down.
-void HW_DrainAbandoned(int nBeat)
+// Returns how many joined; -N when N were abandoned but the King is not up.
+int HW_DrainAbandoned(int nBeat)
 {
     object oKing = GetObjectByTag(HW_TAG_KING);
-    if (!GetIsObjectValid(oKing) || GetIsDead(oKing)) return;
+    if (!GetIsObjectValid(oKing) || GetIsDead(oKing))
+    {
+        int nStuck = 0, j = 0;
+        object o = GetObjectByTag(HW_TAG_SKEL, j);
+        while (GetIsObjectValid(o))
+        {
+            object oA = GetArea(o);
+            if (!GetIsDead(o) && GetIsObjectValid(oA)
+                && nBeat - GetLocalInt(oA, "hw_pc_beat") >= 2) nStuck++;
+            o = GetObjectByTag(HW_TAG_SKEL, ++j);
+        }
+        return -nStuck;
+    }
     object oKingArea = GetArea(oKing);
 
     int nArmy = HW_ArmySize();
@@ -956,12 +970,15 @@ void HW_DrainAbandoned(int nBeat)
         oSk = GetObjectByTag(HW_TAG_SKEL, ++i);
     }
 
-    if (nJoined == 0) return;
+    if (nJoined == 0) return 0;
     object oMod = GetModule();
     int nNow = HW_Now();
-    if (nNow - GetLocalInt(oMod, "hw_taunt_at") < HW_TAUNT_EVERY) return;
-    SetLocalInt(oMod, "hw_taunt_at", nNow);
-    HW_KingTaunt(oKing, nArmy);
+    if (nNow - GetLocalInt(oMod, "hw_taunt_at") >= HW_TAUNT_EVERY)
+    {
+        SetLocalInt(oMod, "hw_taunt_at", nNow);
+        HW_KingTaunt(oKing, nArmy);
+    }
+    return nJoined;
 }
 
 // The window opened (module load inside it, or the Oct 15 rollover on a

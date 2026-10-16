@@ -16,10 +16,10 @@ void main()
     object oKiller = GetLastKiller();
     while (GetIsObjectValid(GetMaster(oKiller))) oKiller = GetMaster(oKiller);
 
-    // 10 guts to every party member nearby, straight into the pack. The
+    // 25 guts to every party member nearby, straight into the pack. The
     // occasional Jack-o'-Lantern Charm drops to the ground so the party loot
     // roll decides who keeps it.
-    HW_GiveGuts(oKiller, l, 10);
+    HW_GiveGuts(oKiller, l, HW_KING_GUTS);
     if (Random(100) < 20)
         CreateObject(OBJECT_TYPE_ITEM, "hw26_charm", l);
     ApplyEffectAtLocation(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_PWKILL), l);
