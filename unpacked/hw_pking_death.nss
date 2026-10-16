@@ -9,6 +9,8 @@
 void main()
 {
     object oKing = OBJECT_SELF;
+    if (GetLocalInt(oKing, "hw_dead")) return;   // OnDeath can repeat; pay once
+    SetLocalInt(oKing, "hw_dead", 1);
     location l = GetLocation(oKing);
 
     object oKiller = GetLastKiller();
