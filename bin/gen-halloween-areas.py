@@ -45,7 +45,10 @@ TIER_CUTS = [(5, 1), (25, 2), (60, 3), (110, 4), (180, 5)]   # else 6
 # "no hostile spawns" as peaceful, which is wrong for a fortress whose
 # defenders happen to be scripted rather than placed.
 OVERRIDES = {
+    "bree": 0,   # the town: only hostiles are a graveyard encounter and the dummy
 }
+# Hostile-faction placements that are not threats (Combat Dummy diagnostic).
+IGNORE_TAGS = {"cbd_dummy"}
 # Areas never touched at all (event OFF there): the Well of Eru hub, admin
 # rooms and the card-game table. Pumpkins in a hub are clutter, not fun.
 EXCLUDED = {
@@ -70,7 +73,7 @@ def tier_for(cr):
 def area_crs(git):
     crs = []
     for c in gv(git.get("Creature List")) or []:
-        if gv(c.get("FactionID")) in HOSTILE_FACTIONS:
+        if gv(c.get("FactionID")) in HOSTILE_FACTIONS and gv(c.get("Tag")) not in IGNORE_TAGS:
             crs.append(float(gv(c.get("ChallengeRating")) or 0))
     for e in gv(git.get("Encounter List")) or []:
         if not gv(e.get("Active")):

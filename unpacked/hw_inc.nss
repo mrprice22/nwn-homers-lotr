@@ -58,8 +58,8 @@ const string HW_TAG_KING   = "hw_pking";
 const string HW_TAG_BOARD  = "hw_board";
 
 // Tunables.
-const int   HW_TRAVEL_CHANCE_TOWN    = 40;    // 1 in N per heartbeat while moving
-const int   HW_TRAVEL_CHANCE_HOSTILE = 150;
+const int   HW_TRAVEL_CHANCE_TOWN    = 15;    // 1 in N per heartbeat while moving
+const int   HW_TRAVEL_CHANCE_HOSTILE = 60;
 const int   HW_KILL_CHANCE_PCT       = 15;
 const int   HW_AREA_CAP              = 20;    // cursed pumpkins per area
 const int   HW_TOWN_CAP              = 8;     // live town pumpkins per area
@@ -92,7 +92,7 @@ void   HW_PlantBossRings();
 void   HW_RestoreWild();
 void   HW_SpawnSkeletons(location lAt, int nTier, object oKiller, int nCount);
 void   HW_RecomputeAura(object oArea, object oPC);
-void   HW_DarkenArea(object oArea);
+void   HW_DarkenArea(object oArea, float fFade = 4.0);
 void   HW_RestoreLighting(object oArea);
 void   HW_SpawnKing();
 void   HW_SpawnBoard();
@@ -629,7 +629,7 @@ int HW_Shade(int nColor, float fR, float fG, float fB)
     return (r << 16) | (g << 8) | b;
 }
 
-void HW_DarkenArea(object oArea)
+void HW_DarkenArea(object oArea, float fFade = 4.0)
 {
     if (GetLocalInt(oArea, "hw_lit")) return;
     if (HW_AreaExcluded(GetResRef(oArea))) return;
@@ -646,15 +646,15 @@ void HW_DarkenArea(object oArea)
         int bAmbient = (i == AREA_LIGHT_COLOR_MOON_AMBIENT || i == AREA_LIGHT_COLOR_SUN_AMBIENT);
         int n = bAmbient ? HW_Shade(c, fA, fA * 0.8, fA * 1.1)
                          : HW_Shade(c, fA * 1.15, fA * 0.85, fA * 0.6);
-        SetAreaLightColor(i, n, oArea, 4.0);
+        SetAreaLightColor(i, n, oArea, fFade);
     }
 
     SetLocalInt(oArea, "hw_fogc_s", GetFogColor(FOG_TYPE_SUN, oArea));
     SetLocalInt(oArea, "hw_fogc_m", GetFogColor(FOG_TYPE_MOON, oArea));
     SetLocalInt(oArea, "hw_foga_s", GetFogAmount(FOG_TYPE_SUN, oArea));
     SetLocalInt(oArea, "hw_foga_m", GetFogAmount(FOG_TYPE_MOON, oArea));
-    SetFogColor(FOG_TYPE_SUN, 0x3A2818, oArea, 4.0);    // smoky ember
-    SetFogColor(FOG_TYPE_MOON, 0x24142E, oArea, 4.0);   // bruise violet
+    SetFogColor(FOG_TYPE_SUN, 0x3A2818, oArea, fFade);    // smoky ember
+    SetFogColor(FOG_TYPE_MOON, 0x24142E, oArea, fFade);   // bruise violet
     int nMin = bInside ? 8 : 18;
     if (GetFogAmount(FOG_TYPE_SUN, oArea) < nMin) SetFogAmount(FOG_TYPE_SUN, nMin, oArea);
     if (GetFogAmount(FOG_TYPE_MOON, oArea) < nMin) SetFogAmount(FOG_TYPE_MOON, nMin, oArea);
@@ -692,7 +692,11 @@ location HW_RandomMarshSpot(object oArea)
     {
         if (GetObjectType(o) == OBJECT_TYPE_PLACEABLE)
         {
-            if (nPick == 0) return HW_Scatter(GetLocation(o), 2.0, 6.0);
+            // Not beside a door: the corpses ringing the mausoleum door
+            // (Portdeadmarsh) put the King inside the building's footprint.
+            object oDoor = GetNearestObject(OBJECT_TYPE_DOOR, o);
+            int bNearDoor = GetIsObjectValid(oDoor) && GetDistanceBetween(o, oDoor) < 15.0;
+            if (nPick <= 0 && !bNearDoor) return HW_Scatter(GetLocation(o), 2.0, 6.0);
             nPick--;
         }
         o = GetNextObjectInArea(oArea);
@@ -770,6 +774,15 @@ void HW_Begin()
         "DELETE FROM hw_pumpkin WHERE year <> @y");
     SqlBindInt(q, "@y", HW_Year());
     SqlStep(q);
+    // Darken every area now, not on a PC's first visit: the server holds the
+    // area's light values and hands them to each client as it loads the area,
+    // so there is no fade-in after the loading screen.
+    object oA = GetFirstArea();
+    while (GetIsObjectValid(oA))
+    {
+        HW_DarkenArea(oA, 0.0);
+        oA = GetNextArea();
+    }
     HW_RestoreWild();
     HW_PlantBossRings();
     HW_SpawnKing();
