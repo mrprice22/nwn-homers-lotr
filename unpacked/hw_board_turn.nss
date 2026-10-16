@@ -32,7 +32,7 @@ void main()
     if (nTotal > 0)
         sMsg += "\nYour total: " + IntToString(nTotal) + " (rank "
               + IntToString(HW_Rank(oPC)) + ")";
-    sMsg += "\nPrizes Nov 1-7 at this board - pick one of four from your tier: ranks 1-3 "
+    sMsg += "\nPrizes Nov 1-7 at this board - pick one from your tier or any tier below: ranks 1-3 "
           + "Harvest Lord, ranks 4-10 Harvest Reaper, anyone with " + IntToString(HW_TIER3_MIN_GUTS)
           + "+ guts Harvester. Everyone who hands in a gut gets a Bag of Pumpkin Seeds.";
     SendMessageToPC(oPC, sMsg);

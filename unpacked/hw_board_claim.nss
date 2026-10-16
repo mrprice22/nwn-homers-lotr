@@ -3,7 +3,7 @@
 //
 // Everything is re-checked HERE, at grant time, never trusted from the
 // conversation's conditionals: the phase, that the pick belongs to the PC's
-// own tier, and the persistent claimed flag. Deliver first, then mark claimed,
+// own tier or a lower one, and the persistent claimed flag. Deliver first, then mark claimed,
 // so a failed hand-over can be retried and a relog can never claim twice.
 
 #include "hw_inc"
@@ -16,7 +16,9 @@ void main()
     if (HW_Phase() != HW_PHASE_CLAIM) return;
 
     int nTier = HW_ClaimTier(oPC);
-    if (nTier == 0 || HW_PrizeTier(sRes) != nTier) return;
+    // Own tier or any tier below it (a larger number); never a better one.
+    int nPrize = HW_PrizeTier(sRes);
+    if (nTier == 0 || nPrize == 0 || nPrize < nTier) return;
     if (HW_Claimed(oPC))
     {
         SendMessageToPC(oPC, "You have already claimed your Harvest of Shadows prize.");
