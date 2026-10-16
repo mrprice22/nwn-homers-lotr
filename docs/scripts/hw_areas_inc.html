@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script hw_areas_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>hw_areas_inc</code></h1><pre class="nss-source"><code>// hw_areas_inc - Harvest of Shadows area table (generated).
+//
+// HW_AreaTier(resref): 0 = peaceful area (town pumpkins that decay), 1..6 =
+// hostile area tier from the median CR of its hostile spawns (cursed,
+// persistent pumpkins scaled to it). HW_BossHome(i): &quot;resref|area|x|y|z&quot; for
+// each Roll of the Fallen boss, where its respawning pumpkin ring is planted.
+//
+// The block below is rewritten by `python3 bin/gen-halloween-areas.py --write`;
+// tests/check_halloween_areas.py fails the repack when it is stale. Tune the
+// tier cuts and hand overrides in the script, never here.
+
+// BEGIN GENERATED HW AREAS - produced by bin/gen-halloween-areas.py; do not hand-edit.
+int HW_AreaTier(string sResRef)
+{
+    string s = &quot;|&quot; + sResRef + &quot;|&quot;;
+    if (FindSubString(&quot;|area012|billfernyshouse|bree|breecave|breecaverns|breecrypt|breecryptlowerle|chetwood001|goblingatelesser|greateastroada|greateastroadc|greenwaynorth|greenwaysouth|greenwaysoutheas|loogazlair|midgewaterswamp|roadtobaraddur|sharkeyschamber|sharkeysmill|thebarrowdowns|thenorthdowns001|theruinsofdale|thesecretpassofm|thestinkinsewer|tombofgarmir|tombofmendegilat|tombofperan|tombofvinyalonde|&quot;, s) &gt;= 0) return 1;
+    if (FindSubString(&quot;|alterwald|angmar|area004|cardolan|carrok|carrokgreater|carroklesser|celeduinbanks|chamberofrecords|cryptsofthelosts|dunland|dunlandwarparty|durinsbridge|dwarrowdelfea001|dwarrowdelfeast|emynarnen|enchantedcave001|enchantedcave002|ettenmoors|gapofrohaneast|goblingategreate|goblingatemines|goblintownmainha|goblintownwarren|gondoremynarnen|greateastroadb|icequeenlair|kallristcryptlow|kallristcryptupp|kallristdarkrim|kallristeastshor|kallristinner|kallristnorthsho|kallristouterban|kallristwestshor|mirkwoodcentral|mirkwoodeast|mirkwoodwest|mistymountainsa|mistymountainsb|morialevel1cente|oldbackroad|oldforestroad|planeoftherender|ruinsofannuminas|theangmarmountai|thedimrillstair|thegatesofmoria|thetempleofmoran|thetrollshalls|thewold|woldsouth|&quot;, s) &gt;= 0) return 2;
+    if (FindSubString(&quot;|area018|carndum|carndumcity|carndumsmithy|carndumtemple|fangornforest|fangornoutskirts|forgottenking|greateastroadd|mirkwoodcentrale|mirkwoodcentrals|mirkwoodnorth|mountdoom|mountgundabad001|mountgundabadlev|nazgulguildhouse|nindalf|oldforest001|theabyssofmoria|&quot;, s) &gt;= 0) return 3;
+    if (FindSubString(&quot;|area010|carndumthrone|dolguldur001|dunharrow|emynmuil|gwathdorcave|isengardouterrim|kerufallslair|thewitchkingsthr|toweroforthanc|&quot;, s) &gt;= 0) return 4;
+    if (FindSubString(&quot;|area078|balinstomb|blackgatge|deadmarshes|eredduathroada|gwathdoroutskirt|harad|icequeennest|isengardmagicroo|mountdoom002|shelobslair|thecirithungolpa|&quot;, s) &gt;= 0) return 5;
+    if (FindSubString(&quot;|angmardungeon|area002|area003|area007|area009|area014|area016|area023|area025|area028|area031|cavesofdolguldur|cirithungol|darkcavern|dolguldur|dolguldurcast001|dolguldurcastle|dolguldurcity|falseheaven|gondorcrypts|gwathdordeeps|gwaththrone|gwathtomb|gwathwest|heavensdisdain|heavensscorn|hennethannun|isengardinnerrim|northernfores001|northernfores004|northernfores005|northernforestso|orcarmory|rhosgobeltower|thebalrogofmoria|&quot;, s) &gt;= 0) return 6;
+    return 0;
+}
+
+// No pumpkins and no lighting change at all in these areas.
+int HW_AreaExcluded(string sResRef)
+{
+    return FindSubString(&quot;|appearancechange|area017|dmcloningchamber|dmcontrolroom|dmeventarea|dmhq|prison|&quot;, &quot;|&quot; + sResRef + &quot;|&quot;) &gt;= 0;
+}
+
+const int HW_BOSS_HOME_COUNT = 80;
+
+string HW_BossHome(int i)
+{
+    switch (i)
+    {
+        case 0: return &quot;creature016|area013|24.52|74.70|1.24&quot;;
+        case 1: return &quot;weathertopkin004|area028|35.17|123.63|1.02&quot;;
+        case 2: return &quot;weathertopque003|area028|25.14|123.80|1.02&quot;;
+        case 3: return &quot;summanus|falseheaven|55.19|21.17|0.00&quot;;
+        case 4: return &quot;gandalf001|shirehobbiton001|45.19|91.35|10.01&quot;;
+        case 5: return &quot;highwizardofgo_2|towerofthehighwi|9.99|4.97|0.12&quot;;
+        case 6: return &quot;creature019|area016|20.13|194.01|0.61&quot;;
+        case 7: return &quot;gwathdorlord001|gwaththrone|52.13|54.93|-0.00&quot;;
+        case 8: return &quot;creature009|minastirith|94.98|84.89|4.00&quot;;
+        case 9: return &quot;creature003|area005|15.02|65.05|0.60&quot;;
+        case 10: return &quot;legolasgreenl001|area023|25.17|35.23|-0.00&quot;;
+        case 11: return &quot;witchking|thewitchkingsthr|30.11|89.88|0.88&quot;;
+        case 12: return &quot;radagastthebro_2|rhosgobeltower|14.97|24.89|0.60&quot;;
+        case 13: return &quot;thecursedone002|forgottenking|44.95|69.05|-0.00&quot;;
+        case 14: return &quot;themightysmag002|darkcavern|12.31|18.14|-0.00&quot;;
+        case 15: return &quot;gollum|area007|14.15|45.00|3.00&quot;;
+        case 16: return &quot;templemistress_2|blackgatge|104.36|67.59|-0.00&quot;;
+        case 17: return &quot;creature007|area031|34.83|34.72|0.00&quot;;
+        case 18: return &quot;creature007_2|carndumthrone|40.15|49.52|0.88&quot;;
+        case 19: return &quot;elrond001_2|rivendellupperha|54.99|23.73|-0.00&quot;;
+        case 20: return &quot;harethofthehalad|edoras|120.04|70.03|10.60&quot;;
+        case 21: return &quot;creature023_2|dolguldurcast001|45.04|59.38|1.00&quot;;
+        case 22: return &quot;adwarfguardia001|lonelymountainma|75.03|123.42|0.60&quot;;
+        case 23: return &quot;creature005|rivendellupperha|55.04|26.17|-0.00&quot;;
+        case 24: return &quot;aragornsonofarat|minastirithgates|14.70|44.98|0.75&quot;;
+        case 25: return &quot;eowyntheshieldma|area008|24.93|80.21|-0.00&quot;;
+        case 26: return &quot;shadowlordof_2|dolguldur|145.12|130.27|10.00&quot;;
+        case 27: return &quot;ulmothevalar_2|area022|40.00|39.10|-0.00&quot;;
+        case 28: return &quot;angmar|area009|35.09|63.88|0.33&quot;;
+        case 29: return &quot;sarumanthewhi001|towerofothancsar|19.59|60.18|0.36&quot;;
+        case 30: return &quot;thehighmageofbar|baraddurkeep|64.44|64.91|0.60&quot;;
+        case 31: return &quot;grimbeorntheo001|beorn|106.00|59.98|2.50&quot;;
+        case 32: return &quot;basilisk008|area003|44.10|42.65|-0.00&quot;;
+        case 33: return &quot;azagoth001|thebalrogofmoria|45.45|55.31|1.57&quot;;
+        case 34: return &quot;highpriestofmora|thetempleofmoran|24.96|45.54|1.57&quot;;
+        case 35: return &quot;thranduil_2|thranduilshall|80.11|153.02|0.00&quot;;
+        case 36: return &quot;shadowlordof001|cavesofdolguldur|25.39|13.94|0.01&quot;;
+        case 37: return &quot;creature002|citidelofstars|40.30|60.04|-0.15&quot;;
+        case 38: return &quot;shopkeep002_2|minastirithtemp|19.94|26.92|1.34&quot;;
+        case 39: return &quot;creature017_2|helmsdeep001|45.06|104.73|12.60&quot;;
+        case 40: return &quot;maggotfarmer|bywater|13.35|48.31|-0.29&quot;;
+        case 41: return &quot;akhorahil006_2|dolguldurcity|65.12|85.99|-0.00&quot;;
+        case 42: return &quot;gimli_2|halloftruth|4.97|75.54|-0.00&quot;;
+        case 43: return &quot;kerufall003|kerufallslair|56.88|190.81|0.00&quot;;
+        case 44: return &quot;urukai010|isengardouterrim|95.23|87.61|0.01&quot;;
+        case 45: return &quot;gondorianwiza001|towerofthehig001|24.89|10.15|-0.00&quot;;
+        case 46: return &quot;gondorianguar005|minastirithgates|96.39|42.49|-0.00&quot;;
+        case 47: return &quot;theoden002|theodenshall|35.08|54.21|0.39&quot;;
+        case 48: return &quot;bauglirthegene_2|orcarmory|164.61|34.89|1.57&quot;;
+        case 49: return &quot;badass_2|kallristcryptlow|94.92|129.17|-0.00&quot;;
+        case 50: return &quot;glorfindel002|thevalleyofriven|54.86|49.09|-1.06&quot;;
+        case 51: return &quot;creature013|towerofothancsar|32.48|71.25|-0.00&quot;;
+        case 52: return &quot;strongminitao002|gwathtomb|60.55|34.90|0.20&quot;;
+        case 53: return &quot;akhorahil004|dolguldurcity|65.26|118.06|-0.00&quot;;
+        case 54: return &quot;creature012_2|blackgatge|27.81|53.58|0.00&quot;;
+        case 55: return &quot;rangerofthe002|rivendell|90.25|30.05|-0.00&quot;;
+        case 56: return &quot;frost001|emynarnen|25.76|24.97|5.46&quot;;
+        case 57: return &quot;greaterelvenw003|lothlorienflets|55.09|43.97|-1.06&quot;;
+        case 58: return &quot;anaraliathewidow|mirkwoodcentrale|70.72|35.03|-1.06&quot;;
+        case 59: return &quot;kainnatheward001|isengardinnerrim|75.16|71.09|8.00&quot;;
+        case 60: return &quot;jester|area008|23.77|81.52|-0.00&quot;;
+        case 61: return &quot;shelob001|shelobslair|89.74|99.10|-0.00&quot;;
+        case 62: return &quot;adwarfajudica003|thehallsoftruth|40.24|72.80|-0.00&quot;;
+        case 63: return &quot;arohirrimsold006|edoras|60.12|33.18|5.00&quot;;
+        case 64: return &quot;gntfire003|mountgundabadlev|54.82|38.94|-0.00&quot;;
+        case 65: return &quot;garbag|orcarmory|84.18|80.28|0.00&quot;;
+        case 66: return &quot;trollking|thetrollshalls|81.04|182.36|-0.00&quot;;
+        case 67: return &quot;galadriel|lothlorien|125.27|100.69|-1.06&quot;;
+        case 68: return &quot;railthewhiteh001|isengardinnerrim|74.74|38.09|-0.00&quot;;
+        case 69: return &quot;drgblue004|icequeennest|38.61|41.71|-0.00&quot;;
+        case 70: return &quot;themutantterror|balinstomb|15.75|29.91|-0.00&quot;;
+        case 71: return &quot;cultmember002_3|carndumcity|80.12|69.93|-0.00&quot;;
+        case 72: return &quot;cultmember002_2|area078|75.06|65.27|-0.00&quot;;
+        case 73: return &quot;urukai013|toweroforthanc|35.28|37.78|0.71&quot;;
+        case 74: return &quot;drowfight023_2|carndum|74.84|63.53|1.56&quot;;
+        case 75: return &quot;railthewhiteh003|isengardmagicroo|37.16|29.97|0.00&quot;;
+        case 76: return &quot;drowrogue024_2|carndumtemple|61.32|24.70|0.00&quot;;
+        case 77: return &quot;gondorianguar0_4|watchmandefender|42.75|3.55|0.00&quot;;
+        case 78: return &quot;gondorianguar0_2|watchmandefender|47.17|3.73|-0.00&quot;;
+        case 79: return &quot;adwarfajudica0_3|halloftruth|34.89|69.06|0.00&quot;;
+    }
+    return &quot;&quot;;
+}
+// END GENERATED HW AREAS
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

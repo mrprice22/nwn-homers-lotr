@@ -138,6 +138,18 @@ void main()
       return;
    }
 
+   // Harvest of Shadows prizes: Tag == ResRef == script name, year-stamped
+   // (hw26_crown, hw27_..), so &quot;hw2&quot; catches every year&#x27;s set. Same stash
+   // convention and same reason to sit above the X2 hook as the cp_ branch.
+   if(GetStringLeft(GetTag(oItem), 3) == &quot;hw2&quot;)
+   {
+      SetLocalObject(oActivator, &quot;hw_item&quot;, oItem);
+      SetLocalObject(oActivator, &quot;hw_target&quot;, GetItemActivatedTarget());
+      SetLocalLocation(oActivator, &quot;hw_targloc&quot;, GetItemActivatedTargetLocation());
+      ExecuteScript(GetTag(oItem), oActivator);
+      return;
+   }
+
    // Tag-based scripting: execute item&#x27;s tag script if enabled
    if (GetModuleSwitchValue(MODULE_SWITCH_ENABLE_TAGBASED_SCRIPTS) == TRUE)
    {

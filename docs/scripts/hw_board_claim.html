@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script hw_board_claim</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>hw_board_claim</code></h1><pre class="nss-source"><code>// hw_board_claim - hand over the prize the PC picked in hw_board.dlg
+// (OBJECT_SELF = PC; the pick is in the &quot;hw_pick&quot; local, set by hw_claim_N).
+//
+// Everything is re-checked HERE, at grant time, never trusted from the
+// conversation&#x27;s conditionals: the phase, that the pick belongs to the PC&#x27;s
+// own tier, and the persistent claimed flag. Deliver first, then mark claimed,
+// so a failed hand-over can be retried and a relog can never claim twice.
+
+#include &quot;hw_inc&quot;
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    string sRes = GetLocalString(oPC, &quot;hw_pick&quot;);
+    DeleteLocalString(oPC, &quot;hw_pick&quot;);
+    if (HW_Phase() != HW_PHASE_CLAIM) return;
+
+    int nTier = HW_ClaimTier(oPC);
+    if (nTier == 0 || HW_PrizeTier(sRes) != nTier) return;
+    if (HW_Claimed(oPC))
+    {
+        SendMessageToPC(oPC, &quot;You have already claimed your Harvest of Shadows prize.&quot;);
+        return;
+    }
+
+    object oPrize = CreateItemOnObject(sRes, oPC);
+    if (!GetIsObjectValid(oPrize))
+    {
+        SendMessageToPC(oPC, &quot;The board could not hand over your prize - tell an admin.&quot;);
+        return;
+    }
+    sqlquery q = SqlPrepareQueryCampaign(HW_DB,
+        &quot;UPDATE hw_guts SET claimed=@t WHERE year=@y AND ident=@i&quot;);
+    SqlBindInt(q, &quot;@t&quot;, nTier);
+    SqlBindInt(q, &quot;@y&quot;, HW_Year());
+    SqlBindString(q, &quot;@i&quot;, HW_Ident(oPC));
+    SqlStep(q);
+    SendMessageToPC(oPC, COLOR_ORANGE + &quot;Harvest of Shadows: you finished rank &quot;
+        + IntToString(HW_Rank(oPC)) + &quot; and claim &quot; + GetName(oPrize) + &quot;.&quot; + COLOR_END);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
