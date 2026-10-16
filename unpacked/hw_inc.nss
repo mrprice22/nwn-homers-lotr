@@ -811,6 +811,9 @@ void HW_SweepAll(int bKeepBoard)
 // guts, no cap, no DB row - re-planted (on a fresh random side) every boot.
 void HW_PlantDoorPumpkin(object oDoor)
 {
+    // Never two at one door, whatever planted the first.
+    object oNear = GetNearestObjectByTag(HW_TAG_DOOR, oDoor);
+    if (GetIsObjectValid(oNear) && GetDistanceBetween(oNear, oDoor) < 3.5) return;
     object oArea = GetArea(oDoor);
     vector v = GetPosition(oDoor);
     float f = GetFacing(oDoor);
@@ -839,13 +842,26 @@ void HW_PlantDoorPumpkin(object oDoor)
     }
 }
 
+// Two passes: list the doors, then plant. Creating a placeable while
+// GetNextObjectInArea is walking the same area can step the walk back onto a
+// door it already did - the Well of Eru grew a stack of pumpkins at one door.
 void HW_PlantDoorPumpkinsIn(object oArea)
 {
+    int n = 0;
     object o = GetFirstObjectInArea(oArea);
     while (GetIsObjectValid(o))
     {
-        if (GetObjectType(o) == OBJECT_TYPE_DOOR) HW_PlantDoorPumpkin(o);
+        if (GetObjectType(o) == OBJECT_TYPE_DOOR)
+            SetLocalObject(oArea, "hw_door_" + IntToString(n++), o);
         o = GetNextObjectInArea(oArea);
+    }
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        string sVar = "hw_door_" + IntToString(i);
+        object oDoor = GetLocalObject(oArea, sVar);
+        DeleteLocalObject(oArea, sVar);
+        if (GetIsObjectValid(oDoor)) HW_PlantDoorPumpkin(oDoor);
     }
 }
 
