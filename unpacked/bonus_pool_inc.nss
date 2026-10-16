@@ -109,7 +109,13 @@ const string BPOOL_SRC_DIVWRA  = "dwra";   // Divine Wrath,       ability durati
 // has listened and expires on its own, so it is registered with a duration like
 // the spell sources rather than held permanently like Prowess.
 const string BPOOL_SRC_MUSIC   = "musc";   // Jukebox listening,  scaled duration
-const int    BPOOL_SRC_COUNT   = 13;
+
+// Harvest of Shadows (hw_inc.nss): +1 attack per cursed pumpkin near a hostile
+// creature. Re-registered with a short duration on every aura pass, so a
+// monster that walks away from the pumpkins (or a smashed pumpkin) loses it
+// on its own. Monsters only - never a PC.
+const string BPOOL_SRC_PUMPKIN = "pump";   // Pumpkin aura,       ~18s, refreshing
+const int    BPOOL_SRC_COUNT   = 14;
 
 // Flat damage bonus the engine can express. IPGetDamageBonusConstantFromNumber
 // clamps here too; above it the number simply cannot be represented.
@@ -195,6 +201,7 @@ string BPool_SourceAt(int nIndex)
         case 10: return BPOOL_SRC_DIVPOW;
         case 11: return BPOOL_SRC_DIVWRA;
         case 12: return BPOOL_SRC_MUSIC;
+        case 13: return BPOOL_SRC_PUMPKIN;
     }
     return "";
 }

@@ -312,6 +312,10 @@ void main()
     // throttled to ~1/min inside WS_Tick(); a no-op on pulses in between and
     // when no rules are registered.
     WS_Tick();
+
+    // Harvest of Shadows (Halloween event): calendar check, dark lighting,
+    // travel pumpkins, the pumpkin attack aura. A no-op outside Oct 15-Nov 7.
+    ExecuteScript("hw_tick", OBJECT_SELF);
 }
 
 

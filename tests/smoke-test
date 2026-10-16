@@ -246,6 +246,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: halloween area table…"
+if python3 "$HERE/check_halloween_areas.py"; then
+  echo "ok: halloween area table"
+else
+  echo "fail: halloween area table"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

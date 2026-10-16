@@ -23,6 +23,15 @@ void main()
     object oPC   = GetPCItemLastEquippedBy();
     object oItem = GetPCItemLastEquipped();
     if (!GetIsObjectValid(oPC) || !GetIsObjectValid(oItem)) return;
+
+    // Harvest of Shadows prizes (hw26_*, hw27_*...): their worn auras and
+    // glows are re-synced from what the PC actually has on.
+    if (GetStringLeft(GetResRef(oItem), 3) == "hw2")
+    {
+        ExecuteScript("hw_fx_refresh", oPC);
+        return;
+    }
+
     if (GetStringLeft(GetResRef(oItem), 3) != "cp_") return;
 
     SetLocalInt(oPC, CP_WORN_ON, TRUE);

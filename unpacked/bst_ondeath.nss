@@ -88,6 +88,10 @@ void main()
 
     int bParty = (nValid > 1);
 
+    // Harvest of Shadows: a PC-credited kill may leave a pumpkin (no-op
+    // outside the event window; never from a skeleton).
+    ExecuteScript("hw_ondeath", oCre);
+
     // Slayer for the server-first record: the killing blow's owning PC, else the
     // first valid contributor (resolved in the loop below).
     object oSlayer = oKiller;

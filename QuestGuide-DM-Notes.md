@@ -1165,6 +1165,26 @@ NWN silently ignores them, so the quest logic ran but players saw no journal ent
 
 ---
 
+## Harvest of Shadows (seasonal, Oct 15-31)
+
+Roadmap `seasonal-update`. Unjournaled, date-driven, no admin lever.
+
+- **Scripts:** `hw_inc.nss` (all logic; constants at the top), `hw_tick` (module heartbeat, from
+  `bleeding.nss`), `hw_ondeath` (from `bst_ondeath.nss`), `hw_modload` (from `onmoduleload.nss`),
+  `hw_pk_used` / `hw_pk_death` (pumpkins), `hw_board` / `hw_board_turn` / `hw_board_claim`,
+  `hw_pking_hb` / `hw_pking_rnd` / `hw_pking_death`.
+- **Blueprints:** `hw_pumpkin1-4.utp` (one per CEP jack-o'-lantern appearance; retagged at spawn
+  to `hw_pk_t` town / `hw_pk_c` cursed / `hw_pk_b` boss ring), `hw_board.utp`, `hw_guts.uti`,
+  `hw_prize_crown/shroud/lantern.uti`, `hw_skel_1-4.utc` (level bands), `hw_pking.utc`.
+- **Campaign DB `halloweendb`:** `hw_pumpkin` (persistent cursed pumpkins), `hw_bossring`
+  (cleared_at per ring slot), `hw_guts` (year, character, count, claimed tier). To wipe the board
+  mid-event, delete that year's `hw_guts` rows with the server down.
+- **Placement:** nothing is placed. The board is created 3m beside `cp_board_wp` in the Well of
+  Eru; the King spawns at a random marsh placeable in `deadmarshes`; boss rings come from
+  `HW_BossHome()` in the generated `hw_areas_inc.nss` (re-run `bin/gen-halloween-areas.py --write`
+  after area or boss changes; the build gate says when).
+- **Prize stats are a draft** pending the admin's answer on the roadmap design question.
+
 ## Unfinished / partly journalled threads
 
 Moved here from the public `docs.manual/QuestGuide.html` on 2026-07-18, when the guide dropped its

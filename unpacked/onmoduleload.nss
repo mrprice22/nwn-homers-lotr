@@ -348,6 +348,12 @@ FAT_WipeAll();
 CP_InitDb();
 ExecuteScript("cp_sweep", OBJECT_SELF);
 
+// Harvest of Shadows (Halloween event). Creates halloweendb's tables, reads the
+// real-world date, and inside Oct 15-31 re-plants the persistent pumpkins, the
+// boss rings, the Pumpkin King and the Gourd Board (Nov 1-7: the board only).
+// ExecuteScript rather than an include so this file does not pull in hw_inc.
+ExecuteScript("hw_modload", OBJECT_SELF);
+
 Graf_InitDb();
 Graf_RestoreCanvas();
 
