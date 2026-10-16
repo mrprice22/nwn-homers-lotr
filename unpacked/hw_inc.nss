@@ -84,6 +84,9 @@ const int   HW_SAC_BELOW_PCT         = 80;    // King sacrifices only below this
 const int   HW_SAC_HEAL_PCT          = 15;
 
 const string HW_KING_AREA = "deadmarshes";
+// The King's theme: ambientmusic.2da row of mus_hl_pumpkins (music/tracks.json,
+// rows are append-only so this never moves).
+const int    HW_KING_MUSIC_ROW = 143;
 
 const string HW_TAG_ALLY   = "hw_ally";    // Pumpkin-Born Skeletons fighting for a PC
 const string HW_TAG_WARD   = "hw_ward";    // Harvest Moon healing pumpkin
@@ -108,6 +111,8 @@ void   HW_RestoreLighting(object oArea);
 void   HW_SpawnKing();
 void   HW_SpawnBoard();
 void   HW_SweepAll(int bKeepBoard);
+void   HW_KingMusicOn();
+void   HW_KingMusicOff();
 void   HW_Begin();
 int    HW_AddGuts(object oPC, int nCount);
 int    HW_GetGuts(object oPC);
@@ -788,6 +793,7 @@ void HW_SweepAll(int bKeepBoard)
     HW_DestroyTag(HW_TAG_SKEL);
     HW_DestroyTag(HW_TAG_KING);
     if (!bKeepBoard) HW_DestroyTag(HW_TAG_BOARD);
+    HW_KingMusicOff();
     object oArea = GetFirstArea();
     while (GetIsObjectValid(oArea))
     {
@@ -983,6 +989,38 @@ int HW_DrainAbandoned(int nBeat)
 
 // The window opened (module load inside it, or the Oct 15 rollover on a
 // running server). A new year wipes last October's leftovers first.
+// The Dead Marshes play the King's theme for the event. Same conventions as
+// JB_Start/JB_Stop (jb_inc.nss): Change() takes the raw row, Get() returns row
+// minus one, so the snapshot is stored +1'd. Battle music is silenced so a
+// fight does not cut the song off. Snapshot once; HW_KingMusicOff restores.
+void HW_KingMusicOn()
+{
+    object oArea = HW_AreaByResRef(HW_KING_AREA);
+    if (!GetIsObjectValid(oArea) || GetLocalInt(oArea, "hw_mus_on")) return;
+    SetLocalInt(oArea, "hw_mus_day", MusicBackgroundGetDayTrack(oArea)    + 1);
+    SetLocalInt(oArea, "hw_mus_ngt", MusicBackgroundGetNightTrack(oArea)  + 1);
+    SetLocalInt(oArea, "hw_mus_bat", MusicBackgroundGetBattleTrack(oArea) + 1);
+    SetLocalInt(oArea, "hw_mus_on", TRUE);
+    MusicBackgroundStop(oArea);
+    MusicBackgroundChangeDay(oArea, HW_KING_MUSIC_ROW);
+    MusicBackgroundChangeNight(oArea, HW_KING_MUSIC_ROW);
+    MusicBattleStop(oArea);
+    MusicBattleChange(oArea, 0);
+    MusicBackgroundPlay(oArea);
+}
+
+void HW_KingMusicOff()
+{
+    object oArea = HW_AreaByResRef(HW_KING_AREA);
+    if (!GetIsObjectValid(oArea) || !GetLocalInt(oArea, "hw_mus_on")) return;
+    MusicBackgroundStop(oArea);
+    MusicBackgroundChangeDay(oArea,   GetLocalInt(oArea, "hw_mus_day"));
+    MusicBackgroundChangeNight(oArea, GetLocalInt(oArea, "hw_mus_ngt"));
+    MusicBattleChange(oArea,          GetLocalInt(oArea, "hw_mus_bat"));
+    MusicBackgroundPlay(oArea);
+    DeleteLocalInt(oArea, "hw_mus_on");
+}
+
 void HW_DarkenAll()
 {
     object oA = GetFirstArea();
@@ -1004,6 +1042,7 @@ void HW_Begin()
     // silently drops whatever was left.
     HW_SpawnBoard();
     HW_SpawnKing();
+    HW_KingMusicOn();
     // Darken every area now, not on a PC's first visit: the server holds the
     // area's light values and hands them to each client as it loads the area,
     // so there is no fade-in after the loading screen.

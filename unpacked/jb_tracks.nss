@@ -17,7 +17,7 @@ string JB_GetTrackName(int nIndex);
 
 int JB_GetTrackCount()
 {
-    return 5;
+    return 6;
 }
 
 int JB_GetTrackRow(int nIndex)
@@ -29,6 +29,7 @@ int JB_GetTrackRow(int nIndex)
         case 2: return 140;   // mus_hl_gonnamake
         case 3: return 141;   // mus_hl_mashur
         case 4: return 142;   // mus_hl_weliketo
+        case 5: return 143;   // mus_hl_pumpkins
     }
     return -1;
 }
@@ -42,6 +43,7 @@ string JB_GetTrackName(int nIndex)
         case 2: return "Gonna Make You Sweat (Everybody Dance Now)";
         case 3: return "MASHUR & KEVLAR - FINALE";
         case 4: return "We Like to Party! (The Vengabus)";
+        case 5: return "The Smashing Pumpkins - Bullet with Butterfly Wings";
     }
     return "";
 }
