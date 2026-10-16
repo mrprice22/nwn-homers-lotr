@@ -45,7 +45,7 @@
   },
   "Comment": {
     "type": "cexostring",
-    "value": "Harvest of Shadows seasonal boss. Spawned (never placed) in deadmarshes by hw_inc.nss HW_SpawnKing while the event is ACTIVE; wanders the marsh (hw_pking_hb), raises pumpkins every 3rd round (hw_pking_rnd), respawns 1h after death (hw_pking_death). Cloned from wtop_zombie's statline."
+    "value": "Harvest of Shadows seasonal boss. Spawned (never placed) in deadmarshes by hw_inc.nss HW_SpawnKing while the event is ACTIVE; wanders the marsh (hw_pking_hb), sacrifices skeletons and raises pumpkins on OnDamaged timers (hw_pking_dmg; chained by bst_ondamage), sends his army at his foe each round (hw_pking_rnd), respawns 1h after death (hw_pking_death). Cloned from wtop_zombie's statline."
   },
   "Con": {
     "type": "byte",
@@ -292,7 +292,7 @@
   },
   "ScriptDamaged": {
     "type": "resref",
-    "value": "x2_def_ondamage"
+    "value": "hw_pking_dmg"
   },
   "ScriptDeath": {
     "type": "resref",
