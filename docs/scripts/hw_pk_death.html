@@ -84,6 +84,7 @@
 // pumpkin records when it fell and grows back 30 minutes later.
 
 #include &quot;hw_inc&quot;
+#include &quot;season_prof_inc&quot;
 
 object HW_OwnerPC(object o)
 {
@@ -94,9 +95,15 @@ object HW_OwnerPC(object o)
 void main()
 {
     object oPk   = OBJECT_SELF;
+    // A placeable&#x27;s OnDeath can fire more than once for one death (a single
+    // blow carrying several damage types): a Bree town pumpkin paid 4 guts.
+    // Everything below happens once.
+    if (GetLocalInt(oPk, &quot;hw_dead&quot;)) return;
+    SetLocalInt(oPk, &quot;hw_dead&quot;, 1);
     object oArea = GetArea(oPk);
     location l   = GetLocation(oPk);
     string sKind = GetLocalString(oPk, &quot;hw_kind&quot;);
+    if (sKind == &quot;door&quot;) return;   // plot decoration; unreachable, but never pays
     int nTier    = GetLocalInt(oPk, &quot;hw_tier&quot;);
 
     object oKiller = HW_OwnerPC(GetLastDamager(oPk));
@@ -109,6 +116,9 @@ void main()
     else if (sKind == &quot;cursed&quot;) nGuts = 1 + nTier / 2;
     if (HW_Phase() == HW_PHASE_ACTIVE)
         HW_GiveGuts(oKiller, l, nGuts);
+    if (SP_DEV_TOOLS &amp;&amp; GetIsObjectValid(oKiller))
+        SendMessageToPC(oKiller, &quot;[HW dev] &quot; + sKind + &quot; pumpkin (tier &quot;
+            + IntToString(nTier) + &quot;) smashed: &quot; + IntToString(nGuts) + &quot; guts each&quot;);
     // The remains: a splatter of pulp, not a pickup.
     ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
         EffectVisualEffect(VFX_COM_CHUNK_YELLOW_MEDIUM), l);

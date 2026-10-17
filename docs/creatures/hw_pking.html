@@ -87,7 +87,9 @@
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
 <dt>Conversation</dt><dd>—</dd>
 </dl>
-<h2>Kills</h2><p>Not yet slain by any adventurer.</p>
+<p class="server-first-badge"><strong>&#9733; Server First:</strong> first slain by Monkonious [HomelessSon] on 2026-10-16 06:20:32.</p>
+<h2>Kills</h2><table class="data"><thead><tr><th>Total</th><th>Solo</th><th>Party</th></tr></thead><tbody><tr><td>3</td><td>3</td><td>0</td></tr></tbody></table>
+<h3>Top Killers</h3><table class="data"><thead><tr><th>#</th><th>Player</th><th>Character</th><th>Solo</th><th>Party</th><th>Total</th><th>Last Kill</th></tr></thead><tbody><tr><td>1</td><td>HomelessSon</td><td>Monkonious</td><td>3</td><td>0</td><td>3</td><td>2026-10-16</td></tr></tbody></table>
 <h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>120</td><th>Dex</th><td>37</td><th>Con</th><td>32</td><th>Int</th><td>62</td><th>Wis</th><td>32</td><th>Cha</th><td>32</td></tr></table>
@@ -96,6 +98,7 @@
 <h2>Combat</h2>
 <table class="data"><tr><th>HP</th><td>8,000</td><th>AC</th><td>59 <small class="muted">(10 base + +13 Dex + +24 natural (NaturalAC) + +11 Wis (monk) + +1 dodge (monk level))</small></td><th>BAB</th><td>+10</td></tr><tr><th>Fort</th><td>+11</td><th>Ref</th><td>+13</td><th>Will</th><td>+11</td></tr></table>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<p class="warn-damage-gate"><strong>Note: this creature uses a custom damage script.</strong> Its <code>OnDamaged</code> handler (<code>hw_pking_dmg</code>) changes how it takes damage — reported damage may be healed back or ignored.</p>
 <h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>Misc Immunity</th><td>Critical Hits (racial), Death Magic (racial, gear), Disease (racial, gear), Fear (racial), Level/Ability Drain (racial, gear), Mind-Affecting Spells (racial, gear), Paralysis (racial, gear), Poison (racial, gear), Sneak Attack (racial, gear)</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
 <h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp021.html">Zombie, Tyrantfog Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+75/+70</td><td>—</td><td>20/x2</td></tr>
 <tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp021.html">Zombie, Tyrantfog Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+75/+70</td><td>—</td><td>20/x2</td></tr>
@@ -132,7 +135,7 @@
 <tr><td>ScriptEndRound</td><td>hw_pking_rnd</td></tr>
 <tr><td>ScriptDialogue</td><td>x2_def_onconv</td></tr>
 <tr><td>ScriptAttacked</td><td>x2_def_attacked</td></tr>
-<tr><td>ScriptDamaged</td><td>x2_def_ondamage</td></tr>
+<tr><td>ScriptDamaged</td><td>hw_pking_dmg</td></tr>
 <tr><td>ScriptDeath</td><td>hw_pking_death</td></tr>
 <tr><td>ScriptDisturbed</td><td>x2_def_ondisturb</td></tr>
 <tr><td>ScriptSpawn</td><td>x2_def_spawn</td></tr>

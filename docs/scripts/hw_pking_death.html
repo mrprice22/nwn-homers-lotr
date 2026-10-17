@@ -86,18 +86,35 @@
 void main()
 {
     object oKing = OBJECT_SELF;
+    if (GetLocalInt(oKing, &quot;hw_dead&quot;)) return;   // OnDeath can repeat; pay once
+    SetLocalInt(oKing, &quot;hw_dead&quot;, 1);
     location l = GetLocation(oKing);
 
     object oKiller = GetLastKiller();
     while (GetIsObjectValid(GetMaster(oKiller))) oKiller = GetMaster(oKiller);
 
-    // 10 guts to every party member nearby, straight into the pack. The
+    // 25 guts to every party member nearby, straight into the pack. The
     // occasional Jack-o&#x27;-Lantern Charm drops to the ground so the party loot
     // roll decides who keeps it.
-    HW_GiveGuts(oKiller, l, 10);
+    HW_GiveGuts(oKiller, l, HW_KING_GUTS);
     if (Random(100) &lt; 20)
         CreateObject(OBJECT_TYPE_ITEM, &quot;hw26_charm&quot;, l);
     ApplyEffectAtLocation(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_PWKILL), l);
+
+    // His army dies with him: a respawned King starts with no leftovers. Not
+    // kills, so no guts and no pumpkins.
+    int i = 0;
+    object oSk = GetObjectByTag(HW_TAG_SKEL, i);
+    while (GetIsObjectValid(oSk))
+    {
+        if (GetLocalInt(oSk, &quot;hw_army&quot;) &amp;&amp; !GetIsDead(oSk))
+        {
+            ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+                EffectVisualEffect(VFX_IMP_DEATH_L), GetLocation(oSk));
+            DestroyObject(oSk, 0.3);
+        }
+        oSk = GetObjectByTag(HW_TAG_SKEL, ++i);
+    }
 
     string sMsg = COLOR_ORANGE + &quot;[Harvest of Shadows] The Pumpkin King has been cut down&quot;
         + (GetIsPC(oKiller) ? &quot; by &quot; + GetName(oKiller) : &quot;&quot;)

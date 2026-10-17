@@ -75,13 +75,16 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>hw_cv_3</code></h1><pre class="nss-source"><code>// hw_cv_3 - hw_board.dlg: show the tier-3 prize choices to a PC whose
-// unclaimed prize tier this year is 3. hw_board_claim re-checks at grant time.
+<h1>Script: <code>hw_cv_3</code></h1><pre class="nss-source"><code>// hw_cv_3 - hw_board.dlg: show the tier-3 prize choices to an unclaimed PC
+// whose prize tier this year is 3 or better (1 is best): a winner may pick
+// from their own tier or any tier below it, one item in all.
+// hw_board_claim re-checks at grant time.
 #include &quot;hw_inc&quot;
 int StartingConditional()
 {
     object oPC = GetPCSpeaker();
-    return HW_ClaimTier(oPC) == 3 &amp;&amp; !HW_Claimed(oPC);
+    int nTier = HW_ClaimTier(oPC);
+    return nTier != 0 &amp;&amp; nTier &lt;= 3 &amp;&amp; !HW_Claimed(oPC);
 }
 </code></pre>
   </main>

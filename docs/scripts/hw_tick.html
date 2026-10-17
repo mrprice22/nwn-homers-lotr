@@ -82,11 +82,13 @@
 //   * darkens the PC&#x27;s area the first time anyone is in it;
 //   * every other beat, re-registers the pumpkin attack aura for the PC&#x27;s
 //     area (once per area per beat, however many PCs share it);
-//   * if the PC has moved 5m+ since the last beat, rolls for a pumpkin
-//     (town areas often, hostile areas rarely);
-//   * now and then plays a spooky sound from a nearby pumpkin.
+//   * counts the distance the PC walks and drops a pumpkin every 40-100m in
+//     town areas, every 150-300m in hostile ones (test realms say so in chat);
+//   * now and then plays a spooky sound from a nearby pumpkin;
+//   * sends skeletons abandoned in an emptied area to the Pumpkin King.
 
 #include &quot;hw_inc&quot;
+#include &quot;season_prof_inc&quot;
 
 void main()
 {
@@ -127,6 +129,9 @@ void main()
     while (GetIsObjectValid(oPC))
     {
         object oArea = GetArea(oPC);
+        // Occupancy, for HW_DrainAbandoned: any PC counts, dead or not.
+        if (!GetIsDM(oPC) &amp;&amp; GetIsObjectValid(oArea))
+            SetLocalInt(oArea, &quot;hw_pc_beat&quot;, nBeat);
         if (!GetIsDM(oPC) &amp;&amp; !GetIsDead(oPC) &amp;&amp; GetIsObjectValid(oArea)
             &amp;&amp; !HW_AreaExcluded(GetResRef(oArea)))
         {
@@ -140,23 +145,58 @@ void main()
 
             location lNow = GetLocation(oPC);
             location lWas = GetLocalLocation(oPC, &quot;hw_last&quot;);
-            if (GetAreaFromLocation(lWas) == oArea
-                &amp;&amp; GetDistanceBetweenLocations(lNow, lWas) &gt;= 5.0)
+            if (GetAreaFromLocation(lWas) == oArea)
             {
+                // Cap a beat&#x27;s distance so an in-area jump is not a free pumpkin.
+                float fMoved = GetDistanceBetweenLocations(lNow, lWas);
+                if (fMoved &gt; 40.0) fMoved = 40.0;
+                float fWalked = GetLocalFloat(oPC, &quot;hw_walked&quot;) + fMoved;
                 int nTier = HW_AreaTier(GetResRef(oArea));
-                if (nTier == 0)
+                int nDue = GetLocalInt(oPC, &quot;hw_walk_due&quot;);
+                if (nDue &lt;= 0)
                 {
-                    if (Random(HW_TRAVEL_CHANCE_TOWN) == 0)
-                        HW_SpawnPumpkin(HW_Scatter(lNow, 4.0, 8.0), &quot;town&quot;);
+                    nDue = (nTier == 0)
+                        ? HW_TRAVEL_TOWN_MIN + Random(HW_TRAVEL_TOWN_SPAN + 1)
+                        : HW_TRAVEL_HOSTILE_MIN + Random(HW_TRAVEL_HOSTILE_SPAN + 1);
+                    SetLocalInt(oPC, &quot;hw_walk_due&quot;, nDue);
                 }
-                else if (Random(HW_TRAVEL_CHANCE_HOSTILE) == 0)
-                    HW_SpawnPumpkin(HW_Scatter(lNow, 4.0, 8.0), &quot;cursed&quot;);
+                if (fWalked &gt;= IntToFloat(nDue))
+                {
+                    object oPk = HW_SpawnPumpkin(HW_Scatter(lNow, 4.0, 8.0),
+                                                 nTier == 0 ? &quot;town&quot; : &quot;cursed&quot;);
+                    if (SP_DEV_TOOLS)
+                        SendMessageToPC(oPC, &quot;[HW dev] travel pumpkin after &quot;
+                            + IntToString(FloatToInt(fWalked)) + &quot;m (tier &quot;
+                            + IntToString(nTier) + &quot;): &quot;
+                            + (GetIsObjectValid(oPk) ? &quot;spawned&quot; : &quot;refused (area cap)&quot;));
+                    fWalked = 0.0;
+                    DeleteLocalInt(oPC, &quot;hw_walk_due&quot;);
+                }
+                SetLocalFloat(oPC, &quot;hw_walked&quot;, fWalked);
             }
             SetLocalLocation(oPC, &quot;hw_last&quot;, lNow);
 
             HW_Spook(oPC);
         }
         oPC = GetNextPC();
+    }
+
+    // Skeletons left behind in an emptied area march to the Pumpkin King.
+    int nMarched = HW_DrainAbandoned(nBeat);
+    if (SP_DEV_TOOLS &amp;&amp; nMarched != 0)
+    {
+        // Test realms only; the &quot;King is down&quot; line repeats at most once a minute.
+        string sDev = &quot;&quot;;
+        if (nMarched &gt; 0)
+            sDev = &quot;[HW dev] &quot; + IntToString(nMarched) + &quot; abandoned skeleton(s) marched to the Pumpkin King.&quot;;
+        else if (nBeat % 10 == 0)
+            sDev = &quot;[HW dev] &quot; + IntToString(-nMarched) + &quot; abandoned skeleton(s) wait: the Pumpkin King is not up.&quot;;
+        object oDev = GetFirstPC();
+        while (sDev != &quot;&quot; &amp;&amp; GetIsObjectValid(oDev))
+        {
+            SendMessageToPC(oDev, sDev);
+            oDev = GetNextPC();
+        }
     }
 }
 </code></pre>

@@ -75,27 +75,37 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>hw_pking_rnd</code></h1><pre class="nss-source"><code>// hw_pking_rnd - Pumpkin King end-of-round: every third round he raises a
-// cursed pumpkin beside himself (which feeds the attack aura around him), then
-// the stock combat round runs.
+<h1>Script: <code>hw_pking_rnd</code></h1><pre class="nss-source"><code>// hw_pking_rnd - Pumpkin King end-of-round: idle skeletons of his army within
+// 20m are sent at his foe, then the stock combat round runs. The sacrifice and
+// the pumpkin harvest live in hw_pking_dmg (OnDamaged, real-time timers): this
+// event only fires on rounds he actually takes.
 
 #include &quot;hw_inc&quot;
 
 void main()
 {
     object oKing = OBJECT_SELF;
-    int n = GetLocalInt(oKing, &quot;hw_round&quot;) + 1;
-    SetLocalInt(oKing, &quot;hw_round&quot;, n);
-    if (n % 3 == 0 &amp;&amp; HW_Phase() == HW_PHASE_ACTIVE)
+    object oFoe = GetAttackTarget(oKing);
+    if (!GetIsObjectValid(oFoe)) oFoe = GetAttemptedAttackTarget();
+    if (!GetIsObjectValid(oFoe))
+        oFoe = GetNearestCreature(CREATURE_TYPE_PLAYER_CHAR, PLAYER_CHAR_IS_PC, oKing);
+
+    if (GetIsObjectValid(oFoe))
     {
-        object oPk = HW_SpawnPumpkin(HW_Scatter(GetLocation(oKing), 2.0, 5.0), &quot;cursed&quot;);
-        if (GetIsObjectValid(oPk))
+        int k = 1;
+        object oSk = GetNearestObjectByTag(HW_TAG_SKEL, oKing, k);
+        while (GetIsObjectValid(oSk) &amp;&amp; GetDistanceBetween(oSk, oKing) &lt;= 20.0)
         {
-            ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                EffectVisualEffect(VFX_IMP_PULSE_FIRE), oPk);
-            SpeakString(&quot;Grow, my pretties!&quot;);
+            if (!GetIsDead(oSk) &amp;&amp; GetCommandable(oSk)
+                &amp;&amp; !GetIsObjectValid(GetAttackTarget(oSk)))
+            {
+                AssignCommand(oSk, ClearAllActions());
+                AssignCommand(oSk, ActionAttack(oFoe));
+            }
+            oSk = GetNearestObjectByTag(HW_TAG_SKEL, oKing, ++k);
         }
     }
+
     ExecuteScript(&quot;x2_def_endcombat&quot;, oKing);
 }
 </code></pre>
