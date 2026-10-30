@@ -24,6 +24,12 @@ void main()
     // Keep creatures in their spawn area (anti-kiting); see leash_to_area.nss.
     ExecuteScript("leash_to_area", OBJECT_SELF);
 
+    // The sweep is for players' leftovers: only a PC arriving runs it. Without
+    // this every wandering NPC, summon, encounter spawn and leash jump crossing
+    // the area line walked the whole area (CT_IN_PROGRESS below throttles
+    // nothing - it is set and cleared inside this one synchronous call).
+    if (!GetIsPC(GetEnteringObject())) return;
+
 
 /* bypass if currently in-progress (blocked) or ClearTrash is disabled */
 if ((GetLocalInt(OBJECT_SELF, "CT_IN_PROGRESS") != 1) &&

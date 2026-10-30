@@ -69,8 +69,8 @@ int CP_DmGate(object oPC)
 // Where load is spawned: the party venue, resolved by tag so it is not hardcoded
 // to a position. The Well of Eru is chosen because it is the hub AND because it
 // is not one of the 65 areas running d_cleartrash.nss, which sweeps every object
-// in the area for every object that enters, with no GetIsPC guard -- spawning
-// hundreds of objects into one of those would measure the sweep, not the server.
+// in the area when a PC enters (before 2026-10-30 it did so for EVERY object
+// entering, which would have measured the sweep, not the server).
 object CP_Venue()
 {
     return GetObjectByTag("TheWellofEru");
