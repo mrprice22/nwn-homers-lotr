@@ -11,9 +11,11 @@
 //:: Created By: Preston Watamaniuk
 //:: Created On: Nov 23, 2001
 //:://////////////////////////////////////////////
-#include "NW_I0_GENERIC"
+// Deliberately empty. It used to fake-cast Death Ward at GetObjectByTag("spells"),
+// a tag no object carries: a failed lookup and an action-queue push on every
+// creature using this heartbeat, every 6 seconds, for no effect (roadmap:
+// perf-nw-c2-default1-noop). The NW_I0_GENERIC include went with it.
 
 void main()
 {
-ActionCastFakeSpellAtObject(SPELL_DEATH_WARD,GetObjectByTag("spells"));
 }
