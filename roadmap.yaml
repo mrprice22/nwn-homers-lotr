@@ -7873,43 +7873,54 @@ ideas:
   - id: perf-nw-c2-default1-noop
     title: "Creature heartbeat override fake-casts at a tag that does not exist"
     group: qol
-    status: planned
+    status: implemented
     hidden: true
     type: Defect
     player: "HomelessSon (Server Admin)"
-    date: "2026-09-04"
+    date: "2026-10-30"
+    commit: 2cf36c4b5f7
     notes: "A small piece of wasted work every creature does, several times a minute, for no effect."
-    impl_notes: "unpacked/nw_c2_default1.nss:18 is ActionCastFakeSpellAtObject(SPELL_DEATH_WARD, GetObjectByTag(\"spells\")). No object in the module carries the tag 'spells' (zero hits across every JSON), so this is a failed tag lookup plus an action-queue push on 706 placed creatures every 6 seconds, permanently, with no effect. It also #includes the very large NW_I0_GENERIC for nothing. Unchanged since e1fc8e2f249 (2026-04-30) and identical on both realms, so it is NOT the cause of the live realm's load -- dev runs it at 5% CPU. Cheap to remove; let profiler data rank it."
+    impl_notes: "unpacked/nw_c2_default1.nss:18 is ActionCastFakeSpellAtObject(SPELL_DEATH_WARD, GetObjectByTag(\"spells\")). No object in the module carries the tag 'spells' (zero hits across every JSON), so this is a failed tag lookup plus an action-queue push on 706 placed creatures every 6 seconds, permanently, with no effect. It also #includes the very large NW_I0_GENERIC for nothing. Unchanged since e1fc8e2f249 (2026-04-30) and identical on both realms, so it is NOT the cause of the live realm's load -- dev runs it at 5% CPU. Cheap to remove; let profiler data rank it. Fixed 2026-10-30: the ActionCastFakeSpellAtObject line and the NW_I0_GENERIC include removed; main() is empty with a comment. rm_randomwalkaro ExecuteScripts it and loses nothing."
     manual_steps:
       - step: "After removal, confirm ordinary creatures still behave normally (idle, notice and engage) -- the override replaced the stock heartbeat, so removing the line must not remove the heartbeat itself."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Creatures using nw_c2_default1 (e.g. the Pumpkin-Born Skeletons) still idle, notice and fight normally."
         status: open
         kind: uat
         tester: "any"
   - id: perf-cleartrash-no-pc-guard
     title: "Area trash sweep runs for every NPC footfall, not just players"
     group: qol
-    status: planned
+    status: implemented
     hidden: true
     type: Defect
     player: "HomelessSon (Server Admin)"
-    date: "2026-09-04"
+    date: "2026-10-30"
+    commit: a31b9b32d80
     notes: "Housekeeping in 74 areas does far more work than it needs to."
-    impl_notes: "unpacked/d_cleartrash.nss:22 (OnEnter on 65 areas) and the byte-identical s_cleartrash.nss (9 more) never check GetIsPC(GetEnteringObject()), so a full GetFirstObjectInArea/GetNextObjectInArea sweep runs for EVERY object that crosses an area line: wandering NPCs, summons, encounter spawns, leash jumps. Its CT_IN_PROGRESS guard is set and cleared inside the same synchronous call, so it throttles nothing. Object census is 8,533 placeables + 1,822 waypoints + 1,004 creatures + 835 doors + 483 triggers across 293 areas. Likely fix is a GetIsPC early-return, but confirm against profiler data first -- present on both realms, so not by itself the live-realm delta."
+    impl_notes: "unpacked/d_cleartrash.nss:22 (OnEnter on 65 areas) and the byte-identical s_cleartrash.nss (9 more) never check GetIsPC(GetEnteringObject()), so a full GetFirstObjectInArea/GetNextObjectInArea sweep runs for EVERY object that crosses an area line: wandering NPCs, summons, encounter spawns, leash jumps. Its CT_IN_PROGRESS guard is set and cleared inside the same synchronous call, so it throttles nothing. Object census is 8,533 placeables + 1,822 waypoints + 1,004 creatures + 835 doors + 483 triggers across 293 areas. Likely fix is a GetIsPC early-return, but confirm against profiler data first -- present on both realms, so not by itself the live-realm delta. Fixed 2026-10-30: GetIsPC(GetEnteringObject()) early return after the leash ExecuteScript in both d_cleartrash.nss and s_cleartrash.nss (still byte-identical); cp_dm_inc comment updated. The mw_*_enter scripts ExecuteScript it from their OnEnter, so the entering object is still in context."
     manual_steps:
       - step: "After the guard is added, confirm dropped-item cleanup still happens in a cleartrash area when a PLAYER enters -- the sweep must still run for players, just not for every NPC."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Drop an item in an area that runs d_cleartrash (e.g. any of the 65 listed in the impl notes), leave, and come back after 4+ game hours: the item is swept on a PC's entry as before. Creatures still leash back to their spawn area."
         status: open
         kind: uat
         tester: "any"
   - id: s2-enrage-on-player-death
     title: "Season 2: bosses permanently enrage every time a player dies to them"
     group: bosses
-    status: planned
+    status: implemented
     hidden: true
     type: Defect
     player: "HomelessSon (Server Admin)"
-    date: "2026-09-04"
+    date: "2026-10-30"
+    commit: b2528312f5b
     notes: "On the live realm, dying to a boss makes that boss permanently stronger for everyone."
-    impl_notes: "The ENR_OnPCDied mechanism added in b2528312f5b (2026-09-01) is DEV-ONLY; season 2's snapshot predates it. Without it, a PC who dies to a boss and clicks Respawn is seen by the next enrage tick as alive and in another area, i.e. as having RETREATED, so ENR_TriggerEnrage fires: +2 all abilities, stacking, plus a heal of 25% of missing HP. Every player death therefore buffs the boss cumulatively for the rest of its life. Found while profiling, not by a player report. The fix already exists on dev -- this is a promotion decision, not new work."
+    impl_notes: "The ENR_OnPCDied mechanism added in b2528312f5b (2026-09-01) is DEV-ONLY; season 2's snapshot predates it. Without it, a PC who dies to a boss and clicks Respawn is seen by the next enrage tick as alive and in another area, i.e. as having RETREATED, so ENR_TriggerEnrage fires: +2 all abilities, stacking, plus a heal of 25% of missing HP. Every player death therefore buffs the boss cumulatively for the rest of its life. Found while profiling, not by a player report. The fix already exists on dev -- this is a promotion decision, not new work. 2026-10-30: confirmed ENR_OnPCDied is in season 2's enr_inc.nss / ondeath020.nss (dev and live trees are identical since the 2026-10-30 promotion), so the live realm already has the fix; bookkeeping only."
     manual_steps:
       - step: "Decide whether to promote the enrage fix to season 2 out of band or let it ride the next scheduled promotion. Nothing here should be promoted without the usual explicit go-ahead."
         status: open
@@ -8556,12 +8567,19 @@ ideas:
   - id: basilsik-heart
     title: "Basilsik Heart"
     group: wiki-tools
-    status: planned
+    status: implemented
     type: Defect
     player: "Rajmund (Ray)"
-    date: "2026-09-09"
+    date: "2026-10-30"
+    commit: aff8342bda8
     discord: {'thread_id': '1547344872296419419', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1547344872296419419'}
-    notes: "<div>The item name \"Basilsik Heart\" is misspelled. The wiki indicates the item is accessible, but it can be found in Harad, which is not accessible.</div>"
+    notes: "<div>The item name \"Basilsik Heart\" is misspelled. The wiki indicates the item is accessible, but it can be found in Harad, which is not accessible.</div><div><strong>Fixed:</strong> the item is now spelled Basilisk Heart. (Whether Harad should be reachable is a separate question.)</div>"
+    impl_notes: "basilsikhear007.uti LocalizedName and its itempalcus.itp leaf label -&gt; 'Basilisk Heart'. Resref and Tag (BasilsikHeart) unchanged so nothing keyed on them moves; basilisk001.utc references the resref only and no placed instance embeds the item. Copies already in player inventories keep the old name. The wiki 'accessible' flag for Harad is the generator's, not touched."
+    manual_steps:
+      - step: "Spawn or loot a Basilisk Heart (basilsikhear007): its name reads 'Basilisk Heart'."
+        status: open
+        kind: uat
+        tester: "any"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8600,12 +8618,19 @@ ideas:
   - id: card-mennard-carrying-elronds-blade
     title: "Card Mennard carrying Elrond's blade"
     group: items-gear
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Rajmund (Ray)"
-    date: "2026-09-08"
+    date: "2026-10-30"
+    commit: dc8e1a85a9a
     discord: {'thread_id': '1546974113938149508', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1546974113938149508'}
-    notes: "<div>Card Mennard is carrying Elrond's blade.</div>"
+    notes: "<div>Card Mennard is carrying Elrond's blade.</div><div><strong>Fixed:</strong> Card Mennard in Edoras now carries a Rohirrim Longsword of the Elite instead of the Longsword of Elrond, both as placed and after he respawns.</div>"
+    impl_notes: "arohirrimsold006.utc Equip slot 16 handofpaladine -&gt; rohirrimlongswor, and the embedded struct of his edoras.git.json instance replaced with the rohirrimlongswor struct arohirrimsold004 already carries (Dropable kept 1). His House of Healing twin (arohirrimsold0_2) already carried the Spear of the Ridermark. check_divergent_creatures OK."
+    manual_steps:
+      - step: "Edoras: examine or defeat Card Mennard - he wields a Rohirrim Longsword of the Elite, not the Longsword of Elrond, and still does after he respawns."
+        status: open
+        kind: uat
+        tester: "any"
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -11102,7 +11127,7 @@ ideas:
         status: open
         kind: uat
         tester: "any"
-      - step: "Claim week (Nov 1-7): the board opens the pick-one conversation showing your tier's prizes plus every lower tier's (tier 1 sees all 12, tier 2 sees 8, tier 3 sees 4). Claiming one works, and a second claim or relog is refused."
+      - step: "Claim week (Nov 1-7): the board opens the pick-one conversation showing your tier's prizes plus every lower tier's (tier 1 sees all 12, tier 2 sees 8, tier 3 sees 5 - the Pail moved to tier 3). Claiming one works, and a second claim or relog is refused."
         status: open
         kind: uat
         tester: "any"
