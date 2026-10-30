@@ -9,11 +9,13 @@
 // * Sacrifice: below 80% HP, at most once per 40s, he drains a Pumpkin-Born
 //   Skeleton within 10m - its soul streams into him (ghost visage and smoke on
 //   the skeleton, an evil beam to the King), the husk crumbles and he heals
-//   15% of his max HP. Not a kill: no guts, no pumpkin.
+//   HW_SAC_HEAL_PCT of his max HP. Not a kill: no guts, no pumpkin. In the
+//   Final Harvest (HW_Final) it is once per 20s and heals him to full.
 // * Harvest: every 18s of being fought he raises three cursed pumpkins round
 //   himself and calls up a band of skeletons exactly as a smashed pumpkin
 //   does (Power Word Kill burst, 1-3 skeletons scaled to the area tier or his
-//   attacker, whichever is higher, sent at that attacker).
+//   attacker, whichever is higher, sent at that attacker). 2-6 in the Final
+//   Harvest.
 //
 // Test realms (SP_DEV_TOOLS) print what the sacrifice did and why, at most
 // every 6s, to players in his area.
@@ -33,8 +35,9 @@ void HW_SacrificeFinish(object oKing, object oSk)
         DestroyObject(oSk, 0.2);
     }
     if (!GetIsObjectValid(oKing) || GetIsDead(oKing)) return;
-    ApplyEffectToObject(DURATION_TYPE_INSTANT,
-        EffectHeal(GetMaxHitPoints(oKing) * HW_SAC_HEAL_PCT / 100), oKing);
+    int nHeal = HW_Final() ? GetMaxHitPoints(oKing)
+                           : GetMaxHitPoints(oKing) * HW_SAC_HEAL_PCT / 100;
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectHeal(nHeal), oKing);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_HEALING_G), oKing);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_EVIL_HELP), oKing);
 }
@@ -59,7 +62,7 @@ string HW_TrySacrifice(object oKing)
     if (nPct >= HW_SAC_BELOW_PCT) return "";
     string sHp = "HP " + IntToString(nPct) + "%: ";
     int nNow = HW_Now();
-    int nWait = HW_SAC_EVERY - (nNow - GetLocalInt(oKing, "hw_sac_at"));
+    int nWait = HW_SacEvery() - (nNow - GetLocalInt(oKing, "hw_sac_at"));
     if (nWait > 0) return sHp + "sacrifice cooling down, " + IntToString(nWait) + "s left";
 
     int n = 1;
@@ -99,7 +102,8 @@ void HW_Harvest(object oKing, object oFoe)
     }
     location lSkel = HW_Scatter(lKing, 3.0, 6.0);
     ApplyEffectAtLocation(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_PWKILL), lSkel);
-    HW_SpawnSkeletons(lSkel, HW_AreaTier(GetResRef(GetArea(oKing))), oFoe, 1 + Random(3));
+    int nBand = HW_Final() ? 2 + Random(5) : 1 + Random(3);
+    HW_SpawnSkeletons(lSkel, HW_AreaTier(GetResRef(GetArea(oKing))), oFoe, nBand);
     SpeakString("Grow, my pretties! Rise!");
 }
 

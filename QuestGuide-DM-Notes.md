@@ -1193,7 +1193,21 @@ Roadmap `seasonal-update`. Unjournaled, date-driven, no admin lever.
   Eru; the King spawns at a random marsh placeable in `deadmarshes`; boss rings come from
   `HW_BossHome()` in the generated `hw_areas_inc.nss` (re-run `bin/gen-halloween-areas.py --write`
   after area or boss changes; the build gate says when).
-- **Prize stats** are the approved catalogue, open for retuning (roadmap design question).
+- **Final Harvest (Oct 30-31):** `HW_FINAL_START` + the `HW_FINAL_*` constants at the top of
+  `hw_inc.nss`. `HW_ReadFinal()` is cached on the module local `hw_final` by `hw_modload` (before
+  `HW_Begin`) and by `hw_tick`'s once-a-minute calendar read; `HW_Final()` is the hot-path read, and
+  the `HW_KillChancePct/AreaCap/TownCap/ArmyCap/KingGuts/SacEvery/TravelDue` helpers return the Final
+  or normal value. In Final mode: darker lighting (`HW_DarkenArea`; a flip on a running server calls
+  `HW_RedarkenAll`), travel 20-50m / 75-150m, kill chance 30%, area cap 30, town cap 12, army cap 30,
+  King guts 50, sacrifice every 20s healing to full, harvest bands 2-6, and `HW_SkelHarden` gives
+  hostile event skeletons (`HW_SpawnSkeletons`, `HW_RecruitToArmy`; not allies) negative damage
+  `clamp(level/3, 1, 20)` (exempted in `tests/check_bonus_pool.py`, being a different damage type).
+  If the King proves unkillable, `HW_FINAL_SAC_EVERY` back to 40 is the one-line relief.
+- **Guts reminder:** `HW_GutsReminder()` from `hw_tick`, Oct 31 only: broadcasts at 20:00 / 22:00 /
+  23:00 / 23:45 local; the newest slot passed fires once (`hw_remind_n`), so a restart does not replay.
+- **Prize stats** are the approved catalogue, open for retuning (roadmap design question). The
+  Bottomless Pumpkin Pail moved from tier 2 to tier 3 on 2026-10-30, before any 2026 claim
+  (`HW_PrizeTier` + its `hw_board.dlg` reply now gated by `hw_cv_3`).
 
 ## Unfinished / partly journalled threads
 

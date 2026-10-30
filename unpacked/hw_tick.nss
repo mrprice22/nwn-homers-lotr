@@ -8,7 +8,9 @@
 //   * counts the distance the PC walks and drops a pumpkin every 40-100m in
 //     town areas, every 150-300m in hostile ones (test realms say so in chat);
 //   * now and then plays a spooky sound from a nearby pumpkin;
-//   * sends skeletons abandoned in an emptied area to the Pumpkin King.
+//   * sends skeletons abandoned in an emptied area to the Pumpkin King;
+//   * tracks the Final Harvest (Oct 30-31) and, on Oct 31's evening, shouts
+//     at everyone to hand their guts in before midnight.
 
 #include "hw_inc"
 #include "season_prof_inc"
@@ -32,6 +34,15 @@ void main()
             else if (nNew == HW_PHASE_CLAIM)  HW_SpawnBoard();
             else                              HW_SweepAll(FALSE);
         }
+        int bFinal = HW_ReadFinal();
+        if (bFinal != GetLocalInt(oMod, "hw_final"))
+        {
+            SetLocalInt(oMod, "hw_final", bFinal);
+            // Begun on a running server: redo the lighting at the Final values.
+            if (bFinal && nNew == HW_PHASE_ACTIVE && nOld == HW_PHASE_ACTIVE)
+                HW_RedarkenAll();
+        }
+        if (nNew == HW_PHASE_ACTIVE) HW_GutsReminder();
     }
     // Prize effects (auras, glows, the wisp) run all year, not just in October:
     // once a minute, put back whatever a login, death or respawn stripped.
@@ -78,9 +89,7 @@ void main()
                 int nDue = GetLocalInt(oPC, "hw_walk_due");
                 if (nDue <= 0)
                 {
-                    nDue = (nTier == 0)
-                        ? HW_TRAVEL_TOWN_MIN + Random(HW_TRAVEL_TOWN_SPAN + 1)
-                        : HW_TRAVEL_HOSTILE_MIN + Random(HW_TRAVEL_HOSTILE_SPAN + 1);
+                    nDue = HW_TravelDue(nTier == 0);
                     SetLocalInt(oPC, "hw_walk_due", nDue);
                 }
                 if (fWalked >= IntToFloat(nDue))

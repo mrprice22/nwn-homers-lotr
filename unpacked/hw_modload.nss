@@ -14,6 +14,8 @@ void main()
     DelayCommand(6.0, HW_RestoreHearths());
     int nPhase = HW_ReadPhase();
     SetLocalInt(GetModule(), "hw_phase", nPhase);
+    // Before HW_Begin, so the first darken already uses the Final values.
+    SetLocalInt(GetModule(), "hw_final", HW_ReadFinal());
     if (nPhase == HW_PHASE_ACTIVE)
         DelayCommand(5.0, HW_Begin());
     else if (nPhase == HW_PHASE_CLAIM)

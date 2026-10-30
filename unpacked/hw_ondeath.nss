@@ -13,7 +13,7 @@ void main()
     if (HW_IsSkeleton(oCre)) return;
     object oArea = GetArea(oCre);
     if (!GetIsObjectValid(oArea) || HW_AreaExcluded(GetResRef(oArea))) return;
-    if (Random(100) >= HW_KILL_CHANCE_PCT) return;
+    if (Random(100) >= HW_KillChancePct()) return;
 
     int nTier = HW_AreaTier(GetResRef(oArea));
     HW_SpawnPumpkin(HW_Scatter(GetLocation(oCre), 1.0, 3.0),

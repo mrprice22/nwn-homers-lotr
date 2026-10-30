@@ -79,6 +79,12 @@ EXEMPT_DAMAGE = {
     "nw_s0_warcry.nss": DAMAGE_ONLY_REASON,
     "x0_s0_divfav.nss": DAMAGE_ONLY_REASON,
     "x2_s2_divwrath.nss": DAMAGE_ONLY_REASON,
+    # The Final Harvest (Halloween, Oct 30-31) gives hostile event skeletons up
+    # to +20 NEGATIVE damage. A different type from the pool's bludgeoning, so
+    # it stacks instead of fighting the pool; pooled, it would turn into
+    # bludgeoning and stop being negative energy at all.
+    "hw_inc.nss": "Final Harvest skeletons: negative-typed damage bonus, a "
+                  "different type from the pool's bludgeoning",
 }
 
 # The forked buff spells, and the ledger source key each one must register
