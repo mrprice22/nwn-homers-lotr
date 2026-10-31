@@ -160,6 +160,23 @@ const int   HW_SAC_EVERY             = 40;    // seconds between King sacrifices
 const int   HW_SAC_BELOW_PCT         = 80;    // King sacrifices only below this HP %
 const int   HW_SAC_HEAL_PCT          = 30;
 
+// THE FINAL HARVEST: the event&#x27;s last two nights (Oct 30 - 31) turn the screws.
+// Every value below replaces its normal twin above while HW_Final() is TRUE,
+// read through the HW_*() helpers further down; midnight on Oct 31 ends the
+// event and the Final Harvest with it, and the next October starts normal.
+const string HW_FINAL_START               = &quot;10-30&quot;;
+const int    HW_FINAL_TRAVEL_TOWN_MIN     = 20;    // town: one per 20-50m
+const int    HW_FINAL_TRAVEL_TOWN_SPAN    = 30;
+const int    HW_FINAL_TRAVEL_HOSTILE_MIN  = 75;    // hostile: one per 75-150m
+const int    HW_FINAL_TRAVEL_HOSTILE_SPAN = 75;
+const int    HW_FINAL_KILL_CHANCE_PCT     = 30;
+const int    HW_FINAL_AREA_CAP            = 30;
+const int    HW_FINAL_TOWN_CAP            = 12;
+const int    HW_FINAL_ARMY_CAP            = 30;
+const int    HW_FINAL_KING_GUTS           = 50;
+const int    HW_FINAL_SAC_EVERY           = 20;    // and the sacrifice heals him to full
+const int    HW_FINAL_SKEL_NEG_MAX        = 20;    // negative damage, +1 per 3 levels
+
 const string HW_KING_AREA = &quot;deadmarshes&quot;;
 // The King&#x27;s theme: ambientmusic.2da row of mus_hl_pumpkins (music/tracks.json,
 // rows are append-only so this never moves).
@@ -235,6 +252,39 @@ int HW_ReadPhase()
 int HW_Phase()
 {
     return GetLocalInt(GetModule(), &quot;hw_phase&quot;);
+}
+
+// Reads the calendar: TRUE from HW_FINAL_START to the end of the event.
+int HW_ReadFinal()
+{
+    if (HW_ReadPhase() != HW_PHASE_ACTIVE) return FALSE;
+    sqlquery q = SqlPrepareQueryObject(GetModule(),
+        &quot;SELECT strftime(&#x27;%m-%d&#x27;,&#x27;now&#x27;,&#x27;localtime&#x27;) &gt;= @f&quot;);
+    SqlBindString(q, &quot;@f&quot;, HW_FINAL_START);
+    return SqlStep(q) &amp;&amp; SqlGetInt(q, 0) != 0;
+}
+
+// The Final Harvest as last read by hw_modload / hw_tick.
+int HW_Final()
+{
+    return GetLocalInt(GetModule(), &quot;hw_final&quot;) &amp;&amp; HW_Phase() == HW_PHASE_ACTIVE;
+}
+
+int HW_KillChancePct() { return HW_Final() ? HW_FINAL_KILL_CHANCE_PCT : HW_KILL_CHANCE_PCT; }
+int HW_AreaCap()       { return HW_Final() ? HW_FINAL_AREA_CAP        : HW_AREA_CAP; }
+int HW_TownCap()       { return HW_Final() ? HW_FINAL_TOWN_CAP        : HW_TOWN_CAP; }
+int HW_ArmyCap()       { return HW_Final() ? HW_FINAL_ARMY_CAP        : HW_ARMY_CAP; }
+int HW_KingGuts()      { return HW_Final() ? HW_FINAL_KING_GUTS       : HW_KING_GUTS; }
+int HW_SacEvery()      { return HW_Final() ? HW_FINAL_SAC_EVERY       : HW_SAC_EVERY; }
+
+// Metres to the next travel pumpkin, rolled fresh each time.
+int HW_TravelDue(int bTown)
+{
+    if (HW_Final())
+        return bTown ? HW_FINAL_TRAVEL_TOWN_MIN + Random(HW_FINAL_TRAVEL_TOWN_SPAN + 1)
+                     : HW_FINAL_TRAVEL_HOSTILE_MIN + Random(HW_FINAL_TRAVEL_HOSTILE_SPAN + 1);
+    return bTown ? HW_TRAVEL_TOWN_MIN + Random(HW_TRAVEL_TOWN_SPAN + 1)
+                 : HW_TRAVEL_HOSTILE_MIN + Random(HW_TRAVEL_HOSTILE_SPAN + 1);
 }
 
 // ---------------------------------------------------------------- db
@@ -488,7 +538,7 @@ object HW_SpawnPumpkin(location lAt, string sKind, int nBossSlot = -1, string sK
     if (sKind == &quot;town&quot;)
     {
         sTag = HW_TAG_TOWN;
-        if (GetLocalInt(oArea, &quot;hw_town_n&quot;) &gt;= HW_TOWN_CAP) return OBJECT_INVALID;
+        if (GetLocalInt(oArea, &quot;hw_town_n&quot;) &gt;= HW_TownCap()) return OBJECT_INVALID;
         nTier = 0;
     }
     else if (sKind == &quot;boss&quot;)
@@ -496,7 +546,7 @@ object HW_SpawnPumpkin(location lAt, string sKind, int nBossSlot = -1, string sK
         sTag = HW_TAG_BOSS;
         if (nTier &lt;= 0) nTier = 3;   // a boss in a &quot;peaceful&quot; hub still bites
     }
-    else if (sKey == &quot;&quot; &amp;&amp; HW_CursedCount(sArea) &gt;= HW_AREA_CAP)
+    else if (sKey == &quot;&quot; &amp;&amp; HW_CursedCount(sArea) &gt;= HW_AreaCap())
         return OBJECT_INVALID;
 
     string sRes = &quot;hw_pumpkin&quot; + IntToString(1 + Random(4));
@@ -635,6 +685,22 @@ void HW_PlantBossRings()
 
 // ---------------------------------------------------------------- skeletons
 
+// The Final Harvest: hostile event skeletons hit with negative energy, +1 per
+// three levels up to +20 on the hardest. Never called for the player-allied
+// skeletons. A different damage type from the bonus ledger&#x27;s bludgeoning, so it
+// stacks with it instead of fighting it (see tests/check_bonus_pool.py).
+void HW_SkelHarden(object oSk, int nLevel)
+{
+    if (!HW_Final()) return;
+    int n = nLevel / 3;
+    if (n &lt; 1) n = 1;
+    if (n &gt; HW_FINAL_SKEL_NEG_MAX) n = HW_FINAL_SKEL_NEG_MAX;
+    int nConst = BPool_DamageConst(n);
+    if (nConst == 0) return;
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, SupernaturalEffect(
+        EffectDamageIncrease(nConst, DAMAGE_TYPE_NEGATIVE)), oSk);
+}
+
 void HW_SpawnSkeletons(location lAt, int nTier, object oKiller, int nCount)
 {
     int nLevel = HW_TierLevel(nTier);
@@ -657,6 +723,7 @@ void HW_SpawnSkeletons(location lAt, int nTier, object oKiller, int nCount)
         effect e = EffectLinkEffects(EffectTemporaryHitpoints(nLevel * 20),
                                      EffectACIncrease(nLevel / 5));
         ApplyEffectToObject(DURATION_TYPE_PERMANENT, SupernaturalEffect(e), oSk);
+        HW_SkelHarden(oSk, nLevel);
         ApplyEffectToObject(DURATION_TYPE_INSTANT,
             EffectVisualEffect(VFX_FNF_SUMMON_UNDEAD), oSk);
         DestroyObject(oSk, HW_SKEL_LIFETIME);
@@ -748,8 +815,10 @@ void HW_DarkenArea(object oArea, float fFade = 4.0)
     SetLocalInt(oArea, &quot;hw_lit&quot;, 1);
 
     int bInside = GetIsAreaInterior(oArea);
-    // Ambient goes dim and violet, diffuse dim and pumpkin-orange.
-    float fA = bInside ? 0.75 : 0.55;
+    // Ambient goes dim and violet, diffuse dim and pumpkin-orange. The Final
+    // Harvest goes darker still.
+    int bFinal = HW_Final();
+    float fA = bInside ? (bFinal ? 0.50 : 0.75) : (bFinal ? 0.35 : 0.55);
     int i;
     for (i = AREA_LIGHT_COLOR_MOON_AMBIENT; i &lt;= AREA_LIGHT_COLOR_SUN_DIFFUSE; i++)
     {
@@ -767,7 +836,7 @@ void HW_DarkenArea(object oArea, float fFade = 4.0)
     SetLocalInt(oArea, &quot;hw_foga_m&quot;, GetFogAmount(FOG_TYPE_MOON, oArea));
     SetFogColor(FOG_TYPE_SUN, 0x3A2818, oArea, fFade);    // smoky ember
     SetFogColor(FOG_TYPE_MOON, 0x24142E, oArea, fFade);   // bruise violet
-    int nMin = bInside ? 8 : 18;
+    int nMin = bInside ? (bFinal ? 15 : 8) : (bFinal ? 30 : 18);
     if (GetFogAmount(FOG_TYPE_SUN, oArea) &lt; nMin) SetFogAmount(FOG_TYPE_SUN, nMin, oArea);
     if (GetFogAmount(FOG_TYPE_MOON, oArea) &lt; nMin) SetFogAmount(FOG_TYPE_MOON, nMin, oArea);
 }
@@ -993,6 +1062,7 @@ object HW_RecruitToArmy(string sRes, object oKing)
     effect e = EffectLinkEffects(EffectTemporaryHitpoints(nLevel * 20),
                                  EffectACIncrease(nLevel / 5));
     ApplyEffectToObject(DURATION_TYPE_PERMANENT, SupernaturalEffect(e), oSk);
+    HW_SkelHarden(oSk, nLevel);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_SUMMON_UNDEAD), oSk);
     return oSk;
 }
@@ -1062,7 +1132,7 @@ int HW_DrainAbandoned(int nBeat)
         {
             string sRes = GetResRef(oSk);
             DestroyObject(oSk);
-            if (nArmy &lt; HW_ARMY_CAP &amp;&amp; GetIsObjectValid(HW_RecruitToArmy(sRes, oKing)))
+            if (nArmy &lt; HW_ArmyCap() &amp;&amp; GetIsObjectValid(HW_RecruitToArmy(sRes, oKing)))
             {
                 nArmy++;
                 nJoined++;
@@ -1123,6 +1193,52 @@ void HW_DarkenAll()
     {
         HW_DarkenArea(oA, 0.0);
         oA = GetNextArea();
+    }
+}
+
+// The Final Harvest began on a running server: put every darkened area back
+// and darken it again at the Final values.
+void HW_RedarkenAll()
+{
+    object oA = GetFirstArea();
+    while (GetIsObjectValid(oA))
+    {
+        if (GetLocalInt(oA, &quot;hw_lit&quot;))
+        {
+            HW_RestoreLighting(oA);
+            HW_DarkenArea(oA, 4.0);
+        }
+        oA = GetNextArea();
+    }
+}
+
+// Oct 31 evening: shout at everyone to hand their guts in before midnight,
+// at 20:00, 22:00, 23:00 and 23:45. Only the newest slot passed fires, once,
+// so a restart mid-evening does not replay the earlier ones.
+void HW_GutsReminder()
+{
+    // &quot;HH:MM&quot; compares correctly as a string - in SQL, since NWScript cannot.
+    sqlquery q = SqlPrepareQueryObject(GetModule(),
+        &quot;SELECT strftime(&#x27;%m-%d&#x27;,&#x27;now&#x27;,&#x27;localtime&#x27;) = @e, &quot; +
+        &quot;CASE WHEN t &gt;= &#x27;23:45&#x27; THEN 4 WHEN t &gt;= &#x27;23:00&#x27; THEN 3 &quot; +
+        &quot;WHEN t &gt;= &#x27;22:00&#x27; THEN 2 WHEN t &gt;= &#x27;20:00&#x27; THEN 1 ELSE 0 END &quot; +
+        &quot;FROM (SELECT strftime(&#x27;%H:%M&#x27;,&#x27;now&#x27;,&#x27;localtime&#x27;) AS t)&quot;);
+    SqlBindString(q, &quot;@e&quot;, HW_END);
+    if (!SqlStep(q) || SqlGetInt(q, 0) == 0) return;
+    int nSlot = SqlGetInt(q, 1);
+    object oMod = GetModule();
+    if (nSlot == 0 || nSlot &lt;= GetLocalInt(oMod, &quot;hw_remind_n&quot;)) return;
+    SetLocalInt(oMod, &quot;hw_remind_n&quot;, nSlot);
+
+    string sWhen = (nSlot == 4) ? &quot;in 15 minutes&quot; : &quot;at midnight&quot;;
+    string sMsg = COLOR_ORANGE + &quot;[Harvest of Shadows] The harvest ends &quot; + sWhen
+        + &quot;! Hand your Pumpkin Guts in at the Gourd Board in the Well of Eru - &quot;
+        + &quot;guts still in your pack at midnight are worth nothing.&quot; + COLOR_END;
+    object oPC = GetFirstPC();
+    while (GetIsObjectValid(oPC))
+    {
+        if (!GetIsDM(oPC)) SendMessageToPC(oPC, sMsg);
+        oPC = GetNextPC();
     }
 }
 
@@ -1437,8 +1553,9 @@ int HW_Claimed(object oPC)
 int HW_PrizeTier(string sRes)
 {
     if (sRes == &quot;hw26_crown&quot; || sRes == &quot;hw26_grin&quot; || sRes == &quot;hw26_mantle&quot; || sRes == &quot;hw26_scythe&quot;) return 1;
-    if (sRes == &quot;hw26_shroud&quot; || sRes == &quot;hw26_gaunt&quot; || sRes == &quot;hw26_lantern&quot; || sRes == &quot;hw26_pail&quot;) return 2;
-    if (sRes == &quot;hw26_charm&quot; || sRes == &quot;hw26_ring&quot; || sRes == &quot;hw26_hearth&quot; || sRes == &quot;hw26_wisp&quot;) return 3;
+    if (sRes == &quot;hw26_shroud&quot; || sRes == &quot;hw26_gaunt&quot; || sRes == &quot;hw26_lantern&quot;) return 2;
+    // The Pail moved down to tier 3 before the 2026 claim week opened.
+    if (sRes == &quot;hw26_pail&quot; || sRes == &quot;hw26_charm&quot; || sRes == &quot;hw26_ring&quot; || sRes == &quot;hw26_hearth&quot; || sRes == &quot;hw26_wisp&quot;) return 3;
     return 0;
 }
 </code></pre>

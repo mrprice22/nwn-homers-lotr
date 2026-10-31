@@ -96,7 +96,7 @@ void main()
     // 25 guts to every party member nearby, straight into the pack. The
     // occasional Jack-o&#x27;-Lantern Charm drops to the ground so the party loot
     // roll decides who keeps it.
-    HW_GiveGuts(oKiller, l, HW_KING_GUTS);
+    HW_GiveGuts(oKiller, l, HW_KingGuts());
     if (Random(100) &lt; 20)
         CreateObject(OBJECT_TYPE_ITEM, &quot;hw26_charm&quot;, l);
     ApplyEffectAtLocation(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_PWKILL), l);
@@ -118,7 +118,9 @@ void main()
 
     string sMsg = COLOR_ORANGE + &quot;[Harvest of Shadows] The Pumpkin King has been cut down&quot;
         + (GetIsPC(oKiller) ? &quot; by &quot; + GetName(oKiller) : &quot;&quot;)
-        + &quot; in the Dead Marshes! He will rise again within the hour.&quot; + COLOR_END;
+        + &quot; in the Dead Marshes! He will rise again within the hour.&quot;
+        + (HW_Final() ? &quot; In the Final Harvest he pays &quot; + IntToString(HW_FINAL_KING_GUTS)
+                        + &quot; Pumpkin Guts to everyone who fought him.&quot; : &quot;&quot;) + COLOR_END;
     object oP = GetFirstPC();
     while (GetIsObjectValid(oP))
     {
