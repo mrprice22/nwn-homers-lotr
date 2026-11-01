@@ -55,6 +55,13 @@ set -euo pipefail
 : "${ROADMAP_TUNNEL_IMAGE:=docker.io/cloudflare/cloudflared:latest}"
 : "${ROADMAP_TUNNEL_ENV:=$HOME/.config/roadmap-editor/tunnel.env}"
 : "${ROADMAP_EDITOR_PORT:=8765}"
+# Transport to the Cloudflare edge. cloudflared defaults to QUIC (UDP), but on
+# this host's link the QUIC connections hit "timeout: no recent network
+# activity" every 20s-2min (2026-11-01), dropping every in-flight request — fatal
+# for the long-lived Icecast audio streams that share this tunnel
+# (stream.homerslotr.com). HTTP/2 over TCP survives it. Set to "quic" or "auto"
+# to go back.
+: "${ROADMAP_TUNNEL_PROTOCOL:=http2}"
 
 # The token may already be in the environment (systemd EnvironmentFile, or an
 # interactive run); otherwise read the env file.
@@ -122,4 +129,4 @@ exec podman run --rm --name "$ROADMAP_TUNNEL_CONTAINER" \
   --network=host \
   --env "TUNNEL_TOKEN=$ROADMAP_TUNNEL_TOKEN" \
   "$ROADMAP_TUNNEL_IMAGE" \
-  tunnel --no-autoupdate run
+  tunnel --no-autoupdate --protocol "$ROADMAP_TUNNEL_PROTOCOL" run
