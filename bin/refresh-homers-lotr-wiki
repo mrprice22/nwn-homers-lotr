@@ -74,11 +74,13 @@ LOG_DIR="${NWN_RUN_DIR:-$HOME/.local/state/nwnxee-homer}"
 # radio out entirely, and with it the in-place page navigation that keeps music
 # playing across clicks. WIKI_RADIO_DEFAULT_STATION is the station a first-time
 # visitor starts on (a slug from the player's stations.json; empty = the
-# player's first station); WIKI_RADIO_PLACEMENT is bottom or header. Changes
-# take effect at the next wiki refresh.
+# player's first station); WIKI_RADIO_PLACEMENT is bottom or header;
+# WIKI_RADIO_START is how a visitor who never chose sees it (open, or minimised
+# to the music note). Changes take effect at the next wiki refresh.
 RADIO_URL="${WIKI_RADIO_URL:-}"
 RADIO_DEFAULT_STATION="${WIKI_RADIO_DEFAULT_STATION:-}"
 RADIO_PLACEMENT="${WIKI_RADIO_PLACEMENT:-bottom}"   # bottom | header
+RADIO_START="${WIKI_RADIO_START:-open}"             # open | minimised (first visit only)
 
 # Combat-stat dials, from server.env so the wiki's derived stats match what the
 # running server actually enforces (nwn-wiki defaults to the stock 40 / +12):
@@ -163,6 +165,7 @@ $LOWPRIO nwn-manager wiki \
   --radio-url "$RADIO_URL" \
   --radio-default-station "$RADIO_DEFAULT_STATION" \
   --radio-placement "$RADIO_PLACEMENT" \
+  --radio-start "$RADIO_START" \
   --roadmap-credits "$PROJECT/roadmap-credits.json" \
   --player-aliases "$PROJECT/roadmap-merit-aliases.json" \
   --path-from thewelloferu
