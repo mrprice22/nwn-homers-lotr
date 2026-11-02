@@ -69,6 +69,17 @@ BASE_URL="${SEASON_WIKI_URL:-https://homerslotr.com/}"
 ONLINE_API="${SEASON_LIVE_WIKI_URL:-https://homerslotr.com/}api/online"
 LOG_DIR="${NWN_RUN_DIR:-$HOME/.local/state/nwnxee-homer}"
 
+# Slightly Epic Radio on every page, all from server.env. An empty
+# WIKI_RADIO_URL (the default, and every realm that has not opted in) leaves the
+# radio out entirely, and with it the in-place page navigation that keeps music
+# playing across clicks. WIKI_RADIO_DEFAULT_STATION is the station a first-time
+# visitor starts on (a slug from the player's stations.json; empty = the
+# player's first station); WIKI_RADIO_PLACEMENT is bottom or header. Changes
+# take effect at the next wiki refresh.
+RADIO_URL="${WIKI_RADIO_URL:-}"
+RADIO_DEFAULT_STATION="${WIKI_RADIO_DEFAULT_STATION:-}"
+RADIO_PLACEMENT="${WIKI_RADIO_PLACEMENT:-bottom}"   # bottom | header
+
 # Combat-stat dials, from server.env so the wiki's derived stats match what the
 # running server actually enforces (nwn-wiki defaults to the stock 40 / +12):
 #   NWN_MAXLEVEL          — server level cap; nwn-wiki clamps a creature's total
@@ -149,6 +160,9 @@ $LOWPRIO nwn-manager wiki \
   --max-ability-bonus "$MAX_ABILITY_BONUS" \
   --vault-dir "$VAULT_DIR" \
   --online-api "$ONLINE_API" \
+  --radio-url "$RADIO_URL" \
+  --radio-default-station "$RADIO_DEFAULT_STATION" \
+  --radio-placement "$RADIO_PLACEMENT" \
   --roadmap-credits "$PROJECT/roadmap-credits.json" \
   --player-aliases "$PROJECT/roadmap-merit-aliases.json" \
   --path-from thewelloferu
