@@ -38,7 +38,56 @@ document.addEventListener("DOMContentLoaded", () => {
   initMap();
   initFooterTimestamp();
   initOnlineStatus();
+  initRadio();
 });
+
+/* ── Radio bar ─────────────────────────────────────────────────────────────
+ * An optional web-radio player docked along the bottom of every page, as an
+ * iframe. The player remembers each visitor's station and carries playback
+ * over page loads by itself; the site only places it.
+ *
+ * RADIO_SRC is the player URL, written into the copied assets/site.js by
+ * nwn-wiki from --radio-url (+ --radio-default-station as default=). Empty, as
+ * here in the source, means no bar: every build without the flag ships this
+ * line untouched. The marker comment is what the generator matches on. */
+const RADIO_SRC = "https://slightly-epic-radio-web.jamesprice-slightlyepic.workers.dev/player?size=slim&theme=dark&accent=c8a045&default=the-epic-channel";  // @nwn-wiki:radio-src (filled by nwn-wiki)
+
+function initRadio() {
+  if (!RADIO_SRC) return;
+  if (document.querySelector('main[data-no-radio]')) return;   // per-page opt-out
+
+  let hidden = false;
+  try { hidden = localStorage.getItem('radio-hidden') === '1'; } catch (e) {}
+
+  // Hide / show toggle in the footer. Site-side only: the player never sees it.
+  const footer = document.querySelector('body > footer');
+  if (footer) {
+    const a = document.createElement('a');
+    a.href = '#';
+    a.className = 'radio-toggle';
+    a.textContent = hidden ? 'show radio' : 'hide radio';
+    a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      try {
+        if (hidden) localStorage.removeItem('radio-hidden');
+        else localStorage.setItem('radio-hidden', '1');
+      } catch (e) {}
+      location.reload();
+    });
+    footer.append(' · ', a);
+  }
+  if (hidden) return;
+
+  const f = document.createElement('iframe');
+  f.className = 'radio-bar';
+  f.title = 'Radio';
+  f.src = RADIO_SRC;
+  // Required: lets playback resume on the next page after a link click.
+  // No loading="lazy": the bar is always in view, lazy would only delay it.
+  f.allow = 'autoplay; encrypted-media';
+  document.body.appendChild(f);
+  document.documentElement.classList.add('has-radio');
+}
 
 function graceMs() {
   const raw = getComputedStyle(document.documentElement)

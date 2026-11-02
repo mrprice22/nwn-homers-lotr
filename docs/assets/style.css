@@ -96,6 +96,15 @@ table.data {
 .map-hint .legend.convo   { color: #9b4dca; }
 .map-hint .legend.pseudo  { color: #9b4dca; font-size: 1.1em; }
 footer { text-align: center; color: var(--muted); font-size: 0.85em; padding: 1.5em 0 2em; }
+/* Optional radio bar (site.js initRadio, only when built with --radio-url).
+ * z-index 90 keeps it under the nav dropdowns (100 / 102) so menus draw over it. */
+iframe.radio-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 54px; border: 0;
+  z-index: 90;
+  color-scheme: dark;
+}
+html.has-radio body { padding-bottom: 54px; }   /* keep the footer clear of the bar */
 .muted { color: var(--muted); font-size: 0.85em; }
 
 main {
