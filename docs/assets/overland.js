@@ -671,6 +671,7 @@ function initOverland(root) {
   let hover = null;          // {area, site}
   let showLabels = true;
   let tick = 0, pending = false;
+  let focus = null, fly = null;   // finder: highlighted place, pan animation
   let miniBase = null;
   const outlines = new Map();
 
@@ -816,6 +817,18 @@ function initOverland(root) {
       }
     }
 
+    // Place picked in the finder: an expanding ring plus a steady one.
+    if (focus) {
+      const t = (performance.now() % 1100) / 1100, k = Math.max(z, 0.5);
+      const px = toScreenX(focus.x * TW), py = toScreenY(focus.y * TH);
+      ctx.strokeStyle = 'rgba(255,230,128,' + (1 - t).toFixed(2) + ')';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(px, py, (10 + 34 * t) * k, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#ffe680';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(px, py, 13 * k, 0, Math.PI * 2); ctx.stroke();
+    }
+
     // Area names, biggest areas first, skipping any that would overlap.
     if (showLabels && z >= 0.5) {
       const fs = Math.round(Math.max(10, Math.min(18, 12 * Math.sqrt(z))));
@@ -958,6 +971,7 @@ function initOverland(root) {
   canvas.addEventListener('pointerdown', e => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     drag = { x: e.clientX, y: e.clientY, moved: 0 };
+    fly = null;
     canvas.setPointerCapture(e.pointerId);
     canvas.classList.add('dragging');
   });
@@ -1058,6 +1072,190 @@ function initOverland(root) {
       resize();
     }
   });
+
+  // ── Place finder ─────────────────────────────────────────────────────
+  // Every place on the map (areas, and interiors drawn as icons), searchable
+  // by name, resref or icon kind (not tileset: the wiki's tileset labels are
+  // unreliable, e.g. tin01 houses are labelled "Crypt"). Clicking one flies
+  // the map to it.
+  const side = root.querySelector('.overland-side');
+  const search = root.querySelector('.overland-search');
+  const list = root.querySelector('.overland-results');
+  const count = root.querySelector('.overland-count');
+  const findBtn = root.querySelector('[data-ov="find"]');
+  const FIND_KEY = 'overland-find';
+  const fold = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const TERRAIN_NAME = { g: 'grassland', f: 'forest', h: 'hills', m: 'mountains',
+                         d: 'desert', t: 'tundra', s: 'swamp', r: 'rock' };
+  const places = [];
+  {
+    const at = new Map();
+    for (const s of world.sites) if (!at.has(s.area)) at.set(s.area, { x: s.x + 0.5, y: s.y + 0.5, icon: s.icon });
+    for (const [a, lx, ly] of world.labels) if (!at.has(a)) at.set(a, { x: lx, y: ly, icon: null });
+    for (const [a, p] of at) {
+      const row = world.areas[a];
+      const name = row[1].trim() || row[0];
+      const code = world.at(Math.floor(p.x), Math.floor(p.y));
+      const kind = p.icon && p.icon !== 'portal' ? p.icon : (TERRAIN_NAME[code] || 'region');
+      const tele = world.calloutOf.has(a);
+      places.push({ area: a, name, x: p.x, y: p.y, icon: p.icon, code, kind, tele,
+                    fname: fold(name).replace(/^[^a-z0-9]+/, ''),
+                    key: fold([name, row[0], kind, tele ? 'teleport' : ''].join(' ')) });
+    }
+    places.sort((a, b) => a.fname.localeCompare(b.fname));
+  }
+  let iconURL = null;
+  let results = [], sel = -1;
+
+  function sideOpen() { return side && !side.hidden; }
+  function setSide(on, remember) {
+    if (!side) return;
+    side.hidden = !on;
+    if (findBtn) findBtn.setAttribute('aria-pressed', String(on));
+    if (remember) { try { localStorage.setItem(FIND_KEY, on ? '1' : '0'); } catch (e) { /* private mode */ } }
+    if (on && !list.childElementCount) renderResults();
+  }
+
+  function renderResults() {
+    if (!iconURL) {
+      iconURL = {};
+      for (const [n, cv] of Object.entries(sprites)) iconURL[n] = cv.toDataURL();
+    }
+    const words = fold(search.value.trim()).split(/\s+/).filter(Boolean);
+    results = places.filter(p => words.every(w => p.key.includes(w)));
+    if (words.length) {
+      const w0 = words[0];
+      const rank = p => p.fname.startsWith(w0) ? 0 : p.fname.includes(w0) ? 1 : 2;
+      results.sort((a, b) => rank(a) - rank(b) || a.fname.localeCompare(b.fname));
+    }
+    list.textContent = '';
+    const frag = document.createDocumentFragment();
+    results.forEach((p, i) => {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      li.dataset.i = String(i);
+      li.title = p.name;
+      const ic = document.createElement('span');
+      ic.className = 'ov-ic';
+      if (p.icon && iconURL[p.icon]) {
+        const im = document.createElement('img');
+        im.src = iconURL[p.icon]; im.alt = ''; im.width = 16; im.height = 16;
+        ic.appendChild(im);
+      } else {
+        ic.classList.add('ov-sw');
+        ic.style.background = MINI[p.code] || MINI.g;
+      }
+      const tx = document.createElement('span');
+      tx.className = 'ov-text';
+      const nm = document.createElement('span');
+      nm.className = 'ov-name';
+      nm.textContent = (p.tele ? '✦ ' : '') + p.name;
+      if (p.tele) nm.classList.add('ov-tele');
+      const kd = document.createElement('span');
+      kd.className = 'ov-kind';
+      kd.textContent = p.kind + (p.tele ? ' · teleport' : '');
+      tx.append(nm, kd);
+      const go = document.createElement('a');
+      go.className = 'ov-open';
+      go.href = world.areas[p.area][3];
+      go.textContent = '↗';
+      go.title = 'Open the page for ' + p.name;
+      go.setAttribute('aria-label', go.title);
+      li.append(ic, tx, go);
+      frag.appendChild(li);
+    });
+    list.appendChild(frag);
+    count.textContent = words.length
+      ? results.length + (results.length === 1 ? ' match' : ' matches')
+      : places.length + ' places';
+    sel = -1;
+  }
+
+  function select(i) {
+    const items = list.children;
+    if (sel >= 0 && items[sel]) items[sel].classList.remove('selected');
+    sel = i;
+    if (sel >= 0 && items[sel]) {
+      items[sel].classList.add('selected');
+      items[sel].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  // Centre of the part of the map the panel doesn't cover, as an x offset.
+  function panelShift() { return sideOpen() ? (side.offsetLeft + side.offsetWidth) / 2 : 0; }
+
+  let looping = false;
+  function loop(now) {
+    if (!root.isConnected) { looping = false; return; }
+    if (fly) {
+      const k = Math.min(1, (now - fly.t0) / fly.dur);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      vx = fly.sx + (fly.tx - fly.sx) * e;
+      vy = fly.sy + (fly.ty - fly.sy) * e;
+      clampView();
+      if (k >= 1) fly = null;
+    }
+    if (focus && now > focus.until) focus = null;
+    draw();
+    if (fly || focus) requestAnimationFrame(loop);
+    else looping = false;
+  }
+
+  function focusPlace(p) {
+    if (zoom() < 1.5) zi = ZOOMS.indexOf(2);
+    const now = performance.now();
+    fly = { sx: vx, sy: vy, tx: p.x * TW - panelShift() / zoom(), ty: p.y * TH, t0: now, dur: 550 };
+    focus = { x: p.x, y: p.y, until: now + 3200 };
+    hover = { area: p.area, site: world.siteAt.get(Math.floor(p.y) * world.W + Math.floor(p.x)) || null };
+    if (!looping) { looping = true; requestAnimationFrame(loop); }
+  }
+
+  if (side && search && list) {
+    let open0 = wrap.clientWidth >= 760;
+    try { const v = localStorage.getItem(FIND_KEY); if (v !== null) open0 = v === '1'; } catch (e) { /* ignore */ }
+    setSide(open0, false);
+    if (open0) vx -= panelShift() / zoom();   // start view centred in the uncovered part
+    search.addEventListener('input', renderResults);
+    search.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); select(Math.min(results.length - 1, sel + 1)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); select(Math.max(0, sel - 1)); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        const p = results[sel >= 0 ? sel : 0];
+        if (p) { if (sel < 0) select(0); focusPlace(p); }
+      } else if (e.key === 'Escape' && search.value) {
+        e.stopPropagation();
+        search.value = '';
+        renderResults();
+      }
+    });
+    list.addEventListener('click', e => {
+      if (e.target.closest('a')) return;          // ↗ opens the page normally
+      const li = e.target.closest('li');
+      if (!li) return;
+      const i = +li.dataset.i;
+      select(i);
+      focusPlace(results[i]);
+    });
+    side.querySelector('.overland-side-close').addEventListener('click', () => setSide(false, true));
+    // Deep link: map/#find=rivendell opens the map flown to the first match.
+    const m = /^#find=(.+)$/.exec(location.hash);
+    if (m) {
+      let q = m[1];
+      try { q = decodeURIComponent(q.replace(/\+/g, ' ')); } catch (e) { /* keep raw */ }
+      setSide(true, false);
+      search.value = q;
+      renderResults();
+      if (results.length) { select(0); focusPlace(results[0]); }
+    }
+    if (findBtn) findBtn.addEventListener('click', () => {
+      const on = !sideOpen();
+      setSide(on, true);
+      if (on) search.focus();
+    });
+  } else if (findBtn) {
+    findBtn.hidden = true;
+  }
 
   // Resize, and the water animation while the map is on screen.
   let visible = true;

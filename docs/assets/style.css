@@ -341,6 +341,77 @@ footer.site {
 .overland-tip b { display: block; color: #ffe680; }
 .overland-tip span { color: #c8b890; }
 .overland-noscript { color: #fff; padding: 1em; }
+/* Place finder: a panel over the left of the map. */
+.overland-side {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  bottom: 8px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(28, 18, 8, 0.92);
+  border: 2px solid #4a3418;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px #c8a577, 0 2px 8px rgba(0, 0, 0, 0.45);
+  color: #f4e8c8;
+  font-size: 0.9em;
+}
+.overland-side[hidden] { display: none; }
+.overland-side-head { display: flex; gap: 4px; padding: 6px 6px 4px; }
+.overland-search {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 0.3em 0.5em;
+  background: #f4e8c8;
+  color: #1f1f1f;
+  border: 1px solid #c8a577;
+  border-radius: 3px;
+}
+.overland-side-close {
+  font: inherit;
+  font-size: 1.25em;
+  line-height: 1;
+  padding: 0 0.3em;
+  background: none;
+  border: 0;
+  color: #c8b890;
+  cursor: pointer;
+}
+.overland-side-close:hover { color: #ffe680; }
+.overland-count { padding: 0 8px 4px; color: #a8987a; font-size: 0.85em; }
+.overland-results {
+  flex: 1;
+  margin: 0;
+  padding: 0 4px 6px;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-color: #6a5030 transparent;
+}
+.overland-results li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.overland-results li:hover,
+.overland-results li.selected { background: rgba(200, 165, 119, 0.25); }
+.ov-ic { flex: none; width: 16px; height: 16px; }
+.ov-ic img { display: block; image-rendering: pixelated; }
+.ov-ic.ov-sw { box-sizing: border-box; border: 1px solid #1a1410; border-radius: 2px; }
+.ov-text { flex: 1; min-width: 0; }
+.ov-name, .ov-kind { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-name.ov-tele { color: #bfeaff; }
+.ov-kind { color: #a8987a; font-size: 0.82em; }
+.ov-open { flex: none; padding: 0 3px; color: #c8a577; text-decoration: none; }
+.ov-open:hover { color: #ffe680; }
+@media (max-width: 640px) {
+  .overland-side { width: auto; right: 8px; bottom: 50%; }
+}
 .overland-callout-key { color: #2a8ad8; font-weight: bold; }
 /* "Fill the window" toggle. */
 .overland.overland-full {
