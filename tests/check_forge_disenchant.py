@@ -4,13 +4,13 @@
 The three anvil forge dialogs (Tagget / Kimli / Bellnius) carry a generated
 "staged disenchant" subtree (bin/inject_forge_disenchant.py): the player plans
 which enchantments to strike and the smith only commits once the planned result
-would be lawful, so a forge can never mint contraband. This check enforces the
-subtree's wiring so a bad regen or hand-edit can't silently break it (a missing
-gate or token would let an illegal item through, or a broken child link would
-make the engine refuse to load the whole conversation).
+would be within the forge caps. This check enforces the subtree's wiring so a
+bad regen or hand-edit can't silently break it (a missing gate or token would
+let an over-cap commit through, or a broken child link would make the engine
+refuse to load the whole conversation).
 
-It also guards that the Forge Warden's jail dialog still uses the immediate
-forge_dis_* scripts and was NOT switched to the staged forge_stg_* ones.
+The Forge Warden, the Pit Prison jail and the contraband scans it used to guard
+were retired 2026-11-05 (roadmap lo-remove-jail).
 
 Scans unpacked/ directly. Exits 0 on success, 1 on any failure.
 """
@@ -24,7 +24,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UNPACKED = os.path.join(ROOT, "unpacked")
 
 ANVIL = ["forge_item_mid", "kimli_forge", "bellnius_smith", "kallrist_forge"]
-WARDEN = "forge_warden"
 
 REQUIRED_SCRIPTS = (
     ["forge_stg_anvil", "forge_stg_ok", "forge_stg_go", "forge_stg_cancel",
@@ -32,7 +31,6 @@ REQUIRED_SCRIPTS = (
      "forge_anvil_ctx", "forge_anvil_clr", "forge_stg_open", "forge_can_mod"]
     + [f"forge_stg_t{n}" for n in range(8)]
     + [f"forge_stg_c{n}" for n in range(8)]      # paginated staged count gates
-    + [f"forge_dis_c{n}" for n in range(8)]      # shared by the Warden's immediate menu
 )
 
 
@@ -218,8 +216,7 @@ def check_property_sets(errs):
     the cap AND offering them for removal is roadmap
     forge-restrictrion-properties-exploit - stripping a class/race lock freed a
     slot and made the gear usable by a character it was never meant for. Light
-    is listed but free. Pricing and blueprint identity must keep the old full
-    view, or every restricted stock drop reads as tampered and gets jailed.
+    is listed but free. Pricing must keep the old full view.
     """
     path = os.path.join(UNPACKED, "forge_inc.nss")
     with open(path, encoding="utf-8") as f:
@@ -297,9 +294,8 @@ def check_property_sets(errs):
         if "ForgeIsDetrimentalProp" not in counted:
             errs.append("forge_inc: ForgePropInSet's COUNTED branch no longer "
                         "excludes drawbacks - drawbacks would eat slots again")
-        # Pricing and the blueprint fingerprint must NOT move: the PRICED branch
-        # stays an unconditional TRUE. Narrowing it re-values every cursed piece
-        # upward and can jail gear that is lawful today.
+        # Pricing must NOT move: the PRICED branch stays an unconditional TRUE.
+        # Narrowing it re-values every cursed piece upward.
         if not re.search(r"if \(nSel == FORGE_SEL_PRICED\)\s*\n\s*return TRUE;",
                          inset):
             errs.append("forge_inc: ForgePropInSet's PRICED branch is no longer "
@@ -323,9 +319,7 @@ def check_property_sets(errs):
                     "enumeration(s) left - use ForgePropInSet instead")
 
     # Right selector in the right place.
-    for fn, sel in (("ForgeItemDeviatesFromBlueprint", "FORGE_SEL_PRICED"),
-                    ("ForgeRebuildValue", "FORGE_SEL_PRICED"),
-                    ("ForgeDisenchantSetup", "FORGE_SEL_REMOVABLE"),
+    for fn, sel in (("ForgeRebuildValue", "FORGE_SEL_PRICED"),
                     ("ForgeStageSetupCued", "FORGE_SEL_REMOVABLE"),
                     ("ForgeStageCommit", "FORGE_SEL_REMOVABLE")):
         b = body(fn)
@@ -358,19 +352,6 @@ def check_property_sets(errs):
         errs.append("forge_inc: ForgeUnlistedNote must explain drawbacks too - "
                     "otherwise they simply vanish from the strip list with no "
                     "word of why")
-
-    # Retroactive half: items stripped before the fix sit UNDER both caps, so
-    # only this rule catches them.
-    b = body("ForgeMissingBlueprintDrawback")
-    if b is None:
-        errs.append("forge_inc: ForgeMissingBlueprintDrawback is gone - items "
-                    "stripped of their drawbacks before the fix go unnoticed")
-    b = body("ForgeItemLegality")
-    if b is None:
-        errs.append("forge_inc: ForgeItemLegality not found")
-    elif "ForgeMissingBlueprintDrawback" not in b:
-        errs.append("forge_inc: ForgeItemLegality must consult "
-                    "ForgeMissingBlueprintDrawback")
 
 
 def check_asf_scripts(errs):
@@ -406,17 +387,6 @@ def check_light_note(errs):
                                 f"player it does not count toward the limit")
 
 
-def check_warden(errs):
-    d = load(WARDEN)
-    allnodes = d["EntryList"]["value"] + d["ReplyList"]["value"]
-    scripts = {script(n) for n in allnodes}
-    if not any(s.startswith("forge_dis_") for s in scripts):
-        errs.append(f"{WARDEN}: lost its immediate-removal forge_dis_* scripts")
-    leaked = sorted(s for s in scripts if s.startswith("forge_stg_"))
-    if leaked:
-        errs.append(f"{WARDEN}: unexpectedly references staged scripts {leaked}")
-
-
 def main():
     errs = []
     for name in ANVIL:
@@ -425,7 +395,6 @@ def main():
     check_property_sets(errs)
     check_asf_scripts(errs)
     check_light_note(errs)
-    check_warden(errs)
 
     if errs:
         print(f"[forge-disenchant] FAIL: {len(errs)} problem(s):", file=sys.stderr)
@@ -433,7 +402,7 @@ def main():
             print(f"  - {e}", file=sys.stderr)
         return 1
     print(f"[forge-disenchant] OK: staged disenchant wired in {len(ANVIL)} anvil "
-          f"dialogs; Warden unchanged.")
+          f"dialogs.")
     return 0
 
 

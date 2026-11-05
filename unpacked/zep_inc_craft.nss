@@ -471,16 +471,13 @@ void ZEP_StopCraft(object oPC, int nExecute) {
     // backup is restored rather than destroyed along with the invalid item ref.
     if (nExecute && !GetIsObjectValid(oItem)) nExecute = FALSE;
     if (nExecute) {
-        // Preserve the forge legality stamps across the appearance edit. The
+        // Preserve the forge ceiling stamp across the appearance edit. The
         // recolor/remodel rebuilt the item via CopyItemAndModify, which can drop
-        // item-local ints; without carrying these over, a lawfully-forged >750k
-        // item loses FORGE_CEIL and the login/Well-of-Eru contraband scan jails
-        // the bearer. oBackup was made with CopyItem(...,TRUE) so it still holds
-        // the originals. (jailed-for-appearance-crafting fix)
+        // item-local ints; without carrying it over, a lawfully-forged >750k
+        // item loses FORGE_CEIL. oBackup was made with CopyItem(...,TRUE) so it
+        // still holds the original.
         int nCeil  = GetLocalInt(oBackup, "FORGE_CEIL");
         if (nCeil)  SetLocalInt(oItem, "FORGE_CEIL", nCeil);
-        int nClean = GetLocalInt(oBackup, "FORGE_CLEAN");
-        if (nClean) SetLocalInt(oItem, "FORGE_CLEAN", nClean);
         DestroyObject(oBackup);
         ZEP_RemoveItemVariables(oItem); //- cfx change
         DeleteLocalInt(oItem, "ZEP_CR_TEMPITEM");

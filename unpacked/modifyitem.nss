@@ -16,8 +16,8 @@ void main()
 
     //Per-forge value ceiling: refuse enchants that would raise the item's
     //assessed value past this forge's cap (0 = uncapped), plus a hard backstop
-    //at the global jailable ceiling so a missing/cleared area var can never let
-    //a forge mint an item the login contraband scan would jail.
+    //at the global legal ceiling so a missing/cleared area var can never let
+    //a forge mint an item past the module-wide cap.
     //We assess the projected value directly - copy the item, add the pending
     //property, and price the copy (identified, non-plot via ForgeItemValue) -
     //so enforcement does NOT depend on the MODIFY_VALUE/MODIFY_DIFF locals an
@@ -26,7 +26,7 @@ void main()
     int iMax = GetLocalInt(oPC, "MODIFY_MAX");
     // A high Appraise raises both this forge's per-tier cap (already folded into
     // MODIFY_MAX by isitemonanvil) and the global legal backstop below, by the
-    // same amount, so lawful high-Appraise forging never trips the jail scan.
+    // same amount, so lawful high-Appraise forging is never refused.
     int iBonus = ForgeAppraiseBonus(oPC);
     int iCurValue = ForgeItemValue(oItem);
     int iProjected = iCurValue;
@@ -68,7 +68,7 @@ void main()
         }
 
     //Per-forge property-count ceiling (0 = uncapped), with a hard backstop at
-    //the global jailable property limit. Replacing an existing property of the
+    //the global legal property limit. Replacing an existing property of the
     //same type doesn't grow the count, so it stays allowed.
     int iMaxProps = GetLocalInt(oPC, "MODIFY_MAX_PROPS");
     if (GetIsItemPropertyValid(ipNew)
@@ -125,18 +125,15 @@ void main()
     if ( GetIsItemPropertyValid(ipNew))
         {
         CustomAddProperty(oItem, ipNew);
-        // Enchanting changes the item's legality footprint - drop its "clean"
-        // stamp so the next login contraband scan re-evaluates it.
-        DeleteLocalInt(oItem, "FORGE_CLEAN");
         // Record that a PLAYER made this item what it is. The caps are only
         // ever applied to stamped items, so this is what separates a forged
         // piece from stock gear that merely happens to be powerful.
         SetLocalInt(oItem, FORGE_TOUCHED, TRUE);
         // If this lawful enchant carried the item above the default global
         // ceiling (the player's Appraise allowed it), record the lawful ceiling
-        // on the item so the contraband scan / Warden never jail it later, even
-        // if the bearer's Appraise changes or the item is traded. Keep the
-        // highest ceiling ever applied.
+        // on the item so a later strip or enchant honours it, even if the
+        // bearer's Appraise changes or the item is traded. Keep the highest
+        // ceiling ever applied.
         if (iProjected > ForgeLegalMaxValue())
             {
             int iCeil = ForgeLegalMaxValue() + iBonus;

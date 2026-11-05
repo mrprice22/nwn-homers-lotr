@@ -10,7 +10,7 @@ forge_inc.nss (ForgeStageSetupCued) and rendered through custom tokens.
 Appends a shared subtree to each anvil dialog (Tagget / Kimli / Bellnius):
 
   Entry D1  "<CUSTOM6119> Which enchantments shall I strike..."  (Script: forge_stg_anvil)
-    -> 8 slot toggles <CUSTOM6110..6117>  (Active: forge_dis_cN, Script: forge_stg_tN)
+    -> 8 slot toggles <CUSTOM6110..6117>  (Active: forge_stg_cN, Script: forge_stg_tN)
          -> back to D1 (child link: re-show with refreshed cues)
     -> "Strike the planned enchantments now."  (Active: forge_stg_ok)  -> Entry D2 confirm
     -> "Never mind — leave it whole."          (Script: forge_stg_cancel)  -> ends
@@ -22,13 +22,13 @@ and hooks a new reply "Strip enchantments..." (gated by isitemonanvil) into ever
 menu entry that already offers the "modify the item" reply (ReplyList[1]).
 
 The commit reply is gated by forge_stg_ok, which is TRUE only when the planned
-removals would bring the item within the lawful value/property ceiling — that is
-what stops a forge from ever minting contraband.
+removals would bring the item within the forge's value/property ceiling.
 
 Idempotent: a previously-injected subtree (old immediate-removal OR this staged
-one) is detected and removed first, then the current subtree is appended. The
-Forge Warden dialog is NOT in DIALOGS and is never touched (it keeps the
-immediate-removal forge_dis_* scripts).
+one) is detected and removed first, then the current subtree is appended.
+(The Forge Warden and its immediate-removal forge_dis_* scripts were retired
+with the contraband jail - roadmap lo-remove-jail; forge_dis_anvil stays in
+ANVIL_SCRIPTS only so a pre-staged subtree is still recognised and removed.)
 """
 
 import json
@@ -75,7 +75,7 @@ OVERLIMIT_TEXT = ("The <CUSTOM100> is already worth <CUSTOM104> gold — at or b
                   "add to it. I can only strike enchantments from it to bring it "
                   "within the law.")
 
-# Cleanup script wired to both end-conversation hooks (mirrors forge_ward_clr):
+# Cleanup script wired to both end-conversation hooks:
 # clears the cached anvil item + staged plan so a fresh conversation re-derives
 # the live item and the status token never lingers as "<UNRECOGNIZED TOKEN>".
 END_SCRIPT = "forge_anvil_clr"

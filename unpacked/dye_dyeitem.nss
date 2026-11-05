@@ -27,11 +27,11 @@ void main()
         // Set armor to being edited
         SetLocalInt(oItem, "mil_EditingItem", TRUE);
 
-        // Preserve the forge legality stamps across the dye (CopyItemAndModify can
-        // drop item-local ints; losing FORGE_CEIL makes the contraband scan jail
-        // a lawfully-forged >750k item). Capture before oItem is destroyed.
+        // Preserve the forge ceiling stamp across the dye (CopyItemAndModify can
+        // drop item-local ints; losing FORGE_CEIL would cap a lawfully-forged
+        // >750k item at the default ceiling next time it is worked).
+        // Capture before oItem is destroyed.
         int nCeil  = GetLocalInt(oItem, "FORGE_CEIL");
-        int nClean = GetLocalInt(oItem, "FORGE_CLEAN");
 
         // Copy item to the chest
         object oInChest = CopyItem(oItem, oChest, TRUE);
@@ -45,9 +45,8 @@ void main()
         object oOnPC = CopyItem(oDyedItem, oPC, TRUE);
         DestroyObject(oDyedItem);
 
-        // Re-apply the forge legality stamps captured above.
+        // Re-apply the forge ceiling stamp captured above.
         if (nCeil)  SetLocalInt(oOnPC, "FORGE_CEIL", nCeil);
-        if (nClean) SetLocalInt(oOnPC, "FORGE_CLEAN", nClean);
 
         // Equip the armor
        DelayCommand(0.5f, AssignCommand(oPC, ActionEquipItem(oOnPC, iItemToDye)));

@@ -1,7 +1,7 @@
 // appraise_inc.nss - shared Appraise-skill scaling helpers.
 //
 // Used by the Forge of Wonders (raises the max gold value an item may be
-// enchanted to, and the lawful contraband ceiling) and by the merchant system
+// enchanted to, and the staged-disenchant ceiling) and by the merchant system
 // (raises the max gold a capped store will pay a player when selling).
 //
 // The skill is read deterministically - players always "take 20" rather than

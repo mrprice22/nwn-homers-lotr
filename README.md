@@ -336,61 +336,38 @@ reflect the new areas — if you added areas since the last wiki build, the tool
 warns which areas the graph can't see; refresh the wiki (or wait for the daily
 refresh) before relying on a full sync.
 
-## Forge legal-variant whitelist
+## Forge contraband law (retired)
 
-The Forge contraband system (`unpacked/forge_inc.nss`) jails players who carry
-items that exceed the legal caps (7 properties / 900,000 gp — the maximum
-achievable, including the top boss-kill bonus) **and** deviate from their stock
-blueprint **and** were actually modified by a player at a forge
-(`ForgeIsPlayerModified`, see the next section). There is deliberately **no**
-module-wide limit on an item's value or property count on its own: plenty of
-the module's own gear runs to 70+ properties and hundreds of millions of gp,
-and all of it is legitimate. But the module also legitimately places many
-items that differ from their blueprint:
-stores, creature loot, and containers embedded in area files carry full item
-structs whose properties differ from the `.uti` blueprint of the same resref
-(see `module-index/item_tag_conflicts.json`). Without a guard, a player who
-buys or loots one of those would be jailed for a crime they didn't commit.
+The Forge contraband system — the login / Well of Eru item scan, the Pit Prison
+jail, the Forge Warden and the generated legal-variant whitelist
+(`forge_legal_inc.nss`, `bin/gen-forge-legal.py`) — was **retired on
+2026-11-05** (roadmap `lo-remove-jail`, Phase 1 of the Loot Overhaul;
+`docs.manual/Draft/Loot-Overhaul.html`). It existed to catch items forged past
+the caps through early forge defects; those defects are fixed, and rolled loot
+will never match its blueprint, so a blueprint-deviation law could not survive
+random drops anyway.
 
-The whitelist closes that gap: a generator scans `unpacked/` for every embedded
-item variant that deviates from (or lacks) a module blueprint and writes
-`unpacked/forge_legal_inc.nss`, which `ForgeIsItemIllegal` consults before
-jailing. Matching is by resref **plus a full property fingerprint**, so forging
-extra enchantments onto a whitelisted item still gets caught.
+The caps themselves are unchanged and still enforced **where a player acts**:
+`modifyitem.nss` refuses an enchantment that would take an item past the
+per-forge / global value or property ceiling, and the staged disenchant only
+commits a plan whose result is within them (`ForgeStagePlanIsLawful`). Nothing
+judges gear a player already holds.
 
-```sh
-python3 bin/gen-forge-legal.py    # regenerate unpacked/forge_legal_inc.nss
-nwn-manager repack                # compile and install
-```
-
-Use `--dry-run` to preview the entries without writing. Re-run the generator
-whenever store inventories, creature loot, or placed container items are added
-or edited, and commit the regenerated include — it is module source, not a
-build artifact. Do not hand-edit `forge_legal_inc.nss`.
-
-**Fallback for false positives:** a jailed player can dispute the charge in
-the Forge Warden conversation. The contested item is sequestered (no refund)
-into the DM-review chest in the House of Homer (tag `ZEP_CR_QUARANTINE`, the
-same chest the Well of Eru's illicit-item scan uses), with a `[FORGE DISPUTE]`
-log line recording the account, character, item resref, and value. A DM
-returns the item if the claim holds. If a dispute turns out to be a genuine
-false positive, fix it permanently by re-running the generator (or
-investigating why the fingerprint didn't match — see the normalization notes
-in `bin/gen-forge-legal.py`).
+The House of Homer quarantine chest (`ZEP_CR_QUARANTINE`, `craftdb`
+`quarantine_*`) is **not** part of this — the Well of Eru's illicit-donations
+reclaim and the CEP crafting anti-dupe still sequester into it, and
+`bin/list-forge-quarantine.py` still lists it. The Pit Prison area, its Jailor
+and the `FORGE_VAULT` pricing chest also stay.
 
 ## Auditing player gear for blueprint drift
 
 `bin/audit-character-drift.py` reads the character vault directly (via
 `nwn_gff`) and reports every item whose properties no longer match its
-blueprint — **and works out why**. It is the offline counterpart to the live
-contraband scan, and the way to answer "is there illicit gear in circulation?"
-with evidence instead of inference.
-
-It exists because the live check now applies the caps only to items a player
-actually forged, which it knows from an item-local stamp (`FORGE_TOUCHED`, or
-the older `FORGE_GP_INVESTED` / `FORGE_CEIL`). Anything forged before those
-stamps existed carries none of them and can no longer be judged in game. This
-script does not trust the stamps at all — it compares properties.
+blueprint — **and works out why**. With the live contraband scan retired (see
+above), it is the only way to answer "is there illicit gear in circulation?",
+and it answers with evidence instead of inference. It does not trust the forge
+stamps (`FORGE_TOUCHED`, or the older `FORGE_GP_INVESTED` / `FORGE_CEIL`) at
+all — it compares properties.
 
 The important subtlety it encodes: **"differs from the blueprint" is not the
 same as "a player modified it."** Editing a blueprint makes every copy already
@@ -405,7 +382,7 @@ Verdicts, worst first:
 |---|---|
 | `SUSPECT` | Matches no blueprint version, no placed variant, and carries no forge stamp. **The only verdict that needs a human.** |
 | `FORGED` | No match, but carries a forge stamp — expected; a player enchanted it. Check props/value against the caps. |
-| `PLACED_VARIANT` | Matches a variant the module itself places; legally obtainable. Same allowance the live check makes via `ForgeIsKnownLegalVariant`. |
+| `PLACED_VARIANT` | Matches a variant the module itself places; legally obtainable. **No longer produced** — it read the retired `forge_legal_inc.nss` whitelist, so placed variants now surface as `SUSPECT`. |
 | `REBALANCED` | Matches a **historical** blueprint version — benign, and names the commit that changed it. |
 | `CLEAN` | Matches the current blueprint. |
 | `UNKNOWN_BP` | Resref has no blueprint in `unpacked/` (stock Bioware/CEP item) — cannot be judged offline. |

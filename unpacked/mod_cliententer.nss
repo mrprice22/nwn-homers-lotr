@@ -4,7 +4,8 @@
 // script carried the whole login flow under the retired legendary leveler's
 // name; everything here is ordinary module login wiring - merit, bestiary,
 // teleports, faction allegiance, XP boosts, server-info journals, the death
-// amulet / bleeding-out resolution, the build stamp and the contraband sweep.
+// amulet / bleeding-out resolution and the build stamp. (The forge contraband
+// sweep was retired with the Pit Prison jail - roadmap lo-remove-jail.)
 //
 // The leveler itself was deleted in full (roadmap: ll-hgll-remove-scripts), so
 // nothing here calls into it any more. Levels 41-60 are ordinary levels on
@@ -189,12 +190,6 @@ void main()
     // login flood and the merit login message (3s).
     DelayCommand(5.0, ExecuteScript("nwnmgr_bstamp", oPC));
 
-    // Contraband sweep: illegally forged gear jails the bearer on login too,
-    // so skipping the Well of Eru doesn't dodge the check. Delayed so the
-    // inventory is fully hydrated before we scan it. Chunked (one item per
-    // delayed step) to stay under the script instruction cap.
-    DelayCommand(6.0, ForgeBeginScan(oPC));
-
     // Legendary feats, three jobs on login, all delayed past the login flood:
     //
     //  * LegFeat_ApplyAll rebuilds EFFECT-kind bonuses, which do not survive a
@@ -273,8 +268,8 @@ void main()
 
     // Horn of the Fell Beast: swap any ring-form Horn (the original BaseItem 52
     // blueprint) for the miscmedium one that can actually be sounded from the
-    // pack. Last in the queue on purpose - ForgeBeginScan above walks the whole
-    // inventory a chunk at a time, so let it finish before items are swapped.
+    // pack. Last in the login queue on purpose, after the inventory-walking
+    // checks above.
     // See fb_horn_fix.nss.
     DelayCommand(10.0, ExecuteScript("fb_horn_fix", oPC));
 

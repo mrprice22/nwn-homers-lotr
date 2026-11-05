@@ -1,7 +1,7 @@
 // dye_nui_inc.nss - "Dye Studio" NUI color picker (all 176 armor-tint colors).
 // Launched from the DyeKit item (dye_nui_open) for armor / helmet / cloak.
 // Clicking a swatch tints the equipped item live via CopyItemAndModify, preserving
-// the forge legality stamps (FORGE_CEIL/FORGE_CLEAN) so dyeing never jails the bearer.
+// the forge ceiling stamp (FORGE_CEIL) so a lawfully-forged piece keeps its ceiling.
 #include "nw_inc_nui"
 #include "dye_palette_inc"
 #include "dye_db"
@@ -271,11 +271,9 @@ object DyeApply(object oPC, int nIdx) {
     object oItem = DyeGetItem(oPC);
     if (!GetIsObjectValid(oItem)) return OBJECT_INVALID;
     int nCeil  = GetLocalInt(oItem, "FORGE_CEIL");
-    int nClean = GetLocalInt(oItem, "FORGE_CLEAN");
     object oNew = CopyItemAndModify(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nChan, nIdx, TRUE);
     if (!GetIsObjectValid(oNew)) return oItem;
     if (nCeil)  SetLocalInt(oNew, "FORGE_CEIL", nCeil);
-    if (nClean) SetLocalInt(oNew, "FORGE_CLEAN", nClean);
     DestroyObject(oItem);
     SetLocalObject(oPC, DYE_ITEM, oNew);
     AssignCommand(oPC, ClearAllActions(TRUE));
@@ -356,7 +354,6 @@ void DyeRevert(object oPC) {
     object oCur = DyeGetItem(oPC);
     if (!GetIsObjectValid(oCur)) return;
     int nCeil  = GetLocalInt(oCur, "FORGE_CEIL");
-    int nClean = GetLocalInt(oCur, "FORGE_CLEAN");
     int ch;
     for (ch = 0; ch < 6; ch++) {
         int nVal = GetLocalInt(oPC, "DYE_O_" + IntToString(nSlot) + "_" + IntToString(ch));
@@ -364,7 +361,6 @@ void DyeRevert(object oPC) {
         if (GetIsObjectValid(oTmp)) { DestroyObject(oCur); oCur = oTmp; }
     }
     if (nCeil)  SetLocalInt(oCur, "FORGE_CEIL", nCeil);
-    if (nClean) SetLocalInt(oCur, "FORGE_CLEAN", nClean);
     SetLocalObject(oPC, DYE_ITEM, oCur);
     AssignCommand(oPC, ClearAllActions(TRUE));
     AssignCommand(oPC, ActionEquipItem(oCur, nSlot));
@@ -390,7 +386,7 @@ void DyeSaveSchemeFromItem(object oPC) {
                JsonString("Copied this item's colors."));
 }
 
-// Apply this character's saved scheme to the current slot's item (jail-safe).
+// Apply this character's saved scheme to the current slot's item (keeps the forge ceiling stamp).
 void DyeApplyScheme(object oPC) {
     if (!Dye_LoadScheme(oPC)) {
         SendMessageToPC(oPC, "Dye Studio: nothing copied yet. Use 'Copy colors' first.");
@@ -404,7 +400,6 @@ void DyeApplyScheme(object oPC) {
         return;
     }
     int nCeil  = GetLocalInt(oCur, "FORGE_CEIL");
-    int nClean = GetLocalInt(oCur, "FORGE_CLEAN");
     int ch;
     for (ch = 0; ch < 6; ch++) {
         int nVal = GetLocalInt(oPC, "DYE_LS_" + IntToString(ch));
@@ -412,7 +407,6 @@ void DyeApplyScheme(object oPC) {
         if (GetIsObjectValid(oTmp)) { DestroyObject(oCur); oCur = oTmp; }
     }
     if (nCeil)  SetLocalInt(oCur, "FORGE_CEIL", nCeil);
-    if (nClean) SetLocalInt(oCur, "FORGE_CLEAN", nClean);
     SetLocalObject(oPC, DYE_ITEM, oCur);
     AssignCommand(oPC, ClearAllActions(TRUE));
     AssignCommand(oPC, ActionEquipItem(oCur, nSlot));

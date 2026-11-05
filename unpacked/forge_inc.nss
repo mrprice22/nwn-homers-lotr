@@ -1,15 +1,15 @@
 // forge_inc.nss - shared helpers for the Forge of Wonders system.
 //
-// Pricing, per-forge caps, legality checks and the disenchant service all go
-// through here. Do NOT #include "itemprocs" from this file (NWScript has no
+// Pricing, per-forge caps and the staged disenchant service all go through
+// here. The contraband law (login/Well scan, Pit Prison jail, Forge Warden,
+// legal-variant whitelist) was retired 2026-11-05 (roadmap lo-remove-jail):
+// the caps are now enforced only where a player buys an enchantment or commits
+// a strip, never by judging gear a player already holds. Do NOT #include "itemprocs" from this file (NWScript has no
 // include guards; consumer scripts include both side by side).
 //
 // Reserved custom tokens: 6110-6117 disenchant slot names, 6118 picked name
 // (forge already uses 100-103).
 
-// Generated whitelist of legally-placed item variants (ForgeIsKnownLegalVariant,
-// ForgeLegalFingerprint) - regenerate with bin/gen-forge-legal.py.
-#include "forge_legal_inc"
 // Appraise scaling (AppraiseBonusScaled) for the per-player value ceiling.
 #include "appraise_inc"
 // Colour-token strings (COLOR_RED / COLOR_END / ColorString) for the staged
@@ -22,27 +22,19 @@ const int FORGE_LEGAL_MAX_VALUE = 750000;
 
 // Extra item value (gp) a maxed-Appraise player may lawfully forge above the
 // default ceilings: +0 at no Appraise investment, +500,000 at an Appraise check
-// of 65. Applied to each forge's per-tier cap, the global enchant backstop, and
-// the contraband/jail ceiling alike. See appraise_inc.nss.
+// of 65. Applied to each forge's per-tier cap and the global enchant backstop.
+// See appraise_inc.nss.
 const int FORGE_APPRAISE_MAX_BONUS = 500000;
 
 // Item-local int stamped by modifyitem when a forge lawfully enchants an item
 // above the default global ceiling because the player's Appraise allowed it.
-// Its value is the lawful per-item value ceiling that justified the work, so the
-// contraband scan / Forge Warden honor it regardless of who later holds the item
-// (legality stays intrinsic to the item - see FORGE_CLEAN note below).
+// Its value is the per-item value ceiling that justified the work, so a later
+// strip or enchant at any forge honours it regardless of who holds the item.
 const string FORGE_CEIL = "FORGE_CEIL";
 // Stamped on any item a player has actually changed at a forge (enchanted at an
-// anvil, or stripped at an anvil / by the Warden). Persists in the player's .bic
-// like FORGE_CEIL, so it survives logout and travels with the item if traded.
-// ForgeRevertToBlueprint mints a FRESH item, which carries no stamp - that is
-// how reverting makes a piece lawful again.
+// anvil, or stripped at an anvil). Persists in the player's .bic like
+// FORGE_CEIL, so it survives logout and travels with the item if traded.
 const string FORGE_TOUCHED = "FORGE_TOUCHED";
-// Name of the blueprint drawback an item is missing, as rendered by
-// ForgePropName (e.g. "Arcane Spell Failure -30%"). Written by
-// ForgeMissingBlueprintDrawback on the failure path so the jail message and
-// the Forge Warden can say WHICH bane was struck off.
-const string FORGE_BANE_MISSING = "FORGE_BANE_MISSING";
 
 // Appraise-extended value bonus for oPC (0..FORGE_APPRAISE_MAX_BONUS).
 int ForgeAppraiseBonus(object oPC)
@@ -72,14 +64,11 @@ int ForgeAppraiseBonus(object oPC)
 // Appraise bonus is added), so lower-tier forges give proportionally smaller
 // rewards. Personal bonuses apply ONLY AT FORGE TIME (what YOU may build).
 //
-// TRANSFERABILITY: the contraband/legality ceiling everywhere (login scan,
-// Well of Eru, Forge Warden, staged disenchant lawfulness) is the MAXIMUM
-// ACHIEVABLE cap - ForgeLegalMaxValue()/ForgeLegalMaxProps() below, i.e.
-// base + the top-tier bonus, uniformly for every character. So an item forged
-// by a decorated boss-slayer can be traded to a fresh character without the
-// recipient ever being jailed for holding it. Raising the ceiling only ever
-// LOOSENS the law, so existing FORGE_CLEAN stamps stay valid (no
-// FORGE_CLEAN_VER bump needed).
+// TRANSFERABILITY: the item-level ceiling (staged disenchant, the enchant
+// backstop) is the MAXIMUM ACHIEVABLE cap - ForgeLegalMaxValue()/
+// ForgeLegalMaxProps() below, i.e. base + the top-tier bonus, uniformly for
+// every character. So an item forged by a decorated boss-slayer behaves the
+// same at the anvil in a fresh character's hands.
 const int FORGE_BOSS_TIER1_KILLS = 10;
 const int FORGE_BOSS_TIER1_PCT   = 5;
 const int FORGE_BOSS_TIER2_KILLS = 25;
@@ -91,8 +80,7 @@ const int FORGE_BOSS_TOP_PCT     = 20;
 
 // Global legal value ceiling INCLUDING the top boss-tier bonus. Any character
 // could lawfully hold an item forged at the top personal cap, so every
-// contraband/legality check must judge against this, never a holder's
-// personal cap. 750,000 + 20% = 900,000 gp today.
+// item-level check must judge against this, never a holder's personal cap. 750,000 + 20% = 900,000 gp today.
 int ForgeLegalMaxValue()
 {
     return FORGE_LEGAL_MAX_VALUE
@@ -122,10 +110,6 @@ int ForgeLegalMaxProps()
 // tokens may push one item above the uniform legal prop cap. With today's values
 // a fully-runed item may bear ForgeLegalMaxProps() (7) + 3 = 10 permanent
 // enchantments. Retune here.
-//
-// Like FORGE_CEIL, an expansion stamp only ever LOOSENS the law for the item that
-// carries it, so existing FORGE_CLEAN stamps stay valid and FORGE_CLEAN_VER does
-// NOT need a bump when this ships.
 const string FORGE_EXTRA_SLOTS  = "FORGE_EXTRA_SLOTS";
 const int    FORGE_TOKEN_MAX_SLOTS = 3;
 
@@ -142,10 +126,8 @@ int ForgeItemExtraSlots(object oItem)
 // Per-item permanent-property ceiling: the uniform legal max (ForgeLegalMaxProps,
 // incl. the top boss-tier +1 slot) plus any token-granted extra slots intrinsic
 // to the item. SINGLE SOURCE OF TRUTH for "how many enchantments may THIS item
-// lawfully bear" - used by BOTH the forge enforcement (modifyitem) and the
-// contraband/legality scan (ForgeItemLegality / ForgeLegalStatus / the staged
-// disenchant), so an item lawfully expanded with runes is never jailed for the
-// extra slots.
+// lawfully bear" - used by both the forge enforcement (modifyitem) and the
+// staged disenchant, so the extra slots are honoured everywhere.
 int ForgeItemMaxProps(object oItem)
 {
     return ForgeLegalMaxProps() + ForgeItemExtraSlots(oItem);
@@ -170,15 +152,13 @@ int ForgeItemCanExpand(object oItem)
         && ForgeItemExtraSlots(oItem) < FORGE_TOKEN_MAX_SLOTS;
 }
 
-// Bind one extra property slot into oItem (clamped) and drop its stale "clean"
-// stamp so the next contraband scan re-reads it. Only LOOSENS legality, so no
-// FORGE_CLEAN_VER bump. (This is the bind step formerly in slot_token.nss.)
+// Bind one extra property slot into oItem (clamped). (This is the bind step
+// formerly in slot_token.nss.)
 void ForgeBindExtraSlot(object oItem)
 {
     int nNew = ForgeItemExtraSlots(oItem) + 1;
     if (nNew > FORGE_TOKEN_MAX_SLOTS) nNew = FORGE_TOKEN_MAX_SLOTS;
     SetLocalInt(oItem, FORGE_EXTRA_SLOTS, nNew);
-    DeleteLocalInt(oItem, "FORGE_CLEAN");
 }
 
 // (The spoken outcome for the expand action lives in ForgeExpandDo, below
@@ -268,31 +248,6 @@ const int FORGE_DIS_SLOTS = 8;
 const int FORGE_STG_BITS  = 30;
 const int FORGE_STG_WORDS = 6;
 
-// Contraband-scan "clean" stamp. An item verified legal by the login scan gets
-// item-local int "FORGE_CLEAN" set to FORGE_CLEAN_VER; future logins skip it,
-// so a repeat login does almost no work. The stamp persists with the item in
-// the player's .bic. BUMP FORGE_CLEAN_VER whenever the legality rules or the
-// forge_legal_inc whitelist change, so every item is re-scanned exactly once
-// after a rules update. Forge masters clear the stamp when they modify an item
-// (see modifyitem.nss / forge_dis_go.nss). Legality is intrinsic to the item,
-// so a clean stamp is valid across owners - trading can't launder gear.
-// 5: the caps now apply only to items a player actually forged
-//    (ForgeIsPlayerModified / FORGE_TOUCHED). This only ever LOOSENS the law -
-//    nothing can newly become contraband - so the forced re-scan is safe and
-//    clears the players wrongly jailed under version 4.
-// 6: drawbacks are no longer enchantments (ForgeIsDetrimentalProp). The
-//    counting half only loosens the law, but the new
-//    ForgeMissingBlueprintDrawback rule CAN newly condemn an item - a piece a
-//    player forged after striking off its bane - and those items sit under both
-//    caps, so without this bump their existing clean stamps would hide them
-//    forever.
-const int FORGE_CLEAN_VER = 6;
-
-// Tri-state result of ForgeItemLegality.
-const int FORGE_LEG_LEGAL         = 0;  // confirmed within the law
-const int FORGE_LEG_ILLEGAL       = 1;  // tampered + over the ceiling
-const int FORGE_LEG_INDETERMINATE = 2;  // valuation infra unavailable - don't judge
-
 void ForgeLog(string sMsg)
 {
     if (!GetLocalInt(GetModule(), "FORGE_DEBUG")) return;
@@ -305,8 +260,7 @@ void ForgeLog(string sMsg)
 // or fingerprinted by the forge system. Covers weapon visual effects (Bree
 // appearance station, see inc_emotewand AddItemPropertyVisualEffect) and
 // Light of any color/brightness (Continual Flame, gems of power, the forge's
-// own Light enchant - illumination only, no combat bonus). forge_legal_inc's
-// ForgeLegalFingerprint mirrors this rule.
+// own Light enchant - illumination only, no combat bonus).
 int ForgeIsCosmeticProp(itemproperty ip)
 {
     int nType = GetItemPropertyType(ip);
@@ -339,10 +293,9 @@ int ForgeIsRestrictionProp(itemproperty ip)
 // cost no slot and no forge will unmake them: striking one off used to turn a
 // balanced piece into a pure upgrade for the cost of a disenchant, and free a
 // slot for a real enchantment on top (roadmap
-// smith-can-disenchant-negative-abilities). They ARE still priced and still
-// fingerprinted - a drawback lowers an item's assessed worth, and removing it
-// from the pricing would re-value every cursed piece upward and could jail gear
-// that is lawful today. See FORGE_SEL_PRICED below.
+// smith-can-disenchant-negative-abilities). They ARE still priced - a drawback
+// lowers an item's assessed worth, and removing it from the pricing would
+// re-value every cursed piece upward. See FORGE_SEL_PRICED below.
 int ForgeIsDetrimentalProp(itemproperty ip)
 {
     int nType = GetItemPropertyType(ip);
@@ -378,9 +331,9 @@ int ForgeIsDetrimentalProp(itemproperty ip)
 // never re-inline the condition, or the sets silently drift apart.
 //
 //   COUNTED   what fills an enchantment slot: the property cap, the "bears N
-//             enchantments" messages, the legality verdict. Neither
+//             enchantments" messages. Neither
 //             restrictions nor drawbacks are enchantments, so neither counts.
-//   REMOVABLE what a player may strike at a forge / in the Warden's jail, and
+//   REMOVABLE what a player may strike at a forge, and
 //             therefore what the staged plan's bit indices count. Light IS
 //             removable (it just costs no slot); weapon visual effects,
 //             restrictions and drawbacks are not.
@@ -444,8 +397,7 @@ itemproperty ForgeGetPropByIndexSel(object oItem, int nIndex, int nSel)
 // Creature items (natural weapons / hide) are equipped by the engine into the
 // creature slots during polymorph - druid Dragon Shape, wild shape, shifter
 // forms, etc. They carry the form's built-in enchantments, have no stock
-// blueprint, and cannot be forged or disenchanted by a player, so they must
-// never count as contraband. Base item types 69-73 (CSLASHWEAPON, CPIERCWEAPON,
+// blueprint, and cannot be forged or disenchanted by a player. Base item types 69-73 (CSLASHWEAPON, CPIERCWEAPON,
 // CBLUDGWEAPON, CSLSHPRCWEAP, CREATUREITEM).
 int ForgeIsCreatureItem(object oItem)
 {
@@ -532,7 +484,7 @@ int ForgeRebuildValue(object oItem)
 // ForgeRebuildValue). Returns -1 when no valuation is possible (callers must
 // refuse, not treat as free).
 // bPerUnit: value a single unit, not the whole stack. The rebuild values one unit,
-// so the contraband ceiling (a per-item cap) passes TRUE; the forge pricing callers
+// so the per-item ceiling checks pass TRUE; the forge pricing callers
 // leave it FALSE (enchanting a stack enchants every unit), so the worth is scaled
 // by stack size to match the old whole-stack GetGoldPieceValue contract.
 int ForgeItemValue(object oItem, int bPerUnit = FALSE)
@@ -881,153 +833,6 @@ string ForgePropSig(itemproperty ip)
         + IntToString(GetItemPropertyParam1Value(ip));
 }
 
-// Compare oItem's permanent properties against its pristine blueprint
-// (instantiated by resref). Order-insensitive multiset compare keyed on
-// ForgePropSig. Unknown resref counts as deviating - conservative by design.
-//
-// The stock side is packed ONCE into a "|sig|sig|sig|" string and each match
-// consumes its token. The previous version re-walked the stock property list
-// inside a nested loop (ForgeGetPropByIndexSel per candidate), which is O(n^3)
-// in property count: on the module's high-end gear - superdeluxering carries 72
-// properties - that ran to millions of instructions and blew the NWScript
-// instruction cap INSIDE the legality check, silently killing the contraband
-// scan chain part-way through an inventory. Now O(n) property walks plus O(n)
-// string searches.
-int ForgeItemDeviatesFromBlueprint(object oItem)
-{
-    object oHolder = ForgeHolder();
-    if (!GetIsObjectValid(oHolder))
-        return FALSE; // can't judge - never jail on infrastructure failure
-
-    string sResRef = GetResRef(oItem);
-    object oStock = CreateItemOnObject(sResRef, oHolder);
-    if (!GetIsObjectValid(oStock))
-    {
-        ForgeLog("DeviatesFromBlueprint: no blueprint for resref '" + sResRef
-            + "' (item '" + GetName(oItem) + "') - treating as deviant");
-        return TRUE;
-    }
-
-    // Tamper detection uses the PRICED set - the full permanent, non-cosmetic
-    // footprint, restrictions included. It must NOT narrow to the counted set:
-    // a stock item's restrictions have to stay matchable against the blueprint's,
-    // or every class/race-locked drop in the module reads as deviant and the
-    // contraband scan starts jailing legitimate gear.
-    string sStock = "|";
-    int nStock = 0;
-    itemproperty ipS = GetFirstItemProperty(oStock);
-    while (GetIsItemPropertyValid(ipS))
-    {
-        if (ForgePropInSet(ipS, FORGE_SEL_PRICED))
-        {
-            sStock += ForgePropSig(ipS) + "|";
-            nStock++;
-        }
-        ipS = GetNextItemProperty(oStock);
-    }
-    DestroyObject(oStock);
-
-    int bDeviates = FALSE;
-    int nItem = 0;
-    itemproperty ip = GetFirstItemProperty(oItem);
-    while (!bDeviates && GetIsItemPropertyValid(ip))
-    {
-        if (ForgePropInSet(ip, FORGE_SEL_PRICED))
-        {
-            nItem++;
-            string sTok = "|" + ForgePropSig(ip) + "|";
-            int nPos = FindSubString(sStock, sTok);
-            if (nPos < 0)
-                bDeviates = TRUE;      // property the blueprint does not have
-            else
-                // Consume this one occurrence: drop "sig|", keeping the leading
-                // "|" so the remaining tokens stay delimited on both sides.
-                sStock = GetStringLeft(sStock, nPos + 1)
-                    + GetSubString(sStock, nPos + GetStringLength(sTok),
-                        GetStringLength(sStock) - nPos - GetStringLength(sTok));
-        }
-        ip = GetNextItemProperty(oItem);
-    }
-    // Counts must agree too: fewer properties than stock is just as much a
-    // deviation as more (a stripped item no longer matches its blueprint).
-    if (!bDeviates && nItem != nStock)
-        bDeviates = TRUE;
-    return bDeviates;
-}
-
-// TRUE when oItem's stock blueprint carries a permanent drawback that oItem no
-// longer has. This is the retroactive half of
-// smith-can-disenchant-negative-abilities: drawbacks can no longer be struck
-// off, but items stripped before the fix are already out there, and they sit
-// comfortably under both caps (removing a penalty LOWERS an item's worth), so
-// the ordinary ceiling checks would never notice them. A player-modified piece
-// missing its bane is contraband, and the Warden's revert-to-blueprint is the
-// cure - the forge cannot put a drawback back.
-//
-// Same packed-signature technique as ForgeItemDeviatesFromBlueprint: pack the
-// stock side once, consume tokens, O(n) walks - never a nested property loop
-// (that is what blew the instruction cap inside the legality check before).
-// Missing blueprint or no holder returns FALSE: never jail on an
-// infrastructure failure or on an item with no stock to compare against.
-int ForgeMissingBlueprintDrawback(object oItem)
-{
-    object oHolder = ForgeHolder();
-    if (!GetIsObjectValid(oHolder))
-        return FALSE;
-    object oStock = CreateItemOnObject(GetResRef(oItem), oHolder);
-    if (!GetIsObjectValid(oStock))
-        return FALSE;
-
-    // Pack the item's OWN drawbacks, then look for each stock drawback in it.
-    string sHas = "|";
-    itemproperty ip = GetFirstItemProperty(oItem);
-    while (GetIsItemPropertyValid(ip))
-    {
-        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
-            && ForgeIsDetrimentalProp(ip))
-            sHas += ForgePropSig(ip) + "|";
-        ip = GetNextItemProperty(oItem);
-    }
-
-    int bMissing = FALSE;
-    itemproperty ipS = GetFirstItemProperty(oStock);
-    while (!bMissing && GetIsItemPropertyValid(ipS))
-    {
-        if (GetItemPropertyDurationType(ipS) == DURATION_TYPE_PERMANENT
-            && ForgeIsDetrimentalProp(ipS))
-        {
-            string sTok = "|" + ForgePropSig(ipS) + "|";
-            int nPos = FindSubString(sHas, sTok);
-            if (nPos < 0)
-            {
-                bMissing = TRUE;
-                // Remember WHICH bane is gone, so the jail message and the
-                // Warden can name it instead of saying only "a bane was struck
-                // from it" - the player otherwise has no way to know what the
-                // forge is objecting to. Failure path only, one call, and the
-                // loop stops here, so it costs nothing on the common path.
-                SetLocalString(oItem, FORGE_BANE_MISSING, ForgePropName(ipS));
-            }
-            else
-                // Consume this one occurrence, keeping the leading "|" so the
-                // remaining tokens stay delimited on both sides.
-                sHas = GetStringLeft(sHas, nPos + 1)
-                    + GetSubString(sHas, nPos + GetStringLength(sTok),
-                        GetStringLength(sHas) - nPos - GetStringLength(sTok));
-        }
-        ipS = GetNextItemProperty(oStock);
-    }
-    DestroyObject(oStock);
-    if (bMissing)
-        ForgeLog("MissingBlueprintDrawback: '" + GetName(oItem) + "' ("
-            + GetResRef(oItem) + ") has lost the drawback ["
-            + GetLocalString(oItem, FORGE_BANE_MISSING)
-            + "] its blueprint carries.");
-    else
-        DeleteLocalString(oItem, FORGE_BANE_MISSING); // stale name from an earlier verdict
-    return bMissing;
-}
-
 // TRUE when a player has changed this item at a forge. This - NOT the
 // blueprint comparison - is the authoritative answer to "did a player make this
 // what it is", and the caps only ever apply to items for which it is true.
@@ -1038,186 +843,18 @@ int ForgeMissingBlueprintDrawback(object oItem)
 // player FORGING past it, nothing else.
 //
 // FORGE_TOUCHED is the explicit stamp. Two older marks are honoured as legacy
-// signals, so items enchanted before the stamp existed are still judged:
+// signals, so items enchanted before the stamp existed are still recognised:
 //   FORGE_GP_INVESTED  gold paid at an anvil - set on every paid enchant since
-//                      2026-06-04, which predates the contraband law itself.
+//                      2026-06-04.
 //   FORGE_CEIL         the raised ceiling a forge records when it lawfully
 //                      enchants a piece past the default one. Nothing but a
 //                      forge ever writes it, so its presence is proof.
-// This can only ever narrow the set of items the caps apply to relative to the
-// old blueprint-deviation rule, so no item that was lawful under that rule can
-// become contraband under this one.
 int ForgeIsPlayerModified(object oItem)
 {
     return GetLocalInt(oItem, FORGE_TOUCHED)
         || GetLocalInt(oItem, "FORGE_GP_INVESTED") > 0
         || GetLocalInt(oItem, FORGE_CEIL) > 0;
 }
-
-// Tri-state legality verdict. Illegal = exceeds the global legal ceiling
-// (ForgeLegalMaxProps() properties / ForgeLegalMaxValue() gp - the MAXIMUM
-// ACHIEVABLE forge caps including the top boss-kill bonus, so items forged by
-// a decorated boss-slayer stay legal in ANY character's hands) AND was
-// tampered with (deviates from its stock blueprint). Stock drops above the
-// ceiling stay legal. Returns INDETERMINATE when no valuation is possible -
-// callers must neither jail nor mark such items clean. The single source of
-// truth for legality (ForgeIsItemIllegal and the login scan both go through
-// here).
-int ForgeItemLegality(object oItem)
-{
-    if (!GetIsObjectValid(oItem))
-        return FORGE_LEG_LEGAL;
-    if (ForgeIsCreatureItem(oItem))
-        return FORGE_LEG_LEGAL; // polymorph natural weapon/hide - engine-managed, never forged
-    int nValue = ForgeItemValue(oItem, TRUE); // per-unit: the cap is per item, not per stack
-    if (nValue < 0)
-        return FORGE_LEG_INDETERMINATE; // no valuation infrastructure - never judge blind
-    // A drawback struck off before the fix landed leaves an item BELOW both
-    // caps, so it must be judged before the within-caps early return. Gated on
-    // the O(1) player-modified stamp so the login scan only pays for the
-    // blueprint instantiation on items a player actually forged, and cleared by
-    // the same known-legal-variant escape hatch as the deviation check (the
-    // module does place drawback-free variants of its own gear).
-    if (ForgeIsPlayerModified(oItem)
-        && ForgeMissingBlueprintDrawback(oItem)
-        && !ForgeIsKnownLegalVariant(oItem))
-        return FORGE_LEG_ILLEGAL;
-    // A forge stamps FORGE_CEIL on an item it lawfully enchanted above the
-    // default ceiling because the forger's Appraise allowed it; honor that
-    // higher per-item ceiling for everyone (legality is intrinsic to the item).
-    int nValueCeil = ForgeLegalMaxValue();
-    int nStamp = GetLocalInt(oItem, FORGE_CEIL);
-    if (nStamp > nValueCeil)
-        nValueCeil = nStamp;
-    if (ForgeCountProps(oItem) <= ForgeItemMaxProps(oItem)
-        && nValue <= nValueCeil)
-        return FORGE_LEG_LEGAL;
-    // Over the ceiling is not by itself an offence - only forging past it is.
-    // An item no player has touched at a forge is legitimate no matter how
-    // absurd, so it is never judged against the caps. Checked BEFORE the
-    // blueprint compare because it is O(1) and the compare instantiates the
-    // blueprint. This is also what stops a blueprint edit from retroactively
-    // criminalising gear players already carry: a rebalance changes what the
-    // blueprint says, but it cannot change who forged the item.
-    if (!ForgeIsPlayerModified(oItem))
-        return FORGE_LEG_LEGAL;
-    if (!ForgeItemDeviatesFromBlueprint(oItem))
-        return FORGE_LEG_LEGAL;
-    // Deviating from blueprint is fine when the deviation matches an item the
-    // module itself places (embedded store stock, creature loot, container
-    // contents) - those are legally obtainable, not player-forged.
-    if (ForgeIsKnownLegalVariant(oItem))
-    {
-        ForgeLog("ItemLegality: '" + GetName(oItem) + "' (" + GetResRef(oItem)
-            + ") deviates but matches a known legal variant - allowed.");
-        return FORGE_LEG_LEGAL;
-    }
-    return FORGE_LEG_ILLEGAL;
-}
-
-int ForgeIsItemIllegal(object oItem)
-{
-    return ForgeItemLegality(oItem) == FORGE_LEG_ILLEGAL;
-}
-
-// TRUE when oItem exists and sits in oPC's inventory or equipment (one
-// container level deep - bags can't nest). Guards warden scripts against
-// stale cached handles whose object id the engine may have recycled.
-int ForgePCHolds(object oPC, object oItem)
-{
-    if (!GetIsObjectValid(oItem))
-        return FALSE;
-    object oPoss = GetItemPossessor(oItem);
-    if (oPoss == oPC)
-        return TRUE;
-    return GetIsObjectValid(oPoss) && GetItemPossessor(oPoss) == oPC;
-}
-
-// TRUE when oItem was already handled by the current revert-all pass on oPC
-// (item-local FORGE_RVT_SKIP carries the pass's run stamp). Stale stamps from
-// earlier passes don't match, so nothing is skipped forever.
-int ForgeRevertSeen(object oItem, object oPC)
-{
-    return GetLocalInt(oItem, "FORGE_RVT_SKIP")
-        == GetLocalInt(oPC, "FORGE_RVT_RUN");
-}
-
-// An item the login/Warden scan already verified legal carries the current
-// FORGE_CLEAN stamp. Legality is intrinsic to the item and a forge clears the
-// stamp on any change (see modifyitem / forge_dis_go), so a stamped item can be
-// skipped without re-running the expensive valuation - this is what keeps the
-// synchronous scanners (revert-all loop, release guard) under the instruction
-// cap once an inventory has been scanned.
-int ForgeIsKnownClean(object oItem)
-{
-    return GetLocalInt(oItem, "FORGE_CLEAN") == FORGE_CLEAN_VER;
-}
-
-// First illegal item on the PC: equipped slots, then inventory, descending
-// one level into containers (bags can't nest in NWN). bSkipMarked skips items
-// already handled by the current revert-all pass (see ForgeRevertSeen) - they
-// still count as illegal everywhere else. Clean-stamped items are skipped before
-// the costly legality check (short-circuit), so a fully-scanned inventory costs
-// little here.
-object ForgeFindIllegalItem(object oPC, int bSkipMarked = FALSE)
-{
-    int nSlot;
-    for (nSlot = 0; nSlot < NUM_INVENTORY_SLOTS; nSlot++)
-    {
-        object oItem = GetItemInSlot(nSlot, oPC);
-        if (GetIsObjectValid(oItem) && !ForgeIsKnownClean(oItem)
-            && ForgeIsItemIllegal(oItem)
-            && !(bSkipMarked && ForgeRevertSeen(oItem, oPC)))
-            return oItem;
-    }
-    object oItem = GetFirstItemInInventory(oPC);
-    while (GetIsObjectValid(oItem))
-    {
-        if (!ForgeIsKnownClean(oItem) && ForgeIsItemIllegal(oItem)
-            && !(bSkipMarked && ForgeRevertSeen(oItem, oPC)))
-            return oItem;
-        if (GetHasInventory(oItem))
-        {
-            object oInBag = GetFirstItemInInventory(oItem);
-            while (GetIsObjectValid(oInBag))
-            {
-                if (!ForgeIsKnownClean(oInBag) && ForgeIsItemIllegal(oInBag)
-                    && !(bSkipMarked && ForgeRevertSeen(oInBag, oPC)))
-                    return oInBag;
-                oInBag = GetNextItemInInventory(oItem);
-            }
-        }
-        oItem = GetNextItemInInventory(oPC);
-    }
-    return OBJECT_INVALID;
-}
-
-// Replace oItem with a pristine copy of its stock blueprint, created on oPC.
-// New item is created first so a missing blueprint never costs the player
-// the original. Returns the new item, or OBJECT_INVALID when the blueprint
-// is unknown (item left untouched). Equipped originals land the replacement
-// in the backpack.
-object ForgeRevertToBlueprint(object oItem, object oPC)
-{
-    if (!GetIsObjectValid(oItem))
-        return OBJECT_INVALID;
-    string sResRef = GetResRef(oItem);
-    object oNew = CreateItemOnObject(sResRef, oPC);
-    if (!GetIsObjectValid(oNew))
-    {
-        ForgeLog("RevertToBlueprint: no blueprint for resref '" + sResRef
-            + "' (item '" + GetName(oItem) + "')");
-        return OBJECT_INVALID;
-    }
-    SetIdentified(oNew, TRUE);
-    ForgeLog("RevertToBlueprint: '" + GetName(oItem) + "' -> stock '"
-        + GetName(oNew) + "' (resref " + sResRef + ") for " + GetName(oPC));
-    DestroyObject(oItem);
-    return oNew;
-}
-
-// (Revert-all lives further down as ForgeBeginRevertAll - it is chunked through
-// forge_scan_step and so must be declared after ForgeEnqueueScan.)
 
 // Menu label for one strip-list slot. A cosmetic property is listed (so it can
 // be unmade) but marked free, because striking it frees no slot and returns no
@@ -1270,102 +907,20 @@ string ForgeUnlistedNote(object oItem)
     return s;
 }
 
-// Player-facing summary of what still makes oItem unlawful (for the Forge
-// Warden's dialog), or a confirmation that it is now within the law.
-string ForgeLegalStatus(object oItem)
-{
-    if (!GetIsObjectValid(oItem))
-        return "";
-    int nProps = ForgeCountProps(oItem);
-    int nValue = ForgeItemValue(oItem, TRUE); // per-unit: matches the ForgeIsItemIllegal gate
-    // Honor any Appraise-extended ceiling stamped on the item (see FORGE_CEIL),
-    // so a lawfully high-value piece reads as within the law, not contraband.
-    int nValueCeil = ForgeLegalMaxValue();
-    int nStamp = GetLocalInt(oItem, FORGE_CEIL);
-    if (nStamp > nValueCeil)
-        nValueCeil = nStamp;
-    // Per-item prop ceiling honors any bound Runes of Expansion (FORGE_EXTRA_SLOTS).
-    int nMaxProps = ForgeItemMaxProps(oItem);
-    int bProps = nProps > nMaxProps;
-    int bValue = nValue > nValueCeil;
-    // A bane struck off before the fix is an offence on its own, and one the
-    // forge cannot undo - say so plainly, because reverting to the blueprint is
-    // the only cure and the player has no other way to put the drawback back.
-    if (ForgeIsPlayerModified(oItem)
-        && ForgeMissingBlueprintDrawback(oItem)
-        && !ForgeIsKnownLegalVariant(oItem))
-    {
-        // Name the bane (cached by the check we just ran) - "a bane is missing"
-        // told the player nothing they could act on.
-        string sBane = GetLocalString(oItem, FORGE_BANE_MISSING);
-        if (sBane != "")
-            sBane = " [" + sBane + "]";
-        return "The bane" + sBane + " it was forged with has been struck from"
-            + " it. That is no honest smithing, and no forge of mine can lay it"
-            + " back on: only restoring the piece as it was made will set it"
-            + " right.";
-    }
-    if (!bProps && !bValue)
-        return "It is within the law now: " + IntToString(nProps)
-            + " enchantments of the " + IntToString(nMaxProps)
-            + " allowed, and a worth of " + ForgeGold(nValue)
-            + " gold under the lawful " + ForgeGold(nValueCeil) + "."
-            + ForgeUnlistedNote(oItem);
-    string s = "";
-    if (bProps)
-        s += "It still bears " + IntToString(nProps) + " enchantments where the "
-            + "law allows but " + IntToString(nMaxProps) + ".";
-    if (bValue)
-    {
-        if (s != "") s += " And i";
-        else s += "I";
-        s += "ts worth, " + ForgeGold(nValue) + " gold, still exceeds the lawful "
-            + ForgeGold(nValueCeil) + ".";
-    }
-    return s + ForgeUnlistedNote(oItem);
-}
-
-// Prime the disenchant sub-conversation: target item on the PC, property
-// count, and one custom token per listed property slot.
-void ForgeDisenchantSetup(object oPC, object oTarget)
-{
-    SetLocalObject(oPC, "FORGE_DIS_ITEM", oTarget);
-    int nCount = 0;
-    if (GetIsObjectValid(oTarget))
-    {
-        // The LIST is the removable set, not the counted set: restrictions are
-        // never offered, Light is offered but free.
-        nCount = ForgeCountPropsSel(oTarget, FORGE_SEL_REMOVABLE);
-        SetCustomToken(100, GetName(oTarget));
-    }
-    SetLocalInt(oPC, "FORGE_DIS_COUNT", nCount);
-    int n;
-    for (n = 0; n < FORGE_DIS_SLOTS; n++)
-    {
-        string sLabel = "";
-        if (n < nCount)
-            sLabel = ForgeSlotLabel(ForgeGetPropByIndexSel(oTarget, n,
-                                                    FORGE_SEL_REMOVABLE));
-        SetCustomToken(6110 + n, sLabel);
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Staged (transactional) anvil disenchant. The forge masters let a player PLAN
 // which properties to strike from an over-quality item and only commit the
-// removals once the planned result would be lawful - so the real item never
-// passes through an illegal state (and the player is never jailed mid-effort).
-// A per-PC bitmask FORGE_STG_MASK records which ORIGINAL permanent-property
-// indices are planned for removal; because nothing is mutated until commit, the
-// indices stay stable for the whole conversation. These are ANVIL-ONLY - the
-// Forge Warden's jail dialog keeps using the immediate-removal forge_dis_*
-// scripts above.
+// removals once the planned result would be within the caps - so the real item
+// never passes through an over-cap state. A per-PC bitmask FORGE_STG_MASK
+// records which ORIGINAL permanent-property indices are planned for removal;
+// because nothing is mutated until commit, the indices stay stable for the
+// whole conversation.
 
 // Effective per-item legality ceiling for oPC working oItem: the global cap
 // (max-achievable, incl. the top boss-tier bonus - see ForgeLegalMaxValue)
 // raised by the player's live Appraise headroom, never below a FORGE_CEIL the
-// item already carries. Mirrors the max() ForgeItemLegality uses, plus the live
-// Appraise bonus (what this smith may allow this player).
+// item already carries, plus the live Appraise bonus (what this smith may allow
+// this player).
 int ForgeEffectiveCeil(object oPC, object oItem)
 {
     int nCeil = ForgeLegalMaxValue() + ForgeAppraiseBonus(oPC);
@@ -1514,8 +1069,8 @@ string ForgeProjectedStatus(object oPC, object oItem)
         s += ", and bears " + IntToString(nProps) + " enchantments where the law "
             + "allows but " + IntToString(nMaxProps);
     s += ".";
-    // An untouched relic over the caps is lawful ONLY because no forge has
-    // worked it (ForgeItemLegality). Any strike makes it forged work judged by
+    // An untouched relic over the caps is fine ONLY because no forge has
+    // worked it. Any strike makes it forged work judged by
     // the caps, so the commit reply stays hidden until the plan clears them -
     // which read as "the forge will not strike this property" (roadmap
     // level-drain-property-not-removable-from-forge). Say why. The plan above
@@ -1536,7 +1091,7 @@ string ForgeProjectedStatus(object oPC, object oItem)
 
 // TRUE when the plan is non-empty AND the projected result is lawful (worth
 // within ForgeEffectiveCeil and at most ForgeLegalMaxProps() properties -
-// the uniform legal ceiling, so a committed plan can never mint contraband).
+// the uniform legal ceiling, so a committed plan never leaves an over-cap item).
 // Drives the commit reply's Active gate (forge_stg_ok).
 int ForgeStagePlanIsLawful(object oPC, object oItem)
 {
@@ -1623,12 +1178,10 @@ void ForgeStageOpen(object oPC)
     ForgeStageSetupCued(oPC, oItem);
 }
 
-// Stamp the lawful ceiling and clean mark on a freshly-worked item so legality
-// is intrinsic and the login/Well contraband scan agrees in O(1). Per the user
-// request the ceiling (with Appraise headroom) is recorded whenever the smith
-// works the item, so it stays lawful even if the bearer later loses Appraise or
-// trades the item away. Mirrors the FORGE_CEIL/FORGE_CLEAN contract in
-// modifyitem.nss.
+// Stamp the lawful ceiling on a freshly-worked item. The ceiling (with
+// Appraise headroom) is recorded whenever the smith works the item, so it is
+// honoured even if the bearer later loses Appraise or trades the item away.
+// Mirrors the FORGE_CEIL contract in modifyitem.nss.
 void ForgeStampLawful(object oPC, object oItem)
 {
     if (!GetIsObjectValid(oItem))
@@ -1638,8 +1191,6 @@ void ForgeStampLawful(object oPC, object oItem)
     int nCeil = ForgeLegalMaxValue() + ForgeAppraiseBonus(oPC);
     if (nCeil > GetLocalInt(oItem, FORGE_CEIL))
         SetLocalInt(oItem, FORGE_CEIL, nCeil);
-    if (ForgeItemLegality(oItem) == FORGE_LEG_LEGAL)
-        SetLocalInt(oItem, "FORGE_CLEAN", FORGE_CLEAN_VER);
 }
 
 // Commit the plan: strike every planned property from the REAL item (highest
@@ -1665,255 +1216,10 @@ void ForgeStageCommit(object oPC, object oItem)
             }
         }
     }
-    // Footprint changed - drop the stale clean stamp, then re-stamp the lawful
-    // ceiling + clean mark on the now-lawful result.
-    DeleteLocalInt(oItem, "FORGE_CLEAN");
+    // Re-stamp the lawful ceiling on the result.
     // Stripping is a player modification too (see FORGE_TOUCHED).
     SetLocalInt(oItem, FORGE_TOUCHED, TRUE);
     ForgeStampLawful(oPC, oItem);
     ForgeStageClear(oPC);
     DeleteLocalInt(oPC, "FORGE_STG_PAGE");
-}
-
-// Sequester a contested item for DM review: stored in the craftdb quarantine
-// queue (same keys welloferuenter.nss uses), so it lands in the DM-review
-// chest (ZEP_CR_QUARANTINE, House of Homer) on next open. No refund - a DM
-// returns the item if the player's claim holds.
-void ForgeQuarantineDisputedItem(object oItem, object oPC)
-{
-    if (!GetIsObjectValid(oItem) || !GetIsObjectValid(oPC))
-        return;
-    string sName = GetName(oItem);
-    // Value the item BEFORE StoreCampaignObject/DestroyObject invalidate it.
-    string sLog = "[FORGE DISPUTE] Item '" + sName + "' (resref: "
-        + GetResRef(oItem) + ", props " + IntToString(ForgeCountProps(oItem))
-        + ", value " + IntToString(ForgeItemValue(oItem))
-        + ") sequestered from " + GetName(oPC) + " (account: "
-        + GetPCPlayerName(oPC) + ") pending DM review.";
-
-    // Stamp provenance onto the item itself so it travels with the object into
-    // the quarantine chest snapshot and survives until a DM physically removes
-    // it from the chest. The parallel quarantine_*_info campaign string below
-    // is cleared the moment the chest is first opened (zep_cr_qrestore.nss), so
-    // this local var is the durable record of who submitted the item.
-    SetLocalString(oItem, "QUARANTINE_INFO", sLog);
-
-    int nQ = GetCampaignInt("craftdb", "quarantine_count");
-    StoreCampaignObject("craftdb", "quarantine_" + IntToString(nQ), oItem);
-    SetCampaignString("craftdb", "quarantine_" + IntToString(nQ) + "_info", sLog);
-    SetCampaignInt("craftdb", "quarantine_count", nQ + 1);
-    DestroyObject(oItem);
-
-    WriteTimestampedLogEntry(sLog);
-    SendMessageToAllDMs(sLog);
-    SendMessageToPC(oPC, "[Forge Warden] Your '" + sName + "' has been "
-        + "sequestered under seal in the House of Homer pending DM review. "
-        + "If your claim of lawful provenance holds, it will be returned to "
-        + "you; if not, it is forfeit. No compensation is owed while the "
-        + "matter is under judgment.");
-}
-
-// Jail oPC in the Pit Prison for carrying the illegal item oBad. Shared by the
-// synchronous ForgeJailIfIllegal and the chunked login scan (forge_scan_step).
-void ForgeJailForItem(object oPC, object oBad)
-{
-    if (!GetIsObjectValid(oBad))
-        return;
-    SetLocalObject(oPC, "FORGE_ILLEGAL_ITEM", oBad);
-    // Seed the Warden's O(1) gate verdict: the scan just proved this item
-    // illegal, so the gates can trust "dirty" the moment the PC arrives, with
-    // no need to re-scan a (possibly huge) inventory inside a StartingConditional.
-    SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", TRUE);
-    SetLocalInt(oPC, "FORGE_WARDEN_READY", TRUE);
-    ForgeLog("Jailing " + GetName(oPC) + " for item '" + GetName(oBad)
-        + "' (resref " + GetResRef(oBad) + ", props "
-        + IntToString(ForgeCountProps(oBad)) + ", value "
-        + IntToString(ForgeItemValue(oBad)) + ", fp="
-        + ForgeLegalFingerprint(oBad) + ")");
-    object oWP = GetWaypointByTag("jailed");
-    if (!GetIsObjectValid(oWP))
-    {
-        ForgeLog("ForgeJailForItem: waypoint 'jailed' missing!");
-        return;
-    }
-    // Say WHY, not just WHICH item. A player told only "unlawful enchantment"
-    // has no way to guess what the forge objects to (roadmap
-    // smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure:
-    // "the Forge Warden should be more explicit"). The missing-bane name is
-    // already cached by the verdict that jailed them, so this costs nothing;
-    // the cap breaches are re-derived cheaply, and the valuation is only paid
-    // when the property count is NOT the offence.
-    string sWhy = "";
-    string sBane = GetLocalString(oBad, FORGE_BANE_MISSING);
-    if (sBane != "")
-        sWhy = " - the bane [" + sBane + "] it was forged with has been struck"
-            + " from it";
-    else
-    {
-        int nProps = ForgeCountProps(oBad);
-        int nMaxProps = ForgeItemMaxProps(oBad);
-        if (nProps > nMaxProps)
-            sWhy = " - " + IntToString(nProps) + " enchantments where the law"
-                + " allows " + IntToString(nMaxProps);
-        else
-        {
-            int nValue = ForgeItemValue(oBad, TRUE);
-            int nCeil = ForgeLegalMaxValue();
-            int nStamp = GetLocalInt(oBad, FORGE_CEIL);
-            if (nStamp > nCeil)
-                nCeil = nStamp;
-            if (nValue > nCeil)
-                sWhy = " - a worth of " + ForgeGold(nValue) + " gold where the"
-                    + " law allows " + ForgeGold(nCeil);
-        }
-    }
-    FloatingTextStringOnCreature("The " + GetName(oBad) + " you carry bears "
-        + "unlawful enchantment" + sWhy + ". The Valar take notice...",
-        oPC, FALSE);
-    location lJail = GetLocation(oWP);
-    DelayCommand(1.0, AssignCommand(oPC, JumpToLocation(lJail)));
-    // Spoken hint after arrival so the player knows which jailer applies.
-    DelayCommand(3.0, AssignCommand(oPC, SpeakString("The forged enchantments "
-        + "on my " + GetName(oBad) + " are beyond the law. I should speak with "
-        + "a FORGE WARDEN to make my gear lawful again.")));
-}
-
-// Jail the PC in the Pit Prison if they carry illegally forged gear. Synchronous
-// full scan - kept for callers that need an immediate verdict; the login path
-// uses ForgeBeginScan instead to stay under the instruction cap.
-void ForgeJailIfIllegal(object oPC)
-{
-    if (!GetIsPC(oPC) || GetIsDM(oPC))
-        return;
-    ForgeJailForItem(oPC, ForgeFindIllegalItem(oPC));
-}
-
-// Enumerate oPC's equipment, then inventory and one level of bag contents into
-// ordered item-handle locals (FORGE_SCAN_0..N-1, count FORGE_SCAN_N, cursor
-// FORGE_SCAN_I reset to 0). Returns the item count. This pass does no
-// valuation/blueprint work, so it is cheap even for a large inventory; the
-// per-item cost is paid one item at a time by forge_scan_step. Shared by the
-// login (jail) scan and the Warden (verdict) scan.
-int ForgeEnqueueScan(object oPC)
-{
-    int n = 0;
-    int nSlot;
-    for (nSlot = 0; nSlot < NUM_INVENTORY_SLOTS; nSlot++)
-    {
-        object oItem = GetItemInSlot(nSlot, oPC);
-        if (GetIsObjectValid(oItem))
-            SetLocalObject(oPC, "FORGE_SCAN_" + IntToString(n++), oItem);
-    }
-    object oItem = GetFirstItemInInventory(oPC);
-    while (GetIsObjectValid(oItem))
-    {
-        SetLocalObject(oPC, "FORGE_SCAN_" + IntToString(n++), oItem);
-        if (GetHasInventory(oItem))
-        {
-            object oInBag = GetFirstItemInInventory(oItem);
-            while (GetIsObjectValid(oInBag))
-            {
-                SetLocalObject(oPC, "FORGE_SCAN_" + IntToString(n++), oInBag);
-                oInBag = GetNextItemInInventory(oItem);
-            }
-        }
-        oItem = GetNextItemInInventory(oPC);
-    }
-    SetLocalInt(oPC, "FORGE_SCAN_N", n);
-    SetLocalInt(oPC, "FORGE_SCAN_I", 0);
-    return n;
-}
-
-// Begin a chunked contraband scan of oPC in LOGIN mode: forge_scan_step
-// evaluates ONE item per delayed step - each step gets a fresh NWScript
-// instruction budget, so a full inventory can't overflow - and jails the bearer
-// on the first illegal item.
-void ForgeBeginScan(object oPC)
-{
-    if (!GetIsPC(oPC) || GetIsDM(oPC))
-        return;
-    SetLocalInt(oPC, "FORGE_SCAN_MODE", 0); // login/jail mode
-    int n = ForgeEnqueueScan(oPC);
-    if (n > 0)
-        DelayCommand(0.1, ExecuteScript("forge_scan_step", oPC));
-}
-
-// Begin a chunked scan of oPC in WARDEN VERDICT mode: forge_scan_step records
-// the contraband verdict into FORGE_WARDEN_DIRTY / FORGE_WARDEN_READY (and
-// FORGE_ILLEGAL_ITEM) WITHOUT jailing, so the Forge Warden's dialog gates
-// (forge_ward_c_il / forge_ward_c_ok) can read an O(1) cached result instead of
-// scanning a whole inventory inside a StartingConditional (the cause of the
-// TOO MANY INSTRUCTIONS prison trap). Refreshed on each mutating Warden action.
-void ForgeBeginWardenScan(object oPC)
-{
-    if (!GetIsPC(oPC) || GetIsDM(oPC))
-        return;
-    SetLocalInt(oPC, "FORGE_SCAN_MODE", 1); // warden verdict mode
-    SetLocalInt(oPC, "FORGE_WARDEN_READY", FALSE); // verdict pending until scan ends
-    int n = ForgeEnqueueScan(oPC);
-    if (n > 0)
-    {
-        DelayCommand(0.1, ExecuteScript("forge_scan_step", oPC));
-        return;
-    }
-    // Empty inventory: trivially clean, verdict known immediately.
-    SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", FALSE);
-    DeleteLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
-    SetLocalInt(oPC, "FORGE_WARDEN_READY", TRUE);
-}
-
-// Send a now-lawful player from the Pit Prison back to the Well of Eru. Delayed
-// so the warden's parting line is on screen before the jump ends the
-// conversation. No-op (with a log line) when the waypoint is missing - never
-// leave the player mid-jump on infrastructure failure.
-void ForgeReleaseFromJail(object oPC)
-{
-    object oWP = GetWaypointByTag("secondchance");
-    if (!GetIsObjectValid(oWP))
-    {
-        ForgeLog("ForgeReleaseFromJail: waypoint 'secondchance' missing!");
-        return;
-    }
-    location lWell = GetLocation(oWP);
-    DelayCommand(2.5, AssignCommand(oPC, ClearAllActions()));
-    DelayCommand(2.5, AssignCommand(oPC, JumpToLocation(lWell)));
-}
-
-// Revert every illegal item on the PC to its stock blueprint, ONE ITEM PER
-// DELAYED STEP (forge_scan_step in mode 2). Each step gets a fresh NWScript
-// instruction budget, so a full inventory of high-end gear cannot overflow.
-//
-// This used to be a synchronous while-loop (ForgeRevertAllIllegal) that called
-// ForgeFindIllegalItem once per revert, re-evaluating the whole unscanned
-// inventory on every iteration. Because the LOGIN scan stops at the first
-// illegal item, almost nothing carries a FORGE_CLEAN stamp when the jailed
-// player reaches the Warden, so the short-circuit that was supposed to make
-// that cheap never applied. The result was TOO MANY INSTRUCTIONS in
-// forge_ward_rva: the one action that frees a jailed player was the one action
-// that could not run, leaving them stuck in the Pit Prison with no way out.
-// Same trap, and same fix, as the dialog gates in ForgeBeginWardenScan.
-//
-// Unlike the scan modes this does NOT stop at the first illegal item - the
-// whole queue is drained, reverting as it goes. The running count of items with
-// no known blueprint lives in FORGE_RVT_FAIL; forge_scan_step reads it at drain
-// to decide between releasing the player and leaving the "still unlawful"
-// verdict standing for forge_ward_c_il.
-void ForgeBeginRevertAll(object oPC)
-{
-    if (!GetIsPC(oPC) || GetIsDM(oPC))
-        return;
-    SetLocalInt(oPC, "FORGE_SCAN_MODE", 2); // revert-all mode
-    SetLocalInt(oPC, "FORGE_RVT_FAIL", 0);
-    SetLocalInt(oPC, "FORGE_WARDEN_READY", FALSE); // verdict pending until drain
-    int n = ForgeEnqueueScan(oPC);
-    if (n > 0)
-    {
-        DelayCommand(0.1, ExecuteScript("forge_scan_step", oPC));
-        return;
-    }
-    // Nothing to revert: trivially clean, release immediately.
-    SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", FALSE);
-    SetLocalInt(oPC, "FORGE_WARDEN_READY", TRUE);
-    DeleteLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
-    ForgeReleaseFromJail(oPC);
 }

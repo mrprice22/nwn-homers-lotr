@@ -103,13 +103,7 @@ toolset palette, one of them attached to nothing.
 3. To put it in a creature's inventory or a chest, add an entry to the
    container's `ItemList` with `InventoryRes` = your resref.
 4. Or spawn with `CreateItemOnObject("myitem", oTarget, 1);`.
-5. If you embed a **full item struct** (own `PropertiesList`) in a store,
-   creature inventory, or container — rather than an `InventoryRes` ref — and
-   its properties differ from the `.uti` blueprint, re-run
-   `python3 bin/gen-forge-legal.py` so the Forge contraband system whitelists
-   the variant (otherwise legally obtaining it can jail the player). See
-   "Forge legal-variant whitelist" in README.md.
-6. File the new item into the toolset palette:
+5. File the new item into the toolset palette:
    `python3 bin/file-palette-orphans.py --apply` (files it at its `PaletteID`
    home in `itempalcus.itp.json`, matching the toolset; the
    `check_palette_coverage` smoke gate aborts the repack until it's filed).

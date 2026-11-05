@@ -23,8 +23,9 @@ Verdicts, worst first:
   FORGED       no match, but carries a forge stamp. Expected - a player
                enchanted it. Check props/value against the caps.
   PLACED_VARIANT matches a variant the module itself places (store stock,
-               creature loot, container contents). Legally obtainable - the
-               live check allows these too, via ForgeIsKnownLegalVariant.
+               creature loot, container contents). NO LONGER PRODUCED: it read
+               the forge_legal_inc.nss whitelist, retired with the contraband
+               law on 2026-11-05 (lo-remove-jail), so these now read SUSPECT.
   REBALANCED   matches a HISTORICAL blueprint version. Benign: we changed the
                blueprint under them. Shows which commit did it.
   CLEAN        matches the current blueprint.

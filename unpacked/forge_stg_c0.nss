@@ -1,7 +1,6 @@
 // Page-aware count gate for staged-menu slot 0: show the slot only when its
 // absolute property index (page * FORGE_DIS_SLOTS + 0) is within the item's
-// permanent-property count. Separate from the Warden's non-paginated forge_dis_c*
-// gates so the immediate-removal jail menu is unaffected.
+// permanent-property count.
 #include "forge_inc"
 
 int StartingConditional()
