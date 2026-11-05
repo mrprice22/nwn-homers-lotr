@@ -137,6 +137,10 @@ epics:
     title: "Legendary Feats"
     group: combat-classes
     notes: "The level-60 feat pool: a picker window at level 60 and a feat for every build. Split out of Legendary Levels 41-60 so each feat is approved, discussed and shipped on its own."
+  - id: loot-overhaul
+    title: "Loot Overhaul (Season 3)"
+    group: items-gear
+    notes: "Random loot for Season 3: rarity tiers and rolled enchantments on chests, creatures and bosses, gem sockets, a token that re-rolls an item's enchantments or grants a bonus boss roll, and a per-character wishlist of the item types you want to see."
 
 
 # -----------------------------------------------------------------------------
@@ -537,12 +541,14 @@ ideas:
   - id: rng-based-gear-diablo-world-of-warcraft-style
     title: "RNG based GEAR (Diablo/World of Warcraft Style)"
     group: items-gear
+    epic: loot-overhaul
     status: soon
     type: Enhancement
     player: "Rajmund (Ray)"
     date: "2026-08-31"
     discord: {'thread_id': '1549086557430874244', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549086557430874244'}
     notes: "<div>Generate gear on the fly as loot to replace the garbage/stock items that are looted from 99.5% of containers in the module </div><div>This helps with spread of weapon types, and uniqe/rare combinations promotes player trade and gives value to PVP/disarming. </div><ul><li><a href=\"#idea-add-more-weapons-quarterstafs-and-doublesided\">Add more weapons: quarterstafs and doublesided</a></li><li><a href=\"#idea-add-more-rapiers-and-scimitars\">Add more weapons rapiers and scimitars</a></li></ul><div>Aim for even spread of all weapon types -- but offset/influenced by current player's feats </div><br>"
+    impl_notes: "<div>Phase 3 of the Loot Overhaul (Draft/Loot-Overhaul.html#p3): every generic chest and container switches to rolled loot at the area's loot level (bin/gen-area-loot-levels.py, median hostile CR). Refill call in chest_respawner / chest_refilllow / chest_refillhigh / chestrespawn* becomes Loot_Roll (low/medium/high = roll count + rarity floor; 200s refill timer kept); local overrides of the stock bash-open nw_o2_class*/general*/x2_02_low/x0_o2_any* scripts. Weapon-type spread is tuned in loot/bases.json; feat influence is the lo-wishlist Auto fallback. Quest chests, Setti coffers, donation chest and books unchanged.</div>"
   - id: balance-divine-might
     title: "Balance Divine Might"
     group: combat-classes
@@ -3434,11 +3440,17 @@ ideas:
   - id: Socket-system-for-weapons
     title: "Socket system for weapons, max dmg 2d10, max ab +16, limited properties"
     group: forge
+    epic: loot-overhaul
     status: soon
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-20"
     discord: {'thread_id': '1549087384581443585', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549087384581443585'}
+    impl_notes: "<div>Phase 5 of the Loot Overhaul (Draft/Loot-Overhaul.html#p5): adopts Draft/Gem-Socketing.html minus its forge-legality/jail integration (jail retired by lo-remove-jail). Random items roll socket count by rarity; existing items get sockets from a generated socket_def_inc + version-stamped login reconcile; gems merge with a same-type property (never overwrite a forged one), clamped to 2d10 damage / AB +16; sockets separate from forge property slots.</div>"
+    design_questions:
+      - question: "Can a gem ever be removed from its socket? Proposal: no - socketing is permanent and the gem is consumed (as the socket draft says)."
+        status: open
+        answer: null
   - id: Card-mendard-drops-elronds-sword
     title: "Card Menard in Edoras drops Elrond's sword"
     group: items-gear
@@ -8618,13 +8630,13 @@ ideas:
   - id: card-mennard-carrying-elronds-blade
     title: "Card Mennard carrying Elrond's blade"
     group: items-gear
-    status: deployed
+    status: confirmed
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-10-30"
     commit: dc8e1a85a9a
     discord: {'thread_id': '1546974113938149508', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1546974113938149508'}
-    notes: "<div>Card Mennard is carrying Elrond's blade.</div><div><strong>Fixed:</strong> Card Mennard in Edoras now carries a Rohirrim Longsword of the Elite instead of the Longsword of Elrond, both as placed and after he respawns.</div>"
+    notes: "<div>Card Mennard is carrying Elrond's blade.</div><div><strong>Fixed:</strong> Card Mennard in Edoras now carries a Rohirrim Longsword of the Elite instead of the Longsword of Elrond, both as placed and after he respawns.<br><br>(10/30/26, Ray: Better, but still not fixed. See comment below for more info)</div>"
     impl_notes: "arohirrimsold006.utc Equip slot 16 handofpaladine -&gt; rohirrimlongswor, and the embedded struct of his edoras.git.json instance replaced with the rohirrimlongswor struct arohirrimsold004 already carries (Dropable kept 1). His House of Healing twin (arohirrimsold0_2) already carried the Spear of the Ridermark. check_divergent_creatures OK."
     manual_steps:
       - step: "Edoras: examine or defeat Card Mennard - he wields a Rohirrim Longsword of the Elite, not the Longsword of Elrond, and still does after he respawns."
@@ -8644,6 +8656,9 @@ ideas:
       - author: "Sync Bot"
         date: "2026-10-28"
         text: "Discord — Fugdish in Card Mennard carrying Elrond's blade (https://discord.com/channels/514343293761486848/1546974113938149508):\n\nJust so you know, Card still has Elrond’s long sword."
+      - author: "Sync Bot"
+        date: "2026-10-30"
+        text: "Discord — Rajmund in Card Mennard carrying Elrond's blade (https://discord.com/channels/514343293761486848/1546974113938149508):\n\nFirst one dropped 'Blade of the Golden Hall'. Second dropped 'Rohirrim Longsword of the Elite'.\nAccording to the wiki(Card Mennard page) he drops 'Longsword of Elrond'. According to the wiiki (Blade of the golden Hall) it is dropped by Card Mennard 🫡"
   - id: gwathdor-snakes
     title: "Gwathdor snakes"
     group: economy
@@ -11217,15 +11232,109 @@ ideas:
   - id: holy-sword
     title: "Holy sword"
     group: combat-classes
-    status: planned
-    hidden: true
+    status: soon
     type: Enhancement
     player: "Rajmund (Ray)"
     date: "2026-10-27"
     discord: {'thread_id': '1564565674624553071', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1564565674624553071'}
     notes: "<div>Instead of standard +5, could the spell give an enhancement on top of existing enhancement item property? Like +1 for every 5 paladin level of the caster?</div>"
-    triage: true
     comments:
       - author: "Sync Bot"
         date: "2026-10-27"
         text: "Discord — Rajmund in Holy sword (https://discord.com/channels/514343293761486848/1564565674624553071):\n\nInstead of standard +5, could the spell give an enhancement on top of existing enhancement item property? Like +1 for every 5 paladin level of the caster?"
+  - id: lo-remove-jail
+    title: "Retire the forge contraband jail and login item scan"
+    group: items-gear
+    epic: loot-overhaul
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    docs: Customizations.html#forge
+    notes: "<div>The forge's contraband law is retired. Nobody is jailed or has items seized at login any more; the forge still will not sell you an enchantment past its limits.</div>"
+    impl_notes: "<div>Phase 1 of Draft/Loot-Overhaul.html#p1. Pre-checks: craftdb quarantine_count on dev + S2 (bin/list-forge-quarantine.py), any jail-flagged PC, whether prison/jailor/_homerjail serve anything but the forge. Delete from forge_inc.nss: ForgeJailForItem/ForgeJailIfIllegal/ForgeEnqueueScan/ForgeBeginScan/ForgeBeginWardenScan/ForgeQuarantineDisputedItem/ForgeFindIllegalItem/ForgeRevertToBlueprint/ForgeBeginRevertAll, ForgeIsKnownLegalVariant + the forge_legal_inc include. KEEP the purchase/staged-disenchant cap math (ForgeItemMaxProps, ForgeLegalMaxValue, ForgeProjected*, ForgeStagePlanIsLawful). Remove scan calls at mod_cliententer.nss:196 and welloferuenter.nss:276; delete forge_scan_step.nss, forge_legal_inc.nss, bin/gen-forge-legal.py; retire forge_warden (.utc/.dlg/forge_dis_*). One-shot login release for anyone still jailed + hand back quarantined craftdb items. Update tests/check_forge_disenchant.py (check_warden, REQUIRED_SCRIPTS) and FORGE_CLEAN consumers (dye_nui_inc.nss:273-278). Docs: Customizations/Crafting.html contraband section marked retired (keep its id), fix stale Rune 'activate' text (L348). forge_inc is an include: repack-homers-lotr-clean.</div>"
+  - id: lo-loot-core
+    title: "Loot core: rarity tiers, rolled enchantments and loot levels (data, generator, Loot Lab)"
+    group: items-gear
+    epic: loot-overhaul
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    notes: "<div>The engine behind Season 3 loot: items rolled at a loot level with a rarity (Common to Legendary), a coloured name and random enchantments, plus a curated pool of existing named items that Legendary rolls can award.</div>"
+    impl_notes: "<div>Phase 2 of Draft/Loot-Overhaul.html#p2. FIRST: bin/wiki-golden baseline (approved by admin 2026-11-05), then refactor nwn_manager's ~6 copies of the item-accessible rule into one predicate and require a zero-diff check. Module: loot/*.json (rarity, levels, bases, affixes, named, sources) at repo root; bin/gen-loot-tables.py -&gt; unpacked/loot_data_inc.nss (generated, committed); tests/check_loot_tables.py in tests/smoke-test; unpacked/loot_inc.nss Loot_Roll() building from forge_blank_&lt;baseitem&gt; via IPGetItemPropertyByID, value budget via ForgeItemValue/ForgeRebuildValue, LOOT_* + LOOT_AFX_&lt;i&gt; (ForgePropSig) stamps; rest-menu Admin Options -&gt; Loot Lab (Admin_CanAdmin); bin/loot-sim.py Monte Carlo; lootdb campaign DB, DDL in onmoduleload. Seed season3-meta-shakeup axes (SR, amulet alternatives, magicstaff caster affixes).</div>"
+    design_questions:
+      - question: "Rarity colour palette for item names? Proposal: white / green / blue / purple / orange (WoW/Diablo convention)."
+        status: open
+        answer: null
+      - question: "Rarity count and names? Proposal: Common, Uncommon, Rare, Epic, Legendary; {EPIC} stays boss-only branding, so the Epic tier may need another name (e.g. Heroic) to avoid confusion."
+        status: open
+        answer: null
+  - id: lo-creature-drops
+    title: "Random drops from creatures and bosses, on top of their fixed loot"
+    group: items-gear
+    epic: loot-overhaul
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    notes: "<div>Creatures can now drop rolled loot, elites more often, and bosses always add several high-rarity rolls on top of their usual fixed drops. Everything lands on the corpse and goes through the party loot roll as before.</div>"
+    impl_notes: "<div>Phase 4 of Draft/Loot-Overhaul.html#p4. Hook in bst_ondeath.nss before the original-death ExecuteScript (~L166): ExecuteScript(\"loot_ondeath\"). Classes: normal / elite (CR well above area loot level) / boss (brd_db registry). Exclude associates/summons, PC-less kills, LOOT_NONE local, listed quest creatures. Bosses keep fixed drops + N Epic-floor rolls + named-pool chance + gem + Fate token chance. Corpse drops go through PL_OnItemAcquired unchanged (CopyItem keeps locals).</div>"
+    design_questions:
+      - question: "Drop chance per class? Proposal: normal 4%, elite 25%, boss 100% with 2 rolls (3 for CR 1000+), tuned with bin/loot-sim.py."
+        status: open
+        answer: null
+  - id: lo-wishlist
+    title: "Loot wishlist: pick the item types you want to see more of"
+    group: items-gear
+    epic: loot-overhaul
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    notes: "<div>Choose up to five item types (longswords, tower shields, rings…) from the rest menu, and random loot rolled for you leans toward them. With no wishlist, loot leans toward the weapons your feats favour.</div>"
+    impl_notes: "<div>Phase 6 of Draft/Loot-Overhaul.html#p6. lootdb wishlist(uuid, base_item) keyed by GetObjectUUID; NUI picker from the rest menu grouped by loot/bases.json category (inc_partyloot.nss NUI patterns, mind the text-widget limits). Beneficiary: random present damage-contributing party member for corpses, the opener for chests. Auto fallback weights by weapon-focus/proficiency feats (Rajmund). Known gap: vault sync copies .bic not lootdb, so wishlists reset on dev.</div>"
+    design_questions:
+      - question: "Wishlist size and bias? Proposal: 5 picks; 40% of rolls for you draw their base item from your wishlist."
+        status: open
+        answer: null
+      - question: "Can a wishlist be changed freely? Proposal: yes, any time out of combat; no cost."
+        status: open
+        answer: null
+  - id: lo-fate-token
+    title: "Fate token: re-roll an item's random enchantments, or a bonus roll on a boss"
+    group: items-gear
+    epic: loot-overhaul
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    notes: "<div>A rare token with two uses. At a Forge of Wonders smith it re-rolls the random enchantments on a rolled item, leaving your forged enchantments and gems alone. Or, when a boss you fought dies, spend it for a personal bonus roll on that boss's loot.</div>"
+    impl_notes: "<div>Phase 7 of Draft/Loot-Overhaul.html#p7. One inert non-equippable token (miscmedium 29). (a) New anvil reply 'Reforge its fate' next to Expand (R200) in forge_item_mid/kimli_forge/bellnius_smith/kallrist_forge via bin/inject_forge_disenchant.py -&gt; forge_fate_go.nss modelled on ForgeExpandDo (forge_inc.nss:751); removes only LOOT_AFX_* sigs and re-rolls at LOOT_LVL/LOOT_RARITY. (b) Boss death: NUI prompt (60s) to each damage-contributing PC holding a token; accept = one boss-table roll into their pack; one per PC per kill, lockout in lootdb.</div>"
+    design_questions:
+      - question: "Token name? Proposal: 'Ithildin Core' or 'Shard of Fate'."
+        status: open
+        answer: null
+      - question: "Token sources and caps? Proposal: boss drop chance (~10%), a merit-shop entry, and at most one bonus roll per boss per real day."
+        status: open
+        answer: null
+  - id: lo-wiki
+    title: "Wiki: document random loot, loot tables, affixes, gems and tokens"
+    group: wiki-tools
+    epic: loot-overhaul
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    notes: "<div>The wiki explains Season 3 loot: rarity tiers and odds, every possible random enchantment and its range by level, what each creature and chest can drop, gems and sockets, and Fate tokens.</div>"
+    impl_notes: "<div>Phase 8 of Draft/Loot-Overhaul.html#p8. nwn_manager: load &lt;project&gt;/loot/ only when present (sibling-folder convention, cli.py _load_db L512-534), add 'loot' to bin/wiki-golden PROJECT_INPUTS; fifth source table item_from_loot (named/gem/token items no longer inaccessible); item_index.json source prefix; Drops section on creature pages (_creature_detail_sections); container loot profile instead of the 'random treasure, cannot be listed' note (render/areas.py:403-411); generated pages Loot overview / Affix catalogue / Gems &amp; Sockets / Fate tokens; schema README. Golden check: zero diff on lotr2008/lotr2009. Player docs: new Customizations/Loot.html (#loot-rarity #loot-levels #loot-chests #loot-wishlist #sockets #gems #fate-token) + gen-customizations-hub.py; each phase fills its own section as it ships.</div>"
+    design_questions:
+      - question: "Item sets (Commche's idea) in scope for Season 3? Proposal: park them until after launch."
+        status: open
+        answer: null
