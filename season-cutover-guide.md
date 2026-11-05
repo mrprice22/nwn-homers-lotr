@@ -1034,7 +1034,17 @@ merit reward during early access** gets an item that Phase 2 deletes, while the
 `merit_spent` charge survives in the shared DB. The wipe cannot fix this —
 `meritdb` is the one file it must not touch.
 
-Pick one before opening early access and put it in the announcement:
+**The build already closes this, so normally there is nothing to decide.** The merit shop
+is open to everyone **only on production**. `bin/season-profile.py` generates
+`SP_MERIT_SHOP` from `SEASON_ROLE`: it is `FALSE` for `test`, `dev` and `archive`.
+`sp_meritgate_inc.nss` gates both the conversation branch and the three spending functions
+in `merit_redeem.nss` on it. Off production, only a `can_merit` holder (the server owner)
+can redeem. Testers in early access cannot spend merit at all. `season-profile.py --check`
+is a repack gate, so the flag can't silently drift. (Confirmed for Season 3, 2026-11-05:
+`SP_MERIT_SHOP = FALSE` in `_s3`.)
+
+The options below only matter if that gate is ever deliberately relaxed for an early-access
+window. In that case, pick one before opening early access and put it in the announcement:
 
 - **Ask testers not to redeem during early access** (simplest; relies on them).
 - **Refund at cutover** — snapshot `merit_spent` per CD key at the start of Phase
@@ -1091,6 +1101,11 @@ Phase 1 gives it to season N+2, and the router forwards stay in place for it.
 
 Decided **per season, at Phase 2**. The mechanism is fixed; only the numbers change.
 
+**Season 3 (decided 2026-11-05): no veteran reward.** Instead, Season 2's Hall of Fame stats
+are refreshed and recalculated from the final S2 data once Season 3 is live (roadmap
+`s2-hall-of-fame-refresh`; S1 used `bin/gen-halloffame.py` in the `_s1` repo). The
+claim-once NPC below stays the default for future seasons.
+
 **A claim-once "Season N Veteran" NPC** in the new season's start area, backed by a
 **one-time season-N snapshot table in the shared merit DB** (populated from step 1
 of Phase 2), granting:
@@ -1132,7 +1147,7 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] Router: the new slot's `<NWN_PORT>/udp` and `<NWNSYNC_PORT>/tcp` forwarded
 - [ ] Its systemd instance enabled; all three servers up after a reboot
 - [ ] Aux services stood up (§6a): per-season backup subfolder; per-season ops + build shortcuts
-- [ ] Wipe warning announced to testers — including the merit-redemption policy (§7b)
+- [ ] Wipe warning announced to testers; `season-profile.py --check` shows the merit shop closed off-production (§7b)
 
 **Phase 2 — go live**
 - [ ] `bestiarydb` (+ XP) snapshot taken
@@ -1148,14 +1163,14 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] In game on the new live season: Donations Chest free of cheat gear, Ping Pong absent, no wipe warning at login
 - [ ] `roadmapdb` republished (Recent Updates sign)
 - [ ] **Full wiki regen + push** — `docs/` is tracked in git and still holds early-access stats
-- [ ] Merit-escrow policy applied (§7b) for anyone who redeemed during early access
+- [ ] Merit escrow (§7b): nothing to do while `SP_MERIT_SHOP` kept early access closed; apply a policy only if it was relaxed
 - [ ] Archived season's `recent_updates` board re-texted to "season has ended", naming the new season's port
 - [ ] Apex custom domain **removed** from the old worker, **added** to the new one, zone cache purged
 - [ ] `season<N+1>.homerslotr.com` now 301s to the apex; `season<N>.` serves the archive
 - [ ] Archived roadmap pruned to `awarded`-only; `gen-roadmap.py`; published to its `roadmapdb`
 - [ ] Player password removed; all servers verified in the server browser
 - [ ] Merit balance verified on both
-- [ ] Veteran reward live; cutover announced
+- [ ] Veteran reward live, or the season's alternative done (S3: refresh the S2 Hall of Fame, §9); cutover announced
 
 **Phase 3 — retire**
 - [ ] (No live-module change needed — the archived season's own board goes away with its server)

@@ -109,11 +109,25 @@ it is imported.</p>
 <tr><td>Containers</td><td><strong>Every generic chest and container switches to random
   loot.</strong> Quest chests, the Setti coffers, the donation chest and books stay as they
   are.</td></tr>
-<tr><td>Re-roll token</td><td>One token item (the Nebulous Voidcore stand-in) with two uses:
-  a <strong>boss bonus roll</strong>, and <strong>re-rolling an item's random affixes</strong>
-  at a forge.</td></tr>
+<tr><td>Re-roll token</td><td>One token item, the <strong>Shard of Fate</strong> (it replaces the
+  Nebulous Voidcore stand-in), with two uses: a <strong>boss bonus roll</strong>, and
+  <strong>re-rolling an item's random affixes</strong> at a forge. Sources: about a 10% boss-drop
+  chance and a merit-shop entry. Cap: <strong>one bonus roll per character per boss per real
+  day</strong>, with the lockout in <code>lootdb</code>.</td></tr>
+<tr><td>Rarity</td><td>Five tiers: <strong>Common, Uncommon, Rare, Epic, Legendary</strong>,
+  with names coloured white, green, blue, purple and orange. "Epic" is kept as a tier name even
+  though it overlaps the boss-only <code>{EPIC}</code> name tag.</td></tr>
+<tr><td>Downside affixes</td><td><strong>Allowed at any tier.</strong> A rolled item may carry a
+  trade-off affix, such as lower AC or a damage vulnerability, paid back by its upsides. This is
+  the "costs something real" lever from <code>season3-meta-shakeup</code>. Downsides are
+  gate-checked in <code>affixes.json</code> and budgeted like any other affix.</td></tr>
+<tr><td>Drop rates</td><td>Starting values for <code>loot-sim</code>: normal creatures 4%,
+  elites 25%, bosses 100% with 2 rolls (3 at CR 1000+).</td></tr>
 <tr><td>Loot specialization</td><td>A <strong>base-item wishlist</strong>, chosen per
-  character.</td></tr>
+  character: 5 picks at a 40% bias, changeable any time out of combat at no cost.</td></tr>
+<tr><td>Gems</td><td>Socketing is <strong>permanent</strong>. There is no gem extraction.</td></tr>
+<tr><td>Launch scope</td><td><strong>Phases 1–7 must all be on Season 3 before it goes
+  live.</strong> Phase 8 docs ship with each phase.</td></tr>
 <tr><td>Ownership</td><td>Corpse drops go through the existing Need/Greed party roll. The boss
   bonus roll is personal and goes straight into the player's pack.</td></tr>
 <tr><td>Contraband jail</td><td><strong>Removed now.</strong> The forge still enforces its
@@ -353,8 +367,9 @@ sets drop chance and roll count by creature class:</p>
     enchantments are untouched.</li>
   <li><strong>Boss bonus roll.</strong> At a boss death, each damage-contributing PC holding a
     token gets an NUI prompt with a 60-second timeout. If they accept, one boss-table roll goes
-    straight into their pack. The limit is one per PC per kill, with the lockout in
-    <code>lootdb</code>.</li>
+    straight into their pack. The limit is one bonus roll per character per boss per real
+    day, so a boss killed twice in a day gives no second roll. The lockout is in
+    <code>lootdb</code>, keyed by character UUID, boss and date.</li>
 </ul>
 
 <h3 id="p8">8. Wiki + player docs (<code>lo-wiki</code>)</h3>
@@ -387,17 +402,12 @@ section as it ships.</p>
   <h2>Open questions</h2>
   <p class="tier-sub">Taste calls, tracked as <code>design_questions</code> on the epic's items.</p>
 </div>
+<p>All of them were settled on 2026-11-05 and moved into <a href="#decisions">Decisions</a>.
+That covers the token name, sources and cap; the wishlist size and bias; rarity names and
+colours; and gem extraction. One item is parked rather than open:</p>
 <ul>
-  <li><strong>Token name.</strong> Proposals: "Ithildin Core" or "Shard of Fate".</li>
-  <li><strong>Token sources and rates.</strong> Proposal: a boss-drop chance, a merit shop
-    entry, and a weekly cap on bonus rolls.</li>
-  <li><strong>Wishlist size and bias.</strong> Proposal: 5 picks at 40%.</li>
-  <li><strong>Rarity colours.</strong> Proposal: white, green, blue, purple, orange, to match
-    WoW/Diablo convention.</li>
-  <li><strong>Item sets</strong> (the CommChes idea). Proposal: park them for after Season 3
+  <li><strong>Item sets</strong> (the CommChes idea). Parked until after Season 3
     launches.</li>
-  <li><strong>Gem extraction.</strong> Proposal: none; socketing is permanent, as the socket draft
-    says.</li>
 </ul>
 
 <!-- ============================================================ -->

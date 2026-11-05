@@ -548,7 +548,7 @@ ideas:
     date: "2026-08-31"
     discord: {'thread_id': '1549086557430874244', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549086557430874244'}
     notes: "<div>Generate gear on the fly as loot to replace the garbage/stock items that are looted from 99.5% of containers in the module </div><div>This helps with spread of weapon types, and uniqe/rare combinations promotes player trade and gives value to PVP/disarming. </div><ul><li><a href=\"#idea-add-more-weapons-quarterstafs-and-doublesided\">Add more weapons: quarterstafs and doublesided</a></li><li><a href=\"#idea-add-more-rapiers-and-scimitars\">Add more weapons rapiers and scimitars</a></li></ul><div>Aim for even spread of all weapon types -- but offset/influenced by current player's feats </div><br>"
-    impl_notes: "<div>Phase 3 of the Loot Overhaul (Draft/Loot-Overhaul.html#p3): every generic chest and container switches to rolled loot at the area's loot level (bin/gen-area-loot-levels.py, median hostile CR). Refill call in chest_respawner / chest_refilllow / chest_refillhigh / chestrespawn* becomes Loot_Roll (low/medium/high = roll count + rarity floor; 200s refill timer kept); local overrides of the stock bash-open nw_o2_class*/general*/x2_02_low/x0_o2_any* scripts. Weapon-type spread is tuned in loot/bases.json; feat influence is the lo-wishlist Auto fallback. Quest chests, Setti coffers, donation chest and books unchanged.</div>"
+    impl_notes: "<div>Phase 3 of the Loot Overhaul (Draft/Loot-Overhaul.html#p3): every generic chest and container switches to rolled loot at the area's loot level (bin/gen-area-loot-levels.py, median hostile CR). Refill call in chest_respawner / chest_refilllow / chest_refillhigh / chestrespawn* becomes Loot_Roll (low/medium/high = roll count + rarity floor; 200s refill timer kept); local overrides of the stock bash-open nw_o2_class*/general*/x2_02_low/x0_o2_any* scripts. Weapon-type spread is tuned in loot/bases.json; feat influence is the lo-wishlist Auto fallback. Quest chests, Setti coffers, donation chest and books unchanged.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
   - id: balance-divine-might
     title: "Balance Divine Might"
     group: combat-classes
@@ -3446,11 +3446,11 @@ ideas:
     player: "-Methonash-"
     date: "2026-06-20"
     discord: {'thread_id': '1549087384581443585', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549087384581443585'}
-    impl_notes: "<div>Phase 5 of the Loot Overhaul (Draft/Loot-Overhaul.html#p5): adopts Draft/Gem-Socketing.html minus its forge-legality/jail integration (jail retired by lo-remove-jail). Random items roll socket count by rarity; existing items get sockets from a generated socket_def_inc + version-stamped login reconcile; gems merge with a same-type property (never overwrite a forged one), clamped to 2d10 damage / AB +16; sockets separate from forge property slots.</div>"
+    impl_notes: "<div>Phase 5 of the Loot Overhaul (Draft/Loot-Overhaul.html#p5): adopts Draft/Gem-Socketing.html minus its forge-legality/jail integration (jail retired by lo-remove-jail). Random items roll socket count by rarity; existing items get sockets from a generated socket_def_inc + version-stamped login reconcile; gems merge with a same-type property (never overwrite a forged one), clamped to 2d10 damage / AB +16; sockets separate from forge property slots.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
     design_questions:
       - question: "Can a gem ever be removed from its socket? Proposal: no - socketing is permanent and the gem is consumed (as the socket draft says)."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. No. Socketing is permanent and the gem is consumed."
   - id: Card-mendard-drops-elronds-sword
     title: "Card Menard in Edoras drops Elrond's sword"
     group: items-gear
@@ -3548,8 +3548,8 @@ ideas:
     impl_notes: "<div>module-index/inaccessible_items.json listed ~2,014 items. Spun off from the wiki-missing-creature investigation, which confirmed the name-collapse bug did NOT wrongly mark loot inaccessible (item_carried_by reads all instances; accessibility is gated on Dropable/Pickpocketable, not wiki visibility).</div><div><br></div><div>All 2,122 entries triaged by reason/base-type/carrier/cost/name, then every carried item hand-reviewed: 1,757 are unplaced orphans (out of scope), 150 creature claws/hides (never loot), 18 deliberately named UNDROPABLE/boss items, and all 108 high-value unique-carrier suspects are deliberate boss combat gear — multi-million-gp god items that would be instant contraband under the &gt;750k forge rule. No module change shipped, so there is nothing to verify in-game.</div>"
     design_questions:
       - question: "Four 0-gp event tokens exist as blueprints referenced by nothing (contestofcham001, ttv_deathtoken, rollplaytoken, tournamenttoken) &mdash; presumably DM-spawned event props. Confirm that is intentional, or retire them. (Top orphans by value are admin god-gear and should stay unplaced.)"
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05: keep all four (contestofcham001, ttv_deathtoken, rollplaytoken, tournamenttoken) as event props, deliberately left unplaced."
 
   # ---- SHIPPED: Forge & crafting -------------------------------------------
   - id: forge-zero-value-exploit
@@ -8229,7 +8229,7 @@ ideas:
     player: Tukwut
     date: "2026-09-07"
     notes: "<div>A design goal for season 3 loot rather than a single change. Raised by Tukwut alongside the Weathertop royal loot tier: <i>“it would be nice if the drops here really encouraged players to try something new — given our current meta ahead of a season 3 that will shake things up.”</i></div><div><br>The meta he is describing, and it is visible in the live season’s equipped gear: push attacks per round as high as possible, stack unmitigated divine damage, and take max bard for the buff stack. A new drop that is simply a bigger number on those axes changes nothing; a drop that is excellent on a <i>different</i> axis, and costs something real, is what moves a build.</div><div><br>Concrete openings the equipped-gear pass found: the amulet slot has exactly one answer at endgame (25% physical immunity), magicstaff is a dead slot, Spell Resistance is almost unused (best in play is SR 16) and would cut against the bard buff stack by design, and the whole defensive game is “stack a higher immunity percentage” with no competing currency.</div>"
-    impl_notes: "Baseline for measuring any season 3 loot against: ~/GIT/nwn_homers_lotr_s2/module-index/equipped_items.json, 2026-09-07, 302 items across 80 characters. Among the 20 characters at level 50+: amulet = King's Amulet of Dire Protection 9/20; helmet = Crown of Gondor 6, Galadhrim Monk Helm 5, Balrog Skull 4; rings = Elfbone 12 + Ring of Speed and Magic Defenses 8 (both slots spoken for); gauntlets = Fury of the Valar 5; best magical mitigation obtainable anywhere is flat 15/- (ring) or 25/- (heavy armor) plus a single 5% immunity belt; Spell Resistance tops out at 16. First test of the goal is wtop-royal-loot-tier."
+    impl_notes: "Baseline for measuring any season 3 loot against: ~/GIT/nwn_homers_lotr_s2/module-index/equipped_items.json, 2026-09-07, 302 items across 80 characters. Among the 20 characters at level 50+: amulet = King's Amulet of Dire Protection 9/20; helmet = Crown of Gondor 6, Galadhrim Monk Helm 5, Balrog Skull 4; rings = Elfbone 12 + Ring of Speed and Magic Defenses 8 (both slots spoken for); gauntlets = Fury of the Valar 5; best magical mitigation obtainable anywhere is flat 15/- (ring) or 25/- (heavy armor) plus a single 5% immunity belt; Spell Resistance tops out at 16. First test of the goal is wtop-royal-loot-tier.<div><b>Decided 2026-11-05:</b> rolled loot may carry downside (trade-off) affixes at any rarity tier - see lo-loot-core.</div>"
   - id: druid-regen-support-buff
     title: "Regeneration is the untaxed heal under soul fatigue - give druid support a lane built on it"
     group: combat-classes
@@ -11282,14 +11282,14 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-11-05"
     notes: "<div>The engine behind Season 3 loot: items rolled at a loot level with a rarity (Common to Legendary), a coloured name and random enchantments, plus a curated pool of existing named items that Legendary rolls can award.</div>"
-    impl_notes: "<div>Phase 2 of Draft/Loot-Overhaul.html#p2. FIRST: bin/wiki-golden baseline (approved by admin 2026-11-05), then refactor nwn_manager's ~6 copies of the item-accessible rule into one predicate and require a zero-diff check. Module: loot/*.json (rarity, levels, bases, affixes, named, sources) at repo root; bin/gen-loot-tables.py -&gt; unpacked/loot_data_inc.nss (generated, committed); tests/check_loot_tables.py in tests/smoke-test; unpacked/loot_inc.nss Loot_Roll() building from forge_blank_&lt;baseitem&gt; via IPGetItemPropertyByID, value budget via ForgeItemValue/ForgeRebuildValue, LOOT_* + LOOT_AFX_&lt;i&gt; (ForgePropSig) stamps; rest-menu Admin Options -&gt; Loot Lab (Admin_CanAdmin); bin/loot-sim.py Monte Carlo; lootdb campaign DB, DDL in onmoduleload. Seed season3-meta-shakeup axes (SR, amulet alternatives, magicstaff caster affixes).</div>"
+    impl_notes: "<div>Phase 2 of Draft/Loot-Overhaul.html#p2. FIRST: bin/wiki-golden baseline (approved by admin 2026-11-05), then refactor nwn_manager's ~6 copies of the item-accessible rule into one predicate and require a zero-diff check. Module: loot/*.json (rarity, levels, bases, affixes, named, sources) at repo root; bin/gen-loot-tables.py -&gt; unpacked/loot_data_inc.nss (generated, committed); tests/check_loot_tables.py in tests/smoke-test; unpacked/loot_inc.nss Loot_Roll() building from forge_blank_&lt;baseitem&gt; via IPGetItemPropertyByID, value budget via ForgeItemValue/ForgeRebuildValue, LOOT_* + LOOT_AFX_&lt;i&gt; (ForgePropSig) stamps; rest-menu Admin Options -&gt; Loot Lab (Admin_CanAdmin); bin/loot-sim.py Monte Carlo; lootdb campaign DB, DDL in onmoduleload. Seed season3-meta-shakeup axes (SR, amulet alternatives, magicstaff caster affixes).</div><div><b>Downside affixes (admin 2026-11-05):</b> allowed at any rarity tier. A rolled item may carry a trade-off affix (e.g. lower AC, a damage vulnerability) paid back by its upsides - this is the season3-meta-shakeup \"costs something real\" lever. Every affix range, downsides included, stays gate-checked in affixes.json and inside the rarity value budget.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
     design_questions:
       - question: "Rarity colour palette for item names? Proposal: white / green / blue / purple / orange (WoW/Diablo convention)."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. Accepted: white / green / blue / purple / orange."
       - question: "Rarity count and names? Proposal: Common, Uncommon, Rare, Epic, Legendary; {EPIC} stays boss-only branding, so the Epic tier may need another name (e.g. Heroic) to avoid confusion."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. Five tiers, named Common / Uncommon / Rare / Epic / Legendary. \"Epic\" is kept despite overlapping the boss-only {EPIC} name tag."
   - id: lo-creature-drops
     title: "Random drops from creatures and bosses, on top of their fixed loot"
     group: items-gear
@@ -11300,11 +11300,11 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-11-05"
     notes: "<div>Creatures can now drop rolled loot, elites more often, and bosses always add several high-rarity rolls on top of their usual fixed drops. Everything lands on the corpse and goes through the party loot roll as before.</div>"
-    impl_notes: "<div>Phase 4 of Draft/Loot-Overhaul.html#p4. Hook in bst_ondeath.nss before the original-death ExecuteScript (~L166): ExecuteScript(\"loot_ondeath\"). Classes: normal / elite (CR well above area loot level) / boss (brd_db registry). Exclude associates/summons, PC-less kills, LOOT_NONE local, listed quest creatures. Bosses keep fixed drops + N Epic-floor rolls + named-pool chance + gem + Fate token chance. Corpse drops go through PL_OnItemAcquired unchanged (CopyItem keeps locals).</div>"
+    impl_notes: "<div>Phase 4 of Draft/Loot-Overhaul.html#p4. Hook in bst_ondeath.nss before the original-death ExecuteScript (~L166): ExecuteScript(\"loot_ondeath\"). Classes: normal / elite (CR well above area loot level) / boss (brd_db registry). Exclude associates/summons, PC-less kills, LOOT_NONE local, listed quest creatures. Bosses keep fixed drops + N Epic-floor rolls + named-pool chance + gem + Fate token chance. Corpse drops go through PL_OnItemAcquired unchanged (CopyItem keeps locals).</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
     design_questions:
       - question: "Drop chance per class? Proposal: normal 4%, elite 25%, boss 100% with 2 rolls (3 for CR 1000+), tuned with bin/loot-sim.py."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. Accepted as loot-sim starting values: normal 4%, elite 25%, boss 100% with 2 rolls (3 at CR 1000+)."
   - id: lo-wishlist
     title: "Loot wishlist: pick the item types you want to see more of"
     group: items-gear
@@ -11315,14 +11315,14 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-11-05"
     notes: "<div>Choose up to five item types (longswords, tower shields, rings…) from the rest menu, and random loot rolled for you leans toward them. With no wishlist, loot leans toward the weapons your feats favour.</div>"
-    impl_notes: "<div>Phase 6 of Draft/Loot-Overhaul.html#p6. lootdb wishlist(uuid, base_item) keyed by GetObjectUUID; NUI picker from the rest menu grouped by loot/bases.json category (inc_partyloot.nss NUI patterns, mind the text-widget limits). Beneficiary: random present damage-contributing party member for corpses, the opener for chests. Auto fallback weights by weapon-focus/proficiency feats (Rajmund). Known gap: vault sync copies .bic not lootdb, so wishlists reset on dev.</div>"
+    impl_notes: "<div>Phase 6 of Draft/Loot-Overhaul.html#p6. lootdb wishlist(uuid, base_item) keyed by GetObjectUUID; NUI picker from the rest menu grouped by loot/bases.json category (inc_partyloot.nss NUI patterns, mind the text-widget limits). Beneficiary: random present damage-contributing party member for corpses, the opener for chests. Auto fallback weights by weapon-focus/proficiency feats (Rajmund). Known gap: vault sync copies .bic not lootdb, so wishlists reset on dev.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
     design_questions:
       - question: "Wishlist size and bias? Proposal: 5 picks; 40% of rolls for you draw their base item from your wishlist."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. Accepted: 5 picks, 40% bias."
       - question: "Can a wishlist be changed freely? Proposal: yes, any time out of combat; no cost."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. Accepted: changeable any time out of combat, no cost."
   - id: lo-fate-token
     title: "Fate token: re-roll an item's random enchantments, or a bonus roll on a boss"
     group: items-gear
@@ -11333,14 +11333,14 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-11-05"
     notes: "<div>A rare token with two uses. At a Forge of Wonders smith it re-rolls the random enchantments on a rolled item, leaving your forged enchantments and gems alone. Or, when a boss you fought dies, spend it for a personal bonus roll on that boss's loot.</div>"
-    impl_notes: "<div>Phase 7 of Draft/Loot-Overhaul.html#p7. One inert non-equippable token (miscmedium 29). (a) New anvil reply 'Reforge its fate' next to Expand (R200) in forge_item_mid/kimli_forge/bellnius_smith/kallrist_forge via bin/inject_forge_disenchant.py -&gt; forge_fate_go.nss modelled on ForgeExpandDo (forge_inc.nss:751); removes only LOOT_AFX_* sigs and re-rolls at LOOT_LVL/LOOT_RARITY. (b) Boss death: NUI prompt (60s) to each damage-contributing PC holding a token; accept = one boss-table roll into their pack; one per PC per kill, lockout in lootdb.</div>"
+    impl_notes: "<div>Phase 7 of Draft/Loot-Overhaul.html#p7. One inert non-equippable token (miscmedium 29). (a) New anvil reply 'Reforge its fate' next to Expand (R200) in forge_item_mid/kimli_forge/bellnius_smith/kallrist_forge via bin/inject_forge_disenchant.py -&gt; forge_fate_go.nss modelled on ForgeExpandDo (forge_inc.nss:751); removes only LOOT_AFX_* sigs and re-rolls at LOOT_LVL/LOOT_RARITY. (b) Boss death: NUI prompt (60s) to each damage-contributing PC holding a token; accept = one boss-table roll into their pack; one per PC per kill, lockout in lootdb.</div><div><b>Decided 2026-11-05:</b> the token is named <b>Shard of Fate</b>. Sources: ~10% boss drop and a merit-shop entry. Bonus-roll cap: at most one per character per boss per real day (lockout in lootdb) - this supersedes the earlier \"weekly\" (Draft page) and \"one per PC per kill\" wording.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
     design_questions:
       - question: "Token name? Proposal: 'Ithildin Core' or 'Shard of Fate'."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. Shard of Fate."
       - question: "Token sources and caps? Proposal: boss drop chance (~10%), a merit-shop entry, and at most one bonus roll per boss per real day."
-        status: open
-        answer: null
+        status: answered
+        answer: "Decided by admin 2026-11-05. ~10% boss drop plus a merit-shop entry; at most one bonus roll per character per boss per real day."
   - id: lo-wiki
     title: "Wiki: document random loot, loot tables, affixes, gems and tokens"
     group: wiki-tools
@@ -11354,5 +11354,20 @@ ideas:
     impl_notes: "<div>Phase 8 of Draft/Loot-Overhaul.html#p8. nwn_manager: load &lt;project&gt;/loot/ only when present (sibling-folder convention, cli.py _load_db L512-534), add 'loot' to bin/wiki-golden PROJECT_INPUTS; fifth source table item_from_loot (named/gem/token items no longer inaccessible); item_index.json source prefix; Drops section on creature pages (_creature_detail_sections); container loot profile instead of the 'random treasure, cannot be listed' note (render/areas.py:403-411); generated pages Loot overview / Affix catalogue / Gems &amp; Sockets / Fate tokens; schema README. Golden check: zero diff on lotr2008/lotr2009. Player docs: new Customizations/Loot.html (#loot-rarity #loot-levels #loot-chests #loot-wishlist #sockets #gems #fate-token) + gen-customizations-hub.py; each phase fills its own section as it ships.</div>"
     design_questions:
       - question: "Item sets (Commche's idea) in scope for Season 3? Proposal: park them until after launch."
+        status: answered
+        answer: "Decided by admin 2026-11-05. Parked until after the Season 3 launch."
+  - id: s2-hall-of-fame-refresh
+    title: "Season 2 Hall of Fame: refresh and recalculate the stats once Season 3 goes live"
+    group: wiki-tools
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    docs: none
+    notes: "<div>Season 2's Hall of Fame - top characters, server firsts and bestiary records - recalculated from the final Season 2 data once Season 3 is live.</div>"
+    impl_notes: "<div>Decided 2026-11-05 in place of a Season 3 veteran reward (season-cutover-guide.md section 9): no claim-once veteran NPC this season. Season 1 used bin/gen-halloffame.py in the nwn_homers_lotr_s1 repo (CD-key/playerid identity bridge, 2026-08-13 season cutoff); run the equivalent against the archived Season 2 vault + DBs after the S3 Phase 2 cutover, with the S2 cutoff date.</div>"
+    manual_steps:
+      - step: "After Season 3 goes live, generate the Season 2 Hall of Fame from the archived S2 data (cutoff = the S3 go-live date) and publish it on the Season 2 archive wiki."
         status: open
-        answer: null
+        kind: admin
