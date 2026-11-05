@@ -282,17 +282,17 @@ the module at boot.
 | Build artifact | `nasher.cfg` → `[package].name`, `[target].file` | `homers_lotr_s<N>.mod` | Phase 1 |
 | **Installed module** | `$NWN_HOME_DIR/modules/<name>.mod`, written by the repack wrapper | `Homer's LOTR Season <N>.mod` | Phase 1 |
 | `NWN_MODULE` | `server.env` — the installed filename **minus `.mod`** | `Homer's LOTR Season <N>` | Phase 1 |
-| `NWN_SERVERNAME` | `server.env` — server-browser name, free text | role-dependent ↓ | Phase 1 **and** Phase 2 |
+| `NWN_SERVERNAME` | `server.env` — server-browser name | identical to `NWN_MODULE` ↓ | Phase 1 |
 | OneDrive build folder | `~/OneDrive/Games/NWNHomersLOTR/Season<N>/` — derived from `SEASON_NUM` by `repack-project.sh` | created on first repack | Phase 1 (automatic) |
 
-`NWN_SERVERNAME` tracks `SEASON_ROLE`, so the two instances are tellable apart in
-the server browser:
-
-| Role | Server name |
-|------|-------------|
-| `test` | `Homer's LOTR — Season <N> (EARLY ACCESS)` |
-| `live` | `Homer's LOTR — Season <N>` |
-| `archive` | `Homer's LOTR — Season <N> (ARCHIVED)` |
+`NWN_SERVERNAME` is **identical to `NWN_MODULE`** — `season-brand.py` writes it
+that way on purpose and the role is **not** encoded in it. It used to carry a
+role suffix (`(EARLY ACCESS)` / `(ARCHIVED)` / `- TEST REALM`), but the game
+client truncates the server-browser name and the suffix pushed the season number
+past the cut, so three realms listed with indistinguishable visible names. A
+realm's role reaches players through the module description, the Well of Eru
+notice board and the login messages instead. See the comment in
+`season-brand.py`'s name derivation before reintroducing a suffix.
 
 Renaming also drives the **repack wrapper's install destination** — the `.mod`
 filename it copies into `$NWN_HOME_DIR/modules/`. This is no longer a hand-edit:
@@ -360,7 +360,11 @@ dev. **Season N+1 is stood up in a new directory** — the plain reading, unlike
    `NWNSYNC_REPO=…/nwsync/HomersLOTR-S<N+1>`,
    `SEASON_NUM=<N+1>`, `SEASON_ROLE=test`,
    `SEASON_WIKI_URL=https://season<N+1>.homerslotr.com/`,
-   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N+1>`.
+   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N+1>`, and
+   `NWNX_METRICS_INFLUXDB_PORT=<the slot's metrics port>` (dev 8089, slot B
+   8090, slot A 8091). The metrics port is the one easy to miss: it is a
+   loopback listener, so a season left on dev's 8089 silently interleaves its
+   profiler metrics into dev's collector instead of failing.
 
    The free slot is the one the *retired* season released at its Phase 3 — see §1.
    `bin/serve` runs `--network=host`, so **every listening port must be unique**
@@ -906,9 +910,9 @@ What is left is a role flip, a domain move, and the notices.
    python3 bin/season-brand.py   --apply    # names, URLs, worker, apex redirect
    python3 bin/season-profile.py --apply    # cheats + dev NPCs OFF, notice OFF
    ```
-   `season-brand.py` drops the `(EARLY ACCESS)` suffix from the new season's
-   `NWN_SERVERNAME`, adds `(ARCHIVED)` to the old one, and rewrites
-   `src/index.js` so `season<N+1>.homerslotr.com` now 301s to the apex.
+   `season-brand.py` rewrites `src/index.js` so `season<N+1>.homerslotr.com`
+   now 301s to the apex (server names carry no role suffix, so they do not
+   change — §4).
    `season-profile.py` turns off the Donations Chest cheat stock, removes the
    Ping Pong builder NPC and drops the early-access wipe notice — **because the
    role changed, not because anyone edited a script.** `tests/check_season_profile.py`
