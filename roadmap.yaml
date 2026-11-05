@@ -542,13 +542,45 @@ ideas:
     title: "RNG based GEAR (Diablo/World of Warcraft Style)"
     group: items-gear
     epic: loot-overhaul
-    status: soon
+    status: implemented
     type: Enhancement
     player: "Rajmund (Ray)"
-    date: "2026-08-31"
+    date: "2026-11-05"
+    commit: 3803d812677
+    docs: Customizations/Loot.html#loot-chests
     discord: {'thread_id': '1549086557430874244', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549086557430874244'}
-    notes: "<div>Generate gear on the fly as loot to replace the garbage/stock items that are looted from 99.5% of containers in the module </div><div>This helps with spread of weapon types, and uniqe/rare combinations promotes player trade and gives value to PVP/disarming. </div><ul><li><a href=\"#idea-add-more-weapons-quarterstafs-and-doublesided\">Add more weapons: quarterstafs and doublesided</a></li><li><a href=\"#idea-add-more-rapiers-and-scimitars\">Add more weapons rapiers and scimitars</a></li></ul><div>Aim for even spread of all weapon types -- but offset/influenced by current player's feats </div><br>"
-    impl_notes: "<div>Phase 3 of the Loot Overhaul (Draft/Loot-Overhaul.html#p3): every generic chest and container switches to rolled loot at the area's loot level (bin/gen-area-loot-levels.py, median hostile CR). Refill call in chest_respawner / chest_refilllow / chest_refillhigh / chestrespawn* becomes Loot_Roll (low/medium/high = roll count + rarity floor; 200s refill timer kept); local overrides of the stock bash-open nw_o2_class*/general*/x2_02_low/x0_o2_any* scripts. Weapon-type spread is tuned in loot/bases.json; feat influence is the lo-wishlist Auto fallback. Quest chests, Setti coffers, donation chest and books unchanged.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
+    notes: "<div>Generate gear on the fly as loot to replace the garbage/stock items that are looted from 99.5% of containers in the module </div><div>This helps with spread of weapon types, and uniqe/rare combinations promotes player trade and gives value to PVP/disarming. </div><ul><li><a href=\"#idea-add-more-weapons-quarterstafs-and-doublesided\">Add more weapons: quarterstafs and doublesided</a></li><li><a href=\"#idea-add-more-rapiers-and-scimitars\">Add more weapons rapiers and scimitars</a></li></ul><div>Aim for even spread of all weapon types -- but offset/influenced by current player's feats </div><br><div><br></div><div><b>Shipped to the test realm (2026-11-05):</b> every ordinary chest, barrel, crate and sack now holds rolled loot instead of the stock treasure that stopped scaling at level 17. A chest rolls at the loot level of the area it stands in, not the opener's: some rolled gear, gold (sometimes paid as precious gems of the same value) and a few consumables - potions, scrolls, kits, wands and ammunition - all scaled to that level. Large chests always give at least Uncommon gear. Respawning chests keep their old timer. Quest chests, the Setti coffers, the Donations Chest and bookshelves are unchanged. Details: <a>Rolled Loot: Chests and containers</a>.</div>"
+    impl_notes: "<div>Phase 3 of the Loot Overhaul (Draft/Loot-Overhaul.html#p3): every generic chest and container switches to rolled loot at the area's loot level (bin/gen-area-loot-levels.py, median hostile CR). Refill call in chest_respawner / chest_refilllow / chest_refillhigh / chestrespawn* becomes Loot_Roll (low/medium/high = roll count + rarity floor; 200s refill timer kept); local overrides of the stock bash-open nw_o2_class*/general*/x2_02_low/x0_o2_any* scripts. Weapon-type spread is tuned in loot/bases.json; feat influence is the lo-wishlist Auto fallback. Quest chests, Setti coffers, donation chest and books unchanged.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div><div><b>As built (2026-11-05):</b> 711 treasure placeables in 66 areas. loot/sources.json gains scripts (30 container scripts -&gt; profile; gen-loot-tables.py --apply GENERATES each as a wrapper around loot_chest_inc: LootChest_Refill keeps the 200 s CS_Opened timer, LootChest_Once is the stock once-on-open/bash + an inlined ShoutDisturbed) and area_overrides (9 hostile-free treasure areas, each with a reason). Area level = median hostile CR (placed + encounter pools; hostile = rep toward PC &lt;= 10) via levels.json, written by bin/gen-area-loot-levels.py to loot/area_levels.json and compiled to LootD_AreaLevel (cached per area as LOOT_AREA_LVL; placeable LOOT_LEVEL / LOOT_NONE locals override). Fill (Loot_FillContainer, Python mirror loot_model.chest_contents): rolls x gear_chance, gold = gold_pct % of the Common budget (50-150%), 30% paid as treasure.json gems, consumables [min,max] from consumables.json (391 items drafted by bin/gen-loot-consumables.py, packed into string chunks to stay clear of TMI). Gate (check_loot_tables): stale/orphan wrappers, chest areas with no level, pool items missing/Plot/Cursed; area-level drift is only a note. loot-sim --chests prints per-profile fills. Socket gems in chests deferred to Phase 5 (admin request 2026-11-05). Loot Lab Stock now does a real fill of the nearest loot container. Clean repack required (loot_inc / loot_data_inc are includes).</div>"
+    manual_steps:
+      - step: "Review the 9 area loot-level overrides in loot/sources.json area_overrides (Esgaroth 4, Kallrist South Shore 11, Hobbiton 3, Brandywine Bridge 3, Tombs of the Lost Souls 5, The Loft 1, Tower of Alatar 1, Castle Homeless / House of Homer 1). python3 bin/gen-area-loot-levels.py --table lists every chest area's level; bagend001 reads 47 only because its one hostile is a CR-424 boss - pin it with an override if that is wrong."
+        status: open
+        kind: admin
+      - step: "Review the drafted pools: loot/consumables.json (391 potions, scrolls, kits, wands, ammo with level windows and weights) and loot/treasure.json (20 plain gems; Rogue's Gem deliberately excluded). Remove anything that should not drop from a chest, then gen-loot-consumables.py --refresh-items, gen-loot-tables.py --apply and a clean repack."
+        status: open
+        kind: admin
+      - step: "Tune the starting chest values if needed (sources.json chest_*: gear_chance 600/600/700, gold_pct 8/15/25, gem_chance 300, consumables [0,1]/[1,2]/[1,3]); python3 bin/loot-sim.py --chests shows what each fill holds."
+        status: open
+        kind: admin
+      - step: "Open a chest in the Bree Cave (loot level 1) and one in the Ice Queen's Nest (level 38): gear names are coloured by rarity, there is gold or gems and maybe a consumable, and the high-area gear is clearly stronger."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Smash a barrel or crate (x2_02_low / nw_o2_classlow) in a dungeon: its loot bag holds rolled gear/gold/consumables, and opening it first then smashing it does not give a second fill."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Respawning chest: empty a chest_respawner chest, reopen it at once (still empty), then again after ~3.5 minutes (refilled)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Esgaroth (Lake Town) chest rolls at its override level 4. Loot Lab > Stock the nearest container next to one: the message names the chest's script, profile and loot level 4."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "After the checks above, grep the dev server log for 'LOOT:' - no lines (no missing area level, consumable or gem)."
+        status: open
+        kind: uat
+        tester: "admin"
   - id: balance-divine-might
     title: "Balance Divine Might"
     group: combat-classes
@@ -3446,7 +3478,7 @@ ideas:
     player: "-Methonash-"
     date: "2026-06-20"
     discord: {'thread_id': '1549087384581443585', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549087384581443585'}
-    impl_notes: "<div>Phase 5 of the Loot Overhaul (Draft/Loot-Overhaul.html#p5): adopts Draft/Gem-Socketing.html minus its forge-legality/jail integration (jail retired by lo-remove-jail). Random items roll socket count by rarity; existing items get sockets from a generated socket_def_inc + version-stamped login reconcile; gems merge with a same-type property (never overwrite a forged one), clamped to 2d10 damage / AB +16; sockets separate from forge property slots.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
+    impl_notes: "<div>Phase 5 of the Loot Overhaul (Draft/Loot-Overhaul.html#p5): adopts Draft/Gem-Socketing.html minus its forge-legality/jail integration (jail retired by lo-remove-jail). Random items roll socket count by rarity; existing items get sockets from a generated socket_def_inc + version-stamped login reconcile; gems merge with a same-type property (never overwrite a forged one), clamped to 2d10 damage / AB +16; sockets separate from forge property slots.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div><div><b>Chests (admin 2026-11-05):</b> loot containers should also hold socketable gems. Phase 3 left the hook: add a socket_gem_chance field to the chest_* profiles in loot/sources.json, its LootD_ accessor in gen-loot-tables.py, and a gem roll in Loot_FillContainer (loot_inc.nss) + loot_model.chest_contents.</div>"
     design_questions:
       - question: "Can a gem ever be removed from its socket? Proposal: no - socketing is permanent and the gem is consumed (as the socket draft says)."
         status: answered
@@ -11294,7 +11326,7 @@ ideas:
         answer: "Decided by admin 2026-11-05. Five tiers, named Common / Uncommon / Rare / Epic / Legendary. \"Epic\" is kept despite overlapping the boss-only {EPIC} name tag."
     manual_steps:
       - step: "Review loot/named.json - the 32 drafted named-pool items (name and source boss are in each entry). Remove any that should stay boss-only, adjust level windows/weights, then gen-loot-tables.py --apply and a clean repack."
-        status: open
+        status: done
         kind: admin
       - step: "Loot Lab (rest menu > Admin Options > [Admin] Loot Lab): at levels 1, 20, 40 and 60, set each rarity floor and Roll 10. Then Dump: every item's value is at or under its budget, names are coloured by rarity, and the server log has no 'LOOT:' lines."
         status: open
