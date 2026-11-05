@@ -6,7 +6,7 @@
 const int LOOTD_RARITY_COUNT = 5;
 const int LOOTD_CAT_COUNT = 7;
 const int LOOTD_AFFIX_COUNT = 68;
-const int LOOTD_NAMED_COUNT = 32;
+const int LOOTD_NAMED_COUNT = 37;
 const int LOOTD_MAX_LEVEL = 60;
 const int LOOTD_MAX_PROPS = 6;
 
@@ -4581,6 +4581,11 @@ string LootD_NamedResRef(int nI)
         case 29: return "amuletofpower";
         case 30: return "staffoftheorcsha";
         case 31: return "item053";
+        case 32: return "epicbelt";
+        case 33: return "beltofpower002";
+        case 34: return "it_mring042";
+        case 35: return "epicshield";
+        case 36: return "shieldofithilien";
     }
     return "";
 }
@@ -4621,6 +4626,11 @@ int LootD_NamedMin(int nI)
         case 29: return 55;
         case 30: return 48;
         case 31: return 55;
+        case 32: return 55;
+        case 33: return 55;
+        case 34: return 55;
+        case 35: return 55;
+        case 36: return 55;
     }
     return 99;
 }
@@ -4661,6 +4671,11 @@ int LootD_NamedMax(int nI)
         case 29: return 60;
         case 30: return 60;
         case 31: return 60;
+        case 32: return 60;
+        case 33: return 60;
+        case 34: return 60;
+        case 35: return 60;
+        case 36: return 60;
     }
     return 0;
 }
@@ -4701,6 +4716,11 @@ int LootD_NamedWeight(int nI)
         case 29: return 1;
         case 30: return 1;
         case 31: return 1;
+        case 32: return 1;
+        case 33: return 1;
+        case 34: return 1;
+        case 35: return 1;
+        case 36: return 1;
     }
     return 0;
 }
@@ -4741,6 +4761,11 @@ int LootD_NamedBase(int nI)
         case 29: return 19;
         case 30: return 45;
         case 31: return 45;
+        case 32: return 21;
+        case 33: return 21;
+        case 34: return 52;
+        case 35: return 57;
+        case 36: return 56;
     }
     return -1;
 }
