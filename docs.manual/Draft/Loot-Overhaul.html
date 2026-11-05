@@ -202,6 +202,25 @@ in this order:</p>
   affixes, and never a forged enchantment or a socketed gem.</p>
 </div>
 
+<h3 id="arch-invariant">No contraband by construction</h3>
+<p>With the jail retired, nothing judges gear after the fact. <strong>Every path that creates or
+changes an item must enforce its own bound at the moment it acts</strong>; that is what makes a
+scan of held gear unnecessary.</p>
+<ul>
+  <li><strong>Forge enchant</strong> (<code>modifyitem</code>): the per-forge and global value
+    and enchantment caps, unchanged.</li>
+  <li><strong>Staged disenchant</strong>: commits only a plan whose result is within the caps,
+    even on an untouched over-cap relic. It is never relaxed.</li>
+  <li><strong>Rolled loot</strong> (<code>Loot_Roll</code>): bounded by the rarity's value budget
+    for its loot level, plus the gate-checked affix ranges in <code>affixes.json</code>.</li>
+  <li><strong>Fate reroll</strong>: re-rolls inside the item's own stamped level and rarity
+    budget, so it can never produce more than the original roll could have.</li>
+  <li><strong>Gems</strong>: only into a real open socket, merged and clamped to the socket caps
+    (2d10 damage, AB +16).</li>
+</ul>
+<p>A rolled item that a player then works at a forge is judged by the forge caps like any other
+piece, so rarity budgets near the top tier must be set with that in mind.</p>
+
 <h3 id="arch-test">Test surface + simulator</h3>
 <p><strong>Admin Options → Loot Lab</strong> is a rest-menu entry gated by
 <code>Admin_CanAdmin</code>; there is no DM console. It can:</p>
