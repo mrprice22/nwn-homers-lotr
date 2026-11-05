@@ -384,46 +384,52 @@ fi
 
 # ---------------------------------------------------------------- promotion --
 # Dev realm only (PROMOTE_FILES is empty elsewhere). bin/promote-to-prod finds
-# the live season itself and makes you type its number back, so the tile carries
-# no season in its Exec and cannot go stale after a cutover.
+# its target itself - the season repo whose SEASON_NUM matches dev's, i.e. the
+# season this dev realm feeds - and makes you type its number back, so the Exec
+# carries no season. The LABEL does name it ("Promote to Season 3"), because
+# "to Prod" stopped being true the day the next season was stood up: dev feeds
+# season N+1 while season N is still the live realm. Re-run --install after the
+# cutover bumps dev's SEASON_NUM (runbook §5 step 10) to relabel.
 if ((${#PROMOTE_FILES[@]})); then
+  PTO="Promote to Season ${SEASON_NUM:-?}"
+  PSEASON="season ${SEASON_NUM:-?} (the season this dev realm feeds)"
   write_hold_entry "$PROMOTE_DRY" \
-    "Promote to Prod - DRY RUN" \
+    "$PTO - DRY RUN" \
     "NWN Season Promotion" \
-    "Preview what promoting this dev tree to the live season would change. Writes nothing. Always safe - start here." \
+    "Preview what promoting this dev tree to $PSEASON would change. Writes nothing. Always safe - start here." \
     "\"$PROJECT_ROOT/bin/promote-to-prod\" dry" \
     "document-print-preview" "Development;"
 
   write_hold_entry "$PROMOTE" \
-    "Promote to Prod" \
+    "$PTO" \
     "NWN Season Promotion" \
-    "Promote this dev tree to the live season and rebuild its module. For a target whose server is STOPPED. Asks you to confirm the season number." \
+    "Promote this dev tree to $PSEASON and rebuild its module. For a target whose server is STOPPED. Asks you to confirm the season number." \
     "\"$PROJECT_ROOT/bin/promote-to-prod\" apply" \
     "software-update-available" "Development;"
 
   write_hold_entry "$PROMOTE_HOT" \
-    "Promote to Prod (server running)" \
+    "$PTO (server running)" \
     "NWN Season Promotion" \
-    "As Promote to Prod, but for a live season whose server is UP (--allow-hot). The new module is installed under the running server and takes effect at its next restart." \
+    "As $PTO, but for a target whose server is UP (--allow-hot). The new module is installed under the running server and takes effect at its next restart." \
     "\"$PROJECT_ROOT/bin/promote-to-prod\" hot" \
     "software-update-urgent" "Development;"
 
   write_hold_entry "$PROMOTE_FAST" \
-    "Promote to Prod (fast NWSync + reboot)" \
+    "$PTO (fast NWSync + reboot)" \
     "NWN Season Promotion" \
     "Promote, rebuild the target's hak, verify it publishes the same content as dev, then arm reboot-on-empty to COPY dev's manifest during the down window - seconds instead of a ~20 minute rebuild. Use when the hak changed. Prompts for the message players see." \
     "\"$PROJECT_ROOT/bin/promote-to-prod\" fast" \
     "clock" "Development;"
 
   write_hold_entry "$PROMOTE_REBOOT" \
-    "Promote to Prod (reboot when empty)" \
+    "$PTO (reboot when empty)" \
     "NWN Season Promotion" \
-    "Promote to the live season under a RUNNING server, then arm reboot-on-empty so the realm cycles onto the new module the moment the last player leaves. No NWSync - this is the module-only case (clients download haks and the TLK, never the .mod). Prompts for the message players see, then asks you to confirm the season number." \
+    "Promote to $PSEASON under a RUNNING server, then arm reboot-on-empty so the realm cycles onto the new module the moment the last player leaves. No NWSync - this is the module-only case (clients download haks and the TLK, never the .mod). Prompts for the message players see, then asks you to confirm the season number." \
     "\"$PROJECT_ROOT/bin/promote-to-prod\" reboot" \
     "system-reboot" "Development;"
 
   write_hold_entry "$PROMOTE_NOBUILD" \
-    "Promote to Prod (no rebuild)" \
+    "$PTO (no rebuild)" \
     "NWN Season Promotion" \
     "Sync and rebrand the target only - no repack. For a change that touches tooling or docs but not the module." \
     "\"$PROJECT_ROOT/bin/promote-to-prod\" nobuild" \

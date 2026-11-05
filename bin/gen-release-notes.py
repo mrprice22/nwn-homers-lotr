@@ -106,7 +106,36 @@ except ImportError:                                  # pragma: no cover
 GEN = PUB.GEN
 SERVER_ENV = REPO / "server.env"
 FLAVOR_DIR = REPO / "release-notes"
-DEFAULT_TARGET = REPO.parent / "nwn_homers_lotr_s2"
+
+
+def fed_season_repo() -> Path:
+    """The season repo this dev realm FEEDS: the sibling (not dev) whose
+    SEASON_NUM equals this repo's. Same rule as bin/promote-to-prod, so the notes
+    always describe the realm a promotion would actually reach. Before a cutover
+    has stood the next season up, falls back to its conventional path."""
+    def env(path: Path, key: str) -> str:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            return ""
+        val = ""
+        for ln in text.splitlines():
+            m = re.match(rf"\s*(?:export\s+)?{key}\s*=\s*(.+?)\s*$", ln)
+            if m:
+                val = m.group(1).split("#", 1)[0].strip().strip('"').strip("'")
+        return val
+    num = env(REPO / "server.env", "SEASON_NUM")
+    hits = [d for d in sorted(REPO.parent.glob("nwn_homers_lotr*"))
+            if d.resolve() != REPO.resolve()
+            and env(d / "server.env", "NWN_CONTAINER_NAME")
+            and env(d / "server.env", "SEASON_ROLE") not in ("", "dev")
+            and env(d / "server.env", "SEASON_NUM") == num]
+    if len(hits) == 1:
+        return hits[0]
+    return REPO.parent / f"nwn_homers_lotr_s{num or 2}"
+
+
+DEFAULT_TARGET = fed_season_repo()
 # Some roadmap items are wiki/tooling work, so their `commit:` names a commit in
 # the generator repo rather than this one. Without checking here they would look
 # like typos. See ENV_EXTERNAL below.
@@ -123,7 +152,10 @@ NOISE_RE = re.compile(
     r")"
 )
 
-PROMOTE_SUBJECT_RE = re.compile(r"Promote from dev @([0-9a-f]{7,40})")
+# "Promote from dev @<sha>" (season-promote.sh) or the Phase 1 fork commit
+# "Season N — forked from dev at Phase 1 (dev @<sha>)", which is a season repo's
+# baseline until its first promotion.
+PROMOTE_SUBJECT_RE = re.compile(r"(?:Promote|forked) from dev[^@]*@([0-9a-f]{7,40})")
 SHA_SPLIT_RE = re.compile(r"[\s,;]+")
 
 
@@ -178,13 +210,13 @@ def resolve_base(target: Path, since: str | None) -> tuple[str, str]:
         # the newest promote commit is usually several commits back.
         try:
             subj = git("log", "-1", "--format=%s", "--grep=Promote from dev",
-                       "main", cwd=target).strip()
+                       "--grep=forked from dev", "main", cwd=target).strip()
         except RuntimeError:
             subj = ""
         m = PROMOTE_SUBJECT_RE.search(subj)
         if m and git_ok("cat-file", "-e", f"{m.group(1)}^{{commit}}"):
             return (git("rev-parse", m.group(1)).strip(),
-                    f"{target.name}'s newest 'Promote from dev @{m.group(1)}'")
+                    f"{target.name}'s newest promote/fork commit (dev @{m.group(1)})")
 
     # promote/s<N>/<date> is two path components deep, so a single * misses it.
     tags = git("for-each-ref", "--sort=-creatordate", "--format=%(refname:short)",
@@ -1292,7 +1324,8 @@ def main() -> int:
     ap.add_argument("--audience", choices=("testers", "players", "admin"),
                     default="admin", help="who the notes are for (default: admin)")
     ap.add_argument("--target", default=str(DEFAULT_TARGET),
-                    help="the season repo to diff against (default: ../nwn_homers_lotr_s2)")
+                    help="the season repo to diff against (default: the season this dev "
+                         f"realm feeds - currently ../{DEFAULT_TARGET.name})")
     ap.add_argument("--since", help="baseline ref, overriding auto-detection")
     ap.add_argument("--flavor", action="store_true",
                     help="ask the LAN model to help: rewrite and merge the notes "

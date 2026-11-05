@@ -510,8 +510,7 @@ well and pushes it, so a player who reports a problem sees it tracked on
 `bin/season-promote.sh` is `roadmap.yaml` itself and therefore the live server's
 in-game Recent Updates sign — that board announces **shipped** work, which is
 only true of production once the build is promoted. The live realm is
-discovered, not configured (the sibling repo with `SEASON_ROLE=live`, the same
-rule `bin/promote-to-prod` uses), and `bin/gen-roadmap.py` renders the page on
+discovered, not configured (the sibling repo with `SEASON_ROLE=live`), and `bin/gen-roadmap.py` renders the page on
 the **dev realm only** so a season's nightly refresh cannot overwrite a publish
 with its own older copy. Details: [CLAUDE-roadmap.md](CLAUDE-roadmap.md).
 
@@ -1396,7 +1395,7 @@ The contract, deliberately:
 - **One direction, prod → dev.** The script refuses (exit 3) unless *this* repo is
   `SEASON_ROLE=dev` and the source realm is `SEASON_ROLE=live`. A live vault is never
   a write target. The source realm is discovered by scanning sibling repos for
-  `SEASON_ROLE=live` (same idiom as `bin/promote-to-prod`); `--from <repo>` overrides.
+  `SEASON_ROLE=live`; `--from <repo>` overrides.
 - **Prod wins.** An existing dev copy is overwritten whenever it differs — progress
   made on the *dev* copy of a synced character is disposable, which is the point.
 - **Never deletes.** Dev-only test characters survive, including ones sharing a
@@ -1564,8 +1563,21 @@ hands connecting clients a manifest for haks the server has not loaded yet.
 
 `bin/publish-and-arm` is dev only. Shipping the same change to a live season goes
 through `bin/promote-to-prod <mode>` (`dry` | `apply` | `hot` | `fast` | `reboot`
-| `nobuild`), which finds the live repo itself and makes you type its season
-number back.
+| `nobuild`), which finds its target itself and makes you type its season number
+back.
+
+**The target is the season dev FEEDS, not "the live season".** It is the one
+sibling season repo whose `SEASON_NUM` equals dev's (dev's number is bumped to
+N+1 at the next season's Phase 1), whatever its role: `test` while that season is
+in early access, `live` after go-live. Zero matches, several, or an `archive`
+match refuse. Until 2026-11-05 it picked the `SEASON_ROLE=live` repo, which stops
+being right the day the next season is stood up: from then on the outgoing season
+takes no promotions, and a major defect there is fixed in its own repo directly.
+`bin/gen-release-notes.py` defaults to the same target, and reads a season's
+baseline from its newest `Promote from dev @<sha>` commit or, before the first
+promotion, its Phase 1 fork commit (`… forked from dev at Phase 1 (dev @<sha>)`).
+The roadmap's `live_repo()` publish and the prod→dev vault sync are deliberately
+still `SEASON_ROLE=live`: they are about the realm the public plays on.
 
 **When the hak changed, the mode is `fast`.** It promotes, rebuilds the target's
 hak from the just-promoted `hak_2da/`, verifies the target would publish the same

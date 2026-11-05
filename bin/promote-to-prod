@@ -8,11 +8,19 @@
 # a mistyped --to lands on the wrong live server. So each sensible combination
 # gets its own labelled button, and this script resolves the target itself.
 #
-# THE TARGET IS DISCOVERED, NOT TYPED. It scans sibling repos for the one with
-# SEASON_ROLE=live and reads its SEASON_NUM, so the --to/--season pair can never
-# disagree. If there is more than one live season (a cutover overlap) it refuses
-# and asks you to run season-promote.sh by hand, because at that moment "prod"
-# is genuinely ambiguous and no button should guess.
+# THE TARGET IS DISCOVERED, NOT TYPED: it is the season THIS DEV REALM FEEDS.
+# Dev's own SEASON_NUM records which season it develops (the cutover runbook bumps
+# it at Phase 1), so the target is the one sibling season repo carrying that same
+# SEASON_NUM, whatever its role (test while it is in early access, live after its
+# go-live). The --to/--season pair therefore can never disagree.
+#
+# It used to pick the repo with SEASON_ROLE=live. That breaks the moment a new
+# season is stood up: dev moves on to season N+1 while season N is still the live
+# realm, and a button that promotes into "live" then copies next season's work
+# into the season that is ending (admin, 2026-11-05: once season N+1 exists,
+# season N takes no more promotions - a major defect there is fixed in its own
+# repo directly). Zero or several matches, or an archived match, refuse: no
+# button should guess.
 #
 # Modes (one shortcut each):
 #   dry       preview only - nothing is written                    [safe]
@@ -48,22 +56,30 @@ read_var() {
   "this repo is not the dev realm. Promotion runs FROM dev only."
 
 # --------------------------------------------------------- find the target --
-mapfile -t LIVE < <(
+FEEDS=$(read_var "$DEV_ROOT/server.env" SEASON_NUM)
+[[ $FEEDS =~ ^[0-9]+$ ]] || die "dev's server.env has no numeric SEASON_NUM (got '${FEEDS:-}'), so the season it feeds is unknown."
+mapfile -t MATCH < <(
   for d in "$DEV_ROOT"/../*/; do
     d=${d%/}
     [[ -f $d/server.env ]] || continue
-    [[ $(read_var "$d/server.env" SEASON_ROLE) == live ]] || continue
+    [[ $(cd "$d" && pwd) == "$DEV_ROOT" ]] && continue
+    [[ -n $(read_var "$d/server.env" NWN_CONTAINER_NAME) ]] || continue
+    [[ $(read_var "$d/server.env" SEASON_ROLE) == dev ]] && continue
+    [[ $(read_var "$d/server.env" SEASON_NUM) == "$FEEDS" ]] || continue
     echo "$d"
   done
 )
-case ${#LIVE[@]} in
-  0) die "found no sibling repo with SEASON_ROLE=live. Is production checked out beside this one?" ;;
+case ${#MATCH[@]} in
+  0) die "dev feeds season $FEEDS, but no sibling season repo has SEASON_NUM=$FEEDS. Stand it up first (season-cutover-guide.md §5)." ;;
   1) ;;
-  *) printf '  %s\n' "${LIVE[@]}" >&2
-     die "found ${#LIVE[@]} live seasons. During a cutover overlap 'prod' is ambiguous - run bin/season-promote.sh by hand with an explicit --to." ;;
+  *) printf '  %s\n' "${MATCH[@]}" >&2
+     die "found ${#MATCH[@]} repos claiming season $FEEDS - ambiguous. Run bin/season-promote.sh by hand with an explicit --to." ;;
 esac
-TARGET=$(cd "${LIVE[0]}" && pwd)
+TARGET=$(cd "${MATCH[0]}" && pwd)
 TGT_NUM=$(read_var "$TARGET/server.env" SEASON_NUM)
+TGT_ROLE=$(read_var "$TARGET/server.env" SEASON_ROLE)
+[[ $TGT_ROLE == live || $TGT_ROLE == test ]] || die \
+  "season $TGT_NUM ($TARGET) has SEASON_ROLE='${TGT_ROLE:-unset}'; only a live or test season takes promotions."
 TGT_NAME=$(read_var "$TARGET/server.env" NWN_SERVERNAME)
 
 ARGS=(--to "$TARGET")
@@ -84,11 +100,11 @@ esac
 cat <<BANNER
 
   ===============================================================
-   PROMOTE TO PRODUCTION
+   PROMOTE TO SEASON $TGT_NUM  ($TGT_ROLE)
   ===============================================================
-   from   : $DEV_ROOT  (dev)
+   from   : $DEV_ROOT  (dev, feeds season $FEEDS)
    to     : $TARGET
-   season : $TGT_NUM  -  $TGT_NAME
+   season : $TGT_NUM ($TGT_ROLE)  -  $TGT_NAME
    action : $DESC
   ===============================================================
 

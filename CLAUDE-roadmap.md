@@ -687,8 +687,8 @@ What it does:
   only true of production once the module build is promoted, so it rides with the release.
 
   **The live realm is discovered, never configured.** `live_repo()` scans sibling
-  `nwn_homers_lotr*` checkouts for `SEASON_ROLE=live` — the same rule
-  `bin/promote-to-prod` uses — so season 3 becomes the target by flipping its
+  `nwn_homers_lotr*` checkouts for `SEASON_ROLE=live` (`bin/promote-to-prod` no longer
+  shares this rule: it targets the season dev feeds) — so season 3 becomes the target by flipping its
   `SEASON_ROLE`, with no edit here. It refuses when **two** realms are live (a cutover
   overlap: "production" is genuinely ambiguous), when there is no live sibling, and when
   the editor is itself running in the live repo. Every one of those is reported in the
