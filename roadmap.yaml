@@ -11276,13 +11276,15 @@ ideas:
     title: "Loot core: rarity tiers, rolled enchantments and loot levels (data, generator, Loot Lab)"
     group: items-gear
     epic: loot-overhaul
-    status: planned
+    status: implemented
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-11-05"
-    notes: "<div>The engine behind Season 3 loot: items rolled at a loot level with a rarity (Common to Legendary), a coloured name and random enchantments, plus a curated pool of existing named items that Legendary rolls can award.</div>"
-    impl_notes: "<div>Phase 2 of Draft/Loot-Overhaul.html#p2. FIRST: bin/wiki-golden baseline (approved by admin 2026-11-05), then refactor nwn_manager's ~6 copies of the item-accessible rule into one predicate and require a zero-diff check. Module: loot/*.json (rarity, levels, bases, affixes, named, sources) at repo root; bin/gen-loot-tables.py -&gt; unpacked/loot_data_inc.nss (generated, committed); tests/check_loot_tables.py in tests/smoke-test; unpacked/loot_inc.nss Loot_Roll() building from forge_blank_&lt;baseitem&gt; via IPGetItemPropertyByID, value budget via ForgeItemValue/ForgeRebuildValue, LOOT_* + LOOT_AFX_&lt;i&gt; (ForgePropSig) stamps; rest-menu Admin Options -&gt; Loot Lab (Admin_CanAdmin); bin/loot-sim.py Monte Carlo; lootdb campaign DB, DDL in onmoduleload. Seed season3-meta-shakeup axes (SR, amulet alternatives, magicstaff caster affixes).</div><div><b>Downside affixes (admin 2026-11-05):</b> allowed at any rarity tier. A rolled item may carry a trade-off affix (e.g. lower AC, a damage vulnerability) paid back by its upsides - this is the season3-meta-shakeup \"costs something real\" lever. Every affix range, downsides included, stays gate-checked in affixes.json and inside the rarity value budget.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
+    commit: 8bd54fd5b37
+    docs: Customizations/Loot.html#loot-rarity
+    notes: "<div>The engine behind Season 3 loot is on the test realm: items rolled at a loot level with one of five rarities (Common, Uncommon, Rare, Epic, Legendary), a coloured name and random enchantments, some with a trade-off. About a third drop unidentified, and a Legendary roll can award one of the module's named boss items. Chests and creatures switch over to it in the next stages. See <a>Rolled Loot</a>.</div>"
+    impl_notes: "<div>Phase 2 of Draft/Loot-Overhaul.html#p2. FIRST: bin/wiki-golden baseline (approved by admin 2026-11-05), then refactor nwn_manager's ~6 copies of the item-accessible rule into one predicate and require a zero-diff check. Module: loot/*.json (rarity, levels, bases, affixes, named, sources) at repo root; bin/gen-loot-tables.py -&gt; unpacked/loot_data_inc.nss (generated, committed); tests/check_loot_tables.py in tests/smoke-test; unpacked/loot_inc.nss Loot_Roll() building from forge_blank_&lt;baseitem&gt; via IPGetItemPropertyByID, value budget via ForgeItemValue/ForgeRebuildValue, LOOT_* + LOOT_AFX_&lt;i&gt; (ForgePropSig) stamps; rest-menu Admin Options -&gt; Loot Lab (Admin_CanAdmin); bin/loot-sim.py Monte Carlo; lootdb campaign DB, DDL in onmoduleload. Seed season3-meta-shakeup axes (SR, amulet alternatives, magicstaff caster affixes).</div><div><b>Downside affixes (admin 2026-11-05):</b> allowed at any rarity tier. A rolled item may carry a trade-off affix (e.g. lower AC, a damage vulnerability) paid back by its upsides - this is the season3-meta-shakeup \\\"costs something real\\\" lever. Every affix range, downsides included, stays gate-checked in affixes.json and inside the rarity value budget.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div><div><b>Shipped 2026-11-05 (commit 8bd54fd5b37; nwn_manager 5bd9cce).</b> Golden gate: baseline recorded first, the 7 (not 6) copies of the item-accessible rule folded into nwn_wiki.items.item_accessible(); wiki-golden check IDENTICAL on homers_lotr, homers_lotr_s2, lotr2008, lotr2009. Browse-by-Property keeps pickpocket=False to stay zero-diff (separate hidden idea wiki-itemprops-pickpocket).</div><div><b>Built:</b> loot/*.json (5 tiers, 68 affixes incl. 10 downsides, 55 bases in 7 categories with harvested appearance donors, 32 named items, 6 profiles, generated _costs.json 2DA snapshot); bin/loot_model.py (shared model + validate + roll mirror); bin/gen-loot-tables.py (--apply / --refresh-costs / --harvest-donors) -&gt; unpacked/loot_data_inc.nss; tests/check_loot_tables.py in tests/smoke-test; bin/loot-sim.py (--calibrate, --cr); loot_inc.nss Loot_Roll / Loot_RollProfile / Loot_Describe; loot_db.nss (lootdb.loot_roll_log, lab + Epic+ rolls only, DDL in onmoduleload); Loot Lab = emotewand Entry 19 + lootlab_*.nss, tokens 6450/6451. Reference: CLAUDE-loot.md.</div><div><b>Deviations from the draft:</b> properties are built by the generated Loot_MakeIP (native constructors), not IPGetItemPropertyByID - the stock helper builds DAMAGE_VULNERABILITY as a resistance and DECREASED_SAVING_THROWS_SPECIFIC as a bonus; a runtime self-check logs 'LOOT: affix ... built the wrong property'. Budgets anchored to obtainable gear, not the forge caps (admin 2026-11-05): Legendary@60 3.2M (~p95), Epic 1.2M (~p90), Rare 130k, Uncommon 25k, Common 15k; a roll above a forge cap simply cannot be forged further, like existing top gear. 35% unidentified at every tier (admin 2026-11-05). Budget trim steps an affix down its whole ladder before dropping it, so the rarity budget (not the loot level) sets power; roll_bias (best-of-N within the window) separates Rare/Epic/Legendary. Python value model matches ~88% of blueprint Cost fields; the engine value is authoritative.</div><div><b>Next phases:</b> loot_data_inc is an include - any loot/*.json change needs repack-homers-lotr-clean.</div>"
     design_questions:
       - question: "Rarity colour palette for item names? Proposal: white / green / blue / purple / orange (WoW/Diablo convention)."
         status: answered
@@ -11290,6 +11292,26 @@ ideas:
       - question: "Rarity count and names? Proposal: Common, Uncommon, Rare, Epic, Legendary; {EPIC} stays boss-only branding, so the Epic tier may need another name (e.g. Heroic) to avoid confusion."
         status: answered
         answer: "Decided by admin 2026-11-05. Five tiers, named Common / Uncommon / Rare / Epic / Legendary. \"Epic\" is kept despite overlapping the boss-only {EPIC} name tag."
+    manual_steps:
+      - step: "Review loot/named.json - the 32 drafted named-pool items (name and source boss are in each entry). Remove any that should stay boss-only, adjust level windows/weights, then gen-loot-tables.py --apply and a clean repack."
+        status: open
+        kind: admin
+      - step: "Loot Lab (rest menu > Admin Options > [Admin] Loot Lab): at levels 1, 20, 40 and 60, set each rarity floor and Roll 10. Then Dump: every item's value is at or under its budget, names are coloured by rarity, and the server log has no 'LOOT:' lines."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Loot Lab: across ~30 rolls about a third arrive unidentified; identify one (Lore / Rod of Fast Lore) and its coloured name and enchantments appear."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Loot Lab: 'Put 5 rolled items in the nearest container', then take them out while in a party - the Need/Greed roll fires, and after it the winner's item still dumps its LOOT_* stamps."
+        status: open
+        kind: uat
+        tester: "admin + 1 party member"
+      - step: "Equip a rolled weapon, armor and amulet with a downside affix: the downside applies (e.g. lower AC shown on the character sheet) along with the upsides."
+        status: open
+        kind: uat
+        tester: "admin"
   - id: lo-creature-drops
     title: "Random drops from creatures and bosses, on top of their fixed loot"
     group: items-gear
@@ -11371,3 +11393,13 @@ ideas:
       - step: "After Season 3 goes live, generate the Season 2 Hall of Fame from the archived S2 data (cutoff = the S3 go-live date) and publish it on the Season 2 archive wiki."
         status: open
         kind: admin
+  - id: wiki-itemprops-pickpocket
+    title: "Wiki: Browse-by-Property ignores pickpocket-only items"
+    group: wiki-tools
+    status: planned
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-05"
+    notes: "<div>Items you can only get by pickpocketing are missing from the wiki's Browse-by-Property pages, although every other page counts them as obtainable.</div>"
+    impl_notes: "<div>nwn_manager render/itemprops_pages.py _collect_item_properties calls item_accessible(db, rr, pickpocket=False) - kept that way in 5bd9cce so the lo-loot-core refactor was zero-diff. Fix: drop pickpocket=False, then run wiki-golden check with an --expect file declaring the itemprops/ page and item-page property-link diffs (ask the admin before running the golden gate).</div>"
