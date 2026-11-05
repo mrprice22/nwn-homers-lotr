@@ -35,6 +35,27 @@ def boss_respawn_seconds(unpacked=UNPACKED):
     return boss_tuning(str(unpacked))["BOSS_RESPAWN_SECONDS"]
 
 
+# The generated registry block in unpacked/brd_db.nss (bin/gen-boss-registry.py
+# writes it). The build gate and the loot tools parse it with these, so "is this
+# a registered boss" has one answer.
+SEED_RE = re.compile(
+    r'BRD_SeedBoss\("(?P<resref>[^"]*)",\s*"(?P<name>[^"]*)",\s*"(?P<tag>[^"]*)",'
+    r'\s*"(?P<area>[^"]*)",\s*"(?P<area_name>[^"]*)",\s*(?P<cr>[0-9.]+)f?,'
+    r'\s*(?P<respawn>\d+),\s*"(?P<type>placed|encounter)"\)'
+)
+ALIAS_RE = re.compile(r'BRD_SeedAlias\("(?P<resref>[^"]*)",\s*"(?P<canonical>[^"]*)"\)')
+
+
+def boss_registry(unpacked=UNPACKED):
+    """(bosses, aliases) from brd_db.nss: a list of BRD_SeedBoss row dicts and
+    {alias resref: canonical resref}. The runtime resolves an alias to its
+    canonical boss (BRD_Canonical), so a lookup by resref must accept both."""
+    src = (unpacked / "brd_db.nss").read_text()
+    bosses = [m.groupdict() for m in SEED_RE.finditer(src)]
+    aliases = {m.group("resref"): m.group("canonical") for m in ALIAS_RE.finditer(src)}
+    return bosses, aliases
+
+
 def gv(node):
     """Unwrap a GFF-as-JSON typed node ({"type":..,"value":..}) to its value."""
     return node["value"] if isinstance(node, dict) and "value" in node else node

@@ -26,21 +26,13 @@ definitions change later, and keeps a boss-timer retune from shipping half-done
 (constant changed, registry or encounter ResetTimes not regenerated).
 """
 import json
-import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 UNPACKED = ROOT / "unpacked"
 sys.path.insert(0, str(ROOT / "bin"))
-from boss_index import boss_respawn_seconds  # noqa: E402
-
-SEED_RE = re.compile(
-    r'BRD_SeedBoss\("(?P<resref>[^"]*)",\s*"(?P<name>[^"]*)",\s*"(?P<tag>[^"]*)",'
-    r'\s*"(?P<area>[^"]*)",\s*"(?P<area_name>[^"]*)",\s*(?P<cr>[0-9.]+)f?,'
-    r'\s*(?P<respawn>\d+),\s*"(?P<type>placed|encounter)"\)'
-)
-ALIAS_RE = re.compile(r'BRD_SeedAlias\("(?P<resref>[^"]*)",\s*"(?P<canonical>[^"]*)"\)')
+from boss_index import boss_respawn_seconds, SEED_RE, ALIAS_RE  # noqa: E402
 
 
 def gv(node):

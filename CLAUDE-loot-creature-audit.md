@@ -1,0 +1,432 @@
+# Creature drops - elite audit (Loot Overhaul Phase 4)
+
+**Generated** by `python3 bin/loot-sim.py --creatures --write` from `loot/sources.json`
+(`creatures`), `loot/levels.json`, `loot/area_levels.json` and the placed creatures in
+`unpacked/*.git.json`. Do not hand-edit; re-run after a change. Roadmap: `lo-creature-drops`.
+
+A PC-credited kill of a hostile creature may leave rolled items on its corpse. Its class
+decides how often:
+
+| class | rule | drop chance | rolls | rarity floor |
+|---|---|---|---|---|
+| normal | everything else | 4.0% | 1 | Common |
+| elite | CR loot level >= area loot level + **5** (`elite_margin`), or `elite_include` | 25.0% | 1 | Common |
+| boss | in the Roll of the Fallen registry (`brd_db.nss`) | 100.0% | 2 (+1 at CR 1000+), + named roll 10% | Epic |
+
+**To tune:** change `elite_margin`, or list a creature resref with a reason in
+`elite_include` (always elite), `elite_exclude` (never elite) or `exclude` (never drops), then
+`python3 bin/gen-loot-tables.py --apply` and re-run this report. `--margin N` previews another
+margin without editing anything.
+
+Normal and elite creatures must be in a hostile faction (reputation toward PCs <= 10, the
+area-level rule); registered bosses drop whatever faction they were placed in.
+
+Counting: a *slot* is one placed hostile creature, or one entry in a placed hostile
+encounter's creature list. An encounter spawns some of its list, possibly more than once, so
+encounter numbers are indicative. *Drops per clear* = expected rolled items from killing every
+slot once. *Chest gear per fill* = expected rolled items from opening every loot container
+in the area once.
+
+## Margin sweep
+
+| elite_margin | elite slots | % of non-boss | distinct creatures | areas |
+|---|---|---|---|---|
+| 3 | 736 | 17.8% | 133 | 86 |
+| **5** | 475 | 11.5% | 94 | 65 |
+| 7 | 362 | 8.8% | 66 | 55 |
+| 10 | 198 | 4.8% | 46 | 37 |
+| 15 | 93 | 2.2% | 27 | 21 |
+
+## Totals at margin 5
+
+| class | slots | distinct creatures | drops per full clear |
+|---|---|---|---|
+| normal | 3659 | 401 | 146.4 |
+| elite | 475 | 94 | 118.8 |
+| boss | 80 | 80 | 184.0 |
+| excluded | 0 | 0 | 0 |
+
+Rarity mix of one roll: normal: Common 56.4% / Uncommon 29.2% / Rare 10.8% / Epic 3.0% / Legendary 0.6%; boss: Epic 97.5% / Legendary 2.5% (elite rolls like normal).
+
+## Elite creatures at margin 5
+
+Grouped by area. *over* = how far the creature's loot level is above the area's.
+
+| area | area lvl | creature | resref | CR | loot lvl | over | slots | why |
+|---|---|---|---|---|---|---|---|---|
+| Angmar (`angmar`) | 11 | Tirg the General | `gntfire001` | 53 | 31 | +20 | 1 | auto |
+| Angmar (`angmar`) | 11 | Ologai Troll | `ogreboss001` | 23 | 17 | +6 | 2 | auto |
+| Carn Dum (`carndum`) | 26 | Black Numenorean Archer | `blacknumenorea_2` | 80 | 33 | +7 | 2 | auto |
+| Dunland (`dunland`) | 6 | Dunland Shaman | `uthgard006` | 80 | 33 | +27 | 1 | auto |
+| Dwarrow Delf (east) (`dwarrowdelfea001`) | 8 | Wilder Chieftain | `bugbearboss006` | 30 | 22 | +14 | 1 | auto |
+| Dwarrow Delf (east) (`dwarrowdelfea001`) | 8 | Trollog Devestator | `ogremageboss001` | 21 | 16 | +8 | 3 | auto |
+| Dwarrow Delf (west) (`dwarrowdelfeast`) | 6 | Darcara the Cruel | `darcarathecruel` | 26 | 19 | +13 | 1 | auto |
+| Dwarrow Delf (west) (`dwarrowdelfeast`) | 6 | Trollog Devestator | `ogremageboss001` | 21 | 16 | +10 | 4 | auto |
+| Edoras (`edoras`) | 31 | Elite Rohirrim Soldier | `arohirrimsold004` | 158 | 41 | +10 | 2 | auto |
+| Enchanted Caverns (`enchantedcave002`) | 11 | Xanith The Mad | `xaniththemad004` | 32 | 24 | +13 | 1 | auto |
+| Ered Duath Road: A (`eredduathroada`) | 38 | Mordor Orc Lieutenant Soldier | `urukai016` | 200 | 45 | +7 | 7 | auto |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | zep_dracolich | `zep_dracolich` | 42 | 30 | +25 | 1 | auto |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | (missing blueprint) | `nw_lich001` | 28 | 21 | +16 | 1 | auto |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | (missing blueprint) | `nw_lich003` | 17 | 13 | +8 | 2 | auto |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | (missing blueprint) | `nw_vampire003` | 16 | 12 | +7 | 2 | auto |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | (missing blueprint) | `nw_skeldevour` | 13 | 10 | +5 | 1 | auto |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | (missing blueprint) | `nw_vampire002` | 13 | 10 | +5 | 2 | auto |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | (missing blueprint) | `nw_vampire004` | 13 | 10 | +5 | 2 | auto |
+| Ettenmoors (`ettenmoors`) | 17 | Uruk Hai First Born | `urukhaifirstborn` | 115 | 37 | +20 | 4 | auto |
+| Ettenmoors (`ettenmoors`) | 17 | Uruk Hai Bowman | `urukaibowman` | 92 | 34 | +17 | 4 | auto |
+| Ettenmoors (`ettenmoors`) | 17 | Uruk Hai Slayer | `urukai012` | 91 | 34 | +17 | 4 | auto |
+| Ettenmoors (`ettenmoors`) | 17 | Uruk Hai Slayer | `urukai014` | 81 | 33 | +16 | 4 | auto |
+| Ettenmoors (`ettenmoors`) | 17 | Ologai Battle Troll | `ogreboss002` | 50 | 30 | +13 | 4 | auto |
+| Gap of Rohan (`gapofrohaneast`) | 17 | A Ridermark Guardian | `arohirrimsold005` | 55 | 31 | +14 | 2 | auto |
+| Gap of Rohan (`gapofrohaneast`) | 17 | A Rohirrim Soldier | `arohirrimsold001` | 42 | 30 | +13 | 2 | auto |
+| Gap of Rohan (`gapofrohaneast`) | 17 | Riddermark Guardian | `riddermarkguardi` | 36 | 27 | +10 | 2 | auto |
+| Gap of Rohan (`gapofrohaneast`) | 17 | Riddermark Bowman | `riddermarkbowman` | 32 | 24 | +7 | 2 | auto |
+| Goblin Gate: Greater (`goblingategreate`) | 4 | Goblin Gate Warrior | `bugbearboss001` | 12 | 9 | +5 | 2 | auto |
+| Goblin Gate: Lesser (`goblingatelesser`) | 3 | Goblin Gate Warrior | `bugbearboss001` | 12 | 9 | +6 | 1 | auto |
+| Goblin Gate: Mines (`goblingatemines`) | 4 | Goblin Gate Warrior | `bugbearboss001` | 12 | 9 | +5 | 5 | auto |
+| Goblin Town: Main Hall (`goblintownmainha`) | 4 | The Goblin King | `bugbearboss004` | 58 | 31 | +27 | 1 | auto |
+| Goblin Town: Main Hall (`goblintownmainha`) | 4 | Goblin Gate Warrior | `bugbearboss001` | 12 | 9 | +5 | 3 | auto |
+| Goblin Town: Main Hall (`goblintownmainha`) | 4 | Logorul Warmaster | `bugbearboss003` | 12 | 9 | +5 | 1 | auto |
+| Goblin Town: Main Hall (`goblintownmainha`) | 4 | Shargulrul Warmaster | `bugbearboss005` | 12 | 9 | +5 | 1 | auto |
+| Goblin Town: Warrens (`goblintownwarren`) | 5 | Bobo | `goblinb001` | 463 | 48 | +43 | 5 | auto |
+| Great East Road (`greateastroadb`) | 5 | (missing blueprint) | `nw_lich001` | 28 | 21 | +16 | 1 | auto |
+| Great East Road (`greateastroadb`) | 5 | (missing blueprint) | `nw_lich003` | 17 | 13 | +8 | 1 | auto |
+| Great East Road (`greateastroadb`) | 5 | (missing blueprint) | `nw_vampire003` | 16 | 12 | +7 | 1 | auto |
+| Great East Road (`greateastroadb`) | 5 | (missing blueprint) | `nw_skeldevour` | 13 | 10 | +5 | 1 | auto |
+| Great East Road (`greateastroadb`) | 5 | (missing blueprint) | `nw_vampire002` | 13 | 10 | +5 | 1 | auto |
+| Great East Road (`greateastroadb`) | 5 | (missing blueprint) | `nw_vampire004` | 13 | 10 | +5 | 1 | auto |
+| Great East Road (`greateastroadc`) | 3 | (missing blueprint) | `nw_humanmerc006` | 15 | 11 | +8 | 1 | auto |
+| Great East Road (`greateastroadc`) | 3 | (missing blueprint) | `nw_elfmerc006` | 14 | 11 | +8 | 1 | auto |
+| Great East Road (`greateastroadc`) | 3 | (missing blueprint) | `nw_dwarfmerc006` | 13 | 10 | +7 | 1 | auto |
+| Great East Road (`greateastroadc`) | 3 | (missing blueprint) | `nw_halfmerc006` | 13 | 10 | +7 | 1 | auto |
+| Great East Road (`greateastroadc`) | 3 | (missing blueprint) | `nw_humanmerc005` | 12 | 9 | +6 | 1 | auto |
+| Great East Road (`greateastroadc`) | 3 | (missing blueprint) | `nw_elfmerc005` | 11 | 8 | +5 | 1 | auto |
+| Great East Road (`greateastroadc`) | 3 | (missing blueprint) | `nw_halfmerc005` | 10 | 8 | +5 | 1 | auto |
+| Great East Road (`greateastroadd`) | 31 | Drider Militia | `drowfight021` | 650 | 50 | +19 | 4 | auto |
+| Great East Road (`greateastroadd`) | 31 | Black Numenorean Assassin | `numenoreanpatrol` | 331 | 46 | +15 | 4 | auto |
+| Great North Road (`gondorwesta`) | 24 | A Ridermark Guardian | `arohirrimsold005` | 55 | 31 | +7 | 3 | auto |
+| Great North Road (`gondorwesta`) | 24 | A Rohirrim Soldier | `arohirrimsold001` | 42 | 30 | +6 | 3 | auto |
+| Great North Road (`gondorwestb`) | 24 | A Ridermark Guardian | `arohirrimsold005` | 55 | 31 | +7 | 3 | auto |
+| Great North Road (`gondorwestb`) | 24 | A Rohirrim Soldier | `arohirrimsold001` | 42 | 30 | +6 | 3 | auto |
+| Great North Road (`greatnorthroad`) | 24 | A Ridermark Guardian | `arohirrimsold005` | 55 | 31 | +7 | 2 | auto |
+| Great North Road (`greatnorthroad`) | 24 | A Rohirrim Soldier | `arohirrimsold001` | 42 | 30 | +6 | 2 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_lich001` | 28 | 21 | +18 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_lich003` | 17 | 13 | +10 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_vampire003` | 16 | 12 | +9 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_humanmerc006` | 15 | 11 | +8 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_slaaddeth` | 15 | 11 | +8 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_elfmerc006` | 14 | 11 | +8 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_dwarfmerc006` | 13 | 10 | +7 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_halfmerc006` | 13 | 10 | +7 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_skeldevour` | 13 | 10 | +7 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_vampire002` | 13 | 10 | +7 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_vampire004` | 13 | 10 | +7 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_humanmerc005` | 12 | 9 | +6 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_mohrg` | 12 | 9 | +6 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_vampire001` | 12 | 9 | +6 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_bandit007` | 11 | 8 | +5 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_diretiger` | 11 | 8 | +5 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_elfmerc005` | 11 | 8 | +5 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_gnthill` | 10 | 8 | +5 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_gntmount` | 10 | 8 | +5 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_halfmerc005` | 10 | 8 | +5 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_mumfight` | 10 | 8 | +5 | 1 | auto |
+| Greenway (South) (`greenwaysouth`) | 3 | (missing blueprint) | `nw_slaadgray` | 10 | 8 | +5 | 1 | auto |
+| Helm's Deep (`helmsdeep001`) | 39 | Helm's Deep Elite Guard | `helmsdeepguar003` | 240 | 45 | +6 | 6 | auto |
+| House of Nazgûl (`nazgulguildhouse`) | 30 | Mashano, Messenger To The Witch King | `creature020` | 236 | 45 | +15 | 1 | auto |
+| Isengard (Outerrim) (`isengardouterrim`) | 35 | Dunlending Shock Trooper | `uthgard008` | 207 | 45 | +10 | 3 | auto |
+| Kallrist Crypt (`kallristcryptlow`) | 9 | (missing blueprint) | `nw_lich001` | 28 | 21 | +12 | 4 | auto |
+| Kallrist Crypt (`kallristcryptupp`) | 9 | (missing blueprint) | `nw_lich001` | 28 | 21 | +12 | 7 | auto |
+| Kallrist Crypt (`kallristcryptupp`) | 9 | Burning Skeleton | `kallristundead` | 26 | 19 | +10 | 7 | auto |
+| Kallrist, East shore (`kallristwestshor`) | 11 | A Minotaur Warlord | `minotaurwarlord` | 23 | 17 | +6 | 3 | auto |
+| Kallrist, Land bridge (`kallristdarkrim`) | 12 | A Minotaur Warlord | `minotaurwarlord` | 23 | 17 | +5 | 3 | auto |
+| Kallrist, North shore (`kallristnorthsho`) | 12 | A Minotaur Warlord | `minotaurwarlord` | 23 | 17 | +5 | 7 | auto |
+| Loogaz Lair (`loogazlair`) | 3 | Loogaz | `humanoid_gobl001` | 13 | 10 | +7 | 1 | auto |
+| Mering Stream (`meringstream`) | 24 | A Ridermark Guardian | `arohirrimsold005` | 55 | 31 | +7 | 2 | auto |
+| Mering Stream (`meringstream`) | 24 | A Rohirrim Soldier | `arohirrimsold001` | 42 | 30 | +6 | 2 | auto |
+| Minas Tirith: City (`minastirith`) | 33 | Epic Gondorian Guardsman | `gondorianguar002` | 211 | 45 | +12 | 3 | auto |
+| Minas Tirith: City (`minastirith`) | 33 | Gondorian Wizard | `gondorianwizard` | 200 | 45 | +12 | 4 | auto |
+| Minas Tirith: Gates (`minastirithgates`) | 33 | Epic Gondorian Guardsman | `gondorianguar002` | 211 | 45 | +12 | 2 | auto |
+| Minas Tirith: Gates (`minastirithgates`) | 33 | Gondorian Wizard | `gondorianwizard` | 200 | 45 | +12 | 1 | auto |
+| Mindalf (`nindalf`) | 21 | Krenshar | `krenshar` | 41 | 30 | +9 | 3 | auto |
+| Mirkwood: Central (`mirkwoodcentral`) | 4 | Lava Climber | `spidwra001` | 37 | 27 | +23 | 4 | auto |
+| Mirkwood: Central (`mirkwoodcentral`) | 4 | Spider-Queen | `spiderboss001` | 27 | 20 | +16 | 4 | auto |
+| Mirkwood: Central (`mirkwoodcentral`) | 4 | Killer Bees | `killerbees` | 26 | 19 | +15 | 1 | auto |
+| Mirkwood: Central (`mirkwoodcentral`) | 4 | Giant Spider | `spidgiant001` | 21 | 16 | +12 | 4 | auto |
+| Mirkwood: Central East (`mirkwoodcentrale`) | 22 | A Death Weeper Spider | `spidphase001` | 45 | 30 | +8 | 3 | auto |
+| Mirkwood: Central East (`mirkwoodcentrale`) | 22 | Black Spear Spider | `spidswrd001` | 45 | 30 | +8 | 3 | auto |
+| Mirkwood: Central South (`mirkwoodcentrals`) | 22 | A Death Weeper Spider | `spidphase001` | 45 | 30 | +8 | 5 | auto |
+| Mirkwood: Central South (`mirkwoodcentrals`) | 22 | Black Spear Spider | `spidswrd001` | 45 | 30 | +8 | 5 | auto |
+| Mirkwood: Dol Guldur (`dolguldur`) | 45 | Dol Guldur Gate Keeper | `dolguldurgatek_2` | 701 | 51 | +6 | 1 | auto |
+| Mirkwood: Dol Guldur (`dolguldur`) | 45 | Dol Guldur Gate Keeper | `dolguldurgatekee` | 696 | 51 | +6 | 1 | auto |
+| Mirkwood: East (`mirkwoodeast`) | 4 | Lava Climber | `spidwra001` | 37 | 27 | +23 | 4 | auto |
+| Mirkwood: East (`mirkwoodeast`) | 4 | Spider-Queen | `spiderboss001` | 27 | 20 | +16 | 4 | auto |
+| Mirkwood: East (`mirkwoodeast`) | 4 | Giant Spider | `spidgiant001` | 21 | 16 | +12 | 4 | auto |
+| Mirkwood: North (`mirkwoodnorth`) | 22 | A Death Weeper Spider | `spidphase001` | 45 | 30 | +8 | 3 | auto |
+| Mirkwood: North (`mirkwoodnorth`) | 22 | Black Spear Spider | `spidswrd001` | 45 | 30 | +8 | 3 | auto |
+| Mirkwood: West (`mirkwoodwest`) | 4 | Lava Climber | `spidwra001` | 37 | 27 | +23 | 5 | auto |
+| Mirkwood: West (`mirkwoodwest`) | 4 | Spider-Queen | `spiderboss001` | 27 | 20 | +16 | 5 | auto |
+| Mirkwood: West (`mirkwoodwest`) | 4 | Giant Spider | `spidgiant001` | 21 | 16 | +12 | 5 | auto |
+| Morannon - The Black Gate (`blackgatge`) | 39 | Gate Giant | `gategiant001_2` | 221 | 45 | +6 | 4 | auto |
+| Morannon - The Black Gate (`blackgatge`) | 39 | Gate Shaman - Mordor Black Gate | `creature001_2` | 212 | 45 | +6 | 2 | auto |
+| Moria Level 1 (Center) (`morialevel1cente`) | 8 | Trollog Devestator | `ogremageboss001` | 21 | 16 | +8 | 3 | auto |
+| Plane of the Render (`planeoftherender`) | 13 | Raitheen the Watcher | `raitheen` | 60 | 31 | +18 | 1 | auto |
+| Plane of the Render (`planeoftherender`) | 13 | Render the Mammoth Watcher | `grayrend001` | 40 | 30 | +17 | 1 | auto |
+| Plane of the Render (`planeoftherender`) | 13 | Grokul Head Master | `minchief001` | 24 | 18 | +5 | 1 | auto |
+| Ruins of Annuminas (`ruinsofannuminas`) | 12 | Azagoth | `azagoth` | 37 | 27 | +15 | 1 | auto |
+| Ruins of Annuminas (`ruinsofannuminas`) | 12 | (missing blueprint) | `x2_golem002` | 32 | 24 | +12 | 7 | auto |
+| Sharkey's Chamber (`sharkeyschamber`) | 1 | Smithey the Sneak | `halfmerc002` | 13 | 10 | +9 | 1 | auto |
+| Sharkey's Chamber (`sharkeyschamber`) | 1 | Groodok the Skinner | `bandit007` | 7 | 6 | +5 | 1 | auto |
+| Temple of Nazgul (`area010`) | 33 | Nazgul | `thundergut` | 255 | 45 | +12 | 1 | auto |
+| Temple of Nazgul (`area010`) | 33 | Great Black Dragon | `epicblackdragon` | 126 | 38 | +5 | 2 | auto |
+| The Abyss of Moria (`theabyssofmoria`) | 27 | Massive Bombardier Beetle | `btlbomb001` | 73 | 33 | +6 | 5 | auto |
+| The Abyss of Moria (`theabyssofmoria`) | 27 | Servator of the Abyss | `yuan_ti004` | 69 | 32 | +5 | 4 | auto |
+| The Abyss of Moria (`theabyssofmoria`) | 27 | Lava Life Walker | `fireelder001` | 65 | 32 | +5 | 4 | auto |
+| The Angmar Mountain Range (`theangmarmountai`) | 15 | Drider Militia | `drowfight021` | 650 | 50 | +35 | 2 | auto |
+| The Angmar Mountain Range (`theangmarmountai`) | 15 | Black Numenorean Assassin | `numenoreanpatrol` | 331 | 46 | +31 | 2 | auto |
+| The Angmar Mountain Range (`theangmarmountai`) | 15 | Black Numenorean Archer | `blacknumenoreana` | 80 | 33 | +18 | 2 | auto |
+| The Angmar Mountain Range (`theangmarmountai`) | 15 | Black Numenorean Shadow Master | `drowrogue021` | 52 | 31 | +16 | 2 | auto |
+| The Angmar Mountain Range (`theangmarmountai`) | 15 | Black Numenorean Mage | `drowmage002` | 50 | 30 | +15 | 2 | auto |
+| The Barrow Downs (`thebarrowdowns`) | 3 | Greater Servant of Sauron | `greatservanto001` | 13 | 10 | +7 | 9 | auto |
+| The Dimrill Stair (`thedimrillstair`) | 6 | Sarumon's Personal Guard | `urukai` | 267 | 45 | +39 | 1 | auto |
+| The Misty Mountains (`mistymountainsa`) | 5 | A Misty Mountains Giant | `mgiant` | 17 | 13 | +8 | 6 | auto |
+| The Misty Mountains (`mistymountainsb`) | 6 | A Misty Mountains Giant | `mgiant` | 17 | 13 | +7 | 4 | auto |
+| The Pelennor Fields (`thepelennorfield`) | 24 | A Ridermark Guardian | `arohirrimsold005` | 55 | 31 | +7 | 3 | auto |
+| The Pelennor Fields (`thepelennorfield`) | 24 | A Rohirrim Soldier | `arohirrimsold001` | 42 | 30 | +6 | 3 | auto |
+| The Ruins of Dale (`theruinsofdale`) | 1 | Gerrey Halliams | `gerrey` | 17 | 13 | +12 | 1 | auto |
+| The Secret Pass of Mordor (`thesecretpassofm`) | 3 | Mordor Orc Lieutenant Soldier | `urukai016` | 200 | 45 | +42 | 1 | auto |
+| The Secret Pass of Mordor (`thesecretpassofm`) | 3 | Mordor Orc Warrior Soldier | `mordororcwarrior` | 50 | 30 | +27 | 1 | auto |
+| The Secret Pass of Mordor (`thesecretpassofm`) | 3 | Mordor Orc Scout Soldier | `urukai_2` | 16 | 12 | +9 | 1 | auto |
+| Tomb of Garmir (`tombofgarmir`) | 3 | (missing blueprint) | `nw_lich003` | 17 | 13 | +10 | 1 | auto |
+| Tomb of Garmir (`tombofgarmir`) | 3 | (missing blueprint) | `nw_doomkghtboss` | 15 | 11 | +8 | 1 | auto |
+| Tomb of Garmir (`tombofgarmir`) | 3 | Greater Servant of Sauron | `greatservanto001` | 13 | 10 | +7 | 1 | auto |
+| Tomb of Garmir (`tombofgarmir`) | 3 | (missing blueprint) | `nw_skeldevour` | 13 | 10 | +7 | 1 | auto |
+| Tomb of Garmir (`tombofgarmir`) | 3 | (missing blueprint) | `nw_doomkght` | 10 | 8 | +5 | 1 | auto |
+| Tomb of Mendegilath (`tombofmendegilat`) | 3 | (missing blueprint) | `nw_lich003` | 17 | 13 | +10 | 5 | auto |
+| Tomb of Mendegilath (`tombofmendegilat`) | 3 | (missing blueprint) | `nw_doomkghtboss` | 15 | 11 | +8 | 5 | auto |
+| Tomb of Mendegilath (`tombofmendegilat`) | 3 | Greater Servant of Sauron | `greatservanto001` | 13 | 10 | +7 | 5 | auto |
+| Tomb of Mendegilath (`tombofmendegilat`) | 3 | (missing blueprint) | `nw_skeldevour` | 13 | 10 | +7 | 5 | auto |
+| Tomb of Mendegilath (`tombofmendegilat`) | 3 | (missing blueprint) | `nw_doomkght` | 10 | 8 | +5 | 5 | auto |
+| Tomb of Peran (`tombofperan`) | 3 | (missing blueprint) | `nw_lich003` | 17 | 13 | +10 | 4 | auto |
+| Tomb of Peran (`tombofperan`) | 3 | (missing blueprint) | `nw_doomkghtboss` | 15 | 11 | +8 | 4 | auto |
+| Tomb of Peran (`tombofperan`) | 3 | Greater Servant of Sauron | `greatservanto001` | 13 | 10 | +7 | 4 | auto |
+| Tomb of Peran (`tombofperan`) | 3 | (missing blueprint) | `nw_skeldevour` | 13 | 10 | +7 | 4 | auto |
+| Tomb of Peran (`tombofperan`) | 3 | (missing blueprint) | `nw_doomkght` | 10 | 8 | +5 | 4 | auto |
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | (missing blueprint) | `nw_lich001` | 28 | 21 | +18 | 1 | auto |
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | Rukor the Summoner | `rukorthesummoner` | 28 | 21 | +18 | 1 | auto |
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | (missing blueprint) | `nw_lich003` | 17 | 13 | +10 | 9 | auto |
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | (missing blueprint) | `nw_doomkghtboss` | 15 | 11 | +8 | 9 | auto |
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | Greater Servant of Sauron | `greatservanto001` | 13 | 10 | +7 | 9 | auto |
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | (missing blueprint) | `nw_skeldevour` | 13 | 10 | +7 | 9 | auto |
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | (missing blueprint) | `nw_doomkght` | 10 | 8 | +5 | 9 | auto |
+| Tower of Orthanc (`toweroforthanc`) | 33 | Dunlending Shock Trooper | `uthgard008` | 200 | 45 | +12 | 2 | auto |
+| Wold North (`thewold`) | 11 | Krenshar | `krenshar` | 41 | 30 | +19 | 5 | auto |
+| Wold North (`thewold`) | 11 | Malar Panther | `malarpanther` | 30 | 22 | +11 | 5 | auto |
+| Wold North (`thewold`) | 11 | Old Dire Bear | `beardireboss001` | 26 | 19 | +8 | 5 | auto |
+| Wold South (`woldsouth`) | 11 | Krenshar | `krenshar` | 41 | 30 | +19 | 6 | auto |
+| Wold South (`woldsouth`) | 11 | Malar Panther | `malarpanther` | 30 | 22 | +11 | 6 | auto |
+| Wold South (`woldsouth`) | 11 | Old Dire Bear | `beardireboss001` | 26 | 19 | +8 | 6 | auto |
+
+## Drops per area
+
+Areas with hostile creatures, by drops per clear (highest first).
+
+| area | lvl | slots | elite | boss | drops per clear | chest gear per fill |
+|---|---|---|---|---|---|---|
+| Tomb of Vinyalonde (`tombofvinyalonde`) | 3 | 208 | 47 | 0 | 18.19 | 50.70 |
+| Tomb of Mendegilath (`tombofmendegilat`) | 3 | 156 | 25 | 0 | 11.49 | 38.70 |
+| Greenway (South) (`greenwaysouth`) | 3 | 130 | 22 | 0 | 9.82 | 1.20 |
+| Tomb of Peran (`tombofperan`) | 3 | 94 | 20 | 0 | 7.96 | 24.00 |
+| Wold South (`woldsouth`) | 11 | 90 | 18 | 0 | 7.38 | 8.10 |
+| Morannon - The Black Gate (`blackgatge`) | 39 | 34 | 6 | 2 | 6.74 | 0.00 |
+| The Barrow Downs (`thebarrowdowns`) | 3 | 117 | 9 | 0 | 6.57 | 0.00 |
+| Weather Top's Hidden Court (`area028`) | 56 | 2 | 0 | 2 | 6.20 | 0.00 |
+| Wold North (`thewold`) | 11 | 75 | 15 | 0 | 6.15 | 13.80 |
+| Ettenmoors (`ettenmoors`) | 17 | 44 | 20 | 0 | 5.96 | 0.00 |
+| Kallrist Crypt (`kallristcryptupp`) | 9 | 66 | 14 | 0 | 5.58 | 0.60 |
+| Minas Tirith: Gates (`minastirithgates`) | 33 | 20 | 3 | 2 | 5.55 | 0.00 |
+| Minas Tirith: City (`minastirith`) | 33 | 25 | 7 | 1 | 5.53 | 0.00 |
+| Dwarrow Delf (west) (`dwarrowdelfeast`) | 6 | 107 | 5 | 0 | 5.33 | 31.50 |
+| Edoras (`edoras`) | 31 | 16 | 2 | 2 | 5.18 | 3.00 |
+| Kallrist Crypt (`kallristcryptlow`) | 9 | 53 | 4 | 1 | 5.02 | 18.90 |
+| Dol Guldur City (`dolguldurcity`) | 45 | 21 | 0 | 2 | 4.96 | 0.00 |
+| Mirkwood: West (`mirkwoodwest`) | 4 | 45 | 15 | 0 | 4.95 | 0.00 |
+| Orc Armory (`orcarmory`) | 45 | 15 | 0 | 2 | 4.72 | 1.20 |
+| Helm's Deep: Keep (`area008`) | 46 | 14 | 0 | 2 | 4.68 | 9.80 |
+| Isengard (Innerrim) (`isengardinnerrim`) | 45 | 11 | 0 | 2 | 4.56 | 0.00 |
+| The Halls of Truth (`halloftruth`) | 33 | 10 | 0 | 2 | 4.52 | 0.00 |
+| Esgaroth Crypts (`cryptsofthelosts`) | 5 | 53 | 11 | 0 | 4.43 | 33.60 |
+| Rivendell Upper Halls (`rivendellupperha`) | 41 | 6 | 0 | 2 | 4.36 | 0.00 |
+| Mirkwood: Central (`mirkwoodcentral`) | 4 | 37 | 13 | 0 | 4.21 | 0.00 |
+| Helm's Deep (`helmsdeep001`) | 39 | 22 | 6 | 1 | 4.20 | 0.00 |
+| Minas Tirith: Watchman Defender's Head Quarters (`watchmandefender`) | 33 | 2 | 0 | 2 | 4.20 | 0.00 |
+| Tower of Orthanc: Saruman's Chambers (`towerofothancsar`) | 0 | 2 | 0 | 2 | 4.20 | 0.00 |
+| Mirkwood: Central East (`mirkwoodcentrale`) | 22 | 16 | 6 | 1 | 3.96 | 0.00 |
+| Mirkwood: East (`mirkwoodeast`) | 4 | 36 | 12 | 0 | 3.96 | 0.00 |
+| The Abyss of Moria (`theabyssofmoria`) | 27 | 29 | 13 | 0 | 3.89 | 0.00 |
+| The Misty Mountains (`mistymountainsa`) | 5 | 63 | 6 | 0 | 3.78 | 6.30 |
+| Kallrist, North shore (`kallristnorthsho`) | 12 | 56 | 7 | 0 | 3.71 | 0.00 |
+| Goblin Gate: Mines (`goblingatemines`) | 4 | 64 | 5 | 0 | 3.61 | 28.20 |
+| Dimholt: The Forgotten King (`forgottenking`) | 30 | 12 | 0 | 1 | 3.54 | 0.00 |
+| Helm's Deep: Cave (`area013`) | 46 | 12 | 0 | 1 | 3.54 | 0.00 |
+| Mount Doom: Halls of Sauron  (`area016`) | 47 | 12 | 0 | 1 | 3.54 | 0.00 |
+| Tomb of Garmir (`tombofgarmir`) | 3 | 62 | 5 | 0 | 3.53 | 4.80 |
+| Great East Road (`greateastroadc`) | 3 | 51 | 7 | 0 | 3.51 | 0.00 |
+| Minas Tirith: Keep (`area005`) | 46 | 9 | 0 | 1 | 3.42 | 3.60 |
+| Númenor:  Noirinan (`falseheaven`) | 55 | 9 | 0 | 1 | 3.42 | 3.00 |
+| The Trollshaws (`thetrollshalls`) | 6 | 32 | 0 | 1 | 3.34 | 0.00 |
+| Great East Road (`greateastroadb`) | 5 | 50 | 6 | 0 | 3.26 | 0.00 |
+| Lothlorien: Main (`lothlorien`) | 42 | 30 | 0 | 1 | 3.26 | 0.00 |
+| Rhosgobel:  Tower (`rhosgobeltower`) | 50 | 5 | 0 | 1 | 3.26 | 0.00 |
+| Isengard (Outerrim) (`isengardouterrim`) | 35 | 14 | 3 | 1 | 3.25 | 0.00 |
+| Gwathdor:  Throne of the Lord (`gwaththrone`) | 45 | 4 | 0 | 1 | 3.22 | 0.00 |
+| Mount Gundabad (`mountgundabadlev`) | 30 | 29 | 0 | 1 | 3.22 | 33.60 |
+| The Witch King's Throne (`thewitchkingsthr`) | 32 | 4 | 0 | 1 | 3.22 | 0.00 |
+| The Angmar Mountain Range (`theangmarmountai`) | 15 | 27 | 10 | 0 | 3.18 | 0.00 |
+| Gollum's Chambers (`area007`) | 55 | 1 | 0 | 1 | 3.10 | 0.00 |
+| Hobbiton (`shirehobbiton001`) | 3 | 1 | 0 | 1 | 3.10 | 3.60 |
+| Mirkwood: Central South (`mirkwoodcentrals`) | 22 | 25 | 10 | 0 | 3.10 | 0.00 |
+| Mirkwoods - Halls of Greenleafs (`area023`) | 55 | 1 | 0 | 1 | 3.10 | 0.00 |
+| The Ruins of Dale: Cavern (`darkcavern`) | 55 | 1 | 0 | 1 | 3.10 | 0.00 |
+| Tower of the High Wizard: The High Wizard's Chamber (`towerofthehighwi`) | 55 | 1 | 0 | 1 | 3.10 | 0.00 |
+| Mirkwood: Dol Guldur (`dolguldur`) | 45 | 15 | 2 | 1 | 3.08 | 8.40 |
+| Bree Crypt (`breecrypt`) | 3 | 73 | 0 | 0 | 2.92 | 5.40 |
+| Ered Duath Road: A (`eredduathroada`) | 38 | 35 | 7 | 0 | 2.87 | 4.80 |
+| Goblin Town: Warrens (`goblintownwarren`) | 5 | 44 | 5 | 0 | 2.81 | 4.80 |
+| Great East Road (`greateastroadd`) | 31 | 28 | 8 | 0 | 2.80 | 0.00 |
+| Carn Dum (`carndum`) | 26 | 7 | 2 | 1 | 2.76 | 0.00 |
+| Tower of Orthanc (`toweroforthanc`) | 33 | 6 | 2 | 1 | 2.72 | 0.00 |
+| Goblin Town: Main Hall (`goblintownmainha`) | 4 | 35 | 6 | 0 | 2.66 | 32.10 |
+| Gap of Rohan (`gapofrohaneast`) | 17 | 24 | 8 | 0 | 2.64 | 0.00 |
+| The Valley of Rivendell (`thevalleyofriven`) | 45 | 14 | 0 | 1 | 2.62 | 0.00 |
+| Ruins of Annuminas (`ruinsofannuminas`) | 12 | 23 | 8 | 0 | 2.60 | 12.00 |
+| Lonely Mountain: Main Hall (`lonelymountainma`) | 31 | 13 | 0 | 1 | 2.58 | 0.00 |
+| Shelob's Lair (`shelobslair`) | 42 | 13 | 0 | 1 | 2.58 | 7.20 |
+| Carn Dum: City (`carndumcity`) | 28 | 12 | 0 | 1 | 2.54 | 0.00 |
+| Caves of Dol Guldur (`cavesofdolguldur`) | 45 | 12 | 0 | 1 | 2.54 | 8.40 |
+| Carn Dum: Temple (`carndumtemple`) | 30 | 10 | 0 | 1 | 2.46 | 0.00 |
+| Beorn (`beorn`) | 31 | 9 | 0 | 1 | 2.42 | 0.00 |
+| Rivendell (`rivendell`) | 45 | 9 | 0 | 1 | 2.42 | 0.00 |
+| Carn Dum: Throne (`carndumthrone`) | 32 | 8 | 0 | 1 | 2.38 | 0.00 |
+| Kerufall's Lair (`kerufallslair`) | 35 | 8 | 0 | 1 | 2.38 | 0.00 |
+| Lothlorien: Flets (`lothlorienflets`) | 35 | 8 | 0 | 1 | 2.38 | 0.00 |
+| Theoden's Hall (`theodenshall`) | 31 | 8 | 0 | 1 | 2.38 | 0.00 |
+| Isengard (Magic Room) (`isengardmagicroo`) | 37 | 7 | 0 | 1 | 2.34 | 0.00 |
+| Osgiliath: Citidal of the Stars (`citidelofstars`) | 44 | 7 | 0 | 1 | 2.34 | 0.00 |
+| Temple of Marr (`thehallsoftruth`) | 31 | 7 | 0 | 1 | 2.34 | 0.00 |
+| Angmar's Lair (`area009`) | 49 | 6 | 0 | 1 | 2.30 | 0.00 |
+| Emyn Arnen: Peak (`emynarnen`) | 14 | 6 | 0 | 1 | 2.30 | 0.00 |
+| The Temple of Morannon (`thetempleofmoran`) | 6 | 4 | 0 | 1 | 2.22 | 0.00 |
+| Loogaz Lair (`loogazlair`) | 3 | 50 | 1 | 0 | 2.21 | 20.40 |
+| Dol Guldur:  Tower Of Black Magic Depths (`dolguldurcast001`) | 49 | 3 | 0 | 1 | 2.18 | 0.00 |
+| Mirkwood: Thranduil's Hall (`thranduilshall`) | 40 | 3 | 0 | 1 | 2.18 | 7.50 |
+| Tower of the High Wizard: The Library (`towerofthehig001`) | 38 | 3 | 0 | 1 | 2.18 | 0.00 |
+| Plane of the Render (`planeoftherender`) | 13 | 38 | 3 | 0 | 2.15 | 0.00 |
+| The Misty Mountains (`mistymountainsb`) | 6 | 32 | 4 | 0 | 2.12 | 1.20 |
+| Balin's Tomb (`balinstomb`) | 38 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Barad-Dûr: Keep (`baraddurkeep`) | 0 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Bywater (`bywater`) | 0 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Carn Dum: Numerok's Den (`area078`) | 38 | 1 | 0 | 1 | 2.10 | 1.20 |
+| Dol Guldur:  Tower Of Black Magic  Nazgul Quaters (`area031`) | 54 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Great North Road (`gondorwesta`) | 24 | 21 | 6 | 0 | 2.10 | 0.00 |
+| Great North Road (`gondorwestb`) | 24 | 21 | 6 | 0 | 2.10 | 0.00 |
+| Gwathdor:  Tomb (`gwathtomb`) | 46 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Ice Queen: Nest (`icequeennest`) | 38 | 1 | 0 | 1 | 2.10 | 27.30 |
+| Minas Tirith: Temple (`minastirithtemp`) | 48 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Mirkwood: Crypt Chamber (`area003`) | 49 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Moria: The Balrog of Moria (`thebalrogofmoria`) | 49 | 1 | 0 | 1 | 2.10 | 0.00 |
+| The Pelennor Fields (`thepelennorfield`) | 24 | 21 | 6 | 0 | 2.10 | 0.00 |
+| Valinor: Realm of the spirits (`area022`) | 50 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Goblin Gate: Greater (`goblingategreate`) | 4 | 37 | 2 | 0 | 1.90 | 0.00 |
+| Mirkwood: North (`mirkwoodnorth`) | 22 | 15 | 6 | 0 | 1.86 | 0.00 |
+| Dwarrow Delf (east) (`dwarrowdelfea001`) | 8 | 25 | 4 | 0 | 1.84 | 0.00 |
+| Nîn-in-Eilph (`cardolan`) | 6 | 45 | 0 | 0 | 1.80 | 0.00 |
+| Kallrist, East shore (`kallristwestshor`) | 11 | 27 | 3 | 0 | 1.71 | 0.00 |
+| The Secret Pass of Mordor (`thesecretpassofm`) | 3 | 27 | 3 | 0 | 1.71 | 0.00 |
+| Goblin Gate: Lesser (`goblingatelesser`) | 3 | 35 | 1 | 0 | 1.61 | 31.80 |
+| The North Downs (`thenorthdowns001`) | 3 | 40 | 0 | 0 | 1.60 | 0.00 |
+| Kallrist, Land bridge (`kallristdarkrim`) | 12 | 24 | 3 | 0 | 1.59 | 0.00 |
+| Moria Level 1 (Center) (`morialevel1cente`) | 8 | 24 | 3 | 0 | 1.59 | 16.80 |
+| Midgewater Swamp (`midgewaterswamp`) | 2 | 37 | 0 | 0 | 1.48 | 7.20 |
+| Chamber of Records Wlkwy (`chamberofrecords`) | 6 | 36 | 0 | 0 | 1.44 | 0.00 |
+| Enchanted Caverns (`enchantedcave001`) | 10 | 36 | 0 | 0 | 1.44 | 0.00 |
+| Great North Road (`greatnorthroad`) | 24 | 14 | 4 | 0 | 1.40 | 0.00 |
+| Mering Stream (`meringstream`) | 24 | 14 | 4 | 0 | 1.40 | 0.00 |
+| Carrok: Greater (`carrokgreater`) | 10 | 33 | 0 | 0 | 1.32 | 33.60 |
+| Bree Caverns (`breecaverns`) | 3 | 32 | 0 | 0 | 1.28 | 36.60 |
+| Gwathdor:  West Deeps (`gwathwest`) | 45 | 31 | 0 | 0 | 1.24 | 4.20 |
+| Angmar (`angmar`) | 11 | 13 | 3 | 0 | 1.15 | 0.00 |
+| Angmar Dungeon (`angmardungeon`) | 48 | 28 | 0 | 0 | 1.12 | 16.80 |
+| Mindalf (`nindalf`) | 21 | 12 | 3 | 0 | 1.11 | 0.00 |
+| Sharkey's Chamber (`sharkeyschamber`) | 1 | 17 | 2 | 0 | 1.10 | 20.10 |
+| Dead Marshes (`deadmarshes`) | 42 | 27 | 0 | 0 | 1.08 | 0.00 |
+| Carrok (`carrok`) | 12 | 26 | 0 | 0 | 1.04 | 0.00 |
+| Great East Road (`greateastroada`) | 3 | 26 | 0 | 0 | 1.04 | 0.00 |
+| Fornost (West) (`area004`) | 4 | 25 | 0 | 0 | 1.00 | 0.00 |
+| Celeduin Banks (`celeduinbanks`) | 4 | 24 | 0 | 0 | 0.96 | 0.00 |
+| Chetwood (`chetwood001`) | 3 | 24 | 0 | 0 | 0.96 | 0.00 |
+| Dimholt: The Gate of the Dead (`area018`) | 31 | 24 | 0 | 0 | 0.96 | 0.00 |
+| Mount Doom: Lower Caverns (`mountdoom002`) | 39 | 24 | 0 | 0 | 0.96 | 0.00 |
+| Númenor:  Arnenelos (`heavensdisdain`) | 55 | 23 | 0 | 0 | 0.92 | 0.00 |
+| Temple of Nazgul (`area010`) | 33 | 7 | 3 | 0 | 0.91 | 0.00 |
+| Carrok: Lesser (`carroklesser`) | 12 | 21 | 0 | 0 | 0.84 | 16.80 |
+| Emyn Muil (`emynmuil`) | 32 | 21 | 0 | 0 | 0.84 | 0.00 |
+| Dunland (`dunland`) | 6 | 15 | 1 | 0 | 0.81 | 0.00 |
+| Bree Cave (`breecave`) | 1 | 20 | 0 | 0 | 0.80 | 31.20 |
+| Bree Crypt Lower Level (`breecryptlowerle`) | 3 | 20 | 0 | 0 | 0.80 | 0.00 |
+| Dunland War Party (`dunlandwarparty`) | 4 | 20 | 0 | 0 | 0.80 | 16.20 |
+| Ice Queen: Lair (`icequeenlair`) | 16 | 20 | 0 | 0 | 0.80 | 0.00 |
+| Mount Gundabad Level 2 (`mountgundabad001`) | 30 | 20 | 0 | 0 | 0.80 | 12.60 |
+| Durin's Bridge (`durinsbridge`) | 6 | 18 | 0 | 0 | 0.72 | 0.00 |
+| Old Forest Road (`oldforestroad`) | 7 | 18 | 0 | 0 | 0.72 | 0.00 |
+| Greenway (SouthEast) (`greenwaysoutheas`) | 1 | 17 | 0 | 0 | 0.68 | 7.80 |
+| Bree (`bree`) | 3 | 16 | 0 | 0 | 0.64 | 11.70 |
+| Minas Tirith: Crypts (`gondorcrypts`) | 45 | 16 | 0 | 0 | 0.64 | 0.00 |
+| The Dimrill Stair (`thedimrillstair`) | 6 | 10 | 1 | 0 | 0.61 | 0.00 |
+| Kallrist, Inner (`kallristinner`) | 5 | 15 | 0 | 0 | 0.60 | 0.00 |
+| The Ruins of Dale (`theruinsofdale`) | 1 | 9 | 1 | 0 | 0.57 | 1.80 |
+| Lothlorien: North (`lothloriennorth`) | 35 | 13 | 0 | 0 | 0.52 | 0.00 |
+| Path To Helm's Deep (`pathtohelmsdeep`) | 45 | 13 | 0 | 0 | 0.52 | 1.20 |
+| House of Nazgûl (`nazgulguildhouse`) | 30 | 7 | 1 | 0 | 0.49 | 1.20 |
+| Cirith Ungol (`cirithungol`) | 44 | 12 | 0 | 0 | 0.48 | 4.50 |
+| Kallrist, West shore (`kallristeastshor`) | 5 | 12 | 0 | 0 | 0.48 | 0.00 |
+| Old North Road (`greenwaynorth`) | 3 | 11 | 0 | 0 | 0.44 | 3.00 |
+| The Stinkin Sewer (`thestinkinsewer`) | 2 | 11 | 0 | 0 | 0.44 | 23.70 |
+| Enchanted Caverns (`enchantedcave002`) | 11 | 5 | 1 | 0 | 0.41 | 2.80 |
+| Mount Doom: Upper Level (`mountdoom`) | 30 | 10 | 0 | 0 | 0.40 | 12.60 |
+| Northern Forests of Ithilien (NW) (`northernforestso`) | 45 | 10 | 0 | 0 | 0.40 | 0.00 |
+| Northern Harad (`harad`) | 43 | 10 | 0 | 0 | 0.40 | 0.00 |
+| Númenor:  Bay of Andúnië (`heavensscorn`) | 55 | 10 | 0 | 0 | 0.40 | 0.00 |
+| Road to Barad-Dûr (`roadtobaraddur`) | 3 | 10 | 0 | 0 | 0.40 | 0.00 |
+| Sharkey's Mill (`sharkeysmill`) | 1 | 10 | 0 | 0 | 0.40 | 0.00 |
+| Bill Ferny's House (`billfernyshouse`) | 2 | 9 | 0 | 0 | 0.36 | 1.20 |
+| Gwathdor:  East Deeps (`gwathdordeeps`) | 45 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Kallrist, Outer banks (`kallristouterban`) | 13 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Mirkwood: Crypt Lower (`area002`) | 48 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Northern Forests of Ithilien (N) (`northernfores001`) | 45 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Northern Forests of Ithilien (S) (`northernfores004`) | 44 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Northern Forests of Ithilien (SW) (`northernfores005`) | 44 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Old Forest (`alterwald`) | 16 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Old Forest (`oldforest001`) | 29 | 9 | 0 | 0 | 0.36 | 0.00 |
+| The Cirith Ungol Pass (`thecirithungolpa`) | 42 | 9 | 0 | 0 | 0.36 | 4.50 |
+| The Gates of Moria (`thegatesofmoria`) | 6 | 9 | 0 | 0 | 0.36 | 0.00 |
+| Gwathdor:  Labyrinth  (`area025`) | 45 | 8 | 0 | 0 | 0.32 | 0.00 |
+| Gwathdor:  Outskirts (`gwathdoroutskirt`) | 42 | 7 | 0 | 0 | 0.28 | 0.00 |
+| Mirkwood: Forest of Greenleaves (`woodoflegolas`) | 36 | 7 | 0 | 0 | 0.28 | 0.00 |
+| Gwathdor:  Cave (`gwathdorcave`) | 31 | 6 | 0 | 0 | 0.24 | 0.00 |
+| Dimholt: Dunharrow (`dunharrow`) | 32 | 5 | 0 | 0 | 0.20 | 0.00 |
+| Henneth Annun (`hennethannun002`) | 45 | 5 | 0 | 0 | 0.20 | 0.00 |
+| Old Forest:  Withywindle Path (`area012`) | 1 | 5 | 0 | 0 | 0.20 | 0.00 |
+| Vale of Henneth Annun (`hennethannun`) | 44 | 5 | 0 | 0 | 0.20 | 0.00 |
+| Dol Guldur:  Tower Of Black Magic Main Hall (`dolguldurcastle`) | 48 | 4 | 0 | 0 | 0.16 | 0.00 |
+| Mount Doom: Grand Hall (`area014`) | 54 | 4 | 0 | 0 | 0.16 | 16.80 |
+| Old Road (`oldbackroad`) | 16 | 4 | 0 | 0 | 0.16 | 0.00 |
+| Tower of the High Wizard: Ground Floor (`area011`) | 39 | 4 | 0 | 0 | 0.16 | 0.00 |
+| Dol Guldur (`dolguldur001`) | 32 | 3 | 0 | 0 | 0.12 | 0.00 |
+| Emyn Arnen: Top (`gondoremynarnen`) | 15 | 3 | 0 | 0 | 0.12 | 0.00 |
+| Fangorn Forest (`fangornforest`) | 30 | 3 | 0 | 0 | 0.12 | 0.00 |
+| Carn Dum: Smithy (`carndumsmithy`) | 26 | 2 | 0 | 0 | 0.08 | 0.00 |
+| Bag End (`bagend001`) | 47 | 1 | 0 | 0 | 0.04 | 5.40 |
+| Bilbo's House (`shirebilbohouse`) | 47 | 1 | 0 | 0 | 0.04 | 0.00 |
+| Fangorn: Outskirts (`fangornoutskirts`) | 30 | 1 | 0 | 0 | 0.04 | 0.00 |
+

@@ -730,6 +730,66 @@ int LootD_AreaLevel(string sArea)
     return 0;
 }
 
+// Creature drops (loot/sources.json "creatures"), read by loot_ondeath.nss.
+const int LOOTD_CLASS_NORMAL = 0;
+const int LOOTD_CLASS_ELITE = 1;
+const int LOOTD_CLASS_BOSS = 2;
+const int LOOTD_ELITE_MARGIN = 5;
+const int LOOTD_BOSS_EXTRA_CR = 1000;
+const int LOOTD_BOSS_NAMED = 100;
+const int LOOTD_LIST_NONE = 0;
+const int LOOTD_LIST_ELITE = 1;
+const int LOOTD_LIST_NOT_ELITE = 2;
+const int LOOTD_LIST_NEVER = 3;
+
+int LootD_CreatureChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 40;
+        case 1: return 250;
+        case 2: return 1000;
+    }
+    return 0;
+}
+
+string LootD_CreatureProfile(int nI)
+{
+    switch (nI)
+    {
+        case 0: return "creature";
+        case 1: return "creature";
+        case 2: return "boss";
+    }
+    return "";
+}
+
+// A creature resref's hand-listing: elite_include / elite_exclude / exclude.
+int LootD_CreatureListed(string sResRef)
+{
+    return LOOTD_LIST_NONE;
+}
+
+// Boss resref (canonical or alias) -> pinned loot level (levels.json boss_overrides; 0 = none).
+int LootD_BossLevel(string sResRef)
+{
+    return 0;
+}
+
+// TRUE for a faction id (NWNX_Creature_GetFaction) whose reputation toward PCs is
+// <= 10 in repute.fac - the same "hostile" the area loot levels use.
+int LootD_IsHostileFaction(int nI)
+{
+    switch (nI)
+    {
+        case 1: return TRUE;
+        case 5: return TRUE;
+        case 6: return TRUE;
+        case 7: return TRUE;
+    }
+    return FALSE;
+}
+
 // Consumables pool (loot/consumables.json), packed: entry i is CONS_ROW characters
 // at (i % 32) * CONS_ROW of chunk i / 32 - min level (2) max level (2) weight (4)
 // stack lo (2) stack hi (2) resref (16, '|'-padded).  A switch with one case per

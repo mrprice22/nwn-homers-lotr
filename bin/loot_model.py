@@ -239,36 +239,67 @@ def _median(xs):
     return xs[m] if n % 2 else (xs[m - 1] + xs[m]) / 2.0
 
 
+_GIT_CACHE = None
+
+
+def load_gits():
+    """[(area resref, parsed .git.json)] for every area, read once per process."""
+    global _GIT_CACHE
+    if _GIT_CACHE is None:
+        _GIT_CACHE = []
+        for p in sorted(UNPACKED.glob("*.git.json")):
+            with p.open(encoding="utf-8") as f:
+                _GIT_CACHE.append((p.name[:-len(".git.json")], json.load(f)))
+    return _GIT_CACHE
+
+
+def creature_slots(also=frozenset()):
+    """Every hostile creature slot in the module, as dicts {area, resref, cr, kind}.
+
+    kind "placed" = a placed creature instance (its instance ChallengeRating and
+    FactionID); kind "encounter" = an entry in a placed encounter's creature list
+    (its CR and the encounter's Faction).  Hostile = hostile_factions(); a resref
+    in ``also`` is included whatever its faction (registered bosses drop even
+    when placed as Commoners who turn hostile in conversation).  This is the one
+    definition both the area loot levels and the creature-drop report read."""
+    hostile = hostile_factions()
+    out = []
+    for area, d in load_gits():
+        for c in gff(d, "Creature List", []) or []:
+            rr = gff(c, "TemplateResRef", "") or ""
+            if gff(c, "FactionID", -1) in hostile or rr in also:
+                out.append({"area": area, "resref": rr,
+                            "cr": float(gff(c, "ChallengeRating", 0) or 0), "kind": "placed"})
+        for e in gff(d, "Encounter List", []) or []:
+            hos = gff(e, "Faction", 1) in hostile
+            for c in gff(e, "CreatureList", []) or []:
+                rr = gff(c, "ResRef", "") or ""
+                if hos or rr in also:
+                    out.append({"area": area, "resref": rr,
+                                "cr": float(gff(c, "CR", 0) or 0), "kind": "encounter"})
+    return out
+
+
 def area_scan(scripts):
     """{area resref: {"median_cr", "hostiles", "chests"}} for every area.
 
-    CRs: placed creature instances (instance ChallengeRating + FactionID) and
-    the creature lists of placed encounters (CR + the encounter's Faction),
-    hostile factions only.  ``chests`` counts placeables with any of
-    ``scripts`` (loot/sources.json "scripts") on a TREASURE_EVENTS field."""
-    hostile = hostile_factions()
+    CRs: creature_slots() (placed hostile instances + placed hostile encounter
+    lists).  ``chests`` counts placeables with any of ``scripts``
+    (loot/sources.json "scripts") on a TREASURE_EVENTS field."""
     scripts = {s.lower() for s in scripts}
+    crs = {}
+    for sl in creature_slots():
+        crs.setdefault(sl["area"], []).append(sl["cr"])
     out = {}
-    for p in sorted(UNPACKED.glob("*.git.json")):
-        area = p.name[:-len(".git.json")]
-        with p.open(encoding="utf-8") as f:
-            d = json.load(f)
-        crs = []
-        for c in gff(d, "Creature List", []) or []:
-            if gff(c, "FactionID", -1) in hostile:
-                crs.append(float(gff(c, "ChallengeRating", 0) or 0))
-        for e in gff(d, "Encounter List", []) or []:
-            if gff(e, "Faction", 1) not in hostile:
-                continue
-            for c in gff(e, "CreatureList", []) or []:
-                crs.append(float(gff(c, "CR", 0) or 0))
+    for area, d in load_gits():
         chests = 0
         for pl in gff(d, "Placeable List", []) or []:
             if any(str(gff(pl, ev, "") or "").lower() in scripts for ev in TREASURE_EVENTS):
                 chests += 1
-        med = _median(crs)
+        a_crs = crs.get(area, [])
+        med = _median(a_crs)
         out[area] = {"median_cr": None if med is None else round(med, 2),
-                     "hostiles": len(crs), "chests": chests}
+                     "hostiles": len(a_crs), "chests": chests}
     return out
 
 
@@ -435,14 +466,9 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None):
     # Named pool: a Legendary roll may award a curated existing item instead
     # (only one of a base the profile allows, when it has a filter).
     if rng.randrange(1000) < tier.get("named_chance", 0):
-        pool = [n for n in data["named"]["items"]
-                if n["min_level"] <= level <= n["max_level"]
-                and (not allowed or named_base(n["resref"]) in allowed)]
-        n = weighted(rng, pool, lambda x: x.get("weight", 1))
+        n = give_named(data, level, rar, allowed, rng)
         if n:
-            return {"named": n["resref"], "rarity": rar, "level": level,
-                    "affixes": [], "value": None, "unidentified": False,
-                    "downside": False}
+            return n
 
     cats = [c for c in CATEGORIES if prof["categories"].get(c, 0) > 0]
     cat = weighted(rng, cats, lambda c: prof["categories"][c])
@@ -521,6 +547,39 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None):
             "value": value, "budget": budget, "downside": has_down,
             "unidentified": unid,
             "name": item_name(base["name"], [affixes[i] for i, _ in chosen])}
+
+
+def give_named(data, level, rarity, allowed, rng):
+    """A named-pool award inside its level window, or None.  Mirrors
+    Loot_GiveNamed(): the Legendary named branch of roll() and a boss's
+    separate named roll (Phase 4) both come through here."""
+    pool = [n for n in data["named"]["items"]
+            if n["min_level"] <= level <= n["max_level"]
+            and (not allowed or named_base(n["resref"]) in allowed)]
+    n = weighted(rng, pool, lambda x: x.get("weight", 1))
+    if not n:
+        return None
+    return {"named": n["resref"], "rarity": rarity, "level": level,
+            "affixes": [], "value": None, "unidentified": False,
+            "downside": False}
+
+
+def rarity_dist(data, floor):
+    """Exact probability of each rarity index for a roll at ``floor``
+    (weights, then the floor, then the upgrade chances) - pick_rarity()'s law."""
+    tiers = data["rarity"]["tiers"]
+    total = float(sum(t["weight"] for t in tiers))
+    out = [0.0] * len(tiers)
+    for i, t in enumerate(tiers):
+        p = t["weight"] / total
+        idx = max(i, floor)
+        u2 = tiers[idx].get("upgrade_two", 0) / 1000.0
+        u1 = tiers[idx].get("upgrade_one", 0) / 1000.0
+        top = len(tiers) - 1
+        out[min(idx + 2, top)] += p * u2
+        out[min(idx + 1, top)] += p * u1
+        out[idx] += p * (1.0 - u1 - u2)
+    return out
 
 
 def named_base(resref):
@@ -611,6 +670,136 @@ def chest_contents(data, level, profile, rng=None, model=None):
         if c:
             out["consumables"].append(c)
     return out
+
+
+# --------------------------------------------------------------------------
+# Creature drops (Phase 4) -- mirrors loot_ondeath.nss
+# --------------------------------------------------------------------------
+
+CREATURE_CLASSES = ("normal", "elite", "boss")
+
+
+def creatures_cfg(data):
+    return data["sources"].get("creatures", {})
+
+
+def boss_resrefs():
+    """{resref: canonical} for every registered boss and alias (brd_db.nss)."""
+    import boss_index
+    bosses, aliases = boss_index.boss_registry(UNPACKED)
+    out = {b["resref"]: b["resref"] for b in bosses}
+    out.update(aliases)
+    return out
+
+
+def creature_class(data, resref, cr, area_level, is_boss):
+    """"normal" / "elite" / "boss", or None when the creature never drops.
+    Mirrors the class step of loot_ondeath.nss (which also requires a hostile
+    faction for normal and elite - creature_slots() already filters that).  area_level 0/None = the area
+    has no loot level, so only elite_include can make the creature elite."""
+    c = creatures_cfg(data)
+    if resref in c.get("exclude", {}):
+        return None
+    if is_boss:
+        return "boss"
+    if resref in c.get("elite_include", {}):
+        return "elite"
+    if resref in c.get("elite_exclude", {}):
+        return "normal"
+    if area_level and level_for_cr(data["levels"], cr) >= area_level + int(c.get("elite_margin", 5)):
+        return "elite"
+    return "normal"
+
+
+def creature_level(data, resref, cr, is_boss, bosses=None):
+    """Loot level a creature's drop rolls at: a boss's levels.json
+    boss_overrides entry (by canonical resref), else its own CR level."""
+    if is_boss:
+        bosses = bosses if bosses is not None else boss_resrefs()
+        ov = data["levels"].get("boss_overrides", {}).get(bosses.get(resref, resref))
+        if ov:
+            return int(ov)
+    return level_for_cr(data["levels"], cr)
+
+
+def creature_rolls(data, cls, cr):
+    """Gear rolls a drop makes when it happens: the class profile's rolls, +1
+    for a boss at CR >= extra_roll_cr."""
+    cfg = creatures_cfg(data)["classes"][cls]
+    n = int(prof_get(data["sources"]["profiles"][cfg["profile"]], "rolls"))
+    if cls == "boss" and cfg.get("extra_roll_cr") and cr >= cfg["extra_roll_cr"]:
+        n += 1
+    return n
+
+
+def creature_drop(data, cls, cr, level, rng=None, model=None):
+    """What one kill of a ``cls`` creature leaves on the corpse (a list of
+    roll() dicts, empty when the drop chance misses).  Mirrors loot_ondeath."""
+    rng = rng or random.Random()
+    cfg = creatures_cfg(data)["classes"][cls]
+    if rng.randrange(1000) >= int(cfg["chance"]):
+        return []
+    prof = data["sources"]["profiles"][cfg["profile"]]
+    floor = int(prof_get(prof, "rarity_floor"))
+    out = [roll(data, level, floor, cfg["profile"], rng, model)
+           for _ in range(creature_rolls(data, cls, cr))]
+    if rng.randrange(1000) < int(cfg.get("named_chance", 0)):
+        n = give_named(data, level, len(data["rarity"]["tiers"]) - 1, prof.get("bases"), rng)
+        if n:
+            out.append(n)
+    return out
+
+
+def validate_creatures(data):
+    """Phase 4 rules for sources.json "creatures" and levels.json boss_overrides."""
+    errs = []
+    c = creatures_cfg(data)
+    profiles = data["sources"]["profiles"]
+    if not c:
+        return ["sources.json: the \"creatures\" block (Phase 4 creature drops) is missing"]
+    m = c.get("elite_margin")
+    if not isinstance(m, int) or not 1 <= m <= MAX_LEVEL:
+        errs.append("sources.json creatures: elite_margin must be an int 1..%d" % MAX_LEVEL)
+    classes = c.get("classes", {})
+    if set(classes) != set(CREATURE_CLASSES):
+        errs.append("sources.json creatures: classes must be exactly %s" % ", ".join(CREATURE_CLASSES))
+    for name, cfg in classes.items():
+        tag = "sources.json creatures class %s" % name
+        if cfg.get("profile") not in profiles:
+            errs.append("%s: unknown profile %r" % (tag, cfg.get("profile")))
+        for k in ("chance", "named_chance"):
+            v = cfg.get(k, 0)
+            if not isinstance(v, int) or not 0 <= v <= 1000:
+                errs.append("%s: %s must be an int 0..1000 (per mille)" % (tag, k))
+        v = cfg.get("extra_roll_cr", 0)
+        if not isinstance(v, int) or v < 0:
+            errs.append("%s: extra_roll_cr must be a non-negative int" % tag)
+        if name != "boss" and (cfg.get("named_chance") or cfg.get("extra_roll_cr")):
+            errs.append("%s: named_chance and extra_roll_cr are boss-only" % tag)
+        extra = set(cfg) - {"chance", "profile", "named_chance", "extra_roll_cr"}
+        if extra:
+            errs.append("%s: unknown key(s) %s" % (tag, ", ".join(sorted(extra))))
+    seen = {}
+    for key in ("elite_include", "elite_exclude", "exclude"):
+        for rr, why in c.get(key, {}).items():
+            tag = "sources.json creatures %s %s" % (key, rr)
+            if not (UNPACKED / (rr + ".utc.json")).exists():
+                errs.append("%s: no unpacked/%s.utc.json" % (tag, rr))
+            if not isinstance(why, str) or not why.strip():
+                errs.append("%s: give a reason" % tag)
+            if '"' in rr or "\\" in rr or len(rr) > 16:
+                errs.append("%s: not a resref" % tag)
+            if rr in seen:
+                errs.append("%s: also listed in %s" % (tag, seen[rr]))
+            seen[rr] = key
+    bosses = boss_resrefs()
+    for rr, lvl in data["levels"].get("boss_overrides", {}).items():
+        tag = "levels.json boss_overrides %s" % rr
+        if rr not in bosses:
+            errs.append("%s: not a registered boss (brd_db.nss)" % tag)
+        if not isinstance(lvl, int) or not 1 <= lvl <= MAX_LEVEL:
+            errs.append("%s: level must be an int 1..%d" % (tag, MAX_LEVEL))
+    return errs
 
 
 def item_facts(data, resref):
@@ -856,6 +1045,7 @@ def validate(data, item_index=None):
     if "lab" not in data["sources"]["profiles"]:
         errs.append("sources.json: the 'lab' profile (Loot Lab) is required")
     errs.extend(validate_containers(data))
+    errs.extend(validate_creatures(data))
 
     # -- sanity ceiling against the module's own obtainable gear
     if item_index is not None:

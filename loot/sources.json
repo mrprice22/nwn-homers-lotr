@@ -1,5 +1,5 @@
 {
-  "_doc": "Loot profiles: which item categories a source rolls (relative int weights), how many rolls it makes and its rarity floor (index into rarity.json tiers). 'lab' is the Loot Lab profile (rest menu > Admin Options). Container profiles (Phase 3) add: gear_chance (per-mille, per roll), gold_pct (mean gold per fill as a % of the Common budget at the loot level, paid 50-150% of that), gem_chance (per-mille: the gold is paid as treasure.json gems instead, up to 3, rest in gold) and consumables ([min, max] picks from consumables.json). Missing keys default to rolls 1, floor 0, gear_chance 1000, no gold, no consumables. creature / boss are stubs for Phase 4. Profile names are <= 16 chars [a-z0-9_]. scripts: placeable script -> profile; gen-loot-tables.py --apply GENERATES each as a thin wrapper .nss in unpacked/ (mode refill = the 200 s respawning chest, once = the stock open/bash-once behaviour; custom = a hand-written script that is NOT generated but must call its profile by name, e.g. the three Setti coffers with their one-hour cooldown). A profile's optional bases list restricts it to those base-item rows (named-pool awards included). area_overrides: {area resref: {level, reason}} for areas whose chests have no hostile creatures to set a level from (gen-area-loot-levels.py --suggest).",
+  "_doc": "Loot profiles: which item categories a source rolls (relative int weights), how many rolls it makes and its rarity floor (index into rarity.json tiers). 'lab' is the Loot Lab profile (rest menu > Admin Options). Container profiles (Phase 3) add: gear_chance (per-mille, per roll), gold_pct (mean gold per fill as a % of the Common budget at the loot level, paid 50-150% of that), gem_chance (per-mille: the gold is paid as treasure.json gems instead, up to 3, rest in gold) and consumables ([min, max] picks from consumables.json). Missing keys default to rolls 1, floor 0, gear_chance 1000, no gold, no consumables. creature / boss are the creature-drop profiles (Phase 4); creatures says which class a slain creature is and how often it drops. Profile names are <= 16 chars [a-z0-9_]. scripts: placeable script -> profile; gen-loot-tables.py --apply GENERATES each as a thin wrapper .nss in unpacked/ (mode refill = the 200 s respawning chest, once = the stock open/bash-once behaviour; custom = a hand-written script that is NOT generated but must call its profile by name, e.g. the three Setti coffers with their one-hour cooldown). A profile's optional bases list restricts it to those base-item rows (named-pool awards included). area_overrides: {area resref: {level, reason}} for areas whose chests have no hostile creatures to set a level from (gen-area-loot-levels.py --suggest).",
   "profiles": {
     "lab":          {"categories": {"melee": 30, "ranged": 8, "armor": 14, "shield": 6, "jewelry": 16, "wearable": 18, "caster": 8}, "rolls": 1, "rarity_floor": 0},
     "chest_low":    {"categories": {"melee": 30, "ranged": 8, "armor": 14, "shield": 6, "jewelry": 16, "wearable": 18, "caster": 8}, "rolls": 1, "rarity_floor": 0, "gear_chance": 600, "gold_pct": 8, "gem_chance": 300, "consumables": [0, 1]},
@@ -58,5 +58,17 @@
     "shirehobbiton001": {"level": 3, "reason": "Hobbiton: no hostiles; Shire town like Bree (3). Bag End next door reads 47 only because its single hostile is a CR-424 boss"},
     "theloft":          {"level": 1, "reason": "The Loft: no hostiles; nearest levelled area is Greenway (SouthEast) 1"},
     "towerofalatar":    {"level": 1, "reason": "Tower of Alatar: no hostiles; nearest levelled area is Greenway (SouthEast) 1"}
+  },
+  "creatures": {
+    "_doc": "Creature drops (Phase 4): a PC-credited kill of a creature in a hostile faction (repute.fac reputation toward PCs <= 10, the same rule as the area levels) may leave rolled items on its corpse, on top of its fixed loot. Class: boss = in the Roll of the Fallen registry (brd_db.nss); elite = its CR loot level is at least its area's loot level + elite_margin, or listed in elite_include (and not in elite_exclude); normal otherwise. chance is per mille per kill; profile is the sources profile rolled (its rolls and rarity_floor). The roll is at the creature's own CR loot level (levels.json; boss_overrides pins a boss). Bosses add one roll at CR >= extra_roll_cr and a separate named-pool roll at named_chance per mille. exclude: {resref: reason} never drops (quest creatures). Review the effect with python3 bin/loot-sim.py --creatures (--write regenerates CLAUDE-loot-creature-audit.md).",
+    "elite_margin": 5,
+    "classes": {
+      "normal": {"chance": 40,   "profile": "creature"},
+      "elite":  {"chance": 250,  "profile": "creature"},
+      "boss":   {"chance": 1000, "profile": "boss", "extra_roll_cr": 1000, "named_chance": 100}
+    },
+    "elite_include": {},
+    "elite_exclude": {},
+    "exclude": {}
   }
 }

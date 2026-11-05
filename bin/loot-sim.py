@@ -23,6 +23,10 @@ loot_model.py).  In game, Loot Lab's "dump" prints the engine's own value.
     python3 bin/loot-sim.py --chests              # container fills (Phase 3): gear, gold,
                                                   #   gems and consumables per open, per
                                                   #   profile, plus chests by area level
+    python3 bin/loot-sim.py --creatures           # creature drops (Phase 4): which creatures
+                                                  #   are elite, margin sweep, drops per clear
+    python3 bin/loot-sim.py --creatures --margin 7   # ...as if elite_margin were 7
+    python3 bin/loot-sim.py --creatures --write   # regenerate CLAUDE-loot-creature-audit.md
 """
 
 from __future__ import annotations
@@ -36,6 +40,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import loot_model as lm  # noqa: E402
+
+AUDIT = lm.ROOT / "CLAUDE-loot-creature-audit.md"
 
 
 def pct(xs, p):
@@ -139,6 +145,204 @@ def chests(data, levels, n, seed):
         print("   %s  %d" % ("no level" if b < 0 else "%2d-%2d" % (b * 10 + 1, b * 10 + 10), band[b]))
 
 
+def _chest_gear_by_area(data):
+    """{area: expected rolled gear items per fill of all its loot containers}."""
+    scripts = {k.lower(): v["profile"] for k, v in data["sources"].get("scripts", {}).items()}
+    profiles = data["sources"]["profiles"]
+    out = collections.Counter()
+    for area, d in lm.load_gits():
+        for pl in lm.gff(d, "Placeable List", []) or []:
+            for ev in lm.TREASURE_EVENTS:
+                prof = scripts.get(str(lm.gff(pl, ev, "") or "").lower())
+                if prof:
+                    pr = profiles[prof]
+                    out[area] += lm.prof_get(pr, "rolls") * lm.prof_get(pr, "gear_chance") / 1000.0
+                    break
+    return out
+
+
+def creature_report(data, margin=None):
+    """Phase 4 creature-drop audit as Markdown (deterministic: no dates, no RNG).
+
+    The same text is CLAUDE-loot-creature-audit.md (--write); the loot gate
+    notes when that file is stale."""
+    import copy
+    import boss_index as bi
+
+    if margin is not None:
+        data = copy.deepcopy(data)
+        data["sources"]["creatures"]["elite_margin"] = margin
+    cc = lm.creatures_cfg(data)
+    m = cc["elite_margin"]
+    classes = cc["classes"]
+    levels = data["levels"]
+    alv = {a: (e.get("level") or 0) for a, e in data["area_levels"]["areas"].items()}
+    bosses = lm.boss_resrefs()
+    slots = lm.creature_slots(also=frozenset(bosses))
+
+    names = {}
+
+    def cname(rr):
+        if rr not in names:
+            b = bi.load_blueprint(rr)
+            names[rr] = (b["name"] if b else "(missing blueprint)").replace("|", "/")
+        return names[rr]
+
+    def aname(a):
+        return (bi.area_name(a) or a).replace("|", "/")
+
+    def per_kill(cls, cr):
+        c = classes[cls]
+        n = lm.creature_rolls(data, cls, cr) + c.get("named_chance", 0) / 1000.0
+        return c["chance"] / 1000.0 * n
+
+    rows = []
+    for sl in slots:
+        rr = sl["resref"]
+        is_boss = rr in bosses
+        cls = lm.creature_class(data, rr, sl["cr"], alv.get(sl["area"], 0), is_boss)
+        lvl = lm.creature_level(data, rr, sl["cr"], is_boss, bosses)
+        rows.append(dict(sl, cls=cls, lvl=lvl, alvl=alv.get(sl["area"], 0)))
+
+    L = []
+    w = L.append
+    w("# Creature drops - elite audit (Loot Overhaul Phase 4)")
+    w("")
+    w("**Generated** by `python3 bin/loot-sim.py --creatures --write` from `loot/sources.json`")
+    w("(`creatures`), `loot/levels.json`, `loot/area_levels.json` and the placed creatures in")
+    w("`unpacked/*.git.json`. Do not hand-edit; re-run after a change. Roadmap: `lo-creature-drops`.")
+    w("")
+    w("A PC-credited kill of a hostile creature may leave rolled items on its corpse. Its class")
+    w("decides how often:")
+    w("")
+    w("| class | rule | drop chance | rolls | rarity floor |")
+    w("|---|---|---|---|---|")
+    tiers = data["rarity"]["tiers"]
+    for cls, rule in (("normal", "everything else"),
+                      ("elite", "CR loot level >= area loot level + **%d** (`elite_margin`), or `elite_include`" % m),
+                      ("boss", "in the Roll of the Fallen registry (`brd_db.nss`)")):
+        c = classes[cls]
+        pr = data["sources"]["profiles"][c["profile"]]
+        rolls = str(lm.prof_get(pr, "rolls"))
+        if cls == "boss" and c.get("extra_roll_cr"):
+            rolls += " (+1 at CR %d+)" % c["extra_roll_cr"]
+        if c.get("named_chance"):
+            rolls += ", + named roll %.0f%%" % (c["named_chance"] / 10.0)
+        w("| %s | %s | %.1f%% | %s | %s |" % (cls, rule, c["chance"] / 10.0, rolls,
+                                            tiers[lm.prof_get(pr, "rarity_floor")]["name"]))
+    w("")
+    w("**To tune:** change `elite_margin`, or list a creature resref with a reason in")
+    w("`elite_include` (always elite), `elite_exclude` (never elite) or `exclude` (never drops), then")
+    w("`python3 bin/gen-loot-tables.py --apply` and re-run this report. `--margin N` previews another")
+    w("margin without editing anything.")
+    w("")
+    w("Normal and elite creatures must be in a hostile faction (reputation toward PCs <= 10, the")
+    w("area-level rule); registered bosses drop whatever faction they were placed in.")
+    w("")
+    w("Counting: a *slot* is one placed hostile creature, or one entry in a placed hostile")
+    w("encounter's creature list. An encounter spawns some of its list, possibly more than once, so")
+    w("encounter numbers are indicative. *Drops per clear* = expected rolled items from killing every")
+    w("slot once. *Chest gear per fill* = expected rolled items from opening every loot container")
+    w("in the area once.")
+    w("")
+
+    w("## Margin sweep")
+    w("")
+    w("| elite_margin | elite slots | % of non-boss | distinct creatures | areas |")
+    w("|---|---|---|---|---|")
+    nonboss = [r for r in rows if r["cls"] != "boss" and r["cls"] is not None]
+    for mm in sorted({3, 5, 7, 10, 15, m}):
+        el = [r for r in nonboss
+              if r["resref"] in cc.get("elite_include", {})
+              or (r["resref"] not in cc.get("elite_exclude", {}) and r["alvl"]
+                  and lm.level_for_cr(levels, r["cr"]) >= r["alvl"] + mm)]
+        w("| %s%d%s | %d | %.1f%% | %d | %d |" % ("**" if mm == m else "", mm, "**" if mm == m else "",
+                                                len(el), 100.0 * len(el) / max(1, len(nonboss)),
+                                                len({r["resref"] for r in el}), len({r["area"] for r in el})))
+    w("")
+
+    w("## Totals at margin %d" % m)
+    w("")
+    w("| class | slots | distinct creatures | drops per full clear |")
+    w("|---|---|---|---|")
+    for cls in lm.CREATURE_CLASSES:
+        rs = [r for r in rows if r["cls"] == cls]
+        w("| %s | %d | %d | %.1f |" % (cls, len(rs), len({r["resref"] for r in rs}),
+                                      sum(per_kill(cls, r["cr"]) for r in rs)))
+    ex = [r for r in rows if r["cls"] is None]
+    w("| excluded | %d | %d | 0 |" % (len(ex), len({r["resref"] for r in ex})))
+    w("")
+    w("Rarity mix of one roll: " + "; ".join(
+        "%s: %s" % (cls, " / ".join("%s %.1f%%" % (t["name"], 100 * p) for t, p in zip(
+            tiers, lm.rarity_dist(data, lm.prof_get(data["sources"]["profiles"][classes[cls]["profile"]],
+                                                    "rarity_floor")))
+            if p > 0.0005))
+        for cls in ("normal", "boss")) + " (elite rolls like normal).")
+    w("")
+
+    w("## Elite creatures at margin %d" % m)
+    w("")
+    w("Grouped by area. *over* = how far the creature's loot level is above the area's.")
+    w("")
+    w("| area | area lvl | creature | resref | CR | loot lvl | over | slots | why |")
+    w("|---|---|---|---|---|---|---|---|---|")
+    grp = collections.OrderedDict()
+    for r in sorted((r for r in rows if r["cls"] == "elite"),
+                    key=lambda r: (aname(r["area"]).lower(), r["area"], -r["cr"], r["resref"])):
+        k = (r["area"], r["resref"], r["cr"])
+        if k not in grp:
+            grp[k] = dict(r, n=0)
+        grp[k]["n"] += 1
+    for (a, rr, cr), r in grp.items():
+        why = "elite_include" if rr in cc.get("elite_include", {}) else "auto"
+        w("| %s (`%s`) | %d | %s | `%s` | %g | %d | %+d | %d | %s |" % (
+            aname(a), a, r["alvl"], cname(rr), rr, cr, r["lvl"], r["lvl"] - r["alvl"], r["n"], why))
+    if not grp:
+        w("| - | | | | | | | | |")
+    w("")
+
+    sup = [r for r in rows if r["resref"] in cc.get("elite_exclude", {})]
+    if sup:
+        w("## Kept normal by elite_exclude")
+        w("")
+        w("| creature | resref | slots | reason |")
+        w("|---|---|---|---|")
+        for rr in sorted({r["resref"] for r in sup}):
+            w("| %s | `%s` | %d | %s |" % (cname(rr), rr, sum(1 for r in sup if r["resref"] == rr),
+                                         cc["elite_exclude"][rr]))
+        w("")
+    if ex:
+        w("## Never drop (exclude)")
+        w("")
+        w("| creature | resref | slots | reason |")
+        w("|---|---|---|---|")
+        for rr in sorted({r["resref"] for r in ex}):
+            w("| %s | `%s` | %d | %s |" % (cname(rr), rr, sum(1 for r in ex if r["resref"] == rr),
+                                         cc["exclude"][rr]))
+        w("")
+
+    w("## Drops per area")
+    w("")
+    w("Areas with hostile creatures, by drops per clear (highest first).")
+    w("")
+    w("| area | lvl | slots | elite | boss | drops per clear | chest gear per fill |")
+    w("|---|---|---|---|---|---|---|")
+    chest = _chest_gear_by_area(data)
+    by_area = collections.defaultdict(list)
+    for r in rows:
+        by_area[r["area"]].append(r)
+    table = []
+    for a, rs in by_area.items():
+        drops = sum(per_kill(r["cls"], r["cr"]) for r in rs if r["cls"])
+        table.append((-round(drops, 6), aname(a).lower(), a, rs, drops))
+    for _, _, a, rs, drops in sorted(table):
+        w("| %s (`%s`) | %d | %d | %d | %d | %.2f | %.2f |" % (
+            aname(a), a, alv.get(a, 0), len(rs), sum(1 for r in rs if r["cls"] == "elite"),
+            sum(1 for r in rs if r["cls"] == "boss"), drops, chest.get(a, 0.0)))
+    w("")
+    return "\n".join(L)
+
+
 def calibrate():
     p = lm.ROOT / "module-index" / "item_index.json"
     if not p.exists():
@@ -195,6 +399,11 @@ def main():
     ap.add_argument("--calibrate", action="store_true")
     ap.add_argument("--cr", action="store_true")
     ap.add_argument("--chests", action="store_true")
+    ap.add_argument("--creatures", action="store_true")
+    ap.add_argument("--margin", type=int, default=None,
+                    help="with --creatures: preview another elite_margin")
+    ap.add_argument("--write", action="store_true",
+                    help="with --creatures: write CLAUDE-loot-creature-audit.md")
     a = ap.parse_args()
     if a.calibrate:
         calibrate()
@@ -209,6 +418,17 @@ def main():
         return 1
     if a.chests:
         chests(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)
+        return 0
+    if a.creatures:
+        if a.write and a.margin is not None:
+            sys.exit("--write records the committed elite_margin; drop --margin "
+                     "(edit loot/sources.json to change it)")
+        text = creature_report(data, a.margin)
+        if a.write:
+            AUDIT.write_text(text + "\n", encoding="utf-8")
+            print("wrote %s" % AUDIT.relative_to(lm.ROOT))
+        else:
+            print(text)
         return 0
     bad = 0
     for lvl in (int(x) for x in a.levels.split(",")):

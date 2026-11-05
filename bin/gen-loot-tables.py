@@ -404,6 +404,51 @@ def nss_include(data=None):
     w("}")
     w("")
 
+    # -- creature drops (Phase 4)
+    cc = lm.creatures_cfg(data)
+    classes = cc["classes"]
+    w("// Creature drops (loot/sources.json \"creatures\"), read by loot_ondeath.nss.")
+    for i, n in enumerate(lm.CREATURE_CLASSES):
+        w("const int LOOTD_CLASS_%s = %d;" % (n.upper(), i))
+    w("const int LOOTD_ELITE_MARGIN = %d;" % cc["elite_margin"])
+    w("const int LOOTD_BOSS_EXTRA_CR = %d;" % classes["boss"].get("extra_roll_cr", 0))
+    w("const int LOOTD_BOSS_NAMED = %d;" % classes["boss"].get("named_chance", 0))
+    w("const int LOOTD_LIST_NONE = 0;")
+    w("const int LOOTD_LIST_ELITE = 1;")
+    w("const int LOOTD_LIST_NOT_ELITE = 2;")
+    w("const int LOOTD_LIST_NEVER = 3;")
+    w("")
+    L.extend(_switch_fn("int LootD_CreatureChance(int nI)",
+                        [(i, classes[n]["chance"]) for i, n in enumerate(lm.CREATURE_CLASSES)], "0", str))
+    L.extend(_switch_fn("string LootD_CreatureProfile(int nI)",
+                        [(i, classes[n]["profile"]) for i, n in enumerate(lm.CREATURE_CLASSES)], '""', _q))
+    w("// A creature resref's hand-listing: elite_include / elite_exclude / exclude.")
+    w("int LootD_CreatureListed(string sResRef)")
+    w("{")
+    for key, const in (("exclude", "LOOTD_LIST_NEVER"), ("elite_include", "LOOTD_LIST_ELITE"),
+                       ("elite_exclude", "LOOTD_LIST_NOT_ELITE")):
+        for rr in sorted(cc.get(key, {})):
+            w("    if (sResRef == %s) return %s;" % (_q(rr), const))
+    w("    return LOOTD_LIST_NONE;")
+    w("}")
+    w("")
+    w("// Boss resref (canonical or alias) -> pinned loot level (levels.json boss_overrides; 0 = none).")
+    w("int LootD_BossLevel(string sResRef)")
+    w("{")
+    over = data["levels"].get("boss_overrides", {})
+    if over:
+        boss_map = lm.boss_resrefs()
+        for rr in sorted(boss_map):
+            if boss_map[rr] in over:
+                w("    if (sResRef == %s) return %d;" % (_q(rr), over[boss_map[rr]]))
+    w("    return 0;")
+    w("}")
+    w("")
+    w("// TRUE for a faction id (NWNX_Creature_GetFaction) whose reputation toward PCs is")
+    w("// <= 10 in repute.fac - the same \"hostile\" the area loot levels use.")
+    L.extend(_switch_fn("int LootD_IsHostileFaction(int nI)",
+                        [(f, "TRUE") for f in sorted(lm.hostile_factions())], "FALSE", str))
+
     # -- consumables + treasure gems (Phase 3)
     cons = data["consumables"]["items"]
     w("// Consumables pool (loot/consumables.json), packed: entry i is CONS_ROW characters")

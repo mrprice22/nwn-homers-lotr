@@ -25,6 +25,14 @@ fails the repack when:
         is stale, missing, or orphaned;
       - a consumables.json / treasure.json item is missing, Plot, Cursed, or (gems)
         carries properties.
+  * Phase 4 (creature drops, sources.json "creatures"):
+      - a class that names a missing profile, a chance outside 0..1000, an
+        elite_margin below 1, boss-only keys on another class;
+      - an elite_include / elite_exclude / exclude resref with no .utc or no
+        reason, or listed twice;
+      - a levels.json boss_overrides key that is not a registered boss.
+    A stale CLAUDE-loot-creature-audit.md is only a note (re-run
+    bin/loot-sim.py --creatures --write).
 
 Exit 0 = good, 1 = fix the data (or re-run the generator).
 """
@@ -43,6 +51,10 @@ import loot_model as lm  # noqa: E402
 _spec = importlib.util.spec_from_file_location("gen_loot_tables", ROOT / "bin" / "gen-loot-tables.py")
 gen = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gen)
+
+_sspec = importlib.util.spec_from_file_location("loot_sim", ROOT / "bin" / "loot-sim.py")
+sim = importlib.util.module_from_spec(_sspec)
+_sspec.loader.exec_module(sim)
 
 
 def main() -> int:
@@ -72,6 +84,11 @@ def main() -> int:
         print("note: %d area loot level(s) drifted from loot/area_levels.json (%s) - refresh with "
               "gen-area-loot-levels.py --apply + gen-loot-tables.py --apply when convenient"
               % (len(drift), ", ".join(drift[:8]) + (" ..." if len(drift) > 8 else "")))
+    if not lm.validate_creatures(data):
+        audit = sim.AUDIT.read_text(encoding="utf-8") if sim.AUDIT.exists() else ""
+        if audit != sim.creature_report(data) + "\n":
+            print("note: CLAUDE-loot-creature-audit.md is stale (creature drops or placements "
+                  "changed) - refresh with python3 bin/loot-sim.py --creatures --write")
     if not lm.INCLUDE.exists() or lm.INCLUDE.read_text() != gen.nss_include(data):
         errs.append("unpacked/loot_data_inc.nss is stale. Re-run: python3 bin/gen-loot-tables.py --apply")
     stale, orphans = gen.wrapper_problems(data)
