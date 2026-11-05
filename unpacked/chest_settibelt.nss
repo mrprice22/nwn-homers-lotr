@@ -1,10 +1,11 @@
-// chest_settibelt.nss -- OnOpen of SettiBeltChest (Numenor: Noirinan).
-// Mint one end-game belt, but at most once per cooldown per chest: while the
-// chest is spent-and-cooling it opens empty (no loot, and it is left unlocked so
-// no key/pick is wasted). q_frk_enter re-locks it once the cooldown elapses.
-// See setti_loot_inc.nss and the numenor-chests roadmap item.
+// chest_settibelt.nss -- OnOpen of the Setti belt coffer (Numenor: Noirinan).
+// Rolls one Legendary belt (Loot Overhaul profile "setti_belt": rarity floor Legendary,
+// at Noirinan's loot level), at most once per cooldown per chest. Replaced the
+// fixed my_createbelt pool on 2026-11-05 (admin). The profile and its
+// "custom" entry live in loot/sources.json; see setti_loot_inc.nss and the
+// numenor-chests roadmap item for the cooldown and re-lock.
 #include "setti_loot_inc"
-#include "my_createbelt"
+#include "loot_inc"
 
 void main()
 {
@@ -14,6 +15,6 @@ void main()
     if(!GetIsPC(oPC)) return;
     if(!SettiReady(oChest)) return;   // still cooling down -> opens empty
 
-    CreateBelt(oChest, oPC, 60);
+    Loot_FillContainer(oChest, "setti_belt", Loot_ContainerLevel(oChest), oPC);
     SettiMarkDrawn(oChest);
 }

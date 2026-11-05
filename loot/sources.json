@@ -1,5 +1,5 @@
 {
-  "_doc": "Loot profiles: which item categories a source rolls (relative int weights), how many rolls it makes and its rarity floor (index into rarity.json tiers). 'lab' is the Loot Lab profile (rest menu > Admin Options). Container profiles (Phase 3) add: gear_chance (per-mille, per roll), gold_pct (mean gold per fill as a % of the Common budget at the loot level, paid 50-150% of that), gem_chance (per-mille: the gold is paid as treasure.json gems instead, up to 3, rest in gold) and consumables ([min, max] picks from consumables.json). Missing keys default to rolls 1, floor 0, gear_chance 1000, no gold, no consumables. creature / boss are stubs for Phase 4. Profile names are <= 16 chars [a-z0-9_]. scripts: placeable script -> profile; gen-loot-tables.py --apply GENERATES each as a thin wrapper .nss in unpacked/ (mode refill = the 200 s respawning chest, once = the stock open/bash-once behaviour). area_overrides: {area resref: {level, reason}} for areas whose chests have no hostile creatures to set a level from (gen-area-loot-levels.py --suggest).",
+  "_doc": "Loot profiles: which item categories a source rolls (relative int weights), how many rolls it makes and its rarity floor (index into rarity.json tiers). 'lab' is the Loot Lab profile (rest menu > Admin Options). Container profiles (Phase 3) add: gear_chance (per-mille, per roll), gold_pct (mean gold per fill as a % of the Common budget at the loot level, paid 50-150% of that), gem_chance (per-mille: the gold is paid as treasure.json gems instead, up to 3, rest in gold) and consumables ([min, max] picks from consumables.json). Missing keys default to rolls 1, floor 0, gear_chance 1000, no gold, no consumables. creature / boss are stubs for Phase 4. Profile names are <= 16 chars [a-z0-9_]. scripts: placeable script -> profile; gen-loot-tables.py --apply GENERATES each as a thin wrapper .nss in unpacked/ (mode refill = the 200 s respawning chest, once = the stock open/bash-once behaviour; custom = a hand-written script that is NOT generated but must call its profile by name, e.g. the three Setti coffers with their one-hour cooldown). A profile's optional bases list restricts it to those base-item rows (named-pool awards included). area_overrides: {area resref: {level, reason}} for areas whose chests have no hostile creatures to set a level from (gen-area-loot-levels.py --suggest).",
   "profiles": {
     "lab":          {"categories": {"melee": 30, "ranged": 8, "armor": 14, "shield": 6, "jewelry": 16, "wearable": 18, "caster": 8}, "rolls": 1, "rarity_floor": 0},
     "chest_low":    {"categories": {"melee": 30, "ranged": 8, "armor": 14, "shield": 6, "jewelry": 16, "wearable": 18, "caster": 8}, "rolls": 1, "rarity_floor": 0, "gear_chance": 600, "gold_pct": 8, "gem_chance": 300, "consumables": [0, 1]},
@@ -7,6 +7,9 @@
     "chest_high":   {"categories": {"melee": 30, "ranged": 8, "armor": 14, "shield": 6, "jewelry": 16, "wearable": 18, "caster": 8}, "rolls": 3, "rarity_floor": 1, "gear_chance": 700, "gold_pct": 25, "gem_chance": 300, "consumables": [1, 3]},
     "chest_melee":  {"categories": {"melee": 1}, "rolls": 2, "rarity_floor": 1, "gear_chance": 700, "gold_pct": 15, "gem_chance": 300, "consumables": [0, 1]},
     "chest_ranged": {"categories": {"ranged": 1}, "rolls": 2, "rarity_floor": 1, "gear_chance": 700, "gold_pct": 15, "gem_chance": 300, "consumables": [0, 1]},
+    "setti_belt":   {"categories": {"wearable": 1}, "bases": [21], "rolls": 1, "rarity_floor": 4},
+    "setti_ring":   {"categories": {"jewelry": 1}, "bases": [52], "rolls": 1, "rarity_floor": 4},
+    "setti_shield": {"categories": {"shield": 1}, "bases": [14, 56, 57], "rolls": 1, "rarity_floor": 4},
     "creature":     {"categories": {"melee": 30, "ranged": 8, "armor": 14, "shield": 6, "jewelry": 16, "wearable": 18, "caster": 8}, "rolls": 1, "rarity_floor": 0},
     "boss":         {"categories": {"melee": 30, "ranged": 8, "armor": 14, "shield": 6, "jewelry": 16, "wearable": 18, "caster": 8}, "rolls": 2, "rarity_floor": 3}
   },
@@ -40,7 +43,10 @@
     "x0_o2_ranglow":    {"profile": "chest_ranged", "mode": "once"},
     "x0_o2_rangmed":    {"profile": "chest_ranged", "mode": "once"},
     "x0_o2_ranghigh":   {"profile": "chest_ranged", "mode": "once"},
-    "x0_o2_ranguniq":   {"profile": "chest_ranged", "mode": "once"}
+    "x0_o2_ranguniq":   {"profile": "chest_ranged", "mode": "once"},
+    "chest_settibelt":  {"profile": "setti_belt", "mode": "custom"},
+    "ches_settiring":   {"profile": "setti_ring", "mode": "custom"},
+    "chest_settishld":  {"profile": "setti_shield", "mode": "custom"}
   },
   "area_overrides": {
     "area006":          {"level": 4, "reason": "Esgaroth (Lake Town): no hostiles; median of its neighbours celeduinbanks 4, cryptsofthelosts 5, theruinsofdale 1, woodoflegolas 36"},

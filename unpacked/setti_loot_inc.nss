@@ -2,8 +2,10 @@
 // Numenor: Noirinan (falseheaven): SettiBeltChest / SettiRingChest /
 // SettiShieldChest.
 //
-// These chests are a near-end-game gear source. Each mints one random
-// end-game belt / ring / shield on open (see my_createbelt/ring/shield), gated
+// These chests are a near-end-game gear source. Each rolls one Legendary
+// belt / ring / shield on open (Season 3 rolled loot, profiles setti_belt /
+// setti_ring / setti_shield in loot/sources.json, at Noirinan's loot level;
+// until 2026-11-05 they drew from the fixed my_createbelt/ring/shield pools), gated
 // so a single opener cannot farm them: a chest gives loot at most once per real
 // hour, and while it is spent-and-empty it is left UNLOCKED so nobody wastes a
 // lockpick or a consumed key on an empty box. When the hour has passed the

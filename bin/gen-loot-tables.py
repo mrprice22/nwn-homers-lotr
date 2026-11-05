@@ -358,6 +358,26 @@ def nss_include(data=None):
                           ("GemChance", "gem_chance", "0")):
         L.extend(_switch_fn("int LootD_Profile%s(int nI)" % fn,
                             [(i, lm.prof_get(profiles[n], key)) for i, n in enumerate(pnames)], dflt, str))
+    w("// TRUE when profile nProfile may roll base row nBase (its optional \"bases\" filter).")
+    w("int LootD_ProfileBaseOk(int nProfile, int nBase)")
+    w("{")
+    w("    switch (nProfile)")
+    w("    {")
+    for i, n in enumerate(pnames):
+        allowed = profiles[n].get("bases")
+        if not allowed:
+            continue
+        w("    case %d:" % i)
+        w("        switch (nBase)")
+        w("        {")
+        for b in allowed:
+            w("            case %d: return TRUE;" % b)
+        w("        }")
+        w("        return FALSE;")
+    w("    }")
+    w("    return TRUE;")
+    w("}")
+    w("")
     for fn, idx in (("ConsMin", 0), ("ConsMax", 1)):
         L.extend(_switch_fn("int LootD_Profile%s(int nI)" % fn,
                             [(i, lm.prof_get(profiles[n], "consumables")[idx]) for i, n in enumerate(pnames)],
@@ -512,6 +532,9 @@ def nss_include(data=None):
     L.extend(_switch_fn("int LootD_NamedMin(int nI)", [(i, n["min_level"]) for i, n in N], "99", str))
     L.extend(_switch_fn("int LootD_NamedMax(int nI)", [(i, n["max_level"]) for i, n in N], "0", str))
     L.extend(_switch_fn("int LootD_NamedWeight(int nI)", [(i, n.get("weight", 1)) for i, n in N], "0", str))
+    L.extend(_switch_fn("int LootD_NamedBase(int nI)",
+                        [(i, lm.named_base(n["resref"]) if lm.named_base(n["resref"]) is not None else -1)
+                         for i, n in N], "-1", str))
 
     # -- property constructor
     w("// Build item property nType from a subtype row and a cost-table row.  One case per")
@@ -571,6 +594,8 @@ def wrapper_problems(data):
     scripts = data["sources"].get("scripts", {})
     stale = []
     for name, ent in scripts.items():
+        if ent["mode"] == "custom":
+            continue          # hand-written; loot_model.validate checks it names its profile
         p = lm.UNPACKED / (name + ".nss")
         if not p.exists() or p.read_text() != wrapper_nss(name, ent):
             stale.append(name)
@@ -585,6 +610,8 @@ def wrapper_problems(data):
 def write_wrappers(data):
     n = 0
     for name, ent in data["sources"].get("scripts", {}).items():
+        if ent["mode"] == "custom":
+            continue
         p = lm.UNPACKED / (name + ".nss")
         text = wrapper_nss(name, ent)
         if not p.exists() or p.read_text() != text:

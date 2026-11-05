@@ -131,18 +131,22 @@ int Loot_PickRarity(int nFloor)
 }
 
 // Index into the named pool for this loot level, or -1.
-int Loot_PickNamed(int nLvl)
+// A named-pool item inside its level window (and, for a profile with a
+// "bases" filter, of an allowed base item), or -1.
+int Loot_PickNamed(int nLvl, int nProfile)
 {
     int nTotal = 0;
     int i;
     for (i = 0; i < LOOTD_NAMED_COUNT; i++)
-        if (nLvl >= LootD_NamedMin(i) && nLvl <= LootD_NamedMax(i))
+        if (nLvl >= LootD_NamedMin(i) && nLvl <= LootD_NamedMax(i)
+            && LootD_ProfileBaseOk(nProfile, LootD_NamedBase(i)))
             nTotal += LootD_NamedWeight(i);
     if (nTotal <= 0) return -1;
     int r = Random(nTotal);
     for (i = 0; i < LOOTD_NAMED_COUNT; i++)
     {
         if (nLvl < LootD_NamedMin(i) || nLvl > LootD_NamedMax(i)) continue;
+        if (!LootD_ProfileBaseOk(nProfile, LootD_NamedBase(i))) continue;
         r -= LootD_NamedWeight(i);
         if (r < 0) return i;
     }
@@ -165,19 +169,27 @@ int Loot_PickCategory(int nProfile)
     return -1;
 }
 
-// Base item row for a category, or -1.
-int Loot_PickBase(int nCat)
+// Weight of base nK of category nCat for profile nProfile (0 when the
+// profile's "bases" filter excludes it).
+int Loot_BaseWeightFor(int nCat, int nK, int nProfile)
+{
+    if (!LootD_ProfileBaseOk(nProfile, LootD_BaseRow(nCat, nK))) return 0;
+    return LootD_BaseWeight(nCat, nK);
+}
+
+// Base item row for a category (inside the profile's base filter), or -1.
+int Loot_PickBase(int nCat, int nProfile)
 {
     int n = LootD_BaseCount(nCat);
     int nTotal = 0;
     int k;
     for (k = 0; k < n; k++)
-        nTotal += LootD_BaseWeight(nCat, k);
+        nTotal += Loot_BaseWeightFor(nCat, k, nProfile);
     if (nTotal <= 0) return -1;
     int r = Random(nTotal);
     for (k = 0; k < n; k++)
     {
-        r -= LootD_BaseWeight(nCat, k);
+        r -= Loot_BaseWeightFor(nCat, k, nProfile);
         if (r < 0) return LootD_BaseRow(nCat, k);
     }
     return -1;
@@ -401,7 +413,7 @@ object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
     // 2. named pool
     if (Random(1000) < LootD_RarityNamed(nRarity))
     {
-        int nNamed = Loot_PickNamed(nLvl);
+        int nNamed = Loot_PickNamed(nLvl, nProfile);
         if (nNamed >= 0)
         {
             string sRes = LootD_NamedResRef(nNamed);
@@ -421,7 +433,7 @@ object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
 
     // 3. base
     int nCat = Loot_PickCategory(nProfile);
-    int nBase = nCat < 0 ? -1 : Loot_PickBase(nCat);
+    int nBase = nCat < 0 ? -1 : Loot_PickBase(nCat, nProfile);
     if (nBase < 0)
     {
         Loot_Warn("profile '" + sProfile + "' has no base items");

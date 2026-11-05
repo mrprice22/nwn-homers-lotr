@@ -429,21 +429,25 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None):
     rar = pick_rarity(data, rng, floor)
     tier = tiers[rar]
 
-    # Named pool: a Legendary roll may award a curated existing item instead.
+    prof = data["sources"]["profiles"][profile]
+    allowed = prof.get("bases")          # optional base-row filter (e.g. belts only)
+
+    # Named pool: a Legendary roll may award a curated existing item instead
+    # (only one of a base the profile allows, when it has a filter).
     if rng.randrange(1000) < tier.get("named_chance", 0):
         pool = [n for n in data["named"]["items"]
-                if n["min_level"] <= level <= n["max_level"]]
+                if n["min_level"] <= level <= n["max_level"]
+                and (not allowed or named_base(n["resref"]) in allowed)]
         n = weighted(rng, pool, lambda x: x.get("weight", 1))
         if n:
             return {"named": n["resref"], "rarity": rar, "level": level,
                     "affixes": [], "value": None, "unidentified": False,
                     "downside": False}
 
-    prof = data["sources"]["profiles"][profile]
     cats = [c for c in CATEGORIES if prof["categories"].get(c, 0) > 0]
     cat = weighted(rng, cats, lambda c: prof["categories"][c])
     bases = data["bases"]["categories"][cat]
-    base = weighted(rng, bases, lambda b: b["weight"])
+    base = weighted(rng, bases, lambda b: b["weight"] if not allowed or b["base"] in allowed else 0)
 
     affixes = data["affixes"]["affixes"]
     lo_n, hi_n = tier["affixes"]
@@ -517,6 +521,12 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None):
             "value": value, "budget": budget, "downside": has_down,
             "unidentified": unid,
             "name": item_name(base["name"], [affixes[i] for i, _ in chosen])}
+
+
+def named_base(resref):
+    """BaseItem row of a named-pool item (its unpacked .uti), or None."""
+    u = load_uti(resref)
+    return None if u is None else gff(u, "BaseItem")
 
 
 def item_name(base_name, chosen_affixes):
@@ -823,6 +833,22 @@ def validate(data, item_index=None):
             if not isinstance(v, int) or v < 0 or (k in ("gear_chance", "gem_chance") and v > 1000):
                 errs.append("sources.json %s: %s must be a non-negative int%s"
                             % (name, k, " (per-mille)" if k.endswith("chance") else ""))
+        allowed = p.get("bases")
+        if allowed is not None:
+            rows = {b["base"]: cat for cat, lst in data["bases"]["categories"].items() for b in lst}
+            if not (isinstance(allowed, list) and allowed and all(isinstance(x, int) for x in allowed)):
+                errs.append("sources.json %s: bases must be a non-empty list of base-item rows" % name)
+            else:
+                for x in allowed:
+                    if x not in rows:
+                        errs.append("sources.json %s: base row %r is not in bases.json" % (name, x))
+                    elif not p["categories"].get(rows[x]):
+                        errs.append("sources.json %s: base row %r is in category %s, which the "
+                                    "profile does not roll" % (name, x, rows[x]))
+                for cat, wgt in p["categories"].items():
+                    if wgt and not any(rows.get(x) == cat for x in allowed):
+                        errs.append("sources.json %s: category %s has none of the allowed bases "
+                                    "(the roll would fail)" % (name, cat))
         c = prof_get(p, "consumables")
         if not (isinstance(c, list) and len(c) == 2 and all(isinstance(x, int) for x in c)
                 and 0 <= c[0] <= c[1] <= 10):
@@ -842,7 +868,7 @@ def validate(data, item_index=None):
     return errs
 
 
-SCRIPT_MODES = ("refill", "once")
+SCRIPT_MODES = ("refill", "once", "custom")
 
 
 def validate_containers(data, area_doc=None):
@@ -858,6 +884,15 @@ def validate_containers(data, area_doc=None):
             errs.append("%s: unknown profile %r" % (tag, ent.get("profile")))
         if ent.get("mode") not in SCRIPT_MODES:
             errs.append("%s: mode must be one of %s" % (tag, "/".join(SCRIPT_MODES)))
+        if ent.get("mode") == "custom":
+            # Hand-written (e.g. the Setti coffers' cooldown): it must exist and
+            # name its profile, so the table and the script cannot drift apart.
+            sp = UNPACKED / (name + ".nss")
+            if not sp.exists():
+                errs.append("%s: custom script unpacked/%s.nss does not exist" % (tag, name))
+            elif '"%s"' % ent.get("profile") not in sp.read_text(errors="replace"):
+                errs.append("%s: custom script does not use its profile \"%s\""
+                            % (tag, ent.get("profile")))
     for a, ent in src.get("area_overrides", {}).items():
         tag = "sources.json area_overrides %s" % a
         if not (UNPACKED / (a + ".are.json")).exists():

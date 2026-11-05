@@ -100,8 +100,17 @@ loot/sources.json "scripts" ─► gen-loot-tables.py --apply ─► unpacked/<s
   bash, then `LootChest_ShoutDisturbed`). To retarget a script, change its row and re-run
   `--apply`; the gate fails on a stale, missing or orphaned wrapper. `q_pal_tomb`'s
   `ExecuteScript("nw_o2_classhig")` picks up the override. Bookshelves, potion/gold/kit-specific
-  stock scripts, the Setti coffers, the key chests (`gldchest*`, `*_key`) and the Donations
-  Chest are deliberately not in the table.
+  stock scripts, the key chests (`gldchest*`, `*_key`) and the Donations Chest are
+  deliberately not in the table.
+- **Mode `custom`** = a hand-written script the generator leaves alone; the gate only checks it
+  exists and names its profile in quotes. The three **Setti coffers** (`chest_settibelt`,
+  `ches_settiring`, `chest_settishld`, Noirinan) use it: they keep `setti_loot_inc`'s one-real-hour
+  cooldown and re-lock, and roll `Loot_FillContainer` with profiles `setti_belt` / `setti_ring` /
+  `setti_shield` (rarity floor Legendary, at the area's level, 55). Admin request 2026-11-05:
+  "top tier loot for the area". The old `my_create{belt,ring,shield}` pools are no longer called.
+- **Profile `bases`** (optional list of base-item rows) restricts a profile to those bases,
+  named-pool awards included (`LootD_ProfileBaseOk`, `LootD_NamedBase`). Every weighted category
+  must contain at least one allowed base or the gate fails.
 - **A container rolls at its area's level** (`Loot_ContainerLevel`): its own `LOOT_LEVEL` local
   if set, else `LootD_AreaLevel(area resref)` cached on the area as `LOOT_AREA_LVL`, else level 1
   with a `LOOT:` warning. `LOOT_NONE` on a placeable skips the fill.

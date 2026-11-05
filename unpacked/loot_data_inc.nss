@@ -240,8 +240,11 @@ int LootD_ProfileIndex(string sProfile)
     if (sProfile == "chest_high") return 3;
     if (sProfile == "chest_melee") return 4;
     if (sProfile == "chest_ranged") return 5;
-    if (sProfile == "creature") return 6;
-    if (sProfile == "boss") return 7;
+    if (sProfile == "setti_belt") return 6;
+    if (sProfile == "setti_ring") return 7;
+    if (sProfile == "setti_shield") return 8;
+    if (sProfile == "creature") return 9;
+    if (sProfile == "boss") return 10;
     return -1;
 }
 
@@ -255,8 +258,11 @@ string LootD_ProfileName(int nI)
         case 3: return "chest_high";
         case 4: return "chest_melee";
         case 5: return "chest_ranged";
-        case 6: return "creature";
-        case 7: return "boss";
+        case 6: return "setti_belt";
+        case 7: return "setti_ring";
+        case 8: return "setti_shield";
+        case 9: return "creature";
+        case 10: return "boss";
     }
     return "";
 }
@@ -295,20 +301,23 @@ int LootD_ProfileCatWeight(int nProfile, int nCat)
         case 306: return 8;
         case 400: return 1;
         case 501: return 1;
-        case 600: return 30;
-        case 601: return 8;
-        case 602: return 14;
-        case 603: return 6;
-        case 604: return 16;
-        case 605: return 18;
-        case 606: return 8;
-        case 700: return 30;
-        case 701: return 8;
-        case 702: return 14;
-        case 703: return 6;
-        case 704: return 16;
-        case 705: return 18;
-        case 706: return 8;
+        case 605: return 1;
+        case 704: return 1;
+        case 803: return 1;
+        case 900: return 30;
+        case 901: return 8;
+        case 902: return 14;
+        case 903: return 6;
+        case 904: return 16;
+        case 905: return 18;
+        case 906: return 8;
+        case 1000: return 30;
+        case 1001: return 8;
+        case 1002: return 14;
+        case 1003: return 6;
+        case 1004: return 16;
+        case 1005: return 18;
+        case 1006: return 8;
     }
     return 0;
 }
@@ -324,7 +333,10 @@ int LootD_ProfileRolls(int nI)
         case 4: return 2;
         case 5: return 2;
         case 6: return 1;
-        case 7: return 2;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 1;
+        case 10: return 2;
     }
     return 1;
 }
@@ -339,8 +351,11 @@ int LootD_ProfileFloor(int nI)
         case 3: return 1;
         case 4: return 1;
         case 5: return 1;
-        case 6: return 0;
-        case 7: return 3;
+        case 6: return 4;
+        case 7: return 4;
+        case 8: return 4;
+        case 9: return 0;
+        case 10: return 3;
     }
     return 0;
 }
@@ -357,6 +372,9 @@ int LootD_ProfileGearChance(int nI)
         case 5: return 700;
         case 6: return 1000;
         case 7: return 1000;
+        case 8: return 1000;
+        case 9: return 1000;
+        case 10: return 1000;
     }
     return 1000;
 }
@@ -373,6 +391,9 @@ int LootD_ProfileGoldPct(int nI)
         case 5: return 15;
         case 6: return 0;
         case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
     }
     return 0;
 }
@@ -389,8 +410,40 @@ int LootD_ProfileGemChance(int nI)
         case 5: return 300;
         case 6: return 0;
         case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
     }
     return 0;
+}
+
+// TRUE when profile nProfile may roll base row nBase (its optional "bases" filter).
+int LootD_ProfileBaseOk(int nProfile, int nBase)
+{
+    switch (nProfile)
+    {
+    case 6:
+        switch (nBase)
+        {
+            case 21: return TRUE;
+        }
+        return FALSE;
+    case 7:
+        switch (nBase)
+        {
+            case 52: return TRUE;
+        }
+        return FALSE;
+    case 8:
+        switch (nBase)
+        {
+            case 14: return TRUE;
+            case 56: return TRUE;
+            case 57: return TRUE;
+        }
+        return FALSE;
+    }
+    return TRUE;
 }
 
 int LootD_ProfileConsMin(int nI)
@@ -405,6 +458,9 @@ int LootD_ProfileConsMin(int nI)
         case 5: return 0;
         case 6: return 0;
         case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
     }
     return 0;
 }
@@ -421,6 +477,9 @@ int LootD_ProfileConsMax(int nI)
         case 5: return 1;
         case 6: return 0;
         case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
     }
     return 0;
 }
@@ -458,6 +517,9 @@ string LootD_ScriptProfile(string sScript)
     if (sScript == "x0_o2_rangmed") return "chest_ranged";
     if (sScript == "x0_o2_ranghigh") return "chest_ranged";
     if (sScript == "x0_o2_ranguniq") return "chest_ranged";
+    if (sScript == "chest_settibelt") return "setti_belt";
+    if (sScript == "ches_settiring") return "setti_ring";
+    if (sScript == "chest_settishld") return "setti_shield";
     return "";
 }
 
@@ -4641,6 +4703,46 @@ int LootD_NamedWeight(int nI)
         case 31: return 1;
     }
     return 0;
+}
+
+int LootD_NamedBase(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 55;
+        case 1: return 5;
+        case 2: return 3;
+        case 3: return 41;
+        case 4: return 1;
+        case 5: return 41;
+        case 6: return 42;
+        case 7: return 8;
+        case 8: return 8;
+        case 9: return 1;
+        case 10: return 13;
+        case 11: return 41;
+        case 12: return 3;
+        case 13: return 13;
+        case 14: return 53;
+        case 15: return 16;
+        case 16: return 16;
+        case 17: return 16;
+        case 18: return 16;
+        case 19: return 16;
+        case 20: return 56;
+        case 21: return 57;
+        case 22: return 80;
+        case 23: return 36;
+        case 24: return 26;
+        case 25: return 17;
+        case 26: return 78;
+        case 27: return 52;
+        case 28: return 19;
+        case 29: return 19;
+        case 30: return 45;
+        case 31: return 45;
+    }
+    return -1;
 }
 
 // Build item property nType from a subtype row and a cost-table row.  One case per
