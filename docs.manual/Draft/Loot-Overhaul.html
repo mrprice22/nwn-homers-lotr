@@ -316,6 +316,18 @@ edit. <code>forge_inc</code> is an include, so this needs a clean repack.</p>
   <li><strong>Bash-open placeables.</strong> Local overrides of <code>nw_o2_classlow</code>,
     <code>nw_o2_generallow</code>, <code>nw_o2_classmed</code>, <code>x2_02_low</code>,
     <code>x0_o2_any*</code> and the rest put them on the same profiles.</li>
+  <li><strong>As built (2026-11-05).</strong> 711 treasure placeables in 66 areas. The
+    script-to-profile table is <code>loot/sources.json</code> <code>scripts</code>, and all 30 container
+    scripts are generated one-line wrappers around <code>loot_chest_inc</code>
+    (<code>LootChest_Refill</code> / <code>LootChest_Once</code>). Contents, per the admin: rolled
+    gear (each roll at a <code>gear_chance</code>), gold scaled to the Common budget and paid
+    as treasure gems 30% of the time (<code>loot/treasure.json</code>), and consumables from a
+    391-item pool drafted from every obtainable potion, scroll, kit, wand and ammunition stack
+    (<code>loot/consumables.json</code>, review pending). Nine treasure areas without hostiles
+    (Esgaroth, Hobbiton, Kallrist South Shore and others) carry <code>area_overrides</code> with a
+    reason each. Level drift is only a build note; a chest area with no level fails the build.
+    Socketable gems are deferred to Phase 5. See <code>CLAUDE-loot.md</code>, "Chests and
+    containers".</li>
 </ul>
 
 <h3 id="p4">4. Creature and boss drops (<code>lo-creature-drops</code>)</h3>

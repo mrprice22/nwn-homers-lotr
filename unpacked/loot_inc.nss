@@ -592,6 +592,179 @@ int Loot_RollProfile(int nLevel, string sProfile, object oBeneficiary, object oD
     return nMade;
 }
 
+// ---------------------------------------------------------------------------
+// Containers (Phase 3) - each step mirrors loot_model.chest_contents
+// ---------------------------------------------------------------------------
+
+// Loot level of an area (loot/area_levels.json: median hostile CR, or an
+// override), cached on the area as LOOT_AREA_LVL.  0 = the area has none.
+int Loot_AreaLevel(object oArea)
+{
+    if (!GetIsObjectValid(oArea)) return 0;
+    int n = GetLocalInt(oArea, "LOOT_AREA_LVL");
+    if (n > 0) return n;
+    n = LootD_AreaLevel(GetResRef(oArea));
+    if (n > 0) SetLocalInt(oArea, "LOOT_AREA_LVL", n);
+    return n;
+}
+
+// The level a container rolls at: its own LOOT_LEVEL local (set in the
+// toolset to pin one chest), else its area's level, else 1 with a warning -
+// the build gate makes every placed container's area have a level, so the
+// warning means a container was created somewhere new.
+int Loot_ContainerLevel(object oBox)
+{
+    int n = GetLocalInt(oBox, "LOOT_LEVEL");
+    if (n > 0) return Loot_Clamp(n, 1, LOOTD_MAX_LEVEL);
+    n = Loot_AreaLevel(GetArea(oBox));
+    if (n > 0) return n;
+    Loot_Warn("no loot level for area '" + GetResRef(GetArea(oBox)) + "' (container '"
+              + GetTag(oBox) + "') - rolling at level 1");
+    return 1;
+}
+
+// Pay nValue gp into oDest: up to 3 treasure gems (each picked evenly among the
+// gems worth between a quarter of what is left and all of it, else the
+// dearest gem that still fits), and whatever is left as gold.
+void Loot_PayGems(int nValue, object oDest)
+{
+    int nLeft = nValue;
+    int g;
+    int i;
+    int nV;
+    for (g = 0; g < 3; g++)
+    {
+        int nPick = -1;
+        int nN = 0;
+        for (i = 0; i < LOOTD_GEM_COUNT; i++)
+        {
+            nV = LootD_GemValue(i);
+            if (nV <= nLeft && nV * 4 >= nLeft) nN++;
+        }
+        if (nN > 0)
+        {
+            int r = Random(nN);
+            for (i = 0; i < LOOTD_GEM_COUNT; i++)
+            {
+                nV = LootD_GemValue(i);
+                if (nV <= nLeft && nV * 4 >= nLeft)
+                {
+                    if (r == 0) { nPick = i; break; }
+                    r--;
+                }
+            }
+        }
+        else
+        {
+            int nBest = 0;
+            for (i = 0; i < LOOTD_GEM_COUNT; i++)
+            {
+                nV = LootD_GemValue(i);
+                if (nV <= nLeft && nV > nBest) { nBest = nV; nPick = i; }
+            }
+        }
+        if (nPick < 0) break;
+        if (!GetIsObjectValid(CreateItemOnObject(LootD_GemResRef(nPick), oDest)))
+        {
+            Loot_Warn("treasure gem '" + LootD_GemResRef(nPick) + "' could not be created");
+            break;
+        }
+        nLeft -= LootD_GemValue(nPick);
+    }
+    if (nLeft > 0)
+        CreateItemOnObject("nw_it_gold001", oDest, nLeft);
+}
+
+// One consumable (weighted among those whose level window holds nLvl) onto oDest.
+object Loot_RollConsumable(int nLvl, object oDest)
+{
+    int nTotal = 0;
+    int i;
+    int nChunk = -1;
+    string sChunk;
+    string sRow;
+    for (i = 0; i < LOOTD_CONS_COUNT; i++)
+    {
+        if (i / LOOTD_CONS_CHUNK != nChunk)
+        {
+            nChunk = i / LOOTD_CONS_CHUNK;
+            sChunk = LootD_ConsChunk(nChunk);
+        }
+        sRow = GetSubString(sChunk, (i % LOOTD_CONS_CHUNK) * LOOTD_CONS_ROW, LOOTD_CONS_ROW);
+        if (StringToInt(GetStringLeft(sRow, 2)) <= nLvl && nLvl <= StringToInt(GetSubString(sRow, 2, 2)))
+            nTotal += StringToInt(GetSubString(sRow, 4, 4));
+    }
+    if (nTotal <= 0) return OBJECT_INVALID;
+    int r = Random(nTotal);
+    nChunk = -1;
+    for (i = 0; i < LOOTD_CONS_COUNT; i++)
+    {
+        if (i / LOOTD_CONS_CHUNK != nChunk)
+        {
+            nChunk = i / LOOTD_CONS_CHUNK;
+            sChunk = LootD_ConsChunk(nChunk);
+        }
+        sRow = GetSubString(sChunk, (i % LOOTD_CONS_CHUNK) * LOOTD_CONS_ROW, LOOTD_CONS_ROW);
+        if (StringToInt(GetStringLeft(sRow, 2)) > nLvl || nLvl > StringToInt(GetSubString(sRow, 2, 2)))
+            continue;
+        r -= StringToInt(GetSubString(sRow, 4, 4));
+        if (r < 0)
+        {
+            int nLo = StringToInt(GetSubString(sRow, 8, 2));
+            int nHi = StringToInt(GetSubString(sRow, 10, 2));
+            string sRes = GetSubString(sRow, 12, 16);
+            int nBar = FindSubString(sRes, "|");
+            if (nBar >= 0) sRes = GetStringLeft(sRes, nBar);
+            object oItem = CreateItemOnObject(sRes, oDest, nLo + Random(nHi - nLo + 1));
+            if (!GetIsObjectValid(oItem))
+                Loot_Warn("consumable '" + sRes + "' could not be created");
+            return oItem;
+        }
+    }
+    return OBJECT_INVALID;
+}
+
+// Fill a container with one draw of profile sProfile at loot level nLvl:
+// its gear rolls (each with the profile's gear chance), then its gold - paid
+// as treasure gems at the profile's gem chance - then its consumables.
+// Returns the number of rolled gear items made.
+int Loot_FillContainer(object oBox, string sProfile, int nLvl, object oBeneficiary)
+{
+    int nProfile = LootD_ProfileIndex(sProfile);
+    if (nProfile < 0)
+    {
+        Loot_Warn("unknown container profile '" + sProfile + "'");
+        return 0;
+    }
+    nLvl = Loot_Clamp(nLvl, 1, LOOTD_MAX_LEVEL);
+    int nMade = 0;
+    int nRolls = LootD_ProfileRolls(nProfile);
+    int nFloor = LootD_ProfileFloor(nProfile);
+    int nGear = LootD_ProfileGearChance(nProfile);
+    int i;
+    for (i = 0; i < nRolls; i++)
+        if (Random(1000) < nGear)
+            if (GetIsObjectValid(Loot_Roll(nLvl, nFloor, sProfile, oBeneficiary, oBox)))
+                nMade++;
+
+    int nMean = LootD_RarityBudget(LOOT_RARITY_COMMON, nLvl) * LootD_ProfileGoldPct(nProfile) / 100;
+    if (nMean > 0)
+    {
+        int nGold = nMean / 2 + Random(nMean + 1);
+        if (Random(1000) < LootD_ProfileGemChance(nProfile))
+            Loot_PayGems(nGold, oBox);
+        else
+            CreateItemOnObject("nw_it_gold001", oBox, nGold);
+    }
+
+    int nLo = LootD_ProfileConsMin(nProfile);
+    int nHi = LootD_ProfileConsMax(nProfile);
+    int nCons = nHi >= nLo ? nLo + Random(nHi - nLo + 1) : 0;
+    for (i = 0; i < nCons; i++)
+        Loot_RollConsumable(nLvl, oBox);
+    return nMade;
+}
+
 // One-line description of a rolled item's stamps, for Loot Lab.
 string Loot_Describe(object oItem)
 {

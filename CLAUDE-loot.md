@@ -3,7 +3,8 @@
 Roadmap epic `loot-overhaul`; the design and phase plan are in
 [docs.manual/Draft/Loot-Overhaul.html](docs.manual/Draft/Loot-Overhaul.html). This file
 is the working reference for the code as built. Phase 2 (`lo-loot-core`) built the
-engine; phases 3–7 plug sources into it.
+engine; phase 3 (`rng-based-gear-diablo-world-of-warcraft-style`) put it in every chest and
+container; phases 4–7 plug the remaining sources into it.
 
 ## One data source, three readers
 
@@ -20,10 +21,15 @@ loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py �
 | `loot/bases.json` | 7 categories → base-item rows, weights, appearance donors |
 | `loot/affixes.json` | 68 affixes: type/sub, cost **ladder** (rows in ascending power), level **window** into the ladder, categories, weight, exclusion **group**, role, name words |
 | `loot/named.json` | curated existing items a top-tier roll may award (draft, admin review pending) |
-| `loot/sources.json` | profiles (`lab`, `chest_*`, `creature`, `boss`): category weights, roll count, rarity floor |
+| `loot/sources.json` | profiles (`lab`, `chest_*`, `creature`, `boss`): category weights, roll count, rarity floor, and for containers `gear_chance` / `gold_pct` / `gem_chance` / `consumables`; `scripts` (container script → profile); `area_overrides` |
+| `loot/area_levels.json` | **generated** by `bin/gen-area-loot-levels.py`: every area's loot level |
+| `loot/consumables.json` | consumables a container may hold: resref, level window, weight, stack range (drafted by `bin/gen-loot-consumables.py --draft`, admin-reviewed) |
+| `loot/treasure.json` | plain valuable gems a container may pay its gold in |
+| `loot/_items.json` | **generated** stock-item snapshot for the two pools (`gen-loot-consumables.py --refresh-items`) |
 | `loot/_costs.json` | **generated** 2DA cost snapshot so the gate and sim need no NWN install |
 
-**After any change to `loot/*.json`:** `python3 bin/gen-loot-tables.py --apply`, then
+**After any change to `loot/*.json`:** `python3 bin/gen-loot-tables.py --apply` (it also
+regenerates the container wrapper scripts), then
 `python3 bin/loot-sim.py`, and commit the JSON and the include together. Then build with
 **`repack-homers-lotr-clean`**: `loot_data_inc` is an include, and nasher's incremental
 compile does not reliably rebuild the scripts that include it (CLAUDE.md, "Editing a .nss
@@ -78,6 +84,54 @@ Python mirror: **change one, change the other.**
   Epic-or-better roll, not every roll. A synchronous commit per chest item would be felt
   as lag.
 
+## Chests and containers (Phase 3)
+
+```
+loot/sources.json "scripts" ─► gen-loot-tables.py --apply ─► unpacked/<script>.nss  (30 generated wrappers)
+                                                                 └─ #include "loot_chest_inc"
+                                                                    LootChest_Refill / LootChest_Once
+                                                                    └─ Loot_FillContainer (loot_inc)
+```
+
+- **The wrappers are generated, never hand-edited.** `chest_respawner`, `chest_refilllow`,
+  `chest_refillhigh`, `chestrespawn{low,high}` (mode `refill`: the 200 s respawning chest, timer
+  unchanged), and **local overrides of BioWare's stock scripts** `nw_o2_class*`,
+  `nw_o2_general*`, `x2_02_*`, `x0_o2_{any,noam,mlee,rang}*` (mode `once`: filled on first open or
+  bash, then `LootChest_ShoutDisturbed`). To retarget a script, change its row and re-run
+  `--apply`; the gate fails on a stale, missing or orphaned wrapper. `q_pal_tomb`'s
+  `ExecuteScript("nw_o2_classhig")` picks up the override. Bookshelves, potion/gold/kit-specific
+  stock scripts, the Setti coffers, the key chests (`gldchest*`, `*_key`) and the Donations
+  Chest are deliberately not in the table.
+- **A container rolls at its area's level** (`Loot_ContainerLevel`): its own `LOOT_LEVEL` local
+  if set, else `LootD_AreaLevel(area resref)` cached on the area as `LOOT_AREA_LVL`, else level 1
+  with a `LOOT:` warning. `LOOT_NONE` on a placeable skips the fill.
+- **Area levels:** `bin/gen-area-loot-levels.py` takes the median CR of the area's hostile
+  creatures (placed instances + placed encounter pools; hostile = reputation toward players
+  ≤ 10 in `repute.fac.json`), through `levels.json`. An area with chests but no hostiles needs
+  a `sources.json` `area_overrides` entry with a `reason`; `--suggest` proposes one from the
+  nearest levelled areas (`module-index/area_graph.json`), `--table` lists every chest area.
+  The gate **fails** only when a chest area has no level; level drift after a toolset edit is
+  a printed note, so it never blocks a build. Refresh with `--apply` when convenient.
+  Watch single-hostile areas: `bagend001` reads 47 because its one hostile is a CR-424 boss.
+- **One fill** (`Loot_FillContainer`, Python mirror `loot_model.chest_contents`): `rolls` gear
+  rolls, each at `gear_chance` per mille, at the profile floor; then gold, mean `gold_pct` % of
+  the Common budget at the level, paid 50–150% of the mean, as up to 3 treasure gems at
+  `gem_chance` (`Loot_PayGems`) with the rest in gold; then `consumables` [min, max] picks from
+  the consumables pool, weighted, inside each entry's level window.
+- **The consumables pool is packed into fixed-width string chunks** in `loot_data_inc`
+  (`LootD_ConsChunk`), not a switch: NWScript compiles a switch to a linear compare chain, and a
+  391-case switch inside a weighted-pick loop is TMI territory.
+- **Pools:** `gen-loot-consumables.py --draft` builds both from `module-index/item_index.json`:
+  obtainable from a store or container (not only carried by a creature), not Plot/Cursed, one
+  entry per tag, not looked up by any script (`GetItemPossessedBy`, `GetTag(...) ==`, …; the
+  Jasperre AI and stock treasure scripts are ignored), Rogue's Gem excluded on purpose. It
+  refuses to overwrite a reviewed pool without `--force`. Stock items are snapshotted to
+  `_items.json` so the gate needs no NWN install.
+- **Socketable gems** in chests (admin, 2026-11-05) arrive with Phase 5: add a
+  `socket_gem_chance` to the container profiles then.
+- `python3 bin/loot-sim.py --chests` prints gear, rarity mix, gold, gem share and consumables per
+  fill for every container profile, plus chests by area level.
+
 ## Loot Lab
 
 Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
@@ -85,7 +139,8 @@ Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
 
 - set the loot level (±1 / ±10) and cycle the rarity floor (tokens 6450 / 6451);
 - roll 1 or 10 items into your pack;
-- stock the nearest container with 5 items;
+- restock the nearest container: a loot container gets one real fill of its own profile at its
+  own loot level (and reports the area's level); anything else gets 5 lab-level items;
 - dump every rolled item's stamps with its engine value against its budget.
 
 Phases 5 and 7 add "grant a gem" and "grant a Shard of Fate" here.

@@ -20,6 +20,9 @@ loot_model.py).  In game, Loot Lab's "dump" prints the engine's own value.
     python3 bin/loot-sim.py --floor 3             # force an Epic floor
     python3 bin/loot-sim.py --calibrate           # obtainable-gear value percentiles
     python3 bin/loot-sim.py --cr                  # CR -> loot level across the bestiary
+    python3 bin/loot-sim.py --chests              # container fills (Phase 3): gear, gold,
+                                                  #   gems and consumables per open, per
+                                                  #   profile, plus chests by area level
 """
 
 from __future__ import annotations
@@ -93,6 +96,49 @@ def simulate(data, level, n, profile, floor, seed):
     return over_budget
 
 
+def chests(data, levels, n, seed):
+    """Phase 3: what one fill of each container profile holds."""
+    model = lm.CostModel(data["costs"])
+    tiers = data["rarity"]["tiers"]
+    fam = {c["resref"]: c.get("family", "?") for c in data["consumables"]["items"]}
+    profiles = [p for p, v in data["sources"]["profiles"].items()
+                if p.startswith("chest") or v.get("gold_pct")]
+    for prof in profiles:
+        print("== container profile %s  (%d fills per level)" % (prof, n))
+        print("   %-5s %6s %-34s %8s %8s %7s %6s  %s" % ("level", "gear", "rarity mix C/U/R/E/L %",
+                                                     "gold p50", "gold p90", "as gems", "cons", "consumable families"))
+        for lvl in levels:
+            rng = random.Random(seed + lvl)
+            gear = 0
+            rar = collections.Counter()
+            gold = []
+            gems = 0
+            cons = 0
+            fams = collections.Counter()
+            for _ in range(n):
+                c = lm.chest_contents(data, lvl, prof, rng, model)
+                gear += len(c["gear"])
+                for g in c["gear"]:
+                    rar[g["rarity"]] += 1
+                gold.append(c["gold"] + sum(v for _, v in c["gems"]))
+                gems += bool(c["gems"])
+                cons += len(c["consumables"])
+                for rr, _ in c["consumables"]:
+                    fams[fam.get(rr, "?")] += 1
+            mix = "/".join("%.1f" % (100.0 * rar[i] / max(1, gear)) for i in range(len(tiers)))
+            print("   %-5d %6.2f %-34s %8s %8s %6.0f%% %6.2f  %s" % (
+                lvl, gear / n, mix, fmt(pct(gold, 50)), fmt(pct(gold, 90)), 100.0 * gems / n,
+                cons / n, ", ".join("%s %d%%" % (f, 100 * k / max(1, cons)) for f, k in fams.most_common(4))))
+    areas = data["area_levels"]["areas"]
+    band = collections.Counter()
+    for a, e in areas.items():
+        if e["chests"]:
+            band[((e["level"] or 0) - 1) // 10 if e["level"] else -1] += e["chests"]
+    print("== treasure containers by area loot level (loot/area_levels.json)")
+    for b in sorted(band):
+        print("   %s  %d" % ("no level" if b < 0 else "%2d-%2d" % (b * 10 + 1, b * 10 + 10), band[b]))
+
+
 def calibrate():
     p = lm.ROOT / "module-index" / "item_index.json"
     if not p.exists():
@@ -148,6 +194,7 @@ def main():
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--calibrate", action="store_true")
     ap.add_argument("--cr", action="store_true")
+    ap.add_argument("--chests", action="store_true")
     a = ap.parse_args()
     if a.calibrate:
         calibrate()
@@ -160,6 +207,9 @@ def main():
     if errs:
         print("loot data is invalid - fix first:\n  - " + "\n  - ".join(errs))
         return 1
+    if a.chests:
+        chests(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)
+        return 0
     bad = 0
     for lvl in (int(x) for x in a.levels.split(",")):
         bad += simulate(data, lvl, a.n, a.profile, a.floor, a.seed + lvl)
