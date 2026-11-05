@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Loot Overhaul — Design Notes</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link rel="icon" href="../../assets/favicon.png">
+  <script src="../../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../../map/index.html">Map</a>
+      <a href="../../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../../creatures/index.html">All Creatures</a>
+          <a href="../../creatures/by-area/index.html">By Area</a>
+          <a href="../../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../../creatures/by-race/index.html">By Race</a>
+          <a href="../../creatures/search.html">Search</a>
+          <a href="../../creatures/bosses.html">Bosses</a>
+          <a href="../../creatures/pictures.html">Pictures</a>
+          <a href="../../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../../items/index.html">Accessible</a>
+          <a href="../../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../../items/properties/index.html">By Property</a>
+          <a href="../../items/search.html">Search</a>
+          <a href="../../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../../stores/index.html">Stores</a>
+      <a href="../../conversations/index.html">Conversations</a>
+      <a href="../../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/QuestGuide.html">Quest Guide</a>
+<a href="../../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../../characters/online.html">Who&#x27;s Online</a>
+<a href="../../players/index.html">Players</a>
+<a href="../../characters/index.html">Characters</a>
+<a href="../../characters/leaderboards.html">Leaderboards</a>
+<a href="../../players/achievements.html">Hall of Fame</a>
+<a href="../../activity.html">Player Activity</a>
+<a href="../../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../../manual/Customizations/Combat.html">Combat</a>
+<a href="../../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../../manual/Draft/Loot-Overhaul.html" class="nav-current" aria-current="page">Loot Overhaul — Design Notes</a>
+<a href="../../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+
+  <main>
+  <style>
+    .mw-layout { display: flex; gap: 2.5em; align-items: flex-start; }
+    .mw-toc-pane { flex: 0 0 220px; position: sticky; top: 1.5em; max-height: calc(100vh - 3em); overflow-y: auto; }
+    .mw-content { flex: 1; min-width: 0; }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+    .toc { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 1em 1.2em; }
+    .toc h2 { font-size: 1em; margin: 0 0 0.5em; border: none; padding: 0; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+    .tier-header { background: rgba(107,58,28,0.08); border-left: 4px solid var(--accent); padding: 0.5em 1em; margin: 2em 0 0.8em; border-radius: 0 4px 4px 0; }
+    .tier-header h2 { margin: 0; border: none; padding: 0; }
+    .tier-header .tier-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+    .loot-box { background: rgba(200,165,119,0.10); border: 1px solid var(--accent-soft); border-radius: 4px; padding: 0.7em 1.1em; margin: 0.8em 0 1em; }
+    .loot-box strong { display: block; margin-bottom: 0.3em; color: var(--accent); }
+    .tip-box { background: rgba(30,30,60,0.07); border-left: 4px solid var(--accent-soft); border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em; }
+    .tip-box p { margin: 0.3em 0; }
+    .warning-box { background: rgba(200, 60, 60, 0.08); border-left: 4px solid #c03030; border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em; }
+    .warning-box p { margin: 0.3em 0; }
+  </style>
+
+  <div class="mw-layout">
+    <aside class="mw-toc-pane">
+      <nav class="toc" aria-label="Page contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#context">Context</a></li>
+          <li><a href="#decisions">Decisions</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+          <li><a href="#phases">Phases</a></li>
+          <li><a href="#open">Open questions</a></li>
+          <li><a href="#verification">Verification</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <div class="mw-content">
+
+<h1>Loot Overhaul — Design Notes</h1>
+
+<p><strong>Status:</strong> draft plan, targeted at the <strong>Season 3 launch</strong>. It is
+built and tested phase by phase on the dev realm. The roadmap epic is
+<code>loot-overhaul</code>. This page supersedes the contraband/legality section of
+<a href="Gem-Socketing.html">Slotted Items (Gem Socketing)</a>. The rest of that draft is
+adopted as Phase 5.</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="context">
+  <h2>Context</h2>
+  <p class="tier-sub">What loot looks like today, and why it needs replacing.</p>
+</div>
+
+<p>Every drop in the module is a fixed, hand-placed blueprint item. Nothing rolls item
+properties, rarity or tiers.</p>
+<ul>
+  <li><strong>Chests.</strong> About 500 chests (<code>chest_respawner</code> 188,
+  <code>chest_refilllow</code> 167, <code>chest_refillhigh</code> 139) call the stock
+  <code>GenerateLow/Medium/HighTreasure</code> from <code>nw_o2_coninclude.nss</code>. That code
+  is scaled to the opener's hit dice and capped at 17, so at levels 40–60 it hands out junk.
+  Rajmund's request (<code>rng-based-gear-diablo-world-of-warcraft-style</code>) calls it
+  "garbage/stock items … from 99.5% of containers".</li>
+  <li><strong>Bashable placeables</strong> run the stock <code>nw_o2_class*/general*</code>
+  scripts.</li>
+  <li><strong>Spawn treasure.</strong> The stock spawn-time path
+  (<code>CTG_GenerateNPCTreasure</code>) is believed to produce nothing; this is inferred, not yet
+  verified in game.</li>
+  <li><strong>Bosses</strong> drop their fixed blueprint inventories.</li>
+  <li><strong>Waiting on random loot:</strong> three backlog items. They are
+  <code>Socket-system-for-weapons</code> (Methonash), <code>optin-curse-gem-loot</code> and
+  <code>season3-meta-shakeup</code>.</li>
+</ul>
+
+<p><strong>Reference, not import.</strong> Commche's Random Loot Generation System v2.0 (2014,
+pre-EE, licence "open only if project also open") is a source of ideas:</p>
+<ul>
+  <li>quality bands by level;</li>
+  <li>coloured quality names;</li>
+  <li>up to 6 sockets;</li>
+  <li>class item sets.</li>
+</ul>
+<p>Its code would clash with CEP, the forge and the module's persistence conventions, so none of
+it is imported.</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="decisions">
+  <h2>Decisions (admin, 2026-11-05)</h2>
+  <p class="tier-sub">The shape of the system as agreed.</p>
+</div>
+
+<table border="1" cellpadding="6" cellspacing="0">
+<thead><tr><th>Topic</th><th>Decision</th></tr></thead>
+<tbody>
+<tr><td>Loot model</td><td><strong>Mostly fully random</strong>, with hybrid elements.
+  Random items get a rarity and affixes scaled to their source. The hand-made items stay:
+  bosses keep their fixed drops, and curated obtainable items join a <em>named</em> pool that
+  Legendary rolls can award.</td></tr>
+<tr><td>Containers</td><td><strong>Every generic chest and container switches to random
+  loot.</strong> Quest chests, the Setti coffers, the donation chest and books stay as they
+  are.</td></tr>
+<tr><td>Re-roll token</td><td>One token item, the <strong>Shard of Fate</strong> (it replaces the
+  Nebulous Voidcore stand-in), with two uses: a <strong>boss bonus roll</strong>, and
+  <strong>re-rolling an item's random affixes</strong> at a forge. Sources: about a 10% boss-drop
+  chance and a merit-shop entry. Cap: <strong>one bonus roll per character per boss per real
+  day</strong>, with the lockout in <code>lootdb</code>.</td></tr>
+<tr><td>Rarity</td><td>Five tiers: <strong>Common, Uncommon, Rare, Epic, Legendary</strong>,
+  with names coloured white, green, blue, purple and orange. "Epic" is kept as a tier name even
+  though it overlaps the boss-only <code>{EPIC}</code> name tag.</td></tr>
+<tr><td>Downside affixes</td><td><strong>Allowed at any tier.</strong> A rolled item may carry a
+  trade-off affix, such as lower AC or a damage vulnerability, paid back by its upsides. This is
+  the "costs something real" lever from <code>season3-meta-shakeup</code>. Downsides are
+  gate-checked in <code>affixes.json</code> and budgeted like any other affix.</td></tr>
+<tr><td>Drop rates</td><td>Starting values for <code>loot-sim</code>: normal creatures 4%,
+  elites 25%, bosses 100% with 2 rolls (3 at CR 1000+).</td></tr>
+<tr><td>Loot specialization</td><td>A <strong>base-item wishlist</strong>, chosen per
+  character: 5 picks at a 40% bias, changeable any time out of combat at no cost.</td></tr>
+<tr><td>Gems</td><td>Socketing is <strong>permanent</strong>. There is no gem extraction.</td></tr>
+<tr><td>Launch scope</td><td><strong>Phases 1–7 must all be on Season 3 before it goes
+  live.</strong> Phase 8 docs ship with each phase.</td></tr>
+<tr><td>Ownership</td><td>Corpse drops go through the existing Need/Greed party roll. The boss
+  bonus roll is personal and goes straight into the player's pack.</td></tr>
+<tr><td>Contraband jail</td><td><strong>Removed now.</strong> The forge still enforces its
+  caps at the point of purchase and in staged disenchant.</td></tr>
+<tr><td>Wiki</td><td>Documented by <code>nwn_manager</code> from the same data the game reads.
+  Classic-loot modules must render byte-identical, proven by the golden gate with the baseline
+  recorded first.</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="architecture">
+  <h2>Architecture</h2>
+  <p class="tier-sub">One data source for the game and the wiki, plus one runtime include.</p>
+</div>
+
+<h3 id="arch-data">Data: <code>loot/*.json</code> at the repo root</h3>
+<p>The folder sits next to <code>unpacked/</code> and holds JSON only, because the wiki generator
+is pure stdlib with no YAML loader.</p>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead><tr><th>File</th><th>Holds</th></tr></thead>
+<tbody>
+<tr><td><code>rarity.json</code></td><td>Common, Uncommon, Rare, Epic and Legendary. For each:
+  name colour, affix-count range, value budget per loot level, socket-count range and drop
+  weight.</td></tr>
+<tr><td><code>levels.json</code></td><td>CR → loot level 1–60, as clamped log-style bands (boss
+  CRs reach 9,540), plus per-boss overrides.</td></tr>
+<tr><td><code>bases.json</code></td><td>Base-item categories (melee, ranged, armor, shield,
+  jewelry, wearable, caster) with weights and appearance model pools. This is where the even
+  spread of weapon types is tuned.</td></tr>
+<tr><td><code>affixes.json</code></td><td>Each affix: property type, subtype and cost range by
+  loot level; allowed categories; weight; prefix/suffix name; role tags. All ids are validated
+  against <code>module-index/enums.json</code>.</td></tr>
+<tr><td><code>named.json</code></td><td>The hybrid pool: curated existing <code>.uti</code>
+  resrefs, each with a loot-level window and rarity.</td></tr>
+<tr><td><code>gems.json</code>, <code>sockets.json</code></td><td>Gems by rarity band, and the
+  socket schema for existing items.</td></tr>
+<tr><td><code>sources.json</code></td><td>Chest and placeable script → loot profile; creature
+  classes (normal, elite, boss); boss table defaults and overrides; per-area loot-level
+  overrides; exclusions.</td></tr>
+<tr><td><code>tokens.json</code></td><td>Fate token sources and rates.</td></tr>
+</tbody>
+</table>
+
+<h3 id="arch-gen">Generated include + build gate</h3>
+<p><code>bin/gen-loot-tables.py</code> reads the JSON and writes
+<code>unpacked/loot_data_inc.nss</code>. It is committed and never hand-edited, the same pattern
+as <code>bin/gen-forge-legal.py</code>. The tables are compiled into the module rather than
+stored in a campaign DB, so the dev and live realms can never drift apart.</p>
+<p><code>tests/check_loot_tables.py</code> runs from <code>tests/smoke-test</code> and fails the
+repack on:</p>
+<ul>
+  <li>a stale include;</li>
+  <li>an unknown base-item row, iprp id or cost value;</li>
+  <li>a named resref that is missing or not obtainable;</li>
+  <li>a rarity whose value budget cannot be reached.</li>
+</ul>
+
+<h3 id="arch-core">Runtime: <code>loot_inc.nss</code></h3>
+<p><code>Loot_Roll(nLevel, nRarityFloor, sProfile, oBeneficiary, oDest)</code> creates one item,
+in this order:</p>
+<ol>
+  <li><strong>Base.</strong> Pick a base item from the profile's category weights, biased by the
+    beneficiary's wishlist. Create it from the existing
+    <code>forge_blank_&lt;baseitem&gt;</code> blanks (<code>ForgeBlankResRef</code>). Randomize
+    its appearance from the <code>bases.json</code> model pools.</li>
+  <li><strong>Rarity.</strong> Roll it, apply the floor, then a weighted one- or two-band
+    upgrade.</li>
+  <li><strong>Affixes.</strong> Roll up to the rarity's count. Build each one with the
+    generated <code>Loot_MakeIP</code>, which calls the native <code>ItemProperty*</code>
+    constructors. It does not use <code>itemprocs</code>, which depends on conversation locals, or
+    <code>IPGetItemPropertyByID</code>, which builds Damage Vulnerability as a resistance and
+    Decreased Saving Throw Specific as a bonus. Affixes carry an exclusion group, so an item never
+    gets two of one kind and same-type properties never stack.</li>
+  <li><strong>Budget.</strong> Price the whole set on a scratch forge blank, the way
+    <code>ForgeRebuildValue</code> prices any item. Step it down until it fits, and only then apply it
+    to the real item, so nothing is ever read back after a removal.</li>
+  <li><strong>Name.</strong> Coloured <code>&lt;Prefix&gt; &lt;Base&gt; of &lt;Suffix&gt;</code>.
+    The word lists are prose, so the local LLM may draft them, with every write recorded in the
+    ledger.</li>
+  <li><strong>Stamp.</strong> Write <code>LOOT_VER</code>, <code>LOOT_LVL</code>,
+    <code>LOOT_RARITY</code> and <code>LOOT_PROFILE</code>, plus <code>LOOT_AFX_N</code> /
+    <code>LOOT_AFX_&lt;i&gt;</code> holding one <code>ForgePropSig</code> per random affix.</li>
+  <li><strong>Named.</strong> A Legendary roll has a chance to create a <code>named.json</code>
+    item instead.</li>
+</ol>
+<div class="tip-box">
+  <p><strong>Why the stamps matter.</strong> They live in the <code>.bic</code> and survive the
+  party roll's <code>CopyItem</code>. They are what lets a Fate token remove exactly the random
+  affixes, and never a forged enchantment or a socketed gem.</p>
+</div>
+
+<h3 id="arch-invariant">No contraband by construction</h3>
+<p>With the jail retired, nothing judges gear after the fact. <strong>Every path that creates or
+changes an item must enforce its own bound at the moment it acts</strong>; that is what makes a
+scan of held gear unnecessary.</p>
+<ul>
+  <li><strong>Forge enchant</strong> (<code>modifyitem</code>): the per-forge and global value
+    and enchantment caps, unchanged.</li>
+  <li><strong>Staged disenchant</strong>: commits only a plan whose result is within the caps,
+    even on an untouched over-cap relic. It is never relaxed.</li>
+  <li><strong>Rolled loot</strong> (<code>Loot_Roll</code>): bounded by the rarity's value budget
+    for its loot level, plus the gate-checked affix ranges in <code>affixes.json</code>.</li>
+  <li><strong>Fate reroll</strong>: re-rolls inside the item's own stamped level and rarity
+    budget, so it can never produce more than the original roll could have.</li>
+  <li><strong>Gems</strong>: only into a real open socket, merged and clamped to the socket caps
+    (2d10 damage, AB +16).</li>
+</ul>
+<p>A rolled item that a player then works at a forge is judged by the forge caps like any other
+piece, so rarity budgets near the top tier must be set with that in mind.</p>
+
+<h3 id="arch-test">Test surface + simulator</h3>
+<p><strong>Admin Options → Loot Lab</strong> is a rest-menu entry gated by
+<code>Admin_CanAdmin</code>; there is no DM console. It can:</p>
+<ul>
+  <li>roll N items at level L and rarity R;</li>
+  <li>re-stock the nearest chest;</li>
+  <li>grant gems and tokens;</li>
+  <li>dump an item's <code>LOOT_*</code> stamps.</li>
+</ul>
+<p><code>bin/loot-sim.py</code> runs Monte Carlo over the same JSON and prints, per loot level,
+drop rates, rarity mix, value percentiles and affix frequency. It is the balance check before
+any build, and it produces the odds tables the wiki shows.</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="phases">
+  <h2>Phases</h2>
+  <p class="tier-sub">One hidden roadmap item each, under the <code>loot-overhaul</code> epic,
+  in build order.</p>
+</div>
+
+<h3 id="p1">1. Remove the contraband jail (<code>lo-remove-jail</code>)</h3>
+<p>This phase is independent of loot and can ship to dev now.</p>
+<p><strong>Before deleting anything:</strong> check the <code>craftdb</code> quarantine counts on
+the dev and S2 realms, check for any jail-flagged PCs, and confirm whether the
+<code>prison</code>, <code>jailor</code> and <code>_homerjail</code> areas and scripts serve
+anything besides the forge.</p>
+<p><strong>Delete:</strong></p>
+<ul>
+  <li><code>ForgeJail*</code>, the quarantine and the login scans (<code>ForgeBeginScan</code>
+    and <code>ForgeBeginWardenScan</code>, called from <code>mod_cliententer</code> and
+    <code>welloferuenter</code>);</li>
+  <li><code>forge_scan_step</code>;</li>
+  <li>the whitelist: <code>forge_legal_inc.nss</code> and
+    <code>bin/gen-forge-legal.py</code>;</li>
+  <li>the Forge Warden.</li>
+</ul>
+<p><strong>Keep</strong> the cap math used at purchase and in staged disenchant.</p>
+<p><strong>Add</strong> a one-shot login release for anyone still jailed, which hands back their
+quarantined items.</p>
+<p><strong>Also update:</strong> <code>tests/check_forge_disenchant.py</code>, and the
+contraband section of <code>Customizations/Crafting.html</code>, which is marked
+<em>retired</em> with its <code>id</code> kept. Fix the stale Rune "activate" text in the same
+edit. <code>forge_inc</code> is an include, so this needs a clean repack.</p>
+
+<h3 id="p2">2. Loot core (<code>lo-loot-core</code>)</h3>
+<ul>
+  <li><strong>Golden gate first:</strong> run <code>bin/wiki-golden baseline</code>, then
+    refactor the six copies of the generator's "item accessible" rule into one predicate. The
+    check must show zero diff.</li>
+  <li><strong>The pieces:</strong> the <code>loot/</code> starter set (5 rarities, about 40
+    affixes, the level bands), the generator, the gate, <code>loot_inc</code>, Loot Lab,
+    <code>loot-sim</code>, and the <code>lootdb</code> campaign DB with its DDL in
+    <code>onmoduleload</code>.</li>
+  <li><strong>Season 3 axes.</strong> Seed affixes on the axes <code>season3-meta-shakeup</code>
+    names: Spell Resistance, amulet alternatives to the 25% physical-immunity answer, and
+    caster <code>magicstaff</code> affixes. Avoid simply bigger attacks-per-round or divine
+    damage.</li>
+  <li><strong>As built (2026-11-05).</strong> The golden refactor found seven copies of the rule, not
+    six. They are now one <code>item_accessible()</code> (nwn_manager <code>5bd9cce</code>), with zero
+    diff on all four corpora. The starter set has 68 affixes, 10 of them downsides, and 32 named items
+    awaiting review. Value budgets are anchored to obtainable gear, not the forge caps: Legendary
+    reaches 3.2M at level 60, about the 95th percentile. 35% of rolls drop unidentified. The
+    working reference is <code>CLAUDE-loot.md</code>.</li>
+</ul>
+
+<h3 id="p3">3. Chests and containers (<code>rng-based-gear-diablo-world-of-warcraft-style</code>)</h3>
+<ul>
+  <li><strong>Area loot level.</strong> <code>bin/gen-area-loot-levels.py</code> derives each
+    area's level from the median hostile CR. Chests roll at the <em>area's</em> level, so a
+    high-level player gets nothing special from low-level chests.</li>
+  <li><strong>Refill scripts.</strong> The refill call in <code>chest_respawner</code>,
+    <code>chest_refilllow</code>, <code>chest_refillhigh</code> and <code>chestrespawn*</code>
+    becomes <code>Loot_Roll</code>. Low, medium and high set the roll count and rarity floor.
+    The 200-second refill timer stays.</li>
+  <li><strong>Bash-open placeables.</strong> Local overrides of <code>nw_o2_classlow</code>,
+    <code>nw_o2_generallow</code>, <code>nw_o2_classmed</code>, <code>x2_02_low</code>,
+    <code>x0_o2_any*</code> and the rest put them on the same profiles.</li>
+</ul>
+
+<h3 id="p4">4. Creature and boss drops (<code>lo-creature-drops</code>)</h3>
+<p><code>bst_ondeath</code> (the universal death wrapper) calls <code>loot_ondeath</code>, which
+sets drop chance and roll count by creature class:</p>
+<ul>
+  <li><strong>normal</strong>: low chance;</li>
+  <li><strong>elite</strong>: CR well above the area's level;</li>
+  <li><strong>boss</strong>: anything in the <code>brd_db</code> registry.</li>
+</ul>
+<p><strong>Excluded:</strong> associates and summons, PC-less kills, creatures with a
+<code>LOOT_NONE</code> local, and listed quest creatures.</p>
+<p><strong>Bosses</strong> keep their fixed drops and add, on top:</p>
+<ul>
+  <li>Epic-floor random rolls;</li>
+  <li>a chance at the named pool;</li>
+  <li>a gem;</li>
+  <li>a Fate token chance.</li>
+</ul>
+<p>Everything lands on the corpse, where the Need/Greed roll handles it unchanged.</p>
+
+<h3 id="p5">5. Sockets and gems (<code>Socket-system-for-weapons</code>)</h3>
+<p>Adopt <a href="Gem-Socketing.html">the socket draft</a>, minus its jail integration:</p>
+<ul>
+  <li><code>SOCKET_*</code> item locals;</li>
+  <li>a generated <code>socket_def_inc</code> plus a version-stamped login reconcile for
+    existing items;</li>
+  <li>gems activated onto a target item;</li>
+  <li>gem drops by CR band.</li>
+</ul>
+<p><strong>Additions:</strong></p>
+<ul>
+  <li>Random items roll their socket count from their rarity.</li>
+  <li>A gem merges with a same-type property and never overwrites a forged one. It is clamped
+    to Methonash's caps (2d10 damage, AB +16).</li>
+  <li>Sockets are separate from forge property slots.</li>
+</ul>
+
+<h3 id="p6">6. Base-item wishlist (<code>lo-wishlist</code>)</h3>
+<ul>
+  <li><strong>Storage.</strong> <code>lootdb</code> <code>wishlist(uuid, base_item)</code>, up
+    to 5 picks per character.</li>
+  <li><strong>UI.</strong> An NUI picker from the rest menu.</li>
+  <li><strong>Effect.</strong> A P% chance (start at 40%) that a roll draws its base from the
+    beneficiary's wishlist, within the profile's allowed categories. With no wishlist, "Auto"
+    weights by the beneficiary's weapon-focus and proficiency feats.</li>
+  <li><strong>Beneficiary.</strong> For a corpse, a random damage-contributing party member who
+    is present; for a chest, the opener.</li>
+  <li><strong>Known gap.</strong> Wishlists reset on dev, because the vault sync copies
+    <code>.bic</code> files but not the realm DBs.</li>
+</ul>
+
+<h3 id="p7">7. Fate token (<code>lo-fate-token</code>)</h3>
+<ul>
+  <li><strong>Reforge.</strong> A new anvil reply, "Reforge its fate", in all four smith
+    dialogs, added via <code>bin/inject_forge_disenchant.py</code> and modelled on
+    <code>ForgeExpandDo</code>. It consumes one token and re-rolls only the item's
+    <code>LOOT_AFX_*</code> affixes at the same level and rarity. Sockets, gems and forged
+    enchantments are untouched.</li>
+  <li><strong>Boss bonus roll.</strong> At a boss death, each damage-contributing PC holding a
+    token gets an NUI prompt with a 60-second timeout. If they accept, one boss-table roll goes
+    straight into their pack. The limit is one bonus roll per character per boss per real
+    day, so a boss killed twice in a day gives no second roll. The lockout is in
+    <code>lootdb</code>, keyed by character UUID, boss and date.</li>
+</ul>
+
+<h3 id="p8">8. Wiki + player docs (<code>lo-wiki</code>)</h3>
+<p><code>nwn_manager</code> loads <code>&lt;project&gt;/loot/</code> only when it exists, which
+is the sibling-folder convention. With it, the wiki gains:</p>
+<ul>
+  <li>a fifth item-source table, <code>item_from_loot</code>, so named, gem and token items are
+    no longer "inaccessible";</li>
+  <li>a <em>Drops</em> section on creature pages;</li>
+  <li>the loot profile on container pages, instead of "random treasure, cannot be listed";</li>
+  <li>generated pages: Loot overview, Affix catalogue, Gems &amp; Sockets, Fate tokens;</li>
+  <li>a schema README for other modules.</li>
+</ul>
+<p>Add <code>loot</code> to the golden gate's <code>PROJECT_INPUTS</code>. The archive modules
+(<code>lotr2008</code> and <code>lotr2009</code>) must show zero diff.</p>
+<p><strong>Player docs.</strong> A new <code>Customizations/Loot.html</code> topic page with
+sections <code>#loot-rarity</code>, <code>#loot-levels</code>, <code>#loot-chests</code>,
+<code>#loot-wishlist</code>, <code>#sockets</code>, <code>#gems</code> and
+<code>#fate-token</code>, plus <code>gen-customizations-hub.py</code>. Each phase fills in its own
+section as it ships.</p>
+
+<div class="loot-box">
+  <strong>Follow-on, outside this epic</strong>
+  <code>optin-curse-gem-loot</code> (in <em>Difficulty Increase</em>) becomes a rarity-floor bump
+  for cursed players, a few lines on top of phases 4 and 5.
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="open">
+  <h2>Open questions</h2>
+  <p class="tier-sub">Taste calls, tracked as <code>design_questions</code> on the epic's items.</p>
+</div>
+<p>All of them were settled on 2026-11-05 and moved into <a href="#decisions">Decisions</a>.
+That covers the token name, sources and cap; the wishlist size and bias; rarity names and
+colours; and gem extraction. One item is parked rather than open:</p>
+<ul>
+  <li><strong>Item sets</strong> (the CommChes idea). Parked until after Season 3
+    launches.</li>
+</ul>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="verification">
+  <h2>Verification</h2>
+  <p class="tier-sub">How each phase is proven.</p>
+</div>
+<ul>
+  <li><strong>Phase 1.</strong>
+    <ul>
+      <li>A clean repack passes every gate.</li>
+      <li>The packed <code>mod_cliententer.ncs</code> no longer calls the scan.</li>
+      <li>On dev, an item forged past the old whitelist no longer jails its holder.</li>
+      <li>Staged disenchant still refuses an over-cap plan.</li>
+    </ul>
+  </li>
+  <li><strong>Phases 2–7.</strong>
+    <ul>
+      <li><code>check_loot_tables</code> and the <code>loot-sim</code> tables pass first.</li>
+      <li>A clean repack, then <code>bin/rebuild-and-arm</code>.</li>
+      <li>Loot Lab UAT: roll every rarity at levels 1, 20, 40 and 60 against the budget; open a
+        low-area and a high-area chest; kill a normal creature, an elite and a boss.</li>
+      <li>The stamps survive the party roll.</li>
+      <li>A gem into a forged item overwrites nothing.</li>
+      <li>Reforge changes only <code>LOOT_AFX_*</code>.</li>
+      <li>The bonus-roll prompt and its lockout work.</li>
+      <li>Wishlist bias shows across about 50 rolls.</li>
+    </ul>
+  </li>
+  <li><strong>Phase 8.</strong>
+    <ul>
+      <li><code>bin/wiki-golden check</code> shows zero diff on the archive corpora.</li>
+      <li>Named-pool items drop out of <code>inaccessible_items.json</code>.</li>
+      <li><code>tests/check_customizations_hub.py</code> passes.</li>
+    </ul>
+  </li>
+</ul>
+
+    </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../../assets/meta.json"></span></footer>
+</body>
+</html>

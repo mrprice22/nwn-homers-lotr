@@ -1,0 +1,4350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script loot_data_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>loot_data_inc</code></h1><pre class="nss-source"><code>// loot_data_inc.nss - GENERATED by bin/gen-loot-tables.py. Do not edit.
+// Re-run: python3 bin/gen-loot-tables.py --apply   (source: loot/*.json)
+// Read by loot_inc.nss. Every value here is validated by
+// tests/check_loot_tables.py before a repack may proceed.
+
+const int LOOTD_RARITY_COUNT = 5;
+const int LOOTD_CAT_COUNT = 7;
+const int LOOTD_AFFIX_COUNT = 68;
+const int LOOTD_NAMED_COUNT = 32;
+const int LOOTD_MAX_LEVEL = 60;
+const int LOOTD_MAX_PROPS = 6;
+
+string LootD_RarityName(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;Common&quot;;
+        case 1: return &quot;Uncommon&quot;;
+        case 2: return &quot;Rare&quot;;
+        case 3: return &quot;Epic&quot;;
+        case 4: return &quot;Legendary&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string LootD_RarityColorName(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;COLOR_WHITE&quot;;
+        case 1: return &quot;COLOR_GREEN&quot;;
+        case 2: return &quot;COLOR_BLUE&quot;;
+        case 3: return &quot;COLOR_PURPLE&quot;;
+        case 4: return &quot;COLOR_ORANGE&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_RarityWeight(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 620;
+        case 1: return 260;
+        case 2: return 90;
+        case 3: return 25;
+        case 4: return 5;
+    }
+    return 0;
+}
+
+int LootD_RarityAffMin(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 3;
+        case 4: return 4;
+    }
+    return 0;
+}
+
+int LootD_RarityAffMax(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 2;
+        case 2: return 3;
+        case 3: return 4;
+        case 4: return 4;
+    }
+    return 0;
+}
+
+int LootD_RarityDownside(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 60;
+        case 1: return 100;
+        case 2: return 120;
+        case 3: return 140;
+        case 4: return 160;
+    }
+    return 0;
+}
+
+int LootD_RarityDownPct(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 25;
+        case 1: return 25;
+        case 2: return 25;
+        case 3: return 25;
+        case 4: return 25;
+    }
+    return 0;
+}
+
+int LootD_RarityUnid(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 350;
+        case 1: return 350;
+        case 2: return 350;
+        case 3: return 350;
+        case 4: return 350;
+    }
+    return 0;
+}
+
+int LootD_RarityUpOne(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 80;
+        case 1: return 60;
+        case 2: return 40;
+        case 3: return 20;
+        case 4: return 0;
+    }
+    return 0;
+}
+
+int LootD_RarityUpTwo(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 10;
+        case 1: return 8;
+        case 2: return 5;
+        case 3: return 0;
+        case 4: return 0;
+    }
+    return 0;
+}
+
+int LootD_RarityNamed(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 0;
+        case 4: return 200;
+    }
+    return 0;
+}
+
+int LootD_RarityRollBias(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 1;
+        case 3: return 1;
+        case 4: return 2;
+    }
+    return 0;
+}
+
+// Value budget (gp) for rarity nI at loot level nLvl, before the downside bonus.
+int LootD_RarityBudget(int nI, int nLvl)
+{
+    switch (nI)
+    {
+    case 0:
+        if (nLvl &lt;= 1) return 1500;
+        if (nLvl &lt;= 20) return 1500 + (3500 * (nLvl - 1)) / 19;
+        if (nLvl &lt;= 40) return 5000 + (5000 * (nLvl - 20)) / 20;
+        if (nLvl &lt;= 60) return 10000 + (5000 * (nLvl - 40)) / 20;
+        return 15000;
+    case 1:
+        if (nLvl &lt;= 1) return 4000;
+        if (nLvl &lt;= 20) return 4000 + (8000 * (nLvl - 1)) / 19;
+        if (nLvl &lt;= 40) return 12000 + (8000 * (nLvl - 20)) / 20;
+        if (nLvl &lt;= 60) return 20000 + (5000 * (nLvl - 40)) / 20;
+        return 25000;
+    case 2:
+        if (nLvl &lt;= 1) return 10000;
+        if (nLvl &lt;= 20) return 10000 + (25000 * (nLvl - 1)) / 19;
+        if (nLvl &lt;= 40) return 35000 + (45000 * (nLvl - 20)) / 20;
+        if (nLvl &lt;= 60) return 80000 + (50000 * (nLvl - 40)) / 20;
+        return 130000;
+    case 3:
+        if (nLvl &lt;= 1) return 30000;
+        if (nLvl &lt;= 20) return 30000 + (120000 * (nLvl - 1)) / 19;
+        if (nLvl &lt;= 40) return 150000 + (350000 * (nLvl - 20)) / 20;
+        if (nLvl &lt;= 60) return 500000 + (700000 * (nLvl - 40)) / 20;
+        return 1200000;
+    case 4:
+        if (nLvl &lt;= 1) return 60000;
+        if (nLvl &lt;= 20) return 60000 + (340000 * (nLvl - 1)) / 19;
+        if (nLvl &lt;= 40) return 400000 + (1000000 * (nLvl - 20)) / 20;
+        if (nLvl &lt;= 60) return 1400000 + (1800000 * (nLvl - 40)) / 20;
+        return 3200000;
+    }
+    return 0;
+}
+
+// Creature CR -&gt; loot level (loot/levels.json cr_points).
+int LootD_LevelForCR(float fCR)
+{
+    if (fCR &lt;= 0.0) return 1;
+    if (fCR &lt;= 40.0) return FloatToInt(1.0 + 29.0 * (fCR - 0.0) / 40.0);
+    if (fCR &lt;= 200.0) return FloatToInt(30.0 + 15.0 * (fCR - 40.0) / 160.0);
+    if (fCR &lt;= 1000.0) return FloatToInt(45.0 + 10.0 * (fCR - 200.0) / 800.0);
+    if (fCR &lt;= 10000.0) return FloatToInt(55.0 + 5.0 * (fCR - 1000.0) / 9000.0);
+    return 60;
+}
+
+string LootD_CatName(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;melee&quot;;
+        case 1: return &quot;ranged&quot;;
+        case 2: return &quot;armor&quot;;
+        case 3: return &quot;shield&quot;;
+        case 4: return &quot;jewelry&quot;;
+        case 5: return &quot;wearable&quot;;
+        case 6: return &quot;caster&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// Profile name -&gt; index (-1 = unknown).
+int LootD_ProfileIndex(string sProfile)
+{
+    if (sProfile == &quot;lab&quot;) return 0;
+    if (sProfile == &quot;chest_low&quot;) return 1;
+    if (sProfile == &quot;chest_med&quot;) return 2;
+    if (sProfile == &quot;chest_high&quot;) return 3;
+    if (sProfile == &quot;creature&quot;) return 4;
+    if (sProfile == &quot;boss&quot;) return 5;
+    return -1;
+}
+
+string LootD_ProfileName(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;lab&quot;;
+        case 1: return &quot;chest_low&quot;;
+        case 2: return &quot;chest_med&quot;;
+        case 3: return &quot;chest_high&quot;;
+        case 4: return &quot;creature&quot;;
+        case 5: return &quot;boss&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_ProfileCatWeight(int nProfile, int nCat)
+{
+    switch (nProfile * 100 + nCat)
+    {
+        case 0: return 30;
+        case 1: return 8;
+        case 2: return 14;
+        case 3: return 6;
+        case 4: return 16;
+        case 5: return 18;
+        case 6: return 8;
+        case 100: return 30;
+        case 101: return 8;
+        case 102: return 14;
+        case 103: return 6;
+        case 104: return 16;
+        case 105: return 18;
+        case 106: return 8;
+        case 200: return 30;
+        case 201: return 8;
+        case 202: return 14;
+        case 203: return 6;
+        case 204: return 16;
+        case 205: return 18;
+        case 206: return 8;
+        case 300: return 30;
+        case 301: return 8;
+        case 302: return 14;
+        case 303: return 6;
+        case 304: return 16;
+        case 305: return 18;
+        case 306: return 8;
+        case 400: return 30;
+        case 401: return 8;
+        case 402: return 14;
+        case 403: return 6;
+        case 404: return 16;
+        case 405: return 18;
+        case 406: return 8;
+        case 500: return 30;
+        case 501: return 8;
+        case 502: return 14;
+        case 503: return 6;
+        case 504: return 16;
+        case 505: return 18;
+        case 506: return 8;
+    }
+    return 0;
+}
+
+int LootD_ProfileRolls(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 3;
+        case 4: return 1;
+        case 5: return 2;
+    }
+    return 1;
+}
+
+int LootD_ProfileFloor(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 1;
+        case 4: return 0;
+        case 5: return 3;
+    }
+    return 0;
+}
+
+int LootD_BaseCount(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 37;
+        case 1: return 5;
+        case 2: return 1;
+        case 3: return 3;
+        case 4: return 2;
+        case 5: return 6;
+        case 6: return 1;
+    }
+    return 0;
+}
+
+int LootD_BaseRow(int nCat, int nIdx)
+{
+    switch (nCat * 100 + nIdx)
+    {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 3;
+        case 4: return 4;
+        case 5: return 5;
+        case 6: return 9;
+        case 7: return 10;
+        case 8: return 12;
+        case 9: return 13;
+        case 10: return 18;
+        case 11: return 22;
+        case 12: return 28;
+        case 13: return 32;
+        case 14: return 33;
+        case 15: return 35;
+        case 16: return 37;
+        case 17: return 38;
+        case 18: return 40;
+        case 19: return 41;
+        case 20: return 42;
+        case 21: return 47;
+        case 22: return 50;
+        case 23: return 51;
+        case 24: return 53;
+        case 25: return 55;
+        case 26: return 58;
+        case 27: return 60;
+        case 28: return 108;
+        case 29: return 111;
+        case 30: return 300;
+        case 31: return 301;
+        case 32: return 302;
+        case 33: return 303;
+        case 34: return 304;
+        case 35: return 316;
+        case 36: return 318;
+        case 100: return 6;
+        case 101: return 7;
+        case 102: return 8;
+        case 103: return 11;
+        case 104: return 61;
+        case 200: return 16;
+        case 300: return 14;
+        case 301: return 56;
+        case 302: return 57;
+        case 400: return 19;
+        case 401: return 52;
+        case 500: return 17;
+        case 501: return 21;
+        case 502: return 26;
+        case 503: return 36;
+        case 504: return 78;
+        case 505: return 80;
+        case 600: return 45;
+    }
+    return -1;
+}
+
+int LootD_BaseWeight(int nCat, int nIdx)
+{
+    switch (nCat * 100 + nIdx)
+    {
+        case 0: return 10;
+        case 1: return 12;
+        case 2: return 10;
+        case 3: return 10;
+        case 4: return 6;
+        case 5: return 10;
+        case 6: return 8;
+        case 7: return 8;
+        case 8: return 5;
+        case 9: return 12;
+        case 10: return 10;
+        case 11: return 8;
+        case 12: return 4;
+        case 13: return 5;
+        case 14: return 5;
+        case 15: return 6;
+        case 16: return 5;
+        case 17: return 6;
+        case 18: return 6;
+        case 19: return 10;
+        case 20: return 6;
+        case 21: return 8;
+        case 22: return 6;
+        case 23: return 10;
+        case 24: return 10;
+        case 25: return 6;
+        case 26: return 6;
+        case 27: return 4;
+        case 28: return 8;
+        case 29: return 4;
+        case 30: return 4;
+        case 31: return 4;
+        case 32: return 4;
+        case 33: return 4;
+        case 34: return 4;
+        case 35: return 6;
+        case 36: return 6;
+        case 100: return 10;
+        case 101: return 10;
+        case 102: return 14;
+        case 103: return 12;
+        case 104: return 6;
+        case 200: return 10;
+        case 300: return 10;
+        case 301: return 10;
+        case 302: return 8;
+        case 400: return 10;
+        case 401: return 14;
+        case 500: return 10;
+        case 501: return 10;
+        case 502: return 10;
+        case 503: return 10;
+        case 504: return 8;
+        case 505: return 10;
+        case 600: return 10;
+    }
+    return 0;
+}
+
+string LootD_BaseName(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;Shortsword&quot;;
+        case 1: return &quot;Longsword&quot;;
+        case 2: return &quot;Battleaxe&quot;;
+        case 3: return &quot;Bastard Sword&quot;;
+        case 4: return &quot;Light Flail&quot;;
+        case 5: return &quot;Warhammer&quot;;
+        case 9: return &quot;Light Mace&quot;;
+        case 10: return &quot;Halberd&quot;;
+        case 12: return &quot;Two-Bladed Sword&quot;;
+        case 13: return &quot;Greatsword&quot;;
+        case 18: return &quot;Greataxe&quot;;
+        case 22: return &quot;Dagger&quot;;
+        case 28: return &quot;Club&quot;;
+        case 32: return &quot;Dire Mace&quot;;
+        case 33: return &quot;Double Axe&quot;;
+        case 35: return &quot;Heavy Flail&quot;;
+        case 37: return &quot;Light Hammer&quot;;
+        case 38: return &quot;Handaxe&quot;;
+        case 40: return &quot;Kama&quot;;
+        case 41: return &quot;Katana&quot;;
+        case 42: return &quot;Kukri&quot;;
+        case 47: return &quot;Morningstar&quot;;
+        case 50: return &quot;Quarterstaff&quot;;
+        case 51: return &quot;Rapier&quot;;
+        case 53: return &quot;Scimitar&quot;;
+        case 55: return &quot;Scythe&quot;;
+        case 58: return &quot;Spear&quot;;
+        case 60: return &quot;Sickle&quot;;
+        case 108: return &quot;Dwarven Waraxe&quot;;
+        case 111: return &quot;Whip&quot;;
+        case 300: return &quot;Trident&quot;;
+        case 301: return &quot;Heavy Pick&quot;;
+        case 302: return &quot;Light Pick&quot;;
+        case 303: return &quot;Sai&quot;;
+        case 304: return &quot;Nunchaku&quot;;
+        case 316: return &quot;Falchion&quot;;
+        case 318: return &quot;Maul&quot;;
+        case 6: return &quot;Heavy Crossbow&quot;;
+        case 7: return &quot;Light Crossbow&quot;;
+        case 8: return &quot;Longbow&quot;;
+        case 11: return &quot;Shortbow&quot;;
+        case 61: return &quot;Sling&quot;;
+        case 16: return &quot;Armor&quot;;
+        case 14: return &quot;Small Shield&quot;;
+        case 56: return &quot;Large Shield&quot;;
+        case 57: return &quot;Tower Shield&quot;;
+        case 19: return &quot;Amulet&quot;;
+        case 52: return &quot;Ring&quot;;
+        case 17: return &quot;Helm&quot;;
+        case 21: return &quot;Belt&quot;;
+        case 26: return &quot;Boots&quot;;
+        case 36: return &quot;Gloves&quot;;
+        case 78: return &quot;Bracers&quot;;
+        case 80: return &quot;Cloak&quot;;
+        case 45: return &quot;Staff&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_BaseModelType(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 2;
+        case 1: return 2;
+        case 2: return 2;
+        case 3: return 2;
+        case 4: return 2;
+        case 5: return 2;
+        case 9: return 2;
+        case 10: return 2;
+        case 12: return 2;
+        case 13: return 2;
+        case 18: return 2;
+        case 22: return 2;
+        case 28: return 2;
+        case 32: return 2;
+        case 33: return 2;
+        case 35: return 2;
+        case 37: return 2;
+        case 38: return 2;
+        case 40: return 2;
+        case 41: return 2;
+        case 42: return 2;
+        case 47: return 2;
+        case 50: return 2;
+        case 51: return 2;
+        case 53: return 2;
+        case 55: return 2;
+        case 58: return 2;
+        case 60: return 2;
+        case 108: return 2;
+        case 111: return 2;
+        case 300: return 2;
+        case 301: return 2;
+        case 302: return 2;
+        case 303: return 2;
+        case 304: return 2;
+        case 316: return 2;
+        case 318: return 2;
+        case 6: return 2;
+        case 7: return 2;
+        case 8: return 2;
+        case 11: return 2;
+        case 61: return 0;
+        case 16: return 3;
+        case 14: return 0;
+        case 56: return 0;
+        case 57: return 0;
+        case 19: return 0;
+        case 52: return 0;
+        case 17: return 1;
+        case 21: return 0;
+        case 26: return 2;
+        case 36: return 0;
+        case 78: return 0;
+        case 80: return 1;
+        case 45: return 2;
+    }
+    return -1;
+}
+
+int LootD_DonorCount(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 16;
+        case 1: return 16;
+        case 2: return 16;
+        case 3: return 16;
+        case 4: return 4;
+        case 5: return 16;
+        case 9: return 16;
+        case 10: return 16;
+        case 12: return 7;
+        case 13: return 16;
+        case 18: return 16;
+        case 22: return 16;
+        case 28: return 14;
+        case 32: return 8;
+        case 33: return 10;
+        case 35: return 10;
+        case 37: return 5;
+        case 38: return 14;
+        case 40: return 13;
+        case 41: return 16;
+        case 42: return 10;
+        case 47: return 13;
+        case 50: return 16;
+        case 51: return 16;
+        case 53: return 16;
+        case 55: return 16;
+        case 58: return 16;
+        case 60: return 6;
+        case 108: return 4;
+        case 111: return 3;
+        case 300: return 1;
+        case 301: return 1;
+        case 302: return 1;
+        case 303: return 1;
+        case 304: return 1;
+        case 316: return 1;
+        case 318: return 1;
+        case 6: return 10;
+        case 7: return 7;
+        case 8: return 16;
+        case 11: return 16;
+        case 61: return 3;
+        case 16: return 27;
+        case 14: return 8;
+        case 56: return 16;
+        case 57: return 16;
+        case 19: return 16;
+        case 52: return 16;
+        case 17: return 16;
+        case 21: return 16;
+        case 26: return 16;
+        case 36: return 16;
+        case 78: return 16;
+        case 80: return 16;
+        case 45: return 16;
+    }
+    return 0;
+}
+
+// Appearance donor nIdx of base row nBase: comma-separated model parts
+// (1 = simple, 3 = weapon bottom/middle/top, 19 = ITEM_APPR_ARMOR_MODEL_* order).
+string LootD_Donor(int nBase, int nIdx)
+{
+    switch (nBase)
+    {
+    case 0:
+        switch (nIdx)
+        {
+            case 0: return &quot;23,63,51&quot;;
+            case 1: return &quot;221,113,231&quot;;
+            case 2: return &quot;241,163,121&quot;;
+            case 3: return &quot;252,122,122&quot;;
+            case 4: return &quot;11,11,11&quot;;
+            case 5: return &quot;12,12,12&quot;;
+            case 6: return &quot;12,142,251&quot;;
+            case 7: return &quot;22,32,42&quot;;
+            case 8: return &quot;22,32,61&quot;;
+            case 9: return &quot;31,43,41&quot;;
+            case 10: return &quot;32,52,32&quot;;
+            case 11: return &quot;33,23,42&quot;;
+            case 12: return &quot;33,52,63&quot;;
+            case 13: return &quot;33,53,41&quot;;
+            case 14: return &quot;33,62,51&quot;;
+            case 15: return &quot;44,133,173&quot;;
+        }
+        break;
+    case 1:
+        switch (nIdx)
+        {
+            case 0: return &quot;172,92,181&quot;;
+            case 1: return &quot;91,121,171&quot;;
+            case 2: return &quot;183,191,243&quot;;
+            case 3: return &quot;11,61,111&quot;;
+            case 4: return &quot;23,52,23&quot;;
+            case 5: return &quot;172,222,111&quot;;
+            case 6: return &quot;252,252,252&quot;;
+            case 7: return &quot;13,23,51&quot;;
+            case 8: return &quot;13,41,72&quot;;
+            case 9: return &quot;21,41,41&quot;;
+            case 10: return &quot;22,32,62&quot;;
+            case 11: return &quot;22,52,52&quot;;
+            case 12: return &quot;23,23,32&quot;;
+            case 13: return &quot;23,33,43&quot;;
+            case 14: return &quot;23,43,63&quot;;
+            case 15: return &quot;23,43,71&quot;;
+        }
+        break;
+    case 2:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;13,11,32&quot;;
+            case 2: return &quot;61,11,41&quot;;
+            case 3: return &quot;23,22,43&quot;;
+            case 4: return &quot;31,31,61&quot;;
+            case 5: return &quot;31,43,51&quot;;
+            case 6: return &quot;31,51,51&quot;;
+            case 7: return &quot;32,22,53&quot;;
+            case 8: return &quot;32,52,62&quot;;
+            case 9: return &quot;32,53,32&quot;;
+            case 10: return &quot;33,43,33&quot;;
+            case 11: return &quot;33,53,33&quot;;
+            case 12: return &quot;41,31,43&quot;;
+            case 13: return &quot;42,41,32&quot;;
+            case 14: return &quot;42,43,32&quot;;
+            case 15: return &quot;43,22,63&quot;;
+        }
+        break;
+    case 3:
+        switch (nIdx)
+        {
+            case 0: return &quot;61,31,51&quot;;
+            case 1: return &quot;124,171,154&quot;;
+            case 2: return &quot;142,131,161&quot;;
+            case 3: return &quot;143,184,163&quot;;
+            case 4: return &quot;11,11,11&quot;;
+            case 5: return &quot;11,62,12&quot;;
+            case 6: return &quot;12,22,11&quot;;
+            case 7: return &quot;21,41,41&quot;;
+            case 8: return &quot;22,31,52&quot;;
+            case 9: return &quot;32,22,62&quot;;
+            case 10: return &quot;32,33,62&quot;;
+            case 11: return &quot;33,14,251&quot;;
+            case 12: return &quot;33,42,53&quot;;
+            case 13: return &quot;33,43,53&quot;;
+            case 14: return &quot;33,43,63&quot;;
+            case 15: return &quot;41,41,31&quot;;
+        }
+        break;
+    case 4:
+        switch (nIdx)
+        {
+            case 0: return &quot;13,12,31&quot;;
+            case 1: return &quot;32,23,32&quot;;
+            case 2: return &quot;43,32,43&quot;;
+            case 3: return &quot;43,33,23&quot;;
+        }
+        break;
+    case 5:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;22,42,52&quot;;
+            case 2: return &quot;41,52,62&quot;;
+            case 3: return &quot;162,152,152&quot;;
+            case 4: return &quot;13,12,11&quot;;
+            case 5: return &quot;24,24,54&quot;;
+            case 6: return &quot;31,22,22&quot;;
+            case 7: return &quot;31,51,61&quot;;
+            case 8: return &quot;34,122,113&quot;;
+            case 9: return &quot;41,42,43&quot;;
+            case 10: return &quot;42,43,62&quot;;
+            case 11: return &quot;42,52,32&quot;;
+            case 12: return &quot;43,23,23&quot;;
+            case 13: return &quot;43,33,63&quot;;
+            case 14: return &quot;44,111,144&quot;;
+            case 15: return &quot;51,41,41&quot;;
+        }
+        break;
+    case 9:
+        switch (nIdx)
+        {
+            case 0: return &quot;114,164,164&quot;;
+            case 1: return &quot;41,31,41&quot;;
+            case 2: return &quot;1,0,0&quot;;
+            case 3: return &quot;13,12,11&quot;;
+            case 4: return &quot;13,33,21&quot;;
+            case 5: return &quot;22,33,12&quot;;
+            case 6: return &quot;23,31,23&quot;;
+            case 7: return &quot;23,33,43&quot;;
+            case 8: return &quot;31,31,31&quot;;
+            case 9: return &quot;31,31,41&quot;;
+            case 10: return &quot;32,42,32&quot;;
+            case 11: return &quot;32,123,193&quot;;
+            case 12: return &quot;33,31,43&quot;;
+            case 13: return &quot;41,43,23&quot;;
+            case 14: return &quot;42,23,12&quot;;
+            case 15: return &quot;42,172,192&quot;;
+        }
+        break;
+    case 10:
+        switch (nIdx)
+        {
+            case 0: return &quot;42,33,32&quot;;
+            case 1: return &quot;43,42,32&quot;;
+            case 2: return &quot;11,11,11&quot;;
+            case 3: return &quot;11,12,32&quot;;
+            case 4: return &quot;11,24,31&quot;;
+            case 5: return &quot;11,41,31&quot;;
+            case 6: return &quot;12,22,42&quot;;
+            case 7: return &quot;13,11,23&quot;;
+            case 8: return &quot;13,12,31&quot;;
+            case 9: return &quot;13,22,43&quot;;
+            case 10: return &quot;14,14,34&quot;;
+            case 11: return &quot;22,23,43&quot;;
+            case 12: return &quot;24,24,244&quot;;
+            case 13: return &quot;31,31,41&quot;;
+            case 14: return &quot;31,32,43&quot;;
+            case 15: return &quot;32,22,22&quot;;
+        }
+        break;
+    case 12:
+        switch (nIdx)
+        {
+            case 0: return &quot;13,31,31&quot;;
+            case 1: return &quot;23,23,23&quot;;
+            case 2: return &quot;22,33,12&quot;;
+            case 3: return &quot;23,22,11&quot;;
+            case 4: return &quot;33,22,23&quot;;
+            case 5: return &quot;143,144,254&quot;;
+            case 6: return &quot;144,123,161&quot;;
+        }
+        break;
+    case 13:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;22,22,42&quot;;
+            case 2: return &quot;41,31,31&quot;;
+            case 3: return &quot;103,161,241&quot;;
+            case 4: return &quot;113,203,113&quot;;
+            case 5: return &quot;133,184,243&quot;;
+            case 6: return &quot;142,172,142&quot;;
+            case 7: return &quot;144,181,151&quot;;
+            case 8: return &quot;203,204,92&quot;;
+            case 9: return &quot;231,231,233&quot;;
+            case 10: return &quot;22,13,23&quot;;
+            case 11: return &quot;22,22,12&quot;;
+            case 12: return &quot;22,23,22&quot;;
+            case 13: return &quot;22,32,12&quot;;
+            case 14: return &quot;23,23,43&quot;;
+            case 15: return &quot;24,44,34&quot;;
+        }
+        break;
+    case 18:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;41,11,11&quot;;
+            case 2: return &quot;41,41,13&quot;;
+            case 3: return &quot;131,124,191&quot;;
+            case 4: return &quot;253,253,253&quot;;
+            case 5: return &quot;21,21,41&quot;;
+            case 6: return &quot;22,21,32&quot;;
+            case 7: return &quot;22,33,32&quot;;
+            case 8: return &quot;23,13,23&quot;;
+            case 9: return &quot;23,23,33&quot;;
+            case 10: return &quot;23,23,41&quot;;
+            case 11: return &quot;32,32,43&quot;;
+            case 12: return &quot;32,33,31&quot;;
+            case 13: return &quot;33,11,42&quot;;
+            case 14: return &quot;33,31,23&quot;;
+            case 15: return &quot;41,21,21&quot;;
+        }
+        break;
+    case 22:
+        switch (nIdx)
+        {
+            case 0: return &quot;51,51,41&quot;;
+            case 1: return &quot;24,34,44&quot;;
+            case 2: return &quot;63,53,53&quot;;
+            case 3: return &quot;203,203,23&quot;;
+            case 4: return &quot;224,214,214&quot;;
+            case 5: return &quot;224,224,214&quot;;
+            case 6: return &quot;13,22,31&quot;;
+            case 7: return &quot;21,51,34&quot;;
+            case 8: return &quot;22,62,52&quot;;
+            case 9: return &quot;24,204,14&quot;;
+            case 10: return &quot;31,31,51&quot;;
+            case 11: return &quot;31,31,52&quot;;
+            case 12: return &quot;31,32,53&quot;;
+            case 13: return &quot;31,52,11&quot;;
+            case 14: return &quot;33,41,52&quot;;
+            case 15: return &quot;41,22,33&quot;;
+        }
+        break;
+    case 28:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;11,41,11&quot;;
+            case 2: return &quot;254,251,254&quot;;
+            case 3: return &quot;11,33,33&quot;;
+            case 4: return &quot;13,12,13&quot;;
+            case 5: return &quot;23,42,13&quot;;
+            case 6: return &quot;23,42,22&quot;;
+            case 7: return &quot;23,42,23&quot;;
+            case 8: return &quot;31,23,23&quot;;
+            case 9: return &quot;32,23,42&quot;;
+            case 10: return &quot;32,42,32&quot;;
+            case 11: return &quot;42,42,42&quot;;
+            case 12: return &quot;223,223,223&quot;;
+            case 13: return &quot;233,233,233&quot;;
+        }
+        break;
+    case 32:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;11,31,31&quot;;
+            case 2: return &quot;13,13,43&quot;;
+            case 3: return &quot;22,33,42&quot;;
+            case 4: return &quot;33,22,31&quot;;
+            case 5: return &quot;33,33,43&quot;;
+            case 6: return &quot;34,11,44&quot;;
+            case 7: return &quot;43,32,23&quot;;
+        }
+        break;
+    case 33:
+        switch (nIdx)
+        {
+            case 0: return &quot;22,33,33&quot;;
+            case 1: return &quot;11,11,21&quot;;
+            case 2: return &quot;13,13,13&quot;;
+            case 3: return &quot;13,23,33&quot;;
+            case 4: return &quot;13,33,23&quot;;
+            case 5: return &quot;22,13,22&quot;;
+            case 6: return &quot;23,22,21&quot;;
+            case 7: return &quot;33,32,33&quot;;
+            case 8: return &quot;33,33,33&quot;;
+            case 9: return &quot;153,112,131&quot;;
+        }
+        break;
+    case 35:
+        switch (nIdx)
+        {
+            case 0: return &quot;12,12,32&quot;;
+            case 1: return &quot;32,42,22&quot;;
+            case 2: return &quot;41,41,41&quot;;
+            case 3: return &quot;13,12,31&quot;;
+            case 4: return &quot;22,33,32&quot;;
+            case 5: return &quot;31,21,21&quot;;
+            case 6: return &quot;33,33,43&quot;;
+            case 7: return &quot;33,42,23&quot;;
+            case 8: return &quot;42,42,42&quot;;
+            case 9: return &quot;43,33,43&quot;;
+        }
+        break;
+    case 37:
+        switch (nIdx)
+        {
+            case 0: return &quot;13,12,11&quot;;
+            case 1: return &quot;33,42,43&quot;;
+            case 2: return &quot;42,33,22&quot;;
+            case 3: return &quot;43,33,23&quot;;
+            case 4: return &quot;44,44,34&quot;;
+        }
+        break;
+    case 38:
+        switch (nIdx)
+        {
+            case 0: return &quot;32,42,42&quot;;
+            case 1: return &quot;33,32,23&quot;;
+            case 2: return &quot;12,22,42&quot;;
+            case 3: return &quot;13,11,22&quot;;
+            case 4: return &quot;13,21,33&quot;;
+            case 5: return &quot;21,14,41&quot;;
+            case 6: return &quot;21,34,31&quot;;
+            case 7: return &quot;24,43,23&quot;;
+            case 8: return &quot;31,21,41&quot;;
+            case 9: return &quot;32,23,42&quot;;
+            case 10: return &quot;33,23,43&quot;;
+            case 11: return &quot;33,33,33&quot;;
+            case 12: return &quot;41,43,21&quot;;
+            case 13: return &quot;44,24,24&quot;;
+        }
+        break;
+    case 40:
+        switch (nIdx)
+        {
+            case 0: return &quot;14,14,14&quot;;
+            case 1: return &quot;13,13,13&quot;;
+            case 2: return &quot;11,11,11&quot;;
+            case 3: return &quot;11,14,11&quot;;
+            case 4: return &quot;12,13,12&quot;;
+            case 5: return &quot;13,12,13&quot;;
+            case 6: return &quot;13,13,12&quot;;
+            case 7: return &quot;11,14,14&quot;;
+            case 8: return &quot;12,11,13&quot;;
+            case 9: return &quot;12,14,12&quot;;
+            case 10: return &quot;13,11,13&quot;;
+            case 11: return &quot;13,12,11&quot;;
+            case 12: return &quot;14,14,11&quot;;
+        }
+        break;
+    case 41:
+        switch (nIdx)
+        {
+            case 0: return &quot;23,23,32&quot;;
+            case 1: return &quot;11,11,11&quot;;
+            case 2: return &quot;43,23,23&quot;;
+            case 3: return &quot;13,13,13&quot;;
+            case 4: return &quot;22,22,12&quot;;
+            case 5: return &quot;22,22,42&quot;;
+            case 6: return &quot;22,23,42&quot;;
+            case 7: return &quot;22,42,32&quot;;
+            case 8: return &quot;23,23,31&quot;;
+            case 9: return &quot;23,31,32&quot;;
+            case 10: return &quot;23,33,21&quot;;
+            case 11: return &quot;32,43,12&quot;;
+            case 12: return &quot;33,32,33&quot;;
+            case 13: return &quot;33,33,23&quot;;
+            case 14: return &quot;42,24,24&quot;;
+            case 15: return &quot;42,32,12&quot;;
+        }
+        break;
+    case 42:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,14,11&quot;;
+            case 1: return &quot;11,11,11&quot;;
+            case 2: return &quot;13,13,13&quot;;
+            case 3: return &quot;13,12,13&quot;;
+            case 4: return &quot;14,14,14&quot;;
+            case 5: return &quot;12,11,12&quot;;
+            case 6: return &quot;12,12,12&quot;;
+            case 7: return &quot;12,13,12&quot;;
+            case 8: return &quot;13,11,13&quot;;
+            case 9: return &quot;13,12,11&quot;;
+        }
+        break;
+    case 47:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;32,12,32&quot;;
+            case 2: return &quot;13,11,13&quot;;
+            case 3: return &quot;13,13,43&quot;;
+            case 4: return &quot;13,33,13&quot;;
+            case 5: return &quot;21,41,44&quot;;
+            case 6: return &quot;22,33,22&quot;;
+            case 7: return &quot;23,32,31&quot;;
+            case 8: return &quot;23,33,23&quot;;
+            case 9: return &quot;32,42,32&quot;;
+            case 10: return &quot;33,33,43&quot;;
+            case 11: return &quot;33,42,43&quot;;
+            case 12: return &quot;43,43,11&quot;;
+        }
+        break;
+    case 50:
+        switch (nIdx)
+        {
+            case 0: return &quot;233,231,231&quot;;
+            case 1: return &quot;13,33,33&quot;;
+            case 2: return &quot;32,42,23&quot;;
+            case 3: return &quot;1,1,1&quot;;
+            case 4: return &quot;11,22,11&quot;;
+            case 5: return &quot;11,22,23&quot;;
+            case 6: return &quot;12,13,12&quot;;
+            case 7: return &quot;12,22,41&quot;;
+            case 8: return &quot;13,22,13&quot;;
+            case 9: return &quot;13,32,22&quot;;
+            case 10: return &quot;13,32,23&quot;;
+            case 11: return &quot;23,23,23&quot;;
+            case 12: return &quot;33,23,43&quot;;
+            case 13: return &quot;42,32,42&quot;;
+            case 14: return &quot;43,31,23&quot;;
+            case 15: return &quot;43,33,23&quot;;
+        }
+        break;
+    case 51:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;121,234,114&quot;;
+            case 2: return &quot;1,1,1&quot;;
+            case 3: return &quot;13,31,11&quot;;
+            case 4: return &quot;13,33,23&quot;;
+            case 5: return &quot;21,31,31&quot;;
+            case 6: return &quot;22,32,41&quot;;
+            case 7: return &quot;23,31,32&quot;;
+            case 8: return &quot;31,32,32&quot;;
+            case 9: return &quot;33,33,33&quot;;
+            case 10: return &quot;42,32,42&quot;;
+            case 11: return &quot;43,222,113&quot;;
+            case 12: return &quot;123,144,124&quot;;
+            case 13: return &quot;141,0,0&quot;;
+            case 14: return &quot;141,131,111&quot;;
+            case 15: return &quot;141,212,111&quot;;
+        }
+        break;
+    case 53:
+        switch (nIdx)
+        {
+            case 0: return &quot;13,143,143&quot;;
+            case 1: return &quot;143,134,141&quot;;
+            case 2: return &quot;13,12,32&quot;;
+            case 3: return &quot;112,132,122&quot;;
+            case 4: return &quot;112,151,122&quot;;
+            case 5: return &quot;242,251,241&quot;;
+            case 6: return &quot;11,11,11&quot;;
+            case 7: return &quot;21,22,52&quot;;
+            case 8: return &quot;21,32,51&quot;;
+            case 9: return &quot;32,23,22&quot;;
+            case 10: return &quot;33,53,33&quot;;
+            case 11: return &quot;41,31,31&quot;;
+            case 12: return &quot;41,33,31&quot;;
+            case 13: return &quot;41,134,183&quot;;
+            case 14: return &quot;43,23,31&quot;;
+            case 15: return &quot;43,42,43&quot;;
+        }
+        break;
+    case 55:
+        switch (nIdx)
+        {
+            case 0: return &quot;24,34,14&quot;;
+            case 1: return &quot;14,14,14&quot;;
+            case 2: return &quot;34,34,14&quot;;
+            case 3: return &quot;13,12,21&quot;;
+            case 4: return &quot;14,24,11&quot;;
+            case 5: return &quot;14,24,14&quot;;
+            case 6: return &quot;22,13,12&quot;;
+            case 7: return &quot;22,32,22&quot;;
+            case 8: return &quot;22,33,32&quot;;
+            case 9: return &quot;24,14,14&quot;;
+            case 10: return &quot;24,24,11&quot;;
+            case 11: return &quot;31,32,254&quot;;
+            case 12: return &quot;32,32,22&quot;;
+            case 13: return &quot;33,23,23&quot;;
+            case 14: return &quot;33,32,23&quot;;
+            case 15: return &quot;252,254,254&quot;;
+        }
+        break;
+    case 58:
+        switch (nIdx)
+        {
+            case 0: return &quot;32,32,12&quot;;
+            case 1: return &quot;41,41,41&quot;;
+            case 2: return &quot;244,41,251&quot;;
+            case 3: return &quot;11,11,11&quot;;
+            case 4: return &quot;21,41,41&quot;;
+            case 5: return &quot;23,23,31&quot;;
+            case 6: return &quot;31,33,23&quot;;
+            case 7: return &quot;31,33,41&quot;;
+            case 8: return &quot;32,23,32&quot;;
+            case 9: return &quot;41,22,31&quot;;
+            case 10: return &quot;43,23,23&quot;;
+            case 11: return &quot;43,33,13&quot;;
+            case 12: return &quot;43,42,43&quot;;
+            case 13: return &quot;241,11,254&quot;;
+            case 14: return &quot;241,24,251&quot;;
+            case 15: return &quot;241,241,241&quot;;
+        }
+        break;
+    case 60:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;14,14,14&quot;;
+            case 2: return &quot;12,13,12&quot;;
+            case 3: return &quot;13,12,12&quot;;
+            case 4: return &quot;13,12,13&quot;;
+            case 5: return &quot;13,13,13&quot;;
+        }
+        break;
+    case 108:
+        switch (nIdx)
+        {
+            case 0: return &quot;34,52,82&quot;;
+            case 1: return &quot;51,51,81&quot;;
+            case 2: return &quot;52,102,72&quot;;
+            case 3: return &quot;93,102,62&quot;;
+        }
+        break;
+    case 111:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;11,221,11&quot;;
+            case 2: return &quot;11,251,11&quot;;
+        }
+        break;
+    case 300:
+        switch (nIdx)
+        {
+            case 0: return &quot;14,14,14&quot;;
+        }
+        break;
+    case 301:
+        switch (nIdx)
+        {
+            case 0: return &quot;41,11,41&quot;;
+        }
+        break;
+    case 302:
+        switch (nIdx)
+        {
+            case 0: return &quot;24,24,41&quot;;
+        }
+        break;
+    case 303:
+        switch (nIdx)
+        {
+            case 0: return &quot;44,64,41&quot;;
+        }
+        break;
+    case 304:
+        switch (nIdx)
+        {
+            case 0: return &quot;23,22,23&quot;;
+        }
+        break;
+    case 316:
+        switch (nIdx)
+        {
+            case 0: return &quot;111,114,141&quot;;
+        }
+        break;
+    case 318:
+        switch (nIdx)
+        {
+            case 0: return &quot;132,112,112&quot;;
+        }
+        break;
+    case 6:
+        switch (nIdx)
+        {
+            case 0: return &quot;33,32,22&quot;;
+            case 1: return &quot;12,42,32&quot;;
+            case 2: return &quot;32,23,22&quot;;
+            case 3: return &quot;32,32,42&quot;;
+            case 4: return &quot;32,42,32&quot;;
+            case 5: return &quot;41,32,32&quot;;
+            case 6: return &quot;41,33,23&quot;;
+            case 7: return &quot;43,42,43&quot;;
+            case 8: return &quot;44,44,24&quot;;
+            case 9: return &quot;44,44,44&quot;;
+        }
+        break;
+    case 7:
+        switch (nIdx)
+        {
+            case 0: return &quot;12,32,42&quot;;
+            case 1: return &quot;32,32,32&quot;;
+            case 2: return &quot;32,33,32&quot;;
+            case 3: return &quot;34,24,44&quot;;
+            case 4: return &quot;34,34,44&quot;;
+            case 5: return &quot;42,32,42&quot;;
+            case 6: return &quot;43,42,43&quot;;
+        }
+        break;
+    case 8:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;11,13,11&quot;;
+            case 2: return &quot;33,12,21&quot;;
+            case 3: return &quot;42,13,12&quot;;
+            case 4: return &quot;42,42,22&quot;;
+            case 5: return &quot;43,23,22&quot;;
+            case 6: return &quot;51,54,81&quot;;
+            case 7: return &quot;53,111,83&quot;;
+            case 8: return &quot;63,73,53&quot;;
+            case 9: return &quot;11,11,21&quot;;
+            case 10: return &quot;12,33,12&quot;;
+            case 11: return &quot;13,21,21&quot;;
+            case 12: return &quot;13,142,112&quot;;
+            case 13: return &quot;21,21,21&quot;;
+            case 14: return &quot;22,12,33&quot;;
+            case 15: return &quot;22,22,22&quot;;
+        }
+        break;
+    case 11:
+        switch (nIdx)
+        {
+            case 0: return &quot;32,32,32&quot;;
+            case 1: return &quot;11,11,11&quot;;
+            case 2: return &quot;11,33,11&quot;;
+            case 3: return &quot;12,23,22&quot;;
+            case 4: return &quot;12,113,12&quot;;
+            case 5: return &quot;13,12,23&quot;;
+            case 6: return &quot;13,32,13&quot;;
+            case 7: return &quot;21,11,21&quot;;
+            case 8: return &quot;22,32,23&quot;;
+            case 9: return &quot;23,22,33&quot;;
+            case 10: return &quot;23,23,11&quot;;
+            case 11: return &quot;31,21,22&quot;;
+            case 12: return &quot;31,31,21&quot;;
+            case 13: return &quot;31,32,22&quot;;
+            case 14: return &quot;31,154,114&quot;;
+            case 15: return &quot;32,31,12&quot;;
+        }
+        break;
+    case 61:
+        switch (nIdx)
+        {
+            case 0: return &quot;22&quot;;
+            case 1: return &quot;24&quot;;
+            case 2: return &quot;41&quot;;
+        }
+        break;
+    case 16:
+        switch (nIdx)
+        {
+            case 0: return &quot;10,10,15,15,4,4,22,19,15,1,12,12,8,8,11,11,3,3,0&quot;;
+            case 1: return &quot;4,4,15,15,14,14,21,50,0,1,6,6,6,6,7,7,6,6,0&quot;;
+            case 2: return &quot;10,10,16,16,8,8,22,6,15,1,1,1,1,1,0,0,1,1,0&quot;;
+            case 3: return &quot;9,9,16,16,8,8,16,28,15,3,22,22,4,4,25,25,6,6,0&quot;;
+            case 4: return &quot;4,4,9,9,8,8,3,28,11,1,10,10,10,10,16,16,4,4,0&quot;;
+            case 5: return &quot;9,9,16,16,8,8,16,28,15,3,22,22,4,4,24,24,6,6,0&quot;;
+            case 6: return &quot;4,4,8,8,4,4,3,16,14,4,4,4,4,4,25,25,8,8,0&quot;;
+            case 7: return &quot;4,4,15,15,3,3,16,27,14,4,14,14,15,15,6,6,3,3,0&quot;;
+            case 8: return &quot;4,4,8,8,3,3,10,27,11,1,14,14,4,4,7,7,8,8,0&quot;;
+            case 9: return &quot;7,7,4,4,4,4,17,22,15,4,4,4,3,3,9,9,3,3,0&quot;;
+            case 10: return &quot;7,7,4,4,4,4,17,22,15,4,4,4,3,3,12,12,3,3,0&quot;;
+            case 11: return &quot;3,3,4,4,4,4,7,44,7,4,10,10,15,15,9,9,3,3,0&quot;;
+            case 12: return &quot;5,5,12,12,5,5,19,38,10,3,13,13,12,12,5,5,4,4,0&quot;;
+            case 13: return &quot;4,4,15,15,3,3,8,36,0,1,1,1,12,12,3,3,6,6,0&quot;;
+            case 14: return &quot;4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0&quot;;
+            case 15: return &quot;5,5,17,17,12,12,5,26,5,4,23,23,5,5,19,19,7,7,0&quot;;
+            case 16: return &quot;7,7,4,4,16,16,17,31,13,1,1,1,5,5,11,11,1,1,0&quot;;
+            case 17: return &quot;5,5,5,5,6,6,4,32,6,5,5,5,5,5,14,14,4,4,0&quot;;
+            case 18: return &quot;4,4,6,6,9,9,31,48,150,4,18,18,110,110,7,7,154,154,0&quot;;
+            case 19: return &quot;5,5,17,17,6,6,8,30,150,112,5,5,6,6,23,23,4,4,0&quot;;
+            case 20: return &quot;4,4,4,4,15,15,14,30,14,156,5,5,6,6,24,24,152,152,0&quot;;
+            case 21: return &quot;5,5,7,7,11,11,19,33,8,6,7,7,14,14,11,11,5,5,0&quot;;
+            case 22: return &quot;5,5,11,11,5,5,6,51,5,6,20,20,5,5,14,14,4,4,0&quot;;
+            case 23: return &quot;5,5,17,17,5,5,4,52,3,4,21,21,7,7,19,19,4,4,0&quot;;
+            case 24: return &quot;5,5,11,11,9,9,9,14,8,6,20,20,7,7,8,8,5,5,0&quot;;
+            case 25: return &quot;5,5,12,12,10,10,6,21,12,1,15,15,7,7,19,19,5,5,0&quot;;
+            case 26: return &quot;5,5,7,7,13,13,6,23,3,4,18,18,7,7,0,0,4,4,0&quot;;
+        }
+        break;
+    case 14:
+        switch (nIdx)
+        {
+            case 0: return &quot;11&quot;;
+            case 1: return &quot;23&quot;;
+            case 2: return &quot;12&quot;;
+            case 3: return &quot;31&quot;;
+            case 4: return &quot;41&quot;;
+            case 5: return &quot;43&quot;;
+            case 6: return &quot;54&quot;;
+            case 7: return &quot;88&quot;;
+        }
+        break;
+    case 56:
+        switch (nIdx)
+        {
+            case 0: return &quot;23&quot;;
+            case 1: return &quot;134&quot;;
+            case 2: return &quot;32&quot;;
+            case 3: return &quot;41&quot;;
+            case 4: return &quot;42&quot;;
+            case 5: return &quot;57&quot;;
+            case 6: return &quot;58&quot;;
+            case 7: return &quot;106&quot;;
+            case 8: return &quot;118&quot;;
+            case 9: return &quot;11&quot;;
+            case 10: return &quot;12&quot;;
+            case 11: return &quot;21&quot;;
+            case 12: return &quot;33&quot;;
+            case 13: return &quot;43&quot;;
+            case 14: return &quot;53&quot;;
+            case 15: return &quot;54&quot;;
+        }
+        break;
+    case 57:
+        switch (nIdx)
+        {
+            case 0: return &quot;31&quot;;
+            case 1: return &quot;21&quot;;
+            case 2: return &quot;23&quot;;
+            case 3: return &quot;41&quot;;
+            case 4: return &quot;106&quot;;
+            case 5: return &quot;42&quot;;
+            case 6: return &quot;115&quot;;
+            case 7: return &quot;11&quot;;
+            case 8: return &quot;33&quot;;
+            case 9: return &quot;43&quot;;
+            case 10: return &quot;67&quot;;
+            case 11: return &quot;80&quot;;
+            case 12: return &quot;82&quot;;
+            case 13: return &quot;86&quot;;
+            case 14: return &quot;88&quot;;
+            case 15: return &quot;89&quot;;
+        }
+        break;
+    case 19:
+        switch (nIdx)
+        {
+            case 0: return &quot;1&quot;;
+            case 1: return &quot;8&quot;;
+            case 2: return &quot;5&quot;;
+            case 3: return &quot;2&quot;;
+            case 4: return &quot;61&quot;;
+            case 5: return &quot;67&quot;;
+            case 6: return &quot;15&quot;;
+            case 7: return &quot;16&quot;;
+            case 8: return &quot;24&quot;;
+            case 9: return &quot;26&quot;;
+            case 10: return &quot;52&quot;;
+            case 11: return &quot;55&quot;;
+            case 12: return &quot;60&quot;;
+            case 13: return &quot;66&quot;;
+            case 14: return &quot;3&quot;;
+            case 15: return &quot;4&quot;;
+        }
+        break;
+    case 52:
+        switch (nIdx)
+        {
+            case 0: return &quot;1&quot;;
+            case 1: return &quot;12&quot;;
+            case 2: return &quot;116&quot;;
+            case 3: return &quot;121&quot;;
+            case 4: return &quot;14&quot;;
+            case 5: return &quot;22&quot;;
+            case 6: return &quot;32&quot;;
+            case 7: return &quot;33&quot;;
+            case 8: return &quot;123&quot;;
+            case 9: return &quot;128&quot;;
+            case 10: return &quot;4&quot;;
+            case 11: return &quot;23&quot;;
+            case 12: return &quot;29&quot;;
+            case 13: return &quot;120&quot;;
+            case 14: return &quot;8&quot;;
+            case 15: return &quot;9&quot;;
+        }
+        break;
+    case 17:
+        switch (nIdx)
+        {
+            case 0: return &quot;33&quot;;
+            case 1: return &quot;12&quot;;
+            case 2: return &quot;13&quot;;
+            case 3: return &quot;30&quot;;
+            case 4: return &quot;32&quot;;
+            case 5: return &quot;24&quot;;
+            case 6: return &quot;28&quot;;
+            case 7: return &quot;4&quot;;
+            case 8: return &quot;7&quot;;
+            case 9: return &quot;8&quot;;
+            case 10: return &quot;38&quot;;
+            case 11: return &quot;17&quot;;
+            case 12: return &quot;20&quot;;
+            case 13: return &quot;26&quot;;
+            case 14: return &quot;3&quot;;
+            case 15: return &quot;5&quot;;
+        }
+        break;
+    case 21:
+        switch (nIdx)
+        {
+            case 0: return &quot;4&quot;;
+            case 1: return &quot;7&quot;;
+            case 2: return &quot;1&quot;;
+            case 3: return &quot;54&quot;;
+            case 4: return &quot;3&quot;;
+            case 5: return &quot;8&quot;;
+            case 6: return &quot;53&quot;;
+            case 7: return &quot;2&quot;;
+            case 8: return &quot;6&quot;;
+            case 9: return &quot;58&quot;;
+            case 10: return &quot;56&quot;;
+            case 11: return &quot;9&quot;;
+            case 12: return &quot;51&quot;;
+            case 13: return &quot;57&quot;;
+            case 14: return &quot;5&quot;;
+            case 15: return &quot;52&quot;;
+        }
+        break;
+    case 26:
+        switch (nIdx)
+        {
+            case 0: return &quot;11,11,11&quot;;
+            case 1: return &quot;43,22,31&quot;;
+            case 2: return &quot;11,31,31&quot;;
+            case 3: return &quot;11,33,33&quot;;
+            case 4: return &quot;12,32,42&quot;;
+            case 5: return &quot;33,21,31&quot;;
+            case 6: return &quot;42,22,12&quot;;
+            case 7: return &quot;42,44,44&quot;;
+            case 8: return &quot;43,34,34&quot;;
+            case 9: return &quot;11,13,31&quot;;
+            case 10: return &quot;11,22,23&quot;;
+            case 11: return &quot;11,24,44&quot;;
+            case 12: return &quot;11,31,21&quot;;
+            case 13: return &quot;11,33,41&quot;;
+            case 14: return &quot;11,41,23&quot;;
+            case 15: return &quot;11,41,33&quot;;
+        }
+        break;
+    case 36:
+        switch (nIdx)
+        {
+            case 0: return &quot;2&quot;;
+            case 1: return &quot;11&quot;;
+            case 2: return &quot;54&quot;;
+            case 3: return &quot;7&quot;;
+            case 4: return &quot;9&quot;;
+            case 5: return &quot;56&quot;;
+            case 6: return &quot;6&quot;;
+            case 7: return &quot;55&quot;;
+            case 8: return &quot;59&quot;;
+            case 9: return &quot;1&quot;;
+            case 10: return &quot;3&quot;;
+            case 11: return &quot;5&quot;;
+            case 12: return &quot;8&quot;;
+            case 13: return &quot;10&quot;;
+            case 14: return &quot;51&quot;;
+            case 15: return &quot;62&quot;;
+        }
+        break;
+    case 78:
+        switch (nIdx)
+        {
+            case 0: return &quot;6&quot;;
+            case 1: return &quot;58&quot;;
+            case 2: return &quot;59&quot;;
+            case 3: return &quot;60&quot;;
+            case 4: return &quot;3&quot;;
+            case 5: return &quot;5&quot;;
+            case 6: return &quot;9&quot;;
+            case 7: return &quot;12&quot;;
+            case 8: return &quot;51&quot;;
+            case 9: return &quot;52&quot;;
+            case 10: return &quot;56&quot;;
+            case 11: return &quot;1&quot;;
+            case 12: return &quot;2&quot;;
+            case 13: return &quot;4&quot;;
+            case 14: return &quot;7&quot;;
+            case 15: return &quot;10&quot;;
+        }
+        break;
+    case 80:
+        switch (nIdx)
+        {
+            case 0: return &quot;51&quot;;
+            case 1: return &quot;5&quot;;
+            case 2: return &quot;53&quot;;
+            case 3: return &quot;4&quot;;
+            case 4: return &quot;11&quot;;
+            case 5: return &quot;13&quot;;
+            case 6: return &quot;1&quot;;
+            case 7: return &quot;6&quot;;
+            case 8: return &quot;58&quot;;
+            case 9: return &quot;2&quot;;
+            case 10: return &quot;8&quot;;
+            case 11: return &quot;9&quot;;
+            case 12: return &quot;12&quot;;
+            case 13: return &quot;56&quot;;
+            case 14: return &quot;14&quot;;
+            case 15: return &quot;52&quot;;
+        }
+        break;
+    case 45:
+        switch (nIdx)
+        {
+            case 0: return &quot;221,221,221&quot;;
+            case 1: return &quot;32,62,22&quot;;
+            case 2: return &quot;51,61,21&quot;;
+            case 3: return &quot;52,52,62&quot;;
+            case 4: return &quot;63,53,43&quot;;
+            case 5: return &quot;184,184,181&quot;;
+            case 6: return &quot;184,194,181&quot;;
+            case 7: return &quot;232,232,231&quot;;
+            case 8: return &quot;11,11,11&quot;;
+            case 9: return &quot;11,11,51&quot;;
+            case 10: return &quot;12,12,21&quot;;
+            case 11: return &quot;13,43,13&quot;;
+            case 12: return &quot;14,14,234&quot;;
+            case 13: return &quot;21,31,11&quot;;
+            case 14: return &quot;21,31,31&quot;;
+            case 15: return &quot;21,61,61&quot;;
+        }
+        break;
+    }
+    return &quot;&quot;;
+}
+
+string LootD_AffixId(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;enh&quot;;
+        case 1: return &quot;ab&quot;;
+        case 2: return &quot;dmg_acid&quot;;
+        case 3: return &quot;dmg_cold&quot;;
+        case 4: return &quot;dmg_elec&quot;;
+        case 5: return &quot;dmg_fire&quot;;
+        case 6: return &quot;dmg_sonic&quot;;
+        case 7: return &quot;dmg_neg&quot;;
+        case 8: return &quot;keen&quot;;
+        case 9: return &quot;masscrit&quot;;
+        case 10: return &quot;mighty&quot;;
+        case 11: return &quot;vampregen&quot;;
+        case 12: return &quot;ac&quot;;
+        case 13: return &quot;abil_str&quot;;
+        case 14: return &quot;abil_dex&quot;;
+        case 15: return &quot;abil_con&quot;;
+        case 16: return &quot;abil_int&quot;;
+        case 17: return &quot;abil_wis&quot;;
+        case 18: return &quot;abil_cha&quot;;
+        case 19: return &quot;regen&quot;;
+        case 20: return &quot;save_univ&quot;;
+        case 21: return &quot;save_fort&quot;;
+        case 22: return &quot;save_will&quot;;
+        case 23: return &quot;save_ref&quot;;
+        case 24: return &quot;sr&quot;;
+        case 25: return &quot;imm_acid&quot;;
+        case 26: return &quot;imm_cold&quot;;
+        case 27: return &quot;imm_elec&quot;;
+        case 28: return &quot;imm_fire&quot;;
+        case 29: return &quot;imm_sonic&quot;;
+        case 30: return &quot;imm_neg&quot;;
+        case 31: return &quot;res_acid&quot;;
+        case 32: return &quot;res_cold&quot;;
+        case 33: return &quot;res_elec&quot;;
+        case 34: return &quot;res_fire&quot;;
+        case 35: return &quot;res_sonic&quot;;
+        case 36: return &quot;res_neg&quot;;
+        case 37: return &quot;dr&quot;;
+        case 38: return &quot;imm_fear&quot;;
+        case 39: return &quot;imm_disease&quot;;
+        case 40: return &quot;imm_poison&quot;;
+        case 41: return &quot;imm_paralysis&quot;;
+        case 42: return &quot;imm_drain&quot;;
+        case 43: return &quot;imm_mind&quot;;
+        case 44: return &quot;imm_knockdown&quot;;
+        case 45: return &quot;imm_death&quot;;
+        case 46: return &quot;fom&quot;;
+        case 47: return &quot;trueseeing&quot;;
+        case 48: return &quot;darkvision&quot;;
+        case 49: return &quot;evasion&quot;;
+        case 50: return &quot;slot_wiz&quot;;
+        case 51: return &quot;slot_sorc&quot;;
+        case 52: return &quot;slot_cleric&quot;;
+        case 53: return &quot;slot_druid&quot;;
+        case 54: return &quot;asf&quot;;
+        case 55: return &quot;skill_conc&quot;;
+        case 56: return &quot;skill_spellcraft&quot;;
+        case 57: return &quot;skill_disc&quot;;
+        case 58: return &quot;down_ac&quot;;
+        case 59: return &quot;down_str&quot;;
+        case 60: return &quot;down_dex&quot;;
+        case 61: return &quot;down_con&quot;;
+        case 62: return &quot;down_save&quot;;
+        case 63: return &quot;down_vuln_fire&quot;;
+        case 64: return &quot;down_vuln_cold&quot;;
+        case 65: return &quot;down_vuln_elec&quot;;
+        case 66: return &quot;down_vuln_neg&quot;;
+        case 67: return &quot;down_ab&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_AffixType(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 6;
+        case 1: return 56;
+        case 2: return 16;
+        case 3: return 16;
+        case 4: return 16;
+        case 5: return 16;
+        case 6: return 16;
+        case 7: return 16;
+        case 8: return 43;
+        case 9: return 74;
+        case 10: return 45;
+        case 11: return 67;
+        case 12: return 1;
+        case 13: return 0;
+        case 14: return 0;
+        case 15: return 0;
+        case 16: return 0;
+        case 17: return 0;
+        case 18: return 0;
+        case 19: return 51;
+        case 20: return 40;
+        case 21: return 41;
+        case 22: return 41;
+        case 23: return 41;
+        case 24: return 39;
+        case 25: return 20;
+        case 26: return 20;
+        case 27: return 20;
+        case 28: return 20;
+        case 29: return 20;
+        case 30: return 20;
+        case 31: return 23;
+        case 32: return 23;
+        case 33: return 23;
+        case 34: return 23;
+        case 35: return 23;
+        case 36: return 23;
+        case 37: return 22;
+        case 38: return 37;
+        case 39: return 37;
+        case 40: return 37;
+        case 41: return 37;
+        case 42: return 37;
+        case 43: return 37;
+        case 44: return 37;
+        case 45: return 37;
+        case 46: return 75;
+        case 47: return 71;
+        case 48: return 26;
+        case 49: return 38;
+        case 50: return 13;
+        case 51: return 13;
+        case 52: return 13;
+        case 53: return 13;
+        case 54: return 84;
+        case 55: return 52;
+        case 56: return 52;
+        case 57: return 52;
+        case 58: return 28;
+        case 59: return 27;
+        case 60: return 27;
+        case 61: return 27;
+        case 62: return 49;
+        case 63: return 24;
+        case 64: return 24;
+        case 65: return 24;
+        case 66: return 24;
+        case 67: return 60;
+    }
+    return -1;
+}
+
+int LootD_AffixSub(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 6;
+        case 3: return 7;
+        case 4: return 9;
+        case 5: return 10;
+        case 6: return 13;
+        case 7: return 11;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 0;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 1;
+        case 15: return 2;
+        case 16: return 3;
+        case 17: return 4;
+        case 18: return 5;
+        case 19: return 0;
+        case 20: return 0;
+        case 21: return 1;
+        case 22: return 2;
+        case 23: return 3;
+        case 24: return 0;
+        case 25: return 6;
+        case 26: return 7;
+        case 27: return 9;
+        case 28: return 10;
+        case 29: return 13;
+        case 30: return 11;
+        case 31: return 6;
+        case 32: return 7;
+        case 33: return 9;
+        case 34: return 10;
+        case 35: return 13;
+        case 36: return 11;
+        case 37: return 4;
+        case 38: return 5;
+        case 39: return 4;
+        case 40: return 3;
+        case 41: return 7;
+        case 42: return 1;
+        case 43: return 2;
+        case 44: return 6;
+        case 45: return 9;
+        case 46: return 0;
+        case 47: return 0;
+        case 48: return 0;
+        case 49: return 0;
+        case 50: return 10;
+        case 51: return 9;
+        case 52: return 2;
+        case 53: return 3;
+        case 54: return 0;
+        case 55: return 1;
+        case 56: return 16;
+        case 57: return 3;
+        case 58: return 0;
+        case 59: return 0;
+        case 60: return 1;
+        case 61: return 2;
+        case 62: return 0;
+        case 63: return 10;
+        case 64: return 7;
+        case 65: return 9;
+        case 66: return 11;
+        case 67: return 0;
+    }
+    return 0;
+}
+
+int LootD_AffixWeight(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 60;
+        case 1: return 60;
+        case 2: return 14;
+        case 3: return 14;
+        case 4: return 14;
+        case 5: return 14;
+        case 6: return 14;
+        case 7: return 14;
+        case 8: return 12;
+        case 9: return 12;
+        case 10: return 40;
+        case 11: return 10;
+        case 12: return 40;
+        case 13: return 12;
+        case 14: return 12;
+        case 15: return 12;
+        case 16: return 12;
+        case 17: return 12;
+        case 18: return 12;
+        case 19: return 10;
+        case 20: return 20;
+        case 21: return 10;
+        case 22: return 10;
+        case 23: return 10;
+        case 24: return 25;
+        case 25: return 12;
+        case 26: return 12;
+        case 27: return 12;
+        case 28: return 12;
+        case 29: return 12;
+        case 30: return 12;
+        case 31: return 12;
+        case 32: return 12;
+        case 33: return 12;
+        case 34: return 12;
+        case 35: return 12;
+        case 36: return 12;
+        case 37: return 8;
+        case 38: return 6;
+        case 39: return 6;
+        case 40: return 6;
+        case 41: return 6;
+        case 42: return 6;
+        case 43: return 6;
+        case 44: return 6;
+        case 45: return 6;
+        case 46: return 5;
+        case 47: return 2;
+        case 48: return 6;
+        case 49: return 3;
+        case 50: return 8;
+        case 51: return 8;
+        case 52: return 8;
+        case 53: return 8;
+        case 54: return 12;
+        case 55: return 8;
+        case 56: return 8;
+        case 57: return 6;
+        case 58: return 20;
+        case 59: return 8;
+        case 60: return 8;
+        case 61: return 8;
+        case 62: return 10;
+        case 63: return 8;
+        case 64: return 8;
+        case 65: return 8;
+        case 66: return 8;
+        case 67: return 8;
+    }
+    return 0;
+}
+
+int LootD_AffixMinLevel(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 1;
+        case 2: return 1;
+        case 3: return 1;
+        case 4: return 1;
+        case 5: return 1;
+        case 6: return 1;
+        case 7: return 1;
+        case 8: return 10;
+        case 9: return 1;
+        case 10: return 1;
+        case 11: return 5;
+        case 12: return 1;
+        case 13: return 1;
+        case 14: return 1;
+        case 15: return 1;
+        case 16: return 1;
+        case 17: return 1;
+        case 18: return 1;
+        case 19: return 5;
+        case 20: return 1;
+        case 21: return 1;
+        case 22: return 1;
+        case 23: return 1;
+        case 24: return 1;
+        case 25: return 1;
+        case 26: return 1;
+        case 27: return 1;
+        case 28: return 1;
+        case 29: return 1;
+        case 30: return 1;
+        case 31: return 1;
+        case 32: return 1;
+        case 33: return 1;
+        case 34: return 1;
+        case 35: return 1;
+        case 36: return 1;
+        case 37: return 1;
+        case 38: return 1;
+        case 39: return 1;
+        case 40: return 10;
+        case 41: return 20;
+        case 42: return 25;
+        case 43: return 30;
+        case 44: return 35;
+        case 45: return 40;
+        case 46: return 20;
+        case 47: return 45;
+        case 48: return 1;
+        case 49: return 30;
+        case 50: return 1;
+        case 51: return 1;
+        case 52: return 1;
+        case 53: return 1;
+        case 54: return 1;
+        case 55: return 1;
+        case 56: return 1;
+        case 57: return 1;
+        case 58: return 1;
+        case 59: return 1;
+        case 60: return 1;
+        case 61: return 1;
+        case 62: return 1;
+        case 63: return 1;
+        case 64: return 1;
+        case 65: return 1;
+        case 66: return 1;
+        case 67: return 1;
+    }
+    return 1;
+}
+
+int LootD_AffixIsDown(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 0;
+        case 4: return 0;
+        case 5: return 0;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 0;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 0;
+        case 15: return 0;
+        case 16: return 0;
+        case 17: return 0;
+        case 18: return 0;
+        case 19: return 0;
+        case 20: return 0;
+        case 21: return 0;
+        case 22: return 0;
+        case 23: return 0;
+        case 24: return 0;
+        case 25: return 0;
+        case 26: return 0;
+        case 27: return 0;
+        case 28: return 0;
+        case 29: return 0;
+        case 30: return 0;
+        case 31: return 0;
+        case 32: return 0;
+        case 33: return 0;
+        case 34: return 0;
+        case 35: return 0;
+        case 36: return 0;
+        case 37: return 0;
+        case 38: return 0;
+        case 39: return 0;
+        case 40: return 0;
+        case 41: return 0;
+        case 42: return 0;
+        case 43: return 0;
+        case 44: return 0;
+        case 45: return 0;
+        case 46: return 0;
+        case 47: return 0;
+        case 48: return 0;
+        case 49: return 0;
+        case 50: return 0;
+        case 51: return 0;
+        case 52: return 0;
+        case 53: return 0;
+        case 54: return 0;
+        case 55: return 0;
+        case 56: return 0;
+        case 57: return 0;
+        case 58: return 1;
+        case 59: return 1;
+        case 60: return 1;
+        case 61: return 1;
+        case 62: return 1;
+        case 63: return 1;
+        case 64: return 1;
+        case 65: return 1;
+        case 66: return 1;
+        case 67: return 1;
+    }
+    return 0;
+}
+
+string LootD_AffixGroup(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;hit&quot;;
+        case 1: return &quot;hit&quot;;
+        case 2: return &quot;dmg_acid&quot;;
+        case 3: return &quot;dmg_cold&quot;;
+        case 4: return &quot;dmg_elec&quot;;
+        case 5: return &quot;dmg_fire&quot;;
+        case 6: return &quot;dmg_sonic&quot;;
+        case 7: return &quot;dmg_neg&quot;;
+        case 8: return &quot;keen&quot;;
+        case 9: return &quot;masscrit&quot;;
+        case 10: return &quot;mighty&quot;;
+        case 11: return &quot;vampregen&quot;;
+        case 12: return &quot;ac&quot;;
+        case 13: return &quot;abil_str&quot;;
+        case 14: return &quot;abil_dex&quot;;
+        case 15: return &quot;abil_con&quot;;
+        case 16: return &quot;abil_int&quot;;
+        case 17: return &quot;abil_wis&quot;;
+        case 18: return &quot;abil_cha&quot;;
+        case 19: return &quot;regen&quot;;
+        case 20: return &quot;save&quot;;
+        case 21: return &quot;save&quot;;
+        case 22: return &quot;save&quot;;
+        case 23: return &quot;save&quot;;
+        case 24: return &quot;sr&quot;;
+        case 25: return &quot;imm_acid&quot;;
+        case 26: return &quot;imm_cold&quot;;
+        case 27: return &quot;imm_elec&quot;;
+        case 28: return &quot;imm_fire&quot;;
+        case 29: return &quot;imm_sonic&quot;;
+        case 30: return &quot;imm_neg&quot;;
+        case 31: return &quot;res_acid&quot;;
+        case 32: return &quot;res_cold&quot;;
+        case 33: return &quot;res_elec&quot;;
+        case 34: return &quot;res_fire&quot;;
+        case 35: return &quot;res_sonic&quot;;
+        case 36: return &quot;res_neg&quot;;
+        case 37: return &quot;dr&quot;;
+        case 38: return &quot;imm_fear&quot;;
+        case 39: return &quot;imm_disease&quot;;
+        case 40: return &quot;imm_poison&quot;;
+        case 41: return &quot;imm_paralysis&quot;;
+        case 42: return &quot;imm_drain&quot;;
+        case 43: return &quot;imm_mind&quot;;
+        case 44: return &quot;imm_knockdown&quot;;
+        case 45: return &quot;imm_death&quot;;
+        case 46: return &quot;fom&quot;;
+        case 47: return &quot;trueseeing&quot;;
+        case 48: return &quot;darkvision&quot;;
+        case 49: return &quot;evasion&quot;;
+        case 50: return &quot;slot_wiz&quot;;
+        case 51: return &quot;slot_sorc&quot;;
+        case 52: return &quot;slot_cleric&quot;;
+        case 53: return &quot;slot_druid&quot;;
+        case 54: return &quot;asf&quot;;
+        case 55: return &quot;skill_conc&quot;;
+        case 56: return &quot;skill_spellcraft&quot;;
+        case 57: return &quot;skill_disc&quot;;
+        case 58: return &quot;down_ac&quot;;
+        case 59: return &quot;down_abil&quot;;
+        case 60: return &quot;down_abil&quot;;
+        case 61: return &quot;down_abil&quot;;
+        case 62: return &quot;down_save&quot;;
+        case 63: return &quot;down_vuln&quot;;
+        case 64: return &quot;down_vuln&quot;;
+        case 65: return &quot;down_vuln&quot;;
+        case 66: return &quot;down_vuln&quot;;
+        case 67: return &quot;down_ab&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string LootD_AffixCats(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;|melee|caster|&quot;;
+        case 1: return &quot;|ranged|caster|&quot;;
+        case 2: return &quot;|melee|&quot;;
+        case 3: return &quot;|melee|&quot;;
+        case 4: return &quot;|melee|&quot;;
+        case 5: return &quot;|melee|&quot;;
+        case 6: return &quot;|melee|&quot;;
+        case 7: return &quot;|melee|&quot;;
+        case 8: return &quot;|melee|&quot;;
+        case 9: return &quot;|melee|ranged|&quot;;
+        case 10: return &quot;|ranged|&quot;;
+        case 11: return &quot;|melee|&quot;;
+        case 12: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 13: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 14: return &quot;|armor|shield|jewelry|wearable|ranged|&quot;;
+        case 15: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 16: return &quot;|armor|shield|jewelry|wearable|caster|&quot;;
+        case 17: return &quot;|armor|shield|jewelry|wearable|caster|&quot;;
+        case 18: return &quot;|armor|shield|jewelry|wearable|caster|&quot;;
+        case 19: return &quot;|armor|shield|jewelry|wearable|ranged|&quot;;
+        case 20: return &quot;|armor|shield|jewelry|wearable|caster|ranged|&quot;;
+        case 21: return &quot;|armor|shield|jewelry|wearable|caster|ranged|&quot;;
+        case 22: return &quot;|armor|shield|jewelry|wearable|caster|ranged|&quot;;
+        case 23: return &quot;|armor|shield|jewelry|wearable|caster|ranged|&quot;;
+        case 24: return &quot;|armor|shield|jewelry|wearable|caster|&quot;;
+        case 25: return &quot;|jewelry|armor|shield|wearable|&quot;;
+        case 26: return &quot;|jewelry|armor|shield|wearable|&quot;;
+        case 27: return &quot;|jewelry|armor|shield|wearable|&quot;;
+        case 28: return &quot;|jewelry|armor|shield|wearable|&quot;;
+        case 29: return &quot;|jewelry|armor|shield|wearable|&quot;;
+        case 30: return &quot;|jewelry|armor|shield|wearable|&quot;;
+        case 31: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 32: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 33: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 34: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 35: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 36: return &quot;|armor|shield|jewelry|wearable|&quot;;
+        case 37: return &quot;|armor|shield|&quot;;
+        case 38: return &quot;|jewelry|armor|wearable|&quot;;
+        case 39: return &quot;|jewelry|armor|wearable|&quot;;
+        case 40: return &quot;|jewelry|armor|wearable|&quot;;
+        case 41: return &quot;|jewelry|armor|wearable|&quot;;
+        case 42: return &quot;|jewelry|armor|wearable|&quot;;
+        case 43: return &quot;|jewelry|armor|wearable|&quot;;
+        case 44: return &quot;|jewelry|armor|wearable|&quot;;
+        case 45: return &quot;|jewelry|armor|wearable|&quot;;
+        case 46: return &quot;|wearable|armor|jewelry|&quot;;
+        case 47: return &quot;|wearable|jewelry|&quot;;
+        case 48: return &quot;|wearable|jewelry|&quot;;
+        case 49: return &quot;|armor|wearable|jewelry|&quot;;
+        case 50: return &quot;|caster|jewelry|&quot;;
+        case 51: return &quot;|caster|jewelry|&quot;;
+        case 52: return &quot;|caster|jewelry|&quot;;
+        case 53: return &quot;|caster|jewelry|&quot;;
+        case 54: return &quot;|caster|armor|shield|&quot;;
+        case 55: return &quot;|caster|jewelry|wearable|&quot;;
+        case 56: return &quot;|caster|jewelry|wearable|&quot;;
+        case 57: return &quot;|armor|shield|wearable|&quot;;
+        case 58: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 59: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 60: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 61: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 62: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 63: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 64: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 65: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 66: return &quot;|melee|ranged|armor|shield|jewelry|wearable|caster|&quot;;
+        case 67: return &quot;|melee|ranged|&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string LootD_AffixPrefix(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;Honed&quot;;
+        case 1: return &quot;Precise&quot;;
+        case 2: return &quot;Corroding&quot;;
+        case 3: return &quot;Frostbitten&quot;;
+        case 4: return &quot;Shocking&quot;;
+        case 5: return &quot;Burning&quot;;
+        case 6: return &quot;Resonant&quot;;
+        case 7: return &quot;Shadowed&quot;;
+        case 8: return &quot;Keen&quot;;
+        case 9: return &quot;Brutal&quot;;
+        case 10: return &quot;Mighty&quot;;
+        case 11: return &quot;Thirsting&quot;;
+        case 12: return &quot;Warded&quot;;
+        case 13: return &quot;Strong&quot;;
+        case 14: return &quot;Nimble&quot;;
+        case 15: return &quot;Hardy&quot;;
+        case 16: return &quot;Learned&quot;;
+        case 17: return &quot;Wise&quot;;
+        case 18: return &quot;Noble&quot;;
+        case 19: return &quot;Mending&quot;;
+        case 20: return &quot;Steadfast&quot;;
+        case 21: return &quot;Hale&quot;;
+        case 22: return &quot;Iron-willed&quot;;
+        case 23: return &quot;Quick&quot;;
+        case 24: return &quot;Spellwarded&quot;;
+        case 25: return &quot;Unetched&quot;;
+        case 26: return &quot;Hearth-warm&quot;;
+        case 27: return &quot;Grounded&quot;;
+        case 28: return &quot;Flame-warded&quot;;
+        case 29: return &quot;Muffled&quot;;
+        case 30: return &quot;Hallowed&quot;;
+        case 31: return &quot;Acid-proof&quot;;
+        case 32: return &quot;Frost-proof&quot;;
+        case 33: return &quot;Storm-proof&quot;;
+        case 34: return &quot;Fire-proof&quot;;
+        case 35: return &quot;Deafened&quot;;
+        case 36: return &quot;Life-bound&quot;;
+        case 37: return &quot;Adamant&quot;;
+        case 38: return &quot;Fearless&quot;;
+        case 39: return &quot;Untainted&quot;;
+        case 40: return &quot;Venom-proof&quot;;
+        case 41: return &quot;Unstilled&quot;;
+        case 42: return &quot;Unwithering&quot;;
+        case 43: return &quot;Clear-minded&quot;;
+        case 44: return &quot;Sure-footed&quot;;
+        case 45: return &quot;Deathless&quot;;
+        case 46: return &quot;Unhindered&quot;;
+        case 47: return &quot;All-seeing&quot;;
+        case 48: return &quot;Night-eyed&quot;;
+        case 49: return &quot;Elusive&quot;;
+        case 50: return &quot;Arcane&quot;;
+        case 51: return &quot;Sorcerous&quot;;
+        case 52: return &quot;Blessed&quot;;
+        case 53: return &quot;Verdant&quot;;
+        case 54: return &quot;Supple&quot;;
+        case 55: return &quot;Focused&quot;;
+        case 56: return &quot;Erudite&quot;;
+        case 57: return &quot;Disciplined&quot;;
+        case 58: return &quot;&quot;;
+        case 59: return &quot;&quot;;
+        case 60: return &quot;&quot;;
+        case 61: return &quot;&quot;;
+        case 62: return &quot;&quot;;
+        case 63: return &quot;&quot;;
+        case 64: return &quot;&quot;;
+        case 65: return &quot;&quot;;
+        case 66: return &quot;&quot;;
+        case 67: return &quot;&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string LootD_AffixSuffix(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;Sharpness&quot;;
+        case 1: return &quot;Accuracy&quot;;
+        case 2: return &quot;Acid&quot;;
+        case 3: return &quot;Frost&quot;;
+        case 4: return &quot;Lightning&quot;;
+        case 5: return &quot;Flame&quot;;
+        case 6: return &quot;Thunder&quot;;
+        case 7: return &quot;Shadow&quot;;
+        case 8: return &quot;Keenness&quot;;
+        case 9: return &quot;Ruin&quot;;
+        case 10: return &quot;Might&quot;;
+        case 11: return &quot;the Leech&quot;;
+        case 12: return &quot;Warding&quot;;
+        case 13: return &quot;Strength&quot;;
+        case 14: return &quot;Grace&quot;;
+        case 15: return &quot;Endurance&quot;;
+        case 16: return &quot;Lore&quot;;
+        case 17: return &quot;Insight&quot;;
+        case 18: return &quot;Command&quot;;
+        case 19: return &quot;Renewal&quot;;
+        case 20: return &quot;Resolve&quot;;
+        case 21: return &quot;Fortitude&quot;;
+        case 22: return &quot;Will&quot;;
+        case 23: return &quot;Reflexes&quot;;
+        case 24: return &quot;Spell Warding&quot;;
+        case 25: return &quot;the Alchemist&quot;;
+        case 26: return &quot;the Hearth&quot;;
+        case 27: return &quot;the Lightning-rod&quot;;
+        case 28: return &quot;the Salamander&quot;;
+        case 29: return &quot;Silence&quot;;
+        case 30: return &quot;the Living&quot;;
+        case 31: return &quot;Acid Ward&quot;;
+        case 32: return &quot;Frost Ward&quot;;
+        case 33: return &quot;Storm Ward&quot;;
+        case 34: return &quot;Fire Ward&quot;;
+        case 35: return &quot;Sound Ward&quot;;
+        case 36: return &quot;Death Ward&quot;;
+        case 37: return &quot;the Bulwark&quot;;
+        case 38: return &quot;Courage&quot;;
+        case 39: return &quot;Purity&quot;;
+        case 40: return &quot;the Viper&quot;;
+        case 41: return &quot;Motion&quot;;
+        case 42: return &quot;Vigor&quot;;
+        case 43: return &quot;Clarity&quot;;
+        case 44: return &quot;Footing&quot;;
+        case 45: return &quot;Life&quot;;
+        case 46: return &quot;Freedom&quot;;
+        case 47: return &quot;True Sight&quot;;
+        case 48: return &quot;the Owl&quot;;
+        case 49: return &quot;Evasion&quot;;
+        case 50: return &quot;the Magus&quot;;
+        case 51: return &quot;the Bloodline&quot;;
+        case 52: return &quot;Devotion&quot;;
+        case 53: return &quot;the Grove&quot;;
+        case 54: return &quot;Ease&quot;;
+        case 55: return &quot;Focus&quot;;
+        case 56: return &quot;Spellcraft&quot;;
+        case 57: return &quot;Discipline&quot;;
+        case 58: return &quot;&quot;;
+        case 59: return &quot;&quot;;
+        case 60: return &quot;&quot;;
+        case 61: return &quot;&quot;;
+        case 62: return &quot;&quot;;
+        case 63: return &quot;&quot;;
+        case 64: return &quot;&quot;;
+        case 65: return &quot;&quot;;
+        case 66: return &quot;&quot;;
+        case 67: return &quot;&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_AffixLadderLen(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 20;
+        case 1: return 20;
+        case 2: return 12;
+        case 3: return 12;
+        case 4: return 12;
+        case 5: return 12;
+        case 6: return 12;
+        case 7: return 12;
+        case 8: return 1;
+        case 9: return 12;
+        case 10: return 20;
+        case 11: return 20;
+        case 12: return 20;
+        case 13: return 12;
+        case 14: return 12;
+        case 15: return 12;
+        case 16: return 12;
+        case 17: return 12;
+        case 18: return 12;
+        case 19: return 20;
+        case 20: return 20;
+        case 21: return 20;
+        case 22: return 20;
+        case 23: return 20;
+        case 24: return 46;
+        case 25: return 10;
+        case 26: return 10;
+        case 27: return 10;
+        case 28: return 10;
+        case 29: return 10;
+        case 30: return 10;
+        case 31: return 20;
+        case 32: return 20;
+        case 33: return 20;
+        case 34: return 20;
+        case 35: return 20;
+        case 36: return 20;
+        case 37: return 10;
+        case 38: return 1;
+        case 39: return 1;
+        case 40: return 1;
+        case 41: return 1;
+        case 42: return 1;
+        case 43: return 1;
+        case 44: return 1;
+        case 45: return 1;
+        case 46: return 1;
+        case 47: return 1;
+        case 48: return 1;
+        case 49: return 1;
+        case 50: return 10;
+        case 51: return 10;
+        case 52: return 10;
+        case 53: return 10;
+        case 54: return 10;
+        case 55: return 50;
+        case 56: return 50;
+        case 57: return 50;
+        case 58: return 5;
+        case 59: return 10;
+        case 60: return 10;
+        case 61: return 10;
+        case 62: return 5;
+        case 63: return 3;
+        case 64: return 3;
+        case 65: return 3;
+        case 66: return 3;
+        case 67: return 5;
+    }
+    return 0;
+}
+
+// Cost-table row at ladder step nStep of affix nAffix (steps ascend in power).
+int LootD_AffixLadder(int nAffix, int nStep)
+{
+    switch (nAffix)
+    {
+    case 0:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 1:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 2:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 7;
+            case 6: return 8;
+            case 7: return 9;
+            case 8: return 10;
+            case 9: return 11;
+            case 10: return 13;
+            case 11: return 15;
+        }
+        break;
+    case 3:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 7;
+            case 6: return 8;
+            case 7: return 9;
+            case 8: return 10;
+            case 9: return 11;
+            case 10: return 13;
+            case 11: return 15;
+        }
+        break;
+    case 4:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 7;
+            case 6: return 8;
+            case 7: return 9;
+            case 8: return 10;
+            case 9: return 11;
+            case 10: return 13;
+            case 11: return 15;
+        }
+        break;
+    case 5:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 7;
+            case 6: return 8;
+            case 7: return 9;
+            case 8: return 10;
+            case 9: return 11;
+            case 10: return 13;
+            case 11: return 15;
+        }
+        break;
+    case 6:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 7;
+            case 6: return 8;
+            case 7: return 9;
+            case 8: return 10;
+            case 9: return 11;
+            case 10: return 13;
+            case 11: return 15;
+        }
+        break;
+    case 7:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 7;
+            case 6: return 8;
+            case 7: return 9;
+            case 8: return 10;
+            case 9: return 11;
+            case 10: return 13;
+            case 11: return 15;
+        }
+        break;
+    case 8: return 0;
+    case 9:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 7;
+            case 6: return 8;
+            case 7: return 9;
+            case 8: return 10;
+            case 9: return 11;
+            case 10: return 13;
+            case 11: return 15;
+        }
+        break;
+    case 10:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 11:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 12:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 13:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+        }
+        break;
+    case 14:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+        }
+        break;
+    case 15:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+        }
+        break;
+    case 16:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+        }
+        break;
+    case 17:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+        }
+        break;
+    case 18:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+        }
+        break;
+    case 19:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 20:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 21:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 22:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 23:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 24:
+        switch (nStep)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+            case 10: return 10;
+            case 11: return 11;
+            case 12: return 12;
+            case 13: return 13;
+            case 14: return 14;
+            case 15: return 15;
+            case 16: return 16;
+            case 17: return 17;
+            case 18: return 18;
+            case 19: return 19;
+            case 20: return 20;
+            case 21: return 21;
+            case 22: return 22;
+            case 23: return 23;
+            case 24: return 24;
+            case 25: return 25;
+            case 26: return 26;
+            case 27: return 27;
+            case 28: return 28;
+            case 29: return 29;
+            case 30: return 30;
+            case 31: return 31;
+            case 32: return 32;
+            case 33: return 33;
+            case 34: return 34;
+            case 35: return 35;
+            case 36: return 36;
+            case 37: return 37;
+            case 38: return 38;
+            case 39: return 39;
+            case 40: return 40;
+            case 41: return 41;
+            case 42: return 42;
+            case 43: return 43;
+            case 44: return 44;
+            case 45: return 45;
+        }
+        break;
+    case 25:
+        switch (nStep)
+        {
+            case 0: return 55;
+            case 1: return 60;
+            case 2: return 65;
+            case 3: return 70;
+            case 4: return 75;
+            case 5: return 80;
+            case 6: return 85;
+            case 7: return 90;
+            case 8: return 95;
+            case 9: return 100;
+        }
+        break;
+    case 26:
+        switch (nStep)
+        {
+            case 0: return 55;
+            case 1: return 60;
+            case 2: return 65;
+            case 3: return 70;
+            case 4: return 75;
+            case 5: return 80;
+            case 6: return 85;
+            case 7: return 90;
+            case 8: return 95;
+            case 9: return 100;
+        }
+        break;
+    case 27:
+        switch (nStep)
+        {
+            case 0: return 55;
+            case 1: return 60;
+            case 2: return 65;
+            case 3: return 70;
+            case 4: return 75;
+            case 5: return 80;
+            case 6: return 85;
+            case 7: return 90;
+            case 8: return 95;
+            case 9: return 100;
+        }
+        break;
+    case 28:
+        switch (nStep)
+        {
+            case 0: return 55;
+            case 1: return 60;
+            case 2: return 65;
+            case 3: return 70;
+            case 4: return 75;
+            case 5: return 80;
+            case 6: return 85;
+            case 7: return 90;
+            case 8: return 95;
+            case 9: return 100;
+        }
+        break;
+    case 29:
+        switch (nStep)
+        {
+            case 0: return 55;
+            case 1: return 60;
+            case 2: return 65;
+            case 3: return 70;
+            case 4: return 75;
+            case 5: return 80;
+            case 6: return 85;
+            case 7: return 90;
+            case 8: return 95;
+            case 9: return 100;
+        }
+        break;
+    case 30:
+        switch (nStep)
+        {
+            case 0: return 55;
+            case 1: return 60;
+            case 2: return 65;
+            case 3: return 70;
+            case 4: return 75;
+            case 5: return 80;
+            case 6: return 85;
+            case 7: return 90;
+            case 8: return 95;
+            case 9: return 100;
+        }
+        break;
+    case 31:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 32:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 33:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 34:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 35:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 36:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+        }
+        break;
+    case 37:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+        }
+        break;
+    case 38: return 0;
+    case 39: return 0;
+    case 40: return 0;
+    case 41: return 0;
+    case 42: return 0;
+    case 43: return 0;
+    case 44: return 0;
+    case 45: return 0;
+    case 46: return 0;
+    case 47: return 0;
+    case 48: return 0;
+    case 49: return 0;
+    case 50:
+        switch (nStep)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 51:
+        switch (nStep)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 52:
+        switch (nStep)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 53:
+        switch (nStep)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 54:
+        switch (nStep)
+        {
+            case 0: return 9;
+            case 1: return 8;
+            case 2: return 7;
+            case 3: return 6;
+            case 4: return 5;
+            case 5: return 4;
+            case 6: return 3;
+            case 7: return 2;
+            case 8: return 1;
+            case 9: return 0;
+        }
+        break;
+    case 55:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+            case 20: return 21;
+            case 21: return 22;
+            case 22: return 23;
+            case 23: return 24;
+            case 24: return 25;
+            case 25: return 26;
+            case 26: return 27;
+            case 27: return 28;
+            case 28: return 29;
+            case 29: return 30;
+            case 30: return 31;
+            case 31: return 32;
+            case 32: return 33;
+            case 33: return 34;
+            case 34: return 35;
+            case 35: return 36;
+            case 36: return 37;
+            case 37: return 38;
+            case 38: return 39;
+            case 39: return 40;
+            case 40: return 41;
+            case 41: return 42;
+            case 42: return 43;
+            case 43: return 44;
+            case 44: return 45;
+            case 45: return 46;
+            case 46: return 47;
+            case 47: return 48;
+            case 48: return 49;
+            case 49: return 50;
+        }
+        break;
+    case 56:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+            case 20: return 21;
+            case 21: return 22;
+            case 22: return 23;
+            case 23: return 24;
+            case 24: return 25;
+            case 25: return 26;
+            case 26: return 27;
+            case 27: return 28;
+            case 28: return 29;
+            case 29: return 30;
+            case 30: return 31;
+            case 31: return 32;
+            case 32: return 33;
+            case 33: return 34;
+            case 34: return 35;
+            case 35: return 36;
+            case 36: return 37;
+            case 37: return 38;
+            case 38: return 39;
+            case 39: return 40;
+            case 40: return 41;
+            case 41: return 42;
+            case 42: return 43;
+            case 43: return 44;
+            case 44: return 45;
+            case 45: return 46;
+            case 46: return 47;
+            case 47: return 48;
+            case 48: return 49;
+            case 49: return 50;
+        }
+        break;
+    case 57:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+            case 10: return 11;
+            case 11: return 12;
+            case 12: return 13;
+            case 13: return 14;
+            case 14: return 15;
+            case 15: return 16;
+            case 16: return 17;
+            case 17: return 18;
+            case 18: return 19;
+            case 19: return 20;
+            case 20: return 21;
+            case 21: return 22;
+            case 22: return 23;
+            case 23: return 24;
+            case 24: return 25;
+            case 25: return 26;
+            case 26: return 27;
+            case 27: return 28;
+            case 28: return 29;
+            case 29: return 30;
+            case 30: return 31;
+            case 31: return 32;
+            case 32: return 33;
+            case 33: return 34;
+            case 34: return 35;
+            case 35: return 36;
+            case 36: return 37;
+            case 37: return 38;
+            case 38: return 39;
+            case 39: return 40;
+            case 40: return 41;
+            case 41: return 42;
+            case 42: return 43;
+            case 43: return 44;
+            case 44: return 45;
+            case 45: return 46;
+            case 46: return 47;
+            case 47: return 48;
+            case 48: return 49;
+            case 49: return 50;
+        }
+        break;
+    case 58:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+        }
+        break;
+    case 59:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+        }
+        break;
+    case 60:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+        }
+        break;
+    case 61:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 8;
+            case 8: return 9;
+            case 9: return 10;
+        }
+        break;
+    case 62:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+        }
+        break;
+    case 63:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+        }
+        break;
+    case 64:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+        }
+        break;
+    case 65:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+        }
+        break;
+    case 66:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+        }
+        break;
+    case 67:
+        switch (nStep)
+        {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 5;
+        }
+        break;
+    }
+    return 0;
+}
+
+// Lowest ladder step of affix nAffix at loot level nLvl.
+int LootD_AffixLo(int nAffix, int nLvl)
+{
+    switch (nAffix)
+    {
+    case 0:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 1:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 2:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 3:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 4:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 5:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 6:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 7:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 8: return 0;
+    case 9:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 10:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 11:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 12:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (4 * (nLvl - 1)) / 59;
+        return 4;
+    case 13:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 14:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 15:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 16:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 17:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 18:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 19:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 20:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 21:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (4 * (nLvl - 1)) / 59;
+        return 4;
+    case 22:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (4 * (nLvl - 1)) / 59;
+        return 4;
+    case 23:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (4 * (nLvl - 1)) / 59;
+        return 4;
+    case 24:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 25:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 26:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 27:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 28:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 29:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 30:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 31:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 32:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 33:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 34:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 35:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 36:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 37:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 38: return 0;
+    case 39: return 0;
+    case 40: return 0;
+    case 41: return 0;
+    case 42: return 0;
+    case 43: return 0;
+    case 44: return 0;
+    case 45: return 0;
+    case 46: return 0;
+    case 47: return 0;
+    case 48: return 0;
+    case 49: return 0;
+    case 50:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 51:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 52:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 53:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 54:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (4 * (nLvl - 1)) / 59;
+        return 4;
+    case 55:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 56:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 57:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 58:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 59:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 60:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 61:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 62:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 63:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 64:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 65:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 66:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 67:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    }
+    return 0;
+}
+
+// Highest ladder step of affix nAffix at loot level nLvl.
+int LootD_AffixHi(int nAffix, int nLvl)
+{
+    switch (nAffix)
+    {
+    case 0:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 1:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 2:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
+    case 3:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
+    case 4:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
+    case 5:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
+    case 6:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
+    case 7:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
+    case 8: return 0;
+    case 9:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (9 * (nLvl - 1)) / 59;
+        return 10;
+    case 10:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 11:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 12:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (6 * (nLvl - 1)) / 59;
+        return 7;
+    case 13:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 14:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 15:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 16:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 17:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 18:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 19:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 20:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 21:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (7 * (nLvl - 1)) / 59;
+        return 8;
+    case 22:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (7 * (nLvl - 1)) / 59;
+        return 8;
+    case 23:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (7 * (nLvl - 1)) / 59;
+        return 8;
+    case 24:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (15 * (nLvl - 1)) / 59;
+        return 16;
+    case 25:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 26:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 27:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 28:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 29:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 30:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 31:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 32:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 33:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 34:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 35:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 36:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
+    case 37:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (4 * (nLvl - 1)) / 59;
+        return 4;
+    case 38: return 0;
+    case 39: return 0;
+    case 40: return 0;
+    case 41: return 0;
+    case 42: return 0;
+    case 43: return 0;
+    case 44: return 0;
+    case 45: return 0;
+    case 46: return 0;
+    case 47: return 0;
+    case 48: return 0;
+    case 49: return 0;
+    case 50:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 51:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 52:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 53:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 54:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
+    case 55:
+        if (nLvl &lt;= 1) return 2;
+        if (nLvl &lt;= 60) return 2 + (17 * (nLvl - 1)) / 59;
+        return 19;
+    case 56:
+        if (nLvl &lt;= 1) return 2;
+        if (nLvl &lt;= 60) return 2 + (17 * (nLvl - 1)) / 59;
+        return 19;
+    case 57:
+        if (nLvl &lt;= 1) return 2;
+        if (nLvl &lt;= 60) return 2 + (17 * (nLvl - 1)) / 59;
+        return 19;
+    case 58:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (3 * (nLvl - 1)) / 59;
+        return 4;
+    case 59:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (3 * (nLvl - 1)) / 59;
+        return 4;
+    case 60:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (3 * (nLvl - 1)) / 59;
+        return 4;
+    case 61:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (3 * (nLvl - 1)) / 59;
+        return 4;
+    case 62:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (3 * (nLvl - 1)) / 59;
+        return 4;
+    case 63:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 64:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 65:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 66:
+        if (nLvl &lt;= 1) return 0;
+        if (nLvl &lt;= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 67:
+        if (nLvl &lt;= 1) return 1;
+        if (nLvl &lt;= 60) return 1 + (3 * (nLvl - 1)) / 59;
+        return 4;
+    }
+    return 0;
+}
+
+string LootD_NamedResRef(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;jubmaghica&quot;;
+        case 1: return &quot;warhammerofthest&quot;;
+        case 2: return &quot;glamhring&quot;;
+        case 3: return &quot;item066&quot;;
+        case 4: return &quot;swordoftheshield&quot;;
+        case 5: return &quot;item086&quot;;
+        case 6: return &quot;frostbite&quot;;
+        case 7: return &quot;item080&quot;;
+        case 8: return &quot;item048&quot;;
+        case 9: return &quot;wswmls007&quot;;
+        case 10: return &quot;item055&quot;;
+        case 11: return &quot;celestialfury&quot;;
+        case 12: return &quot;it_crewbs003&quot;;
+        case 13: return &quot;olorinsgift&quot;;
+        case 14: return &quot;scimitaroflothor&quot;;
+        case 15: return &quot;lesserrobe3or004&quot;;
+        case 16: return &quot;steelofthemaiden&quot;;
+        case 17: return &quot;meshoferynlasgal&quot;;
+        case 18: return &quot;maarcl024&quot;;
+        case 19: return &quot;item043&quot;;
+        case 20: return &quot;shieldofthero002&quot;;
+        case 21: return &quot;shieldmaiden&quot;;
+        case 22: return &quot;basilisktail006&quot;;
+        case 23: return &quot;furyofthevala002&quot;;
+        case 24: return &quot;bootsofthemighty&quot;;
+        case 25: return &quot;item035&quot;;
+        case 26: return &quot;136&quot;;
+        case 27: return &quot;101&quot;;
+        case 28: return &quot;jewelofthevalar&quot;;
+        case 29: return &quot;amuletofpower&quot;;
+        case 30: return &quot;staffoftheorcsha&quot;;
+        case 31: return &quot;item053&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_NamedMin(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 48;
+        case 1: return 48;
+        case 2: return 55;
+        case 3: return 48;
+        case 4: return 48;
+        case 5: return 48;
+        case 6: return 40;
+        case 7: return 48;
+        case 8: return 48;
+        case 9: return 48;
+        case 10: return 48;
+        case 11: return 48;
+        case 12: return 48;
+        case 13: return 48;
+        case 14: return 40;
+        case 15: return 55;
+        case 16: return 48;
+        case 17: return 48;
+        case 18: return 48;
+        case 19: return 48;
+        case 20: return 48;
+        case 21: return 48;
+        case 22: return 48;
+        case 23: return 48;
+        case 24: return 55;
+        case 25: return 48;
+        case 26: return 48;
+        case 27: return 55;
+        case 28: return 48;
+        case 29: return 55;
+        case 30: return 48;
+        case 31: return 55;
+    }
+    return 99;
+}
+
+int LootD_NamedMax(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 60;
+        case 1: return 60;
+        case 2: return 60;
+        case 3: return 60;
+        case 4: return 60;
+        case 5: return 60;
+        case 6: return 60;
+        case 7: return 60;
+        case 8: return 60;
+        case 9: return 60;
+        case 10: return 60;
+        case 11: return 60;
+        case 12: return 60;
+        case 13: return 60;
+        case 14: return 60;
+        case 15: return 60;
+        case 16: return 60;
+        case 17: return 60;
+        case 18: return 60;
+        case 19: return 60;
+        case 20: return 60;
+        case 21: return 60;
+        case 22: return 60;
+        case 23: return 60;
+        case 24: return 60;
+        case 25: return 60;
+        case 26: return 60;
+        case 27: return 60;
+        case 28: return 60;
+        case 29: return 60;
+        case 30: return 60;
+        case 31: return 60;
+    }
+    return 0;
+}
+
+int LootD_NamedWeight(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 1;
+        case 2: return 1;
+        case 3: return 1;
+        case 4: return 1;
+        case 5: return 1;
+        case 6: return 1;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 1;
+        case 10: return 1;
+        case 11: return 1;
+        case 12: return 1;
+        case 13: return 1;
+        case 14: return 1;
+        case 15: return 1;
+        case 16: return 1;
+        case 17: return 1;
+        case 18: return 1;
+        case 19: return 1;
+        case 20: return 1;
+        case 21: return 1;
+        case 22: return 1;
+        case 23: return 1;
+        case 24: return 1;
+        case 25: return 1;
+        case 26: return 1;
+        case 27: return 1;
+        case 28: return 1;
+        case 29: return 1;
+        case 30: return 1;
+        case 31: return 1;
+    }
+    return 0;
+}
+
+// Build item property nType from a subtype row and a cost-table row.  One case per
+// loot_model.SUPPORTED_IP entry; anything else returns an invalid property.
+itemproperty Loot_MakeIP(int nType, int nSub, int nCost)
+{
+    itemproperty ip;
+    switch (nType)
+    {
+        case 0: ip = ItemPropertyAbilityBonus(nSub, nCost); break; // Ability Bonus
+        case 1: ip = ItemPropertyACBonus(nCost); break; // AC Bonus
+        case 6: ip = ItemPropertyEnhancementBonus(nCost); break; // Enhancement Bonus
+        case 13: ip = ItemPropertyBonusLevelSpell(nSub, nCost); break; // Bonus Spell Slot
+        case 16: ip = ItemPropertyDamageBonus(nSub, nCost); break; // Damage Bonus
+        case 20: ip = ItemPropertyDamageImmunity(nSub, nCost); break; // Damage Immunity
+        case 22: ip = ItemPropertyDamageReduction(nSub, nCost); break; // Damage Reduction
+        case 23: ip = ItemPropertyDamageResistance(nSub, nCost); break; // Damage Resistance
+        case 24: ip = ItemPropertyDamageVulnerability(nSub, nCost); break; // Damage Vulnerability
+        case 26: ip = ItemPropertyDarkvision(); break; // Darkvision
+        case 27: ip = ItemPropertyDecreaseAbility(nSub, nCost); break; // Decreased Ability
+        case 28: ip = ItemPropertyDecreaseAC(nSub, nCost); break; // Decreased AC
+        case 29: ip = ItemPropertyDecreaseSkill(nSub, nCost); break; // Decreased Skill
+        case 37: ip = ItemPropertyImmunityMisc(nSub); break; // Immunity: Misc
+        case 38: ip = ItemPropertyImprovedEvasion(); break; // Improved Evasion
+        case 39: ip = ItemPropertyBonusSpellResistance(nCost); break; // Spell Resistance
+        case 40: ip = ItemPropertyBonusSavingThrowVsX(nSub, nCost); break; // Saving Throw Bonus
+        case 41: ip = ItemPropertyBonusSavingThrow(nSub, nCost); break; // Saving Throw Bonus: Specific
+        case 43: ip = ItemPropertyKeen(); break; // Keen
+        case 45: ip = ItemPropertyMaxRangeStrengthMod(nCost); break; // Mighty
+        case 49: ip = ItemPropertyReducedSavingThrowVsX(nSub, nCost); break; // Decreased Saving Throws
+        case 50: ip = ItemPropertyReducedSavingThrow(nSub, nCost); break; // Decreased Saving Throws: Specific
+        case 51: ip = ItemPropertyRegeneration(nCost); break; // Regeneration
+        case 52: ip = ItemPropertySkillBonus(nSub, nCost); break; // Skill Bonus
+        case 56: ip = ItemPropertyAttackBonus(nCost); break; // Attack Bonus
+        case 60: ip = ItemPropertyAttackPenalty(nCost); break; // Decreased Attack
+        case 67: ip = ItemPropertyVampiricRegeneration(nCost); break; // Vampiric Regeneration
+        case 71: ip = ItemPropertyTrueSeeing(); break; // True Seeing
+        case 74: ip = ItemPropertyMassiveCritical(nCost); break; // Massive Criticals
+        case 75: ip = ItemPropertyFreeAction(); break; // Freedom of Movement
+        case 84: ip = ItemPropertyArcaneSpellFailure(nCost); break; // Arcane Spell Failure
+    }
+    return ip;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

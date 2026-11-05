@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Forge Warden</title>
+  <title>Script lootlab_tok</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,66 +70,24 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
     </nav>
   </header>
   <main>
-<h1>Forge Warden</h1>
-<dl class="meta">
-<dt>ResRef</dt><dd>forge_warden</dd>
-<dt>Tag</dt><dd>forge_warden</dd>
-<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-0">Dwarf</a></dd>
-<dt>Appearance</dt><dd>(Dynamic) Dwarf</dd>
-<dt>Class(es)</dt><dd>Fighter 36</dd>
-<dt>HP</dt><dd>710</dd>
-<dt>CR</dt><dd>21.0</dd>
-<dt>Faction</dt><dd><a href="../factions.html">Merchant</a> <small class="muted">(id 3)</small></dd>
-<dt>Conversation</dt><dd><a href="../conversations/forge_warden.html">forge_warden</a></dd>
-</dl>
-<h2>Kills</h2><p>Not yet slain by any adventurer.</p>
-<h2>Where to find</h2><p>Not placed in any area.</p>
-<h2>Abilities</h2>
-<table class="data"><tr><th>Str</th><td>34</td><th>Dex</th><td>18</td><th>Con</th><td>30 <small class="muted">(+2 racial)</small></td><th>Int</th><td>10</td><th>Wis</th><td>16</td><th>Cha</th><td>8 <small class="muted">(-2 racial)</small></td></tr></table>
-<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>36</td></tr></tbody></table>
-<p class="desc">From a distance, this dwarf appears as a sturdy figure clad in soot-stained plate. It closes the gap with a steady march to deliver crushing blows with a massive smithing hammer.</p>
-<h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>710</td><th>AC</th><td>39 <small class="muted">(10 base + +4 Dex + +20 natural (NaturalAC) + +5 armor)</small></td><th>BAB</th><td>+20</td></tr><tr><th>Fort</th><td>+10</td><th>Ref</th><td>+4</td><th>Will</th><td>+3</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><p>Unarmed: +32/+27/+22/+17 · 1d6 +12</p>
-<h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/billsoutfit.html">Smith Cloth</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
-<h2>Feats <small class="muted">(33)</small></h2><ul class="featlist"><li>Alertness</li><li>ArmProfHvy</li><li>ArmProfLgt</li><li>ArmProfMed</li><li>Cleave</li><li>CShot</li><li>darkvision</li><li>Dodge</li><li>gianttrain</li><li>gobtrain</li><li>GreatFort</li><li>hardinesspoisons</li><li>hardinessspells</li><li>ImpCritLongBow</li><li>ImpCritLSw</li><li>ImpCritWHam</li><li>ImpPower</li><li>Mobility</li><li>orctrain</li><li>PBShot</li><li>PowerAtk</li><li>Shield</li><li>skillaffinitylore</li><li>stonecunning</li><li>WeapFocLongBow</li><li>WeapFocLSw</li><li>WeapFocWHam</li><li>WeapProfEx</li><li>WeapProfMar</li><li>WeapProfSim</li><li>WeapSpeLongBow</li><li>WeapSpeLSw</li><li>WeapSpeWHam</li></ul>
-<h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th><th>Total</th><th>Breakdown</th></tr></thead><tbody><tr><td>Concentration</td><td>20</td><td><strong>+30</strong></td><td class="muted">20 ranks +10 Con</td></tr>
-<tr><td>Discipline</td><td>40</td><td><strong>+52</strong></td><td class="muted">40 ranks +12 Str</td></tr>
-<tr><td>Heal</td><td>0</td><td><strong>+3</strong></td><td class="muted">0 ranks +3 Wis</td></tr>
-<tr><td>Hide</td><td>0</td><td><strong>-1</strong></td><td class="muted">0 ranks +4 Dex -5 armor check</td></tr>
-<tr><td>Listen</td><td>0</td><td><strong>+5</strong></td><td class="muted">0 ranks +3 Wis +2 Alertness</td></tr>
-<tr><td>Lore</td><td>0</td><td><strong>+2</strong></td><td class="muted">0 ranks +2 skillaffinitylore</td></tr>
-<tr><td>Move Silently</td><td>0</td><td><strong>-1</strong></td><td class="muted">0 ranks +4 Dex -5 armor check</td></tr>
-<tr><td>Parry</td><td>0</td><td><strong>-1</strong></td><td class="muted">0 ranks +4 Dex -5 armor check</td></tr>
-<tr><td>Perform</td><td>0</td><td><strong>-1</strong></td><td class="muted">0 ranks -1 Cha</td></tr>
-<tr><td>Persuade</td><td>0</td><td><strong>-1</strong></td><td class="muted">0 ranks -1 Cha</td></tr>
-<tr><td>Spot</td><td>0</td><td><strong>+5</strong></td><td class="muted">0 ranks +3 Wis +2 Alertness</td></tr>
-<tr><td>Taunt</td><td>25</td><td><strong>+24</strong></td><td class="muted">25 ranks -1 Cha</td></tr>
-<tr><td>Bluff</td><td>0</td><td><strong>-1</strong></td><td class="muted">0 ranks -1 Cha</td></tr>
-<tr><td>Intimidate</td><td>0</td><td><strong>-1</strong></td><td class="muted">0 ranks -1 Cha</td></tr>
-<tr><td>Ride</td><td>0</td><td><strong>+4</strong></td><td class="muted">0 ranks +4 Dex</td></tr></tbody></table><p class="muted">Total = ranks + key ability + skill feats + equipped items + armor check penalty. Spells and scripted effects the creature gains in play are not included.</p>
-<h2>Scripts</h2>
-<table class="data"><thead><tr><th>Event</th><th>Script</th></tr></thead><tbody><tr><td>ScriptHeartbeat</td><td>nw_c2_default1</td></tr>
-<tr><td>ScriptOnNotice</td><td>nw_c2_default2</td></tr>
-<tr><td>ScriptEndRound</td><td>nw_c2_default3</td></tr>
-<tr><td>ScriptDialogue</td><td>nw_c2_default4</td></tr>
-<tr><td>ScriptAttacked</td><td>nw_c2_default5</td></tr>
-<tr><td>ScriptDamaged</td><td>nw_c2_default6</td></tr>
-<tr><td>ScriptDeath</td><td>nw_c2_default7</td></tr>
-<tr><td>ScriptDisturbed</td><td>nw_c2_default8</td></tr>
-<tr><td>ScriptSpawn</td><td>nw_c2_default9</td></tr>
-<tr><td>ScriptRested</td><td>nw_c2_defaulta</td></tr>
-<tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
-<tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
-<tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
+<h1>Script: <code>lootlab_tok</code></h1><pre class="nss-source"><code>// lootlab_tok.nss - StartingConditional on every link into the Loot Lab menu:
+// refreshes the level / rarity-floor tokens (6450 / 6451) before it is shown.
+// Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
+#include &quot;lootlab_inc&quot;
+
+int StartingConditional()
+{
+    LL_SetTokens(GetPCSpeaker());
+    return TRUE;
+}
+</code></pre>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

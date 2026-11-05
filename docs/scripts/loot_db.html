@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script forge_ward_c_il</title>
+  <title>Script loot_db</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,23 +70,64 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_ward_c_il</code></h1><pre class="nss-source"><code>// Forge Warden greeting gate: TRUE when the PC still carries illegal gear.
-// Reads the cached verdict (FORGE_WARDEN_DIRTY) computed off the dialog hot path
-// by the chunked Warden scan (ForgeBeginWardenScan / forge_scan_step). Must stay
-// O(1): a full inventory scan inside a StartingConditional overflows the
-// NWScript instruction cap for large inventories, and the failed conditional
-// reads FALSE - which used to hide the release reply and trap cleaned-up players.
-#include &quot;forge_inc&quot;
+<h1>Script: <code>loot_db</code></h1><pre class="nss-source"><code>// loot_db.nss - the lootdb campaign DB (Season 3 rolled loot).
+//
+// Roadmap: loot-overhaul epic, lo-loot-core (Phase 2).  Design:
+// docs.manual/Draft/Loot-Overhaul.html.
+//
+// Phase 2 owns one table, loot_roll_log: balance telemetry for the rolls that
+// matter (every Loot Lab roll, and any Epic-or-better roll from anywhere).  It
+// is deliberately NOT every roll - a synchronous SQLite commit per chest item
+// would be felt as server lag once Phase 3 puts chests on Loot_Roll.
+// Phase 6 (wishlist) and Phase 7 (Fate token lockout) add their tables here.
+//
+// Loot_InitDb() is the only DDL and is called from onmoduleload.nss, never
+// from client enter (CLAUDE.md: DDL off the login frame).  Table names avoid
+// the engine-reserved meta / db / migrations.
 
-int StartingConditional()
+const string LOOT_DB = &quot;lootdb&quot;;
+
+// Rarity at or above which every roll is logged (3 = Epic).
+const int LOOT_LOG_MIN_RARITY = 3;
+
+// Idempotent - safe to call on every module load.
+void Loot_InitDb()
 {
-    return GetLocalInt(GetPCSpeaker(), &quot;FORGE_WARDEN_DIRTY&quot;);
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS loot_roll_log (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;ts TEXT DEFAULT CURRENT_TIMESTAMP,&quot; +
+        &quot;source TEXT, profile TEXT, lvl INTEGER, rarity INTEGER,&quot; +
+        &quot;base INTEGER, item TEXT, value INTEGER, beneficiary TEXT)&quot;);
+    SqlStep(q);
+}
+
+// Record one roll.  sItem is the rolled name (or the named-pool resref);
+// nValue is the engine gold value the budget was checked against (-1 = named).
+void Loot_LogRoll(string sSource, string sProfile, int nLvl, int nRarity,
+                  int nBase, string sItem, int nValue, object oBeneficiary)
+{
+    if (sSource != &quot;lab&quot; &amp;&amp; nRarity &lt; LOOT_LOG_MIN_RARITY)
+        return;
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;INSERT INTO loot_roll_log (source, profile, lvl, rarity, base, item, value, beneficiary) &quot; +
+        &quot;VALUES (@s, @p, @l, @r, @b, @i, @v, @u)&quot;);
+    SqlBindString(q, &quot;@s&quot;, sSource);
+    SqlBindString(q, &quot;@p&quot;, sProfile);
+    SqlBindInt(q, &quot;@l&quot;, nLvl);
+    SqlBindInt(q, &quot;@r&quot;, nRarity);
+    SqlBindInt(q, &quot;@b&quot;, nBase);
+    SqlBindString(q, &quot;@i&quot;, sItem);
+    SqlBindInt(q, &quot;@v&quot;, nValue);
+    SqlBindString(q, &quot;@u&quot;, GetIsObjectValid(oBeneficiary) ? GetObjectUUID(oBeneficiary) : &quot;&quot;);
+    SqlStep(q);
 }
 </code></pre>
   </main>

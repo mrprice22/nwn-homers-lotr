@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script forge_ward_clr</title>
+  <title>Script lootlab_roll1</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,33 +70,21 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_ward_clr</code></h1><pre class="nss-source"><code>// Forge Warden conversation cleanup - wired to the dialog&#x27;s EndConversation
-// AND EndConverAbort hooks, so every new conversation starts from a clean
-// slate and forge_ward_intro re-scans the live inventory. Without this the
-// cached handles linger on the PC and can be recycled by the engine to
-// point at a different item.
-#include &quot;forge_inc&quot;
+<h1>Script: <code>lootlab_roll1</code></h1><pre class="nss-source"><code>// lootlab_roll1.nss - Loot Lab: roll 1 item(s) at the menu&#x27;s level and rarity floor
+// into the admin&#x27;s pack (profile &quot;lab&quot;; logged to lootdb).
+// Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
+#include &quot;lootlab_inc&quot;
 
 void main()
 {
-    object oPC = GetPCSpeaker();
-    if (!GetIsObjectValid(oPC))
-        return;
-    DeleteLocalObject(oPC, &quot;FORGE_ILLEGAL_ITEM&quot;);
-    DeleteLocalObject(oPC, &quot;FORGE_DIS_ITEM&quot;);
-    DeleteLocalInt(oPC, &quot;FORGE_DIS_COUNT&quot;);
-    DeleteLocalInt(oPC, &quot;FORGE_DIS_PICK&quot;);
-    DeleteLocalInt(oPC, &quot;FORGE_RVT_OK&quot;);
-    // Refresh the cached contraband verdict off the hot path so the NEXT
-    // conversation greets from a fresh state (covers items dropped/moved between
-    // turns). Chunked, so it can never overflow the instruction cap.
-    ForgeBeginWardenScan(oPC);
+    LL_Roll(1);
 }
 </code></pre>
   </main>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script forge_dis_p2</title>
+  <title>Script lootlab_inc</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,21 +70,95 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_dis_p2</code></h1><pre class="nss-source"><code>// Pick disenchant slot 2 and stage its name in token 6118 for the confirm.
-#include &quot;forge_inc&quot;
+<h1>Script: <code>lootlab_inc</code></h1><pre class="nss-source"><code>// lootlab_inc.nss - Loot Lab, the admin test surface for Season 3 rolled loot.
+//
+// Roadmap: loot-overhaul epic, lo-loot-core (Phase 2).
+//
+// TRIGGER: rest menu / emote wand -&gt; Admin Options -&gt; &quot;[Admin] Loot Lab&quot;
+// (emotewand.dlg Entry 19).  The parent Admin Options link is gated by the
+// _cdkey admindb check; every action script re-checks Admin_CanAdmin as
+// defence in depth.  NOT a DM console command - the admin has no DM client
+// (CLAUDE.md, &quot;The admin has no DM console&quot;).
+//
+// State lives on the admin&#x27;s PC as locals: LOOTLAB_LVL (loot level 1..60,
+// defaults to the PC&#x27;s hit dice) and LOOTLAB_FLOOR (rarity floor index).
+// Custom tokens: 6450 = loot level, 6451 = rarity floor label.
+// Phases 5 and 7 add &quot;grant a gem&quot; / &quot;grant a Shard of Fate&quot; here.
 
-void main()
+#include &quot;admin_db&quot;
+#include &quot;loot_inc&quot;
+
+const int LOOTLAB_TOK_LEVEL = 6450;
+const int LOOTLAB_TOK_FLOOR = 6451;
+
+// The admin running the menu: the dialog speaker, or OBJECT_SELF so that
+// ExecuteScript(&quot;lootlab_...&quot;, oPC) works too.
+object LL_Speaker()
 {
     object oPC = GetPCSpeaker();
-    SetLocalInt(oPC, &quot;FORGE_DIS_PICK&quot;, 2);
-    SetCustomToken(6118, ForgeSlotLabel(ForgeGetPropByIndexSel(
-        GetLocalObject(oPC, &quot;FORGE_DIS_ITEM&quot;), 2, FORGE_SEL_REMOVABLE)));
+    if (!GetIsObjectValid(oPC)) oPC = OBJECT_SELF;
+    return oPC;
+}
+
+int LL_Authorised(object oPC)
+{
+    if (GetIsPC(oPC) &amp;&amp; !GetIsDM(oPC) &amp;&amp; !Admin_CanAdmin(oPC))
+    {
+        SendMessageToPC(oPC, &quot;You are not authorised to use that.&quot;);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+int LL_Level(object oPC)
+{
+    int n = GetLocalInt(oPC, &quot;LOOTLAB_LVL&quot;);
+    if (n &lt;= 0) n = GetHitDice(oPC);
+    return Loot_Clamp(n, 1, LOOTD_MAX_LEVEL);
+}
+
+int LL_Floor(object oPC)
+{
+    return Loot_Clamp(GetLocalInt(oPC, &quot;LOOTLAB_FLOOR&quot;), 0, LOOTD_RARITY_COUNT - 1);
+}
+
+void LL_SetTokens(object oPC)
+{
+    SetCustomToken(LOOTLAB_TOK_LEVEL, IntToString(LL_Level(oPC)));
+    SetCustomToken(LOOTLAB_TOK_FLOOR, Loot_RarityLabel(LL_Floor(oPC)));
+}
+
+void LL_AdjustLevel(int nDelta)
+{
+    object oPC = LL_Speaker();
+    if (!LL_Authorised(oPC)) return;
+    SetLocalInt(oPC, &quot;LOOTLAB_LVL&quot;, Loot_Clamp(LL_Level(oPC) + nDelta, 1, LOOTD_MAX_LEVEL));
+    LL_SetTokens(oPC);
+}
+
+// Roll nCount items into the admin&#x27;s pack and report each one.
+void LL_Roll(int nCount)
+{
+    object oPC = LL_Speaker();
+    if (!LL_Authorised(oPC)) return;
+    int nLvl = LL_Level(oPC);
+    int nFloor = LL_Floor(oPC);
+    int i;
+    for (i = 0; i &lt; nCount; i++)
+    {
+        object oItem = Loot_Roll(nLvl, nFloor, &quot;lab&quot;, oPC, oPC);
+        if (GetIsObjectValid(oItem))
+            SendMessageToPC(oPC, &quot;Loot Lab: &quot; + Loot_Describe(oItem));
+        else
+            SendMessageToPC(oPC, &quot;Loot Lab: the roll failed - see the server log (LOOT:).&quot;);
+    }
 }
 </code></pre>
   </main>

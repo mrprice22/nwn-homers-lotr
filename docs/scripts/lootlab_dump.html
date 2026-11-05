@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script forge_ward_dsp</title>
+  <title>Script lootlab_dump</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,33 +70,34 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_ward_dsp</code></h1><pre class="nss-source"><code>// Forge Warden dispute action: the PC contests the legality of the flagged
-// item, so sequester it for DM review in the ZEP_CR_QUARANTINE chest (House
-// of Homer) via ForgeQuarantineDisputedItem. No refund - a DM returns the
-// item if the claim holds. The conversation gates re-scan afterwards, so a
-// now-clean PC can ask for release as usual.
-#include &quot;forge_inc&quot;
+<h1>Script: <code>lootlab_dump</code></h1><pre class="nss-source"><code>// lootlab_dump.nss - Loot Lab: for every rolled item in the admin&#x27;s pack, print
+// its LOOT_* stamps and its engine value against its rarity&#x27;s budget.
+// Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
+#include &quot;lootlab_inc&quot;
 
 void main()
 {
-    object oPC = GetPCSpeaker();
-    object oItem = GetLocalObject(oPC, &quot;FORGE_ILLEGAL_ITEM&quot;);
-    // Stale/recycled handle guard: only sequester something this PC holds.
-    if (!ForgePCHolds(oPC, oItem))
-        oItem = ForgeFindIllegalItem(oPC);
-    if (!GetIsObjectValid(oItem))
-        return;
-    ForgeQuarantineDisputedItem(oItem, oPC);
-    DeleteLocalObject(oPC, &quot;FORGE_ILLEGAL_ITEM&quot;);
-    // The disputed item left the PC&#x27;s inventory - refresh the cached gate verdict
-    // off the hot path so a now-clean PC can ask for release on the next click.
-    ForgeBeginWardenScan(oPC);
+    object oPC = LL_Speaker();
+    if (!LL_Authorised(oPC)) return;
+    int nFound = 0;
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        if (Loot_IsRolled(oItem))
+        {
+            SendMessageToPC(oPC, Loot_Describe(oItem));
+            nFound++;
+        }
+        oItem = GetNextItemInInventory(oPC);
+    }
+    SendMessageToPC(oPC, &quot;Loot Lab: &quot; + IntToString(nFound) + &quot; rolled item(s) in your pack.&quot;);
 }
 </code></pre>
   </main>

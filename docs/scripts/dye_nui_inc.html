@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,6 +70,7 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
@@ -78,7 +80,7 @@
 <h1>Script: <code>dye_nui_inc</code></h1><pre class="nss-source"><code>// dye_nui_inc.nss - &quot;Dye Studio&quot; NUI color picker (all 176 armor-tint colors).
 // Launched from the DyeKit item (dye_nui_open) for armor / helmet / cloak.
 // Clicking a swatch tints the equipped item live via CopyItemAndModify, preserving
-// the forge legality stamps (FORGE_CEIL/FORGE_CLEAN) so dyeing never jails the bearer.
+// the forge ceiling stamp (FORGE_CEIL) so a lawfully-forged piece keeps its ceiling.
 #include &quot;nw_inc_nui&quot;
 #include &quot;dye_palette_inc&quot;
 #include &quot;dye_db&quot;
@@ -348,11 +350,9 @@ object DyeApply(object oPC, int nIdx) {
     object oItem = DyeGetItem(oPC);
     if (!GetIsObjectValid(oItem)) return OBJECT_INVALID;
     int nCeil  = GetLocalInt(oItem, &quot;FORGE_CEIL&quot;);
-    int nClean = GetLocalInt(oItem, &quot;FORGE_CLEAN&quot;);
     object oNew = CopyItemAndModify(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nChan, nIdx, TRUE);
     if (!GetIsObjectValid(oNew)) return oItem;
     if (nCeil)  SetLocalInt(oNew, &quot;FORGE_CEIL&quot;, nCeil);
-    if (nClean) SetLocalInt(oNew, &quot;FORGE_CLEAN&quot;, nClean);
     DestroyObject(oItem);
     SetLocalObject(oPC, DYE_ITEM, oNew);
     AssignCommand(oPC, ClearAllActions(TRUE));
@@ -433,7 +433,6 @@ void DyeRevert(object oPC) {
     object oCur = DyeGetItem(oPC);
     if (!GetIsObjectValid(oCur)) return;
     int nCeil  = GetLocalInt(oCur, &quot;FORGE_CEIL&quot;);
-    int nClean = GetLocalInt(oCur, &quot;FORGE_CLEAN&quot;);
     int ch;
     for (ch = 0; ch &lt; 6; ch++) {
         int nVal = GetLocalInt(oPC, &quot;DYE_O_&quot; + IntToString(nSlot) + &quot;_&quot; + IntToString(ch));
@@ -441,7 +440,6 @@ void DyeRevert(object oPC) {
         if (GetIsObjectValid(oTmp)) { DestroyObject(oCur); oCur = oTmp; }
     }
     if (nCeil)  SetLocalInt(oCur, &quot;FORGE_CEIL&quot;, nCeil);
-    if (nClean) SetLocalInt(oCur, &quot;FORGE_CLEAN&quot;, nClean);
     SetLocalObject(oPC, DYE_ITEM, oCur);
     AssignCommand(oPC, ClearAllActions(TRUE));
     AssignCommand(oPC, ActionEquipItem(oCur, nSlot));
@@ -467,7 +465,7 @@ void DyeSaveSchemeFromItem(object oPC) {
                JsonString(&quot;Copied this item&#x27;s colors.&quot;));
 }
 
-// Apply this character&#x27;s saved scheme to the current slot&#x27;s item (jail-safe).
+// Apply this character&#x27;s saved scheme to the current slot&#x27;s item (keeps the forge ceiling stamp).
 void DyeApplyScheme(object oPC) {
     if (!Dye_LoadScheme(oPC)) {
         SendMessageToPC(oPC, &quot;Dye Studio: nothing copied yet. Use &#x27;Copy colors&#x27; first.&quot;);
@@ -481,7 +479,6 @@ void DyeApplyScheme(object oPC) {
         return;
     }
     int nCeil  = GetLocalInt(oCur, &quot;FORGE_CEIL&quot;);
-    int nClean = GetLocalInt(oCur, &quot;FORGE_CLEAN&quot;);
     int ch;
     for (ch = 0; ch &lt; 6; ch++) {
         int nVal = GetLocalInt(oPC, &quot;DYE_LS_&quot; + IntToString(ch));
@@ -489,7 +486,6 @@ void DyeApplyScheme(object oPC) {
         if (GetIsObjectValid(oTmp)) { DestroyObject(oCur); oCur = oTmp; }
     }
     if (nCeil)  SetLocalInt(oCur, &quot;FORGE_CEIL&quot;, nCeil);
-    if (nClean) SetLocalInt(oCur, &quot;FORGE_CLEAN&quot;, nClean);
     SetLocalObject(oPC, DYE_ITEM, oCur);
     AssignCommand(oPC, ClearAllActions(TRUE));
     AssignCommand(oPC, ActionEquipItem(oCur, nSlot));

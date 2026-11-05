@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,6 +70,7 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
@@ -337,8 +339,6 @@ void main()
 
         // Give the Bestiary book once per character (activate it to view your
         // creature-kill records). Plot item, so it can&#x27;t be dropped or sold.
-        // Granted BEFORE the contraband sweep so a scan failure can never eat
-        // the grant (and harmless if the sweep then jails/teleports the PC).
         if (!GetIsObjectValid(GetItemPossessedBy(oPC, &quot;bestiarybook&quot;)))
             CreateItemOnObject(&quot;bestiarybook&quot;, oPC);
 
@@ -346,11 +346,8 @@ void main()
         // access); on a live season this hands out nothing at all.
         if (SP_TesterKit()) TesterKitTopUp(oPC);
 
-        // Illegally forged gear (tampered + over 6 props / 750k value) lands
-        // the bearer in the Pit Prison until a Forge Warden strips it legal.
-        // Chunked scan (one item per delayed step) so a full inventory can&#x27;t
-        // blow the script instruction cap; already-verified items are skipped.
-        ForgeBeginScan(oPC);
+        // (The forge contraband sweep that used to run here was retired with
+        // the Pit Prison jail - roadmap lo-remove-jail.)
     }
 
     StockDonationsChest();

@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,6 +70,7 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
@@ -104,11 +106,11 @@ void main()
         // Set armor to being edited
         SetLocalInt(oItem, &quot;mil_EditingItem&quot;, TRUE);
 
-        // Preserve the forge legality stamps across the dye (CopyItemAndModify can
-        // drop item-local ints; losing FORGE_CEIL makes the contraband scan jail
-        // a lawfully-forged &gt;750k item). Capture before oItem is destroyed.
+        // Preserve the forge ceiling stamp across the dye (CopyItemAndModify can
+        // drop item-local ints; losing FORGE_CEIL would cap a lawfully-forged
+        // &gt;750k item at the default ceiling next time it is worked).
+        // Capture before oItem is destroyed.
         int nCeil  = GetLocalInt(oItem, &quot;FORGE_CEIL&quot;);
-        int nClean = GetLocalInt(oItem, &quot;FORGE_CLEAN&quot;);
 
         // Copy item to the chest
         object oInChest = CopyItem(oItem, oChest, TRUE);
@@ -122,9 +124,8 @@ void main()
         object oOnPC = CopyItem(oDyedItem, oPC, TRUE);
         DestroyObject(oDyedItem);
 
-        // Re-apply the forge legality stamps captured above.
+        // Re-apply the forge ceiling stamp captured above.
         if (nCeil)  SetLocalInt(oOnPC, &quot;FORGE_CEIL&quot;, nCeil);
-        if (nClean) SetLocalInt(oOnPC, &quot;FORGE_CLEAN&quot;, nClean);
 
         // Equip the armor
        DelayCommand(0.5f, AssignCommand(oPC, ActionEquipItem(oOnPC, iItemToDye)));

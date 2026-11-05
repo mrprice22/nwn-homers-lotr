@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script loot_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>loot_inc</code></h1><pre class="nss-source"><code>// loot_inc.nss - Season 3 rolled loot: Loot_Roll() and its helpers.
+//
+// Roadmap: loot-overhaul epic, lo-loot-core (Phase 2).  Design:
+// docs.manual/Draft/Loot-Overhaul.html.  Data: loot/*.json at the repo root,
+// compiled into loot_data_inc.nss by bin/gen-loot-tables.py (never hand-edit
+// that file).  bin/loot_model.py roll() is the Python mirror of Loot_Roll()
+// that bin/loot-sim.py and the build gate run - change one, change the other.
+//
+// What a roll does, in order:
+//   1. rarity  - weighted pick, raised to the caller&#x27;s floor, then a chance of
+//                a one- or two-tier upgrade;
+//   2. named   - a top-tier roll may award a curated existing item instead
+//                (loot/named.json, inside its loot-level window);
+//   3. base    - category from the profile&#x27;s weights, then a base item; the
+//                item is created from that base&#x27;s forge blank (forge_inc
+//                ForgeBlankResRef) and given a random appearance taken from
+//                one of the module&#x27;s own items of that base;
+//   4. affixes - an optional downside (which buys one extra upside and a
+//                bigger budget), then the upsides; never two of one group;
+//   5. budget  - the whole set is priced on a scratch forge blank with the
+//                engine&#x27;s own GetGoldPieceValue, exactly as the forge prices
+//                an item, and stepped down until it fits the rarity&#x27;s budget
+//                for this loot level.  Properties reach the real item only
+//                once the set fits - nothing is ever read back after a
+//                removal (the forge_inc ForgeRebuildValue rule);
+//   6. name    - &quot;&lt;Prefix&gt; &lt;Base&gt; of &lt;Suffix&gt;&quot; in the rarity&#x27;s colour;
+//   7. stamps  - LOOT_VER / LOOT_LVL / LOOT_RARITY / LOOT_PROFILE, plus
+//                LOOT_AFX_N and LOOT_AFX_&lt;i&gt; = ForgePropSig of each random
+//                property.  They live in the .bic and survive the party
+//                roll&#x27;s CopyItem(..., TRUE); they are what lets a Fate token
+//                (Phase 7) re-roll exactly the random affixes and never a
+//                forged enchantment or a socketed gem.
+//
+// No contraband by construction: a rolled item is bounded by its rarity&#x27;s
+// value budget and by the gate-checked affix ladders - nothing judges gear
+// after the fact (the jail is retired).
+//
+// Includes forge_inc (which pulls in color).  Do not include &quot;color&quot; or
+// &quot;itemprocs&quot; next to this file.
+
+#include &quot;forge_inc&quot;
+#include &quot;loot_data_inc&quot;
+#include &quot;loot_db&quot;
+
+const int LOOT_VER = 1;
+
+// Rarity indices (loot/rarity.json order).
+const int LOOT_RARITY_COMMON    = 0;
+const int LOOT_RARITY_UNCOMMON  = 1;
+const int LOOT_RARITY_RARE      = 2;
+const int LOOT_RARITY_EPIC      = 3;
+const int LOOT_RARITY_LEGENDARY = 4;
+
+// ---------------------------------------------------------------------------
+// Small helpers
+// ---------------------------------------------------------------------------
+
+int Loot_Clamp(int n, int nLo, int nHi)
+{
+    if (n &lt; nLo) return nLo;
+    if (n &gt; nHi) return nHi;
+    return n;
+}
+
+// The color.nss constant a rarity is drawn in.
+string Loot_RarityColor(int nRarity)
+{
+    string s = LootD_RarityColorName(nRarity);
+    if (s == &quot;COLOR_WHITE&quot;)        return COLOR_WHITE;
+    if (s == &quot;COLOR_GREEN&quot;)        return COLOR_GREEN;
+    if (s == &quot;COLOR_BLUE&quot;)         return COLOR_BLUE;
+    if (s == &quot;COLOR_PURPLE&quot;)       return COLOR_PURPLE;
+    if (s == &quot;COLOR_ORANGE&quot;)       return COLOR_ORANGE;
+    if (s == &quot;COLOR_LIGHT_BLUE&quot;)   return COLOR_LIGHT_BLUE;
+    if (s == &quot;COLOR_LIGHT_ORANGE&quot;) return COLOR_LIGHT_ORANGE;
+    if (s == &quot;COLOR_LIGHT_PURPLE&quot;) return COLOR_LIGHT_PURPLE;
+    if (s == &quot;COLOR_YELLOW&quot;)       return COLOR_YELLOW;
+    if (s == &quot;COLOR_RED&quot;)          return COLOR_RED;
+    if (s == &quot;COLOR_GRAY&quot;)         return COLOR_GRAY;
+    return COLOR_WHITE;
+}
+
+// Rarity name in its own colour, e.g. for messages.
+string Loot_RarityLabel(int nRarity)
+{
+    return ColorString(LootD_RarityName(nRarity), Loot_RarityColor(nRarity));
+}
+
+// Budget for a rarity at a loot level, with the downside bonus when bDown.
+int Loot_Budget(int nRarity, int nLvl, int bDown)
+{
+    int nB = LootD_RarityBudget(nRarity, nLvl);
+    if (bDown)
+        nB = nB * (100 + LootD_RarityDownPct(nRarity)) / 100;
+    return nB;
+}
+
+void Loot_Warn(string sMsg)
+{
+    WriteTimestampedLogEntry(&quot;LOOT: &quot; + sMsg);
+}
+
+// ---------------------------------------------------------------------------
+// Picks (each mirrors the matching step of loot_model.roll)
+// ---------------------------------------------------------------------------
+
+int Loot_PickRarity(int nFloor)
+{
+    int nTotal = 0;
+    int i;
+    for (i = 0; i &lt; LOOTD_RARITY_COUNT; i++)
+        nTotal += LootD_RarityWeight(i);
+    int nIdx = 0;
+    if (nTotal &gt; 0)
+    {
+        int r = Random(nTotal);
+        for (i = 0; i &lt; LOOTD_RARITY_COUNT; i++)
+        {
+            r -= LootD_RarityWeight(i);
+            if (r &lt; 0) { nIdx = i; break; }
+        }
+    }
+    if (nIdx &lt; nFloor) nIdx = nFloor;
+    int nRoll = Random(1000);
+    int nTwo = LootD_RarityUpTwo(nIdx);
+    if (nRoll &lt; nTwo)
+        nIdx += 2;
+    else if (nRoll &lt; nTwo + LootD_RarityUpOne(nIdx))
+        nIdx += 1;
+    return Loot_Clamp(nIdx, 0, LOOTD_RARITY_COUNT - 1);
+}
+
+// Index into the named pool for this loot level, or -1.
+int Loot_PickNamed(int nLvl)
+{
+    int nTotal = 0;
+    int i;
+    for (i = 0; i &lt; LOOTD_NAMED_COUNT; i++)
+        if (nLvl &gt;= LootD_NamedMin(i) &amp;&amp; nLvl &lt;= LootD_NamedMax(i))
+            nTotal += LootD_NamedWeight(i);
+    if (nTotal &lt;= 0) return -1;
+    int r = Random(nTotal);
+    for (i = 0; i &lt; LOOTD_NAMED_COUNT; i++)
+    {
+        if (nLvl &lt; LootD_NamedMin(i) || nLvl &gt; LootD_NamedMax(i)) continue;
+        r -= LootD_NamedWeight(i);
+        if (r &lt; 0) return i;
+    }
+    return -1;
+}
+
+int Loot_PickCategory(int nProfile)
+{
+    int nTotal = 0;
+    int c;
+    for (c = 0; c &lt; LOOTD_CAT_COUNT; c++)
+        nTotal += LootD_ProfileCatWeight(nProfile, c);
+    if (nTotal &lt;= 0) return -1;
+    int r = Random(nTotal);
+    for (c = 0; c &lt; LOOTD_CAT_COUNT; c++)
+    {
+        r -= LootD_ProfileCatWeight(nProfile, c);
+        if (r &lt; 0) return c;
+    }
+    return -1;
+}
+
+// Base item row for a category, or -1.
+int Loot_PickBase(int nCat)
+{
+    int n = LootD_BaseCount(nCat);
+    int nTotal = 0;
+    int k;
+    for (k = 0; k &lt; n; k++)
+        nTotal += LootD_BaseWeight(nCat, k);
+    if (nTotal &lt;= 0) return -1;
+    int r = Random(nTotal);
+    for (k = 0; k &lt; n; k++)
+    {
+        r -= LootD_BaseWeight(nCat, k);
+        if (r &lt; 0) return LootD_BaseRow(nCat, k);
+    }
+    return -1;
+}
+
+int Loot_AffixEligible(int nAffix, string sCat, int nLvl, int bDown, string sUsed)
+{
+    if (LootD_AffixIsDown(nAffix) != bDown) return FALSE;
+    if (LootD_AffixWeight(nAffix) &lt;= 0) return FALSE;
+    if (nLvl &lt; LootD_AffixMinLevel(nAffix)) return FALSE;
+    if (FindSubString(LootD_AffixCats(nAffix), &quot;|&quot; + sCat + &quot;|&quot;) &lt; 0) return FALSE;
+    if (FindSubString(sUsed, &quot;|&quot; + LootD_AffixGroup(nAffix) + &quot;|&quot;) &gt;= 0) return FALSE;
+    return TRUE;
+}
+
+// Weighted pick among eligible affixes, or -1.
+int Loot_PickAffix(string sCat, int nLvl, int bDown, string sUsed)
+{
+    int nTotal = 0;
+    int i;
+    for (i = 0; i &lt; LOOTD_AFFIX_COUNT; i++)
+        if (Loot_AffixEligible(i, sCat, nLvl, bDown, sUsed))
+            nTotal += LootD_AffixWeight(i);
+    if (nTotal &lt;= 0) return -1;
+    int r = Random(nTotal);
+    for (i = 0; i &lt; LOOTD_AFFIX_COUNT; i++)
+    {
+        if (!Loot_AffixEligible(i, sCat, nLvl, bDown, sUsed)) continue;
+        r -= LootD_AffixWeight(i);
+        if (r &lt; 0) return i;
+    }
+    return -1;
+}
+
+// A ladder step inside the affix&#x27;s window: the best of (1 + nBias) rolls.
+int Loot_PickStep(int nAffix, int nLvl, int nBias)
+{
+    int nLo = LootD_AffixLo(nAffix, nLvl);
+    int nHi = LootD_AffixHi(nAffix, nLvl);
+    if (nHi &lt; nLo) nHi = nLo;
+    int nStep = nLo + Random(nHi - nLo + 1);
+    int b;
+    for (b = 0; b &lt; nBias; b++)
+    {
+        int nAlt = nLo + Random(nHi - nLo + 1);
+        if (nAlt &gt; nStep) nStep = nAlt;
+    }
+    return nStep;
+}
+
+// ---------------------------------------------------------------------------
+// The chosen-affix work list, kept as locals on the item being built
+// ---------------------------------------------------------------------------
+
+void Loot_WorkAdd(object oWork, int nAffix, int nStep)
+{
+    int n = GetLocalInt(oWork, &quot;LW_N&quot;);
+    SetLocalInt(oWork, &quot;LW_A&quot; + IntToString(n), nAffix);
+    SetLocalInt(oWork, &quot;LW_S&quot; + IntToString(n), nStep);
+    SetLocalInt(oWork, &quot;LW_N&quot;, n + 1);
+}
+
+void Loot_WorkRemove(object oWork, int nAt)
+{
+    int n = GetLocalInt(oWork, &quot;LW_N&quot;);
+    int k;
+    for (k = nAt; k &lt; n - 1; k++)
+    {
+        SetLocalInt(oWork, &quot;LW_A&quot; + IntToString(k), GetLocalInt(oWork, &quot;LW_A&quot; + IntToString(k + 1)));
+        SetLocalInt(oWork, &quot;LW_S&quot; + IntToString(k), GetLocalInt(oWork, &quot;LW_S&quot; + IntToString(k + 1)));
+    }
+    DeleteLocalInt(oWork, &quot;LW_A&quot; + IntToString(n - 1));
+    DeleteLocalInt(oWork, &quot;LW_S&quot; + IntToString(n - 1));
+    SetLocalInt(oWork, &quot;LW_N&quot;, n - 1);
+}
+
+void Loot_WorkClear(object oWork)
+{
+    int n = GetLocalInt(oWork, &quot;LW_N&quot;);
+    int k;
+    for (k = 0; k &lt; n; k++)
+    {
+        DeleteLocalInt(oWork, &quot;LW_A&quot; + IntToString(k));
+        DeleteLocalInt(oWork, &quot;LW_S&quot; + IntToString(k));
+    }
+    DeleteLocalInt(oWork, &quot;LW_N&quot;);
+}
+
+itemproperty Loot_WorkIP(object oWork, int k)
+{
+    int a = GetLocalInt(oWork, &quot;LW_A&quot; + IntToString(k));
+    int s = GetLocalInt(oWork, &quot;LW_S&quot; + IntToString(k));
+    return Loot_MakeIP(LootD_AffixType(a), LootD_AffixSub(a), LootD_AffixLadder(a, s));
+}
+
+// Engine value of base nBase carrying the work list: priced on a fresh forge
+// blank in the forge vault, as ForgeRebuildValue prices any item.  -1 = no
+// valuation possible (no vault or no blank).
+int Loot_PriceWork(int nBase, object oWork)
+{
+    object oHolder = ForgeHolder();
+    if (!GetIsObjectValid(oHolder)) return -1;
+    object oBlank = CreateItemOnObject(ForgeBlankResRef(nBase), oHolder);
+    if (!GetIsObjectValid(oBlank)) return -1;
+    int n = GetLocalInt(oWork, &quot;LW_N&quot;);
+    int k;
+    for (k = 0; k &lt; n; k++)
+    {
+        itemproperty ip = Loot_WorkIP(oWork, k);
+        if (GetIsItemPropertyValid(ip))
+            AddItemProperty(DURATION_TYPE_PERMANENT, ip, oBlank);
+    }
+    int nValue = GetGoldPieceValue(oBlank);
+    DestroyObject(oBlank);
+    return nValue;
+}
+
+// ---------------------------------------------------------------------------
+// Appearance
+// ---------------------------------------------------------------------------
+
+// The nIdx-th comma-separated int of sList.
+int Loot_CsvInt(string sList, int nIdx)
+{
+    int i;
+    int nComma;
+    for (i = 0; i &lt; nIdx; i++)
+    {
+        nComma = FindSubString(sList, &quot;,&quot;);
+        if (nComma &lt; 0) return -1;
+        sList = GetSubString(sList, nComma + 1, GetStringLength(sList));
+    }
+    nComma = FindSubString(sList, &quot;,&quot;);
+    if (nComma &gt;= 0) sList = GetStringLeft(sList, nComma);
+    return StringToInt(sList);
+}
+
+object Loot_Reshape(object oItem, int nType, int nIndex, int nValue)
+{
+    if (nValue &lt; 0) return oItem;
+    object oNew = CopyItemAndModify(oItem, nType, nIndex, nValue, TRUE);
+    if (!GetIsObjectValid(oNew)) return oItem;
+    DestroyObject(oItem);
+    return oNew;
+}
+
+// Give oItem the look of a random donor (one of the module&#x27;s own items of
+// that base - loot/bases.json).  Returns the (possibly new) item.
+object Loot_ApplyDonor(object oItem, int nBase)
+{
+    int nDonors = LootD_DonorCount(nBase);
+    if (nDonors &lt;= 0) return oItem;
+    string sDonor = LootD_Donor(nBase, Random(nDonors));
+    int nModel = LootD_BaseModelType(nBase);
+    int k;
+    if (nModel == 0 || nModel == 1)
+        oItem = Loot_Reshape(oItem, ITEM_APPR_TYPE_SIMPLE_MODEL, 0, Loot_CsvInt(sDonor, 0));
+    else if (nModel == 2)
+    {
+        for (k = 0; k &lt; 3; k++)
+            oItem = Loot_Reshape(oItem, ITEM_APPR_TYPE_WEAPON_MODEL, k, Loot_CsvInt(sDonor, k));
+    }
+    else if (nModel == 3)
+    {
+        for (k = 0; k &lt; 19; k++)
+            oItem = Loot_Reshape(oItem, ITEM_APPR_TYPE_ARMOR_MODEL, k, Loot_CsvInt(sDonor, k));
+    }
+    return oItem;
+}
+
+// ---------------------------------------------------------------------------
+// Stamps
+// ---------------------------------------------------------------------------
+
+void Loot_StampCommon(object oItem, int nLvl, int nRarity, string sProfile)
+{
+    SetLocalInt(oItem, &quot;LOOT_VER&quot;, LOOT_VER);
+    SetLocalInt(oItem, &quot;LOOT_LVL&quot;, nLvl);
+    SetLocalInt(oItem, &quot;LOOT_RARITY&quot;, nRarity);
+    SetLocalString(oItem, &quot;LOOT_PROFILE&quot;, sProfile);
+}
+
+// True when oItem was produced by Loot_Roll.
+int Loot_IsRolled(object oItem)
+{
+    return GetLocalInt(oItem, &quot;LOOT_VER&quot;) &gt; 0;
+}
+
+// Move an item built in the forge vault to its destination.
+object Loot_Deliver(object oItem, object oDest)
+{
+    if (!GetIsObjectValid(oDest) || GetItemPossessor(oItem) == oDest) return oItem;
+    object oCopy = CopyItem(oItem, oDest, TRUE);
+    if (!GetIsObjectValid(oCopy)) return oItem;
+    DestroyObject(oItem);
+    return oCopy;
+}
+
+// ---------------------------------------------------------------------------
+// The roll
+// ---------------------------------------------------------------------------
+
+// Create one rolled item on oDest (a container, creature or PC).
+//   nLevel       loot level 1..60 (LootD_LevelForCR maps a CR onto it)
+//   nRarityFloor lowest rarity index the roll may land on
+//   sProfile     loot/sources.json profile (&quot;lab&quot;, &quot;chest_low&quot;, &quot;boss&quot;, ...)
+//   oBeneficiary who it is for (Phase 6 wishlist; logged), may be invalid
+// Returns the item, or OBJECT_INVALID when nothing could be built.
+object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
+                 object oBeneficiary, object oDest)
+{
+    int nLvl = Loot_Clamp(nLevel, 1, LOOTD_MAX_LEVEL);
+    int nProfile = LootD_ProfileIndex(sProfile);
+    if (nProfile &lt; 0)
+    {
+        Loot_Warn(&quot;unknown profile &#x27;&quot; + sProfile + &quot;&#x27;&quot;);
+        return OBJECT_INVALID;
+    }
+    int nRarity = Loot_PickRarity(Loot_Clamp(nRarityFloor, 0, LOOTD_RARITY_COUNT - 1));
+
+    // 2. named pool
+    if (Random(1000) &lt; LootD_RarityNamed(nRarity))
+    {
+        int nNamed = Loot_PickNamed(nLvl);
+        if (nNamed &gt;= 0)
+        {
+            string sRes = LootD_NamedResRef(nNamed);
+            object oNamed = CreateItemOnObject(sRes, oDest);
+            if (GetIsObjectValid(oNamed))
+            {
+                Loot_StampCommon(oNamed, nLvl, nRarity, sProfile);
+                SetLocalInt(oNamed, &quot;LOOT_NAMED&quot;, 1);
+                SetLocalInt(oNamed, &quot;LOOT_AFX_N&quot;, 0);
+                Loot_LogRoll(sProfile == &quot;lab&quot; ? &quot;lab&quot; : &quot;roll&quot;, sProfile, nLvl, nRarity,
+                             GetBaseItemType(oNamed), sRes, -1, oBeneficiary);
+                return oNamed;
+            }
+            Loot_Warn(&quot;named item &#x27;&quot; + sRes + &quot;&#x27; could not be created&quot;);
+        }
+    }
+
+    // 3. base
+    int nCat = Loot_PickCategory(nProfile);
+    int nBase = nCat &lt; 0 ? -1 : Loot_PickBase(nCat);
+    if (nBase &lt; 0)
+    {
+        Loot_Warn(&quot;profile &#x27;&quot; + sProfile + &quot;&#x27; has no base items&quot;);
+        return OBJECT_INVALID;
+    }
+    string sCat = LootD_CatName(nCat);
+    object oHolder = ForgeHolder();
+    object oItem = CreateItemOnObject(ForgeBlankResRef(nBase), GetIsObjectValid(oHolder) ? oHolder : oDest);
+    if (!GetIsObjectValid(oItem))
+    {
+        Loot_Warn(&quot;no forge blank for base item &quot; + IntToString(nBase));
+        return OBJECT_INVALID;
+    }
+    oItem = Loot_ApplyDonor(oItem, nBase);
+
+    // 4. affixes
+    int nUp = LootD_RarityAffMin(nRarity)
+            + Random(LootD_RarityAffMax(nRarity) - LootD_RarityAffMin(nRarity) + 1);
+    string sUsed = &quot;|&quot;;
+    int bDown = FALSE;
+    int a;
+    if (Random(1000) &lt; LootD_RarityDownside(nRarity))
+    {
+        a = Loot_PickAffix(sCat, nLvl, TRUE, sUsed);
+        if (a &gt;= 0)
+        {
+            Loot_WorkAdd(oItem, a, Loot_PickStep(a, nLvl, 0));
+            sUsed += LootD_AffixGroup(a) + &quot;|&quot;;
+            bDown = TRUE;
+            nUp++;
+        }
+    }
+    int nBias = LootD_RarityRollBias(nRarity);
+    int u;
+    for (u = 0; u &lt; nUp; u++)
+    {
+        a = Loot_PickAffix(sCat, nLvl, FALSE, sUsed);
+        if (a &lt; 0) break;
+        Loot_WorkAdd(oItem, a, Loot_PickStep(a, nLvl, nBias));
+        sUsed += LootD_AffixGroup(a) + &quot;|&quot;;
+    }
+
+    // 5. budget: step the last upside that can still step down; once none
+    // can, drop the last upside.  The first-rolled affix gives ground last.
+    int nBudget = Loot_Budget(nRarity, nLvl, bDown);
+    int nValue = Loot_PriceWork(nBase, oItem);
+    int nSteps = 0;
+    int n;
+    int j;
+    int k;
+    while (nValue &gt; nBudget &amp;&amp; nSteps &lt; 64)
+    {
+        nSteps++;
+        n = GetLocalInt(oItem, &quot;LW_N&quot;);
+        j = -1;
+        for (k = n - 1; k &gt;= 0; k--)
+        {
+            if (!LootD_AffixIsDown(GetLocalInt(oItem, &quot;LW_A&quot; + IntToString(k)))
+                &amp;&amp; GetLocalInt(oItem, &quot;LW_S&quot; + IntToString(k)) &gt; 0)
+            {
+                j = k;
+                break;
+            }
+        }
+        if (j &gt;= 0)
+            SetLocalInt(oItem, &quot;LW_S&quot; + IntToString(j), GetLocalInt(oItem, &quot;LW_S&quot; + IntToString(j)) - 1);
+        else
+        {
+            int nLastUp = -1;
+            for (k = n - 1; k &gt;= 0; k--)
+                if (!LootD_AffixIsDown(GetLocalInt(oItem, &quot;LW_A&quot; + IntToString(k))))
+                {
+                    nLastUp = k;
+                    break;
+                }
+            if (nLastUp &lt; 0) break;
+            Loot_WorkRemove(oItem, nLastUp);
+        }
+        nValue = Loot_PriceWork(nBase, oItem);
+    }
+    if (nValue &lt; 0)
+    {
+        Loot_Warn(&quot;could not price base item &quot; + IntToString(nBase) + &quot; (forge vault missing?)&quot;);
+        Loot_WorkClear(oItem);
+        DestroyObject(oItem);
+        return OBJECT_INVALID;
+    }
+
+    // Apply the set that fits.  Self-check: each constructor must yield the
+    // property type (and cost row) that was asked for - a wrong argument
+    // order would otherwise ship silently.
+    string sPrefix = &quot;&quot;;
+    string sSuffix = &quot;&quot;;
+    int nUps = 0;
+    n = GetLocalInt(oItem, &quot;LW_N&quot;);
+    for (k = 0; k &lt; n; k++)
+    {
+        a = GetLocalInt(oItem, &quot;LW_A&quot; + IntToString(k));
+        int nType = LootD_AffixType(a);
+        int nCost = LootD_AffixLadder(a, GetLocalInt(oItem, &quot;LW_S&quot; + IntToString(k)));
+        itemproperty ip = Loot_MakeIP(nType, LootD_AffixSub(a), nCost);
+        if (!GetIsItemPropertyValid(ip) || GetItemPropertyType(ip) != nType
+            || (nCost != 0 &amp;&amp; GetItemPropertyCostTableValue(ip) != nCost))
+        {
+            Loot_Warn(&quot;affix &#x27;&quot; + LootD_AffixId(a) + &quot;&#x27; built the wrong property (type &quot;
+                      + IntToString(GetItemPropertyType(ip)) + &quot; cost &quot;
+                      + IntToString(GetItemPropertyCostTableValue(ip)) + &quot;, wanted type &quot;
+                      + IntToString(nType) + &quot; cost &quot; + IntToString(nCost) + &quot;) - skipped&quot;);
+            continue;
+        }
+        AddItemProperty(DURATION_TYPE_PERMANENT, ip, oItem);
+        if (!LootD_AffixIsDown(a))
+        {
+            if (nUps == 0) sPrefix = LootD_AffixPrefix(a);
+            else if (nUps == 1) sSuffix = LootD_AffixSuffix(a);
+            nUps++;
+        }
+    }
+    Loot_WorkClear(oItem);
+
+    // 6. name + description
+    string sName = LootD_BaseName(nBase);
+    if (sPrefix != &quot;&quot;) sName = sPrefix + &quot; &quot; + sName;
+    if (sSuffix != &quot;&quot;) sName = sName + &quot; of &quot; + sSuffix;
+    SetName(oItem, ColorString(sName, Loot_RarityColor(nRarity)));
+    SetDescription(oItem, LootD_RarityName(nRarity) + &quot; &quot; + LootD_BaseName(nBase)
+                   + &quot;, loot level &quot; + IntToString(nLvl) + &quot;.&quot;);
+    SetTag(oItem, &quot;loot_&quot; + IntToString(nBase));
+
+    // 7. stamps: one ForgePropSig per random property, read off the item
+    Loot_StampCommon(oItem, nLvl, nRarity, sProfile);
+    int nAfx = 0;
+    itemproperty ipS = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ipS))
+    {
+        if (GetItemPropertyDurationType(ipS) == DURATION_TYPE_PERMANENT)
+        {
+            SetLocalString(oItem, &quot;LOOT_AFX_&quot; + IntToString(nAfx), ForgePropSig(ipS));
+            nAfx++;
+        }
+        ipS = GetNextItemProperty(oItem);
+    }
+    SetLocalInt(oItem, &quot;LOOT_AFX_N&quot;, nAfx);
+
+    if (Random(1000) &lt; LootD_RarityUnid(nRarity))
+        SetIdentified(oItem, FALSE);
+
+    Loot_LogRoll(sProfile == &quot;lab&quot; ? &quot;lab&quot; : &quot;roll&quot;, sProfile, nLvl, nRarity, nBase,
+                 sName, nValue, oBeneficiary);
+    return Loot_Deliver(oItem, oDest);
+}
+
+// A profile&#x27;s full drop: its roll count, at its rarity floor (or the caller&#x27;s,
+// whichever is higher).  Returns how many items were created.
+int Loot_RollProfile(int nLevel, string sProfile, object oBeneficiary, object oDest,
+                     int nFloor = 0)
+{
+    int nProfile = LootD_ProfileIndex(sProfile);
+    if (nProfile &lt; 0) return 0;
+    int nRolls = LootD_ProfileRolls(nProfile);
+    int nF = LootD_ProfileFloor(nProfile);
+    if (nFloor &gt; nF) nF = nFloor;
+    int nMade = 0;
+    int i;
+    for (i = 0; i &lt; nRolls; i++)
+        if (GetIsObjectValid(Loot_Roll(nLevel, nF, sProfile, oBeneficiary, oDest)))
+            nMade++;
+    return nMade;
+}
+
+// One-line description of a rolled item&#x27;s stamps, for Loot Lab.
+string Loot_Describe(object oItem)
+{
+    if (!Loot_IsRolled(oItem))
+        return GetName(oItem) + &quot;: not a rolled item.&quot;;
+    int nRarity = GetLocalInt(oItem, &quot;LOOT_RARITY&quot;);
+    int nLvl = GetLocalInt(oItem, &quot;LOOT_LVL&quot;);
+    string s = GetName(oItem) + &quot; [&quot; + LootD_RarityName(nRarity) + &quot;, level &quot;
+             + IntToString(nLvl) + &quot;, profile &quot; + GetLocalString(oItem, &quot;LOOT_PROFILE&quot;) + &quot;]&quot;;
+    if (GetLocalInt(oItem, &quot;LOOT_NAMED&quot;))
+        return s + &quot; named-pool item.&quot;;
+    int nVal = ForgeItemValue(oItem, TRUE);
+    s += &quot; value &quot; + IntToString(nVal) + &quot; / budget &quot; + IntToString(Loot_Budget(nRarity, nLvl, FALSE));
+    int n = GetLocalInt(oItem, &quot;LOOT_AFX_N&quot;);
+    int i;
+    for (i = 0; i &lt; n; i++)
+        s += &quot;\n   &quot; + GetLocalString(oItem, &quot;LOOT_AFX_&quot; + IntToString(i));
+    if (!GetIdentified(oItem)) s += &quot;\n   (unidentified)&quot;;
+    return s;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

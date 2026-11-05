@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script forge_dis_c7</title>
+  <title>Script lootlab_stock</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,16 +70,45 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_dis_c7</code></h1><pre class="nss-source"><code>// Show disenchant slot 7 when the target item has more than 7 properties.
-int StartingConditional()
+<h1>Script: <code>lootlab_stock</code></h1><pre class="nss-source"><code>// lootlab_stock.nss - Loot Lab: put 5 rolled items (menu level and floor) into the
+// nearest placeable with an inventory within 20 m - a stand-in for the Phase 3
+// chest refill, to see rolled loot come out of a container the way players will.
+// Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
+#include &quot;lootlab_inc&quot;
+
+void main()
 {
-    return GetLocalInt(GetPCSpeaker(), &quot;FORGE_DIS_COUNT&quot;) &gt; 7;
+    object oPC = LL_Speaker();
+    if (!LL_Authorised(oPC)) return;
+    object oBox = OBJECT_INVALID;
+    int n = 1;
+    object o = GetNearestObject(OBJECT_TYPE_PLACEABLE, oPC, n);
+    while (GetIsObjectValid(o) &amp;&amp; GetDistanceBetween(oPC, o) &lt;= 20.0)
+    {
+        if (GetHasInventory(o)) { oBox = o; break; }
+        o = GetNearestObject(OBJECT_TYPE_PLACEABLE, oPC, ++n);
+    }
+    if (!GetIsObjectValid(oBox))
+    {
+        SendMessageToPC(oPC, &quot;Loot Lab: no container within 20 m.&quot;);
+        return;
+    }
+    int nLvl = LL_Level(oPC);
+    int nFloor = LL_Floor(oPC);
+    int nMade = 0;
+    int i;
+    for (i = 0; i &lt; 5; i++)
+        if (GetIsObjectValid(Loot_Roll(nLvl, nFloor, &quot;lab&quot;, oPC, oBox)))
+            nMade++;
+    SendMessageToPC(oPC, &quot;Loot Lab: put &quot; + IntToString(nMade) + &quot; rolled item(s) into &quot;
+                    + GetName(oBox) + &quot; (level &quot; + IntToString(nLvl) + &quot;).&quot;);
 }
 </code></pre>
   </main>

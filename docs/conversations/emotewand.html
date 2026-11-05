@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,6 +70,7 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
@@ -77,8 +79,8 @@
   <main>
 <h1>Conversation: <code>emotewand</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>19</dd>
-<dt>PC replies</dt><dd>161</dd>
+<dt>NPC lines</dt><dd>20</dd>
+<dt>PC replies</dt><dd>172</dd>
 <dt>NumWords</dt><dd>241</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
@@ -305,7 +307,17 @@
 <tr><td><code>cp_clearall</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>cp_uat</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>_homerheavfrg</code></td><td>action</td><td>✓</td><td>teleports to: <code>heavensforgewp</code> (<a href="../areas/heavensfoundry.html">Númenor:  The Great Forge Of Númenor</a>)</td></tr>
-<tr><td><code>_homerdeadmarsh</code></td><td>action</td><td>✓</td><td>teleports to: <code>WP_deadmarshes2ithnorth</code> (<a href="../areas/deadmarshes.html">Dead Marshes</a>), <code>hw_pking</code></td></tr></tbody></table>
+<tr><td><code>_homerdeadmarsh</code></td><td>action</td><td>✓</td><td>teleports to: <code>WP_deadmarshes2ithnorth</code> (<a href="../areas/deadmarshes.html">Dead Marshes</a>), <code>hw_pking</code></td></tr>
+<tr><td><code>lootlab_tok</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_lvup1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_lvup10</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_lvdn1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_lvdn10</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_floor</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_roll1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_roll10</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_stock</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_dump</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/mw-path-of-meaning.html">The Path of Meaning</a></td><td><code>mw path of meaning</code></td><td>1</td></tr></tbody></table>
 <h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM5001&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5002&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
@@ -335,7 +347,9 @@
 <tr><td><code>&lt;CUSTOM5093&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5094&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5095&gt;</code></td><td><a href="../scripts/tele_menu.html">tele_menu</a></td></tr>
-<tr><td><code>&lt;CUSTOM5096&gt;</code></td><td><a href="../scripts/tele_open_1.html">tele_open_1</a>, <a href="../scripts/tele_open_2.html">tele_open_2</a>, <a href="../scripts/tele_open_3.html">tele_open_3</a>, <a href="../scripts/tele_open_4.html">tele_open_4</a>, <a href="../scripts/tele_open_5.html">tele_open_5</a>, <a href="../scripts/tele_set.html">tele_set</a></td></tr></tbody></table>
+<tr><td><code>&lt;CUSTOM5096&gt;</code></td><td><a href="../scripts/tele_open_1.html">tele_open_1</a>, <a href="../scripts/tele_open_2.html">tele_open_2</a>, <a href="../scripts/tele_open_3.html">tele_open_3</a>, <a href="../scripts/tele_open_4.html">tele_open_4</a>, <a href="../scripts/tele_open_5.html">tele_open_5</a>, <a href="../scripts/tele_set.html">tele_set</a></td></tr>
+<tr><td><code>&lt;CUSTOM6450&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM6451&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a></li>
 </ul>
@@ -934,6 +948,92 @@ Two worth remembering: stopping the party never takes anything away from anybody
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #161</span> <a class="dlg-anchor" href="#r161" title="jump to flat reply #161">¶</a></summary>
+<div class="dlg-text">[Admin] Loot Lab</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #19</span> <small class="muted">(if <code>lootlab_tok</code>)</small> <a class="dlg-anchor" href="#e19" title="jump to flat entry #19">¶</a></summary>
+<div class="dlg-text">LOOT LAB
+
+Loot level: <span class="custom-token custom-token-unknown" title="SetCustomToken(6450, ...) — no setter found in static analysis">&lt;CUSTOM6450&gt;</span>
+Rarity floor: <span class="custom-token custom-token-unknown" title="SetCustomToken(6451, ...) — no setter found in static analysis">&lt;CUSTOM6451&gt;</span>
+
+Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pack; every lab roll is logged to lootdb. The floor is the lowest rarity a roll may land on - it can still roll higher.
+
+&quot;Dump&quot; prints each rolled item in your pack with its loot stamps and its value against its rarity&#x27;s budget.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #162</span> <span class="dlg-action">→ <code>lootlab_lvup1</code></span> <a class="dlg-anchor" href="#r162" title="jump to flat reply #162">¶</a></summary>
+<div class="dlg-text">Level +1</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #163</span> <span class="dlg-action">→ <code>lootlab_lvup10</code></span> <a class="dlg-anchor" href="#r163" title="jump to flat reply #163">¶</a></summary>
+<div class="dlg-text">Level +10</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #164</span> <span class="dlg-action">→ <code>lootlab_lvdn1</code></span> <a class="dlg-anchor" href="#r164" title="jump to flat reply #164">¶</a></summary>
+<div class="dlg-text">Level -1</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #165</span> <span class="dlg-action">→ <code>lootlab_lvdn10</code></span> <a class="dlg-anchor" href="#r165" title="jump to flat reply #165">¶</a></summary>
+<div class="dlg-text">Level -10</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #166</span> <span class="dlg-action">→ <code>lootlab_floor</code></span> <a class="dlg-anchor" href="#r166" title="jump to flat reply #166">¶</a></summary>
+<div class="dlg-text">Next rarity floor</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #167</span> <span class="dlg-action">→ <code>lootlab_roll1</code></span> <a class="dlg-anchor" href="#r167" title="jump to flat reply #167">¶</a></summary>
+<div class="dlg-text">Roll 1 item</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #168</span> <span class="dlg-action">→ <code>lootlab_roll10</code></span> <a class="dlg-anchor" href="#r168" title="jump to flat reply #168">¶</a></summary>
+<div class="dlg-text">Roll 10 items</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #169</span> <span class="dlg-action">→ <code>lootlab_stock</code></span> <a class="dlg-anchor" href="#r169" title="jump to flat reply #169">¶</a></summary>
+<div class="dlg-text">Put 5 rolled items in the nearest container</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #170</span> <span class="dlg-action">→ <code>lootlab_dump</code></span> <a class="dlg-anchor" href="#r170" title="jump to flat reply #170">¶</a></summary>
+<div class="dlg-text">Dump the loot stamps of every rolled item in my pack</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #171</span> <a class="dlg-anchor" href="#r171" title="jump to flat reply #171">¶</a></summary>
+<div class="dlg-text">Done.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #30</span> <a class="dlg-anchor" href="#r30" title="jump to flat reply #30">¶</a></summary>
 <div class="dlg-text">Exit</div>
 </details>
@@ -1311,7 +1411,7 @@ Two worth remembering: stopping the party never takes anything away from anybody
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Hello &lt;FullName&gt; Would you like to summons your Pet Rock?</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Heck yeah!!”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“No thank you.”</span></li></ul></div>
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“1d100”</span></li><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“1d20”</span></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“1d12”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“1d8”</span></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“1d6”</span></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“1d4”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
 <div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#r137">→ reply #137</a> <span class="dlg-link-preview">“Home”</span> <small class="muted">(if <code>_hashome</code>)</small></li><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“To. The Well of Eru.”</span></li><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“To. Bree”</span></li><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“To. Lake Town”</span></li><li><a href="#r127">→ reply #127</a> <span class="dlg-link-preview">“Teleport to your party leader.”</span> <small class="muted">(if <code>tele_c_leader</code>)</small></li><li><a href="#r128">→ reply #128</a> <span class="dlg-link-preview">“Return to last Well-of-Eru point ().”</span> <small class="muted">(if <code>tele_c_return</code>)</small></li><li><a href="#r129">→ reply #129</a> <small class="muted">(if <code>tele_c_s1</code>)</small></li><li><a href="#r130">→ reply #130</a> <small class="muted">(if <code>tele_c_s2</code>)</small></li><li><a href="#r131">→ reply #131</a> <small class="muted">(if <code>tele_c_s3</code>)</small></li><li><a href="#r132">→ reply #132</a> <small class="muted">(if <code>tele_c_s4</code>)</small></li><li><a href="#r133">→ reply #133</a> <small class="muted">(if <code>tele_c_s5</code>)</small></li><li><a href="#r25">→ reply #25</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
-<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Yo &lt;FullName&gt;.</div><ul class="dlg-links"><li><a href="#r60">→ reply #60</a> <span class="dlg-link-preview">“DM Options”</span></li><li><a href="#r59">→ reply #59</a> <span class="dlg-link-preview">“DM Heal”</span></li><li><a href="#r58">→ reply #58</a> <span class="dlg-link-preview">“God Mode”</span></li><li><a href="#r57">→ reply #57</a> <span class="dlg-link-preview">“Invisibility”</span></li><li><a href="#r32">→ reply #32</a> <span class="dlg-link-preview">“Teleports”</span></li><li><a href="#r81">→ reply #81</a> <span class="dlg-link-preview">“MW Teleports.”</span></li><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“Force Rest”</span></li><li><a href="#r61">→ reply #61</a> <span class="dlg-link-preview">“Grant me level 60”</span></li><li><a href="#r82">→ reply #82</a> <span class="dlg-link-preview">“[Admin] Merit Awards”</span> <small class="muted">(if <code>_cdkeymerit</code>)</small></li><li><a href="#r111">→ reply #111</a> <span class="dlg-link-preview">“[Admin] Merit Redemptions”</span> <small class="muted">(if <code>_cdkeymerit</code>)</small></li><li><a href="#r138">→ reply #138</a> <span class="dlg-link-preview">“[Admin] Reset my legendary feats”</span></li><li><a href="#r139">→ reply #139</a> <span class="dlg-link-preview">“[Admin] Combat diagnostics on/off”</span></li><li><a href="#r140">→ reply #140</a> <span class="dlg-link-preview">“[Admin] Fangorn war meter”</span></li><li><a href="#r158">→ reply #158</a> <span class="dlg-link-preview">“[Admin] Crash Party controls”</span></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“Exit”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Yo &lt;FullName&gt;.</div><ul class="dlg-links"><li><a href="#r60">→ reply #60</a> <span class="dlg-link-preview">“DM Options”</span></li><li><a href="#r59">→ reply #59</a> <span class="dlg-link-preview">“DM Heal”</span></li><li><a href="#r58">→ reply #58</a> <span class="dlg-link-preview">“God Mode”</span></li><li><a href="#r57">→ reply #57</a> <span class="dlg-link-preview">“Invisibility”</span></li><li><a href="#r32">→ reply #32</a> <span class="dlg-link-preview">“Teleports”</span></li><li><a href="#r81">→ reply #81</a> <span class="dlg-link-preview">“MW Teleports.”</span></li><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“Force Rest”</span></li><li><a href="#r61">→ reply #61</a> <span class="dlg-link-preview">“Grant me level 60”</span></li><li><a href="#r82">→ reply #82</a> <span class="dlg-link-preview">“[Admin] Merit Awards”</span> <small class="muted">(if <code>_cdkeymerit</code>)</small></li><li><a href="#r111">→ reply #111</a> <span class="dlg-link-preview">“[Admin] Merit Redemptions”</span> <small class="muted">(if <code>_cdkeymerit</code>)</small></li><li><a href="#r138">→ reply #138</a> <span class="dlg-link-preview">“[Admin] Reset my legendary feats”</span></li><li><a href="#r139">→ reply #139</a> <span class="dlg-link-preview">“[Admin] Combat diagnostics on/off”</span></li><li><a href="#r140">→ reply #140</a> <span class="dlg-link-preview">“[Admin] Fangorn war meter”</span></li><li><a href="#r158">→ reply #158</a> <span class="dlg-link-preview">“[Admin] Crash Party controls”</span></li><li><a href="#r161">→ reply #161</a> <span class="dlg-link-preview">“[Admin] Loot Lab”</span></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“Exit”</span></li></ul></div>
 <div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“Back.”</span></li><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“To. The Control Room”</span></li><li><a href="#r54">→ reply #54</a> <span class="dlg-link-preview">“To. Angmar”</span></li><li><a href="#r53">→ reply #53</a> <span class="dlg-link-preview">“To. Mount Doom: Sauron&#x27;s Hall”</span></li><li><a href="#r52">→ reply #52</a> <span class="dlg-link-preview">“To. Dol Guldur”</span></li><li><a href="#r51">→ reply #51</a> <span class="dlg-link-preview">“To. Kerufall”</span></li><li><a href="#r50">→ reply #50</a> <span class="dlg-link-preview">“To. Balrog”</span></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“To. Witch King”</span></li><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“To. House of Homer”</span></li><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“To. Moria Forge”</span></li><li><a href="#r34">→ reply #34</a> <span class="dlg-link-preview">“More.”</span></li><li><a href="#r33">→ reply #33</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Yo.</div><ul class="dlg-links"><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“To. Minas Tirith Keep.”</span></li><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“To. Númenor: The Great Forge”</span></li><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“To. Hobbiton.”</span></li><li><a href="#r43">→ reply #43</a> <span class="dlg-link-preview">“To. Mirkwoods: Halls of Greenleaf.”</span></li><li><a href="#r42">→ reply #42</a> <span class="dlg-link-preview">“To. Weathertop.”</span></li><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“To. Pit Prison”</span></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“To. Dol Guldur”</span></li><li><a href="#r39">→ reply #39</a> <span class="dlg-link-preview">“To. Dimholt: Dunharrow”</span></li><li><a href="#r38">→ reply #38</a> <span class="dlg-link-preview">“To. Helm&#x27;s Deep: Keep”</span></li><li><a href="#r37">→ reply #37</a> <span class="dlg-link-preview">“To. Helm&#x27;s Deep: Cave”</span></li><li><a href="#r36">→ reply #36</a> <span class="dlg-link-preview">“To. Gwathdor: Throne of the Lord”</span></li><li><a href="#r35">→ reply #35</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
 <div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">A familiar music whispers across your mind. Which legend will walk with you?</div><ul class="dlg-links"><li><a href="#r62">→ reply #62</a> <span class="dlg-link-preview">“Jordan Peterson — Sage of Order.”</span> <small class="muted">(if <code>mw_chk_peterson</code>)</small></li><li><a href="#r63">→ reply #63</a> <span class="dlg-link-preview">“Alan Watts — Mystic of the Tao.”</span> <small class="muted">(if <code>mw_chk_watts</code>)</small></li><li><a href="#r64">→ reply #64</a> <span class="dlg-link-preview">“Joseph Campbell — the Mythkeeper.”</span> <small class="muted">(if <code>mw_chk_campbell</code>)</small></li><li><a href="#r65">→ reply #65</a> <span class="dlg-link-preview">“Terence McKenna — Bard of the Mushroom.”</span> <small class="muted">(if <code>mw_chk_mckenna</code>)</small></li><li><a href="#r66">→ reply #66</a> <span class="dlg-link-preview">“Jocko Willink — the Iron Captain.”</span> <small class="muted">(if <code>mw_chk_jocko</code>)</small></li><li><a href="#r67">→ reply #67</a> <span class="dlg-link-preview">“Carl Jung — the Shadow-Walker.”</span> <small class="muted">(if <code>mw_chk_jung</code>)</small></li><li><a href="#r68">→ reply #68</a> <span class="dlg-link-preview">“Marcus Aurelius — the Philosopher King.”</span> <small class="muted">(if <code>mw_chk_aurelius</code>)</small></li><li><a href="#r69">→ reply #69</a> <span class="dlg-link-preview">“(Back.)”</span></li></ul></div>
@@ -1332,6 +1432,14 @@ What would you like to do?</div><ul class="dlg-links"><li><a href="#r124">→ re
 These are the same controls as the placards in the DM control room. The placards carry a full description of what each one does, what it does not do, and which number to watch -- so for more information, go and read them there.
 
 Two worth remembering: stopping the party never takes anything away from anybody, and CLEAR ALL only removes what the dials spawned.</div><ul class="dlg-links"><li><a href="#r146">→ reply #146</a> <span class="dlg-link-preview">“Master switch: start / stop the Crash Party”</span></li><li><a href="#r147">→ reply #147</a> <span class="dlg-link-preview">“Release the next wave of party favours”</span></li><li><a href="#r148">→ reply #148</a> <span class="dlg-link-preview">“Step the wave back one”</span></li><li><a href="#r149">→ reply #149</a> <span class="dlg-link-preview">“Read the console (state, wave, load, record)”</span></li><li><a href="#r150">→ reply #150</a> <span class="dlg-link-preview">“Send the next countdown announcement”</span></li><li><a href="#r151">→ reply #151</a> <span class="dlg-link-preview">“Stress dial: +25 visual emitters”</span></li><li><a href="#r152">→ reply #152</a> <span class="dlg-link-preview">“Stress dial: +25 idle penguins”</span></li><li><a href="#r153">→ reply #153</a> <span class="dlg-link-preview">“Stress dial: +25 barrels”</span></li><li><a href="#r154">→ reply #154</a> <span class="dlg-link-preview">“Stress dial: +25 hostile gatecrashers”</span></li><li><a href="#r155">→ reply #155</a> <span class="dlg-link-preview">“Clear everything the dials spawned”</span></li><li><a href="#r156">→ reply #156</a> <span class="dlg-link-preview">“UAT: show and burn down my own charges”</span></li><li><a href="#r157">→ reply #157</a> <span class="dlg-link-preview">“Done.”</span></li></ul></div>
+<div class="dlg-node entry" id="e19"><div class="dlg-head"><span class="dlg-id">entry #19</span></div><div class="dlg-text">LOOT LAB
+
+Loot level: <span class="custom-token custom-token-unknown" title="SetCustomToken(6450, ...) — no setter found in static analysis">&lt;CUSTOM6450&gt;</span>
+Rarity floor: <span class="custom-token custom-token-unknown" title="SetCustomToken(6451, ...) — no setter found in static analysis">&lt;CUSTOM6451&gt;</span>
+
+Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pack; every lab roll is logged to lootdb. The floor is the lowest rarity a roll may land on - it can still roll higher.
+
+&quot;Dump&quot; prints each rolled item in your pack with its loot stamps and its value against its rarity&#x27;s budget.</div><ul class="dlg-links"><li><a href="#r162">→ reply #162</a> <span class="dlg-link-preview">“Level +1”</span></li><li><a href="#r163">→ reply #163</a> <span class="dlg-link-preview">“Level +10”</span></li><li><a href="#r164">→ reply #164</a> <span class="dlg-link-preview">“Level -1”</span></li><li><a href="#r165">→ reply #165</a> <span class="dlg-link-preview">“Level -10”</span></li><li><a href="#r166">→ reply #166</a> <span class="dlg-link-preview">“Next rarity floor”</span></li><li><a href="#r167">→ reply #167</a> <span class="dlg-link-preview">“Roll 1 item”</span></li><li><a href="#r168">→ reply #168</a> <span class="dlg-link-preview">“Roll 10 items”</span></li><li><a href="#r169">→ reply #169</a> <span class="dlg-link-preview">“Put 5 rolled items in the nearest container”</span></li><li><a href="#r170">→ reply #170</a> <span class="dlg-link-preview">“Dump the loot stamps of every rolled item in my pack”</span></li><li><a href="#r171">→ reply #171</a> <span class="dlg-link-preview">“Done.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Exit.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">&lt;StartHighlight&gt;[Options of the Homeless]&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Hello .”</span></li></ul></div>
@@ -1494,6 +1602,17 @@ Two worth remembering: stopping the party never takes anything away from anybody
 <div class="dlg-node reply" id="r158"><div class="dlg-head"><span class="dlg-id">reply #158</span></div><div class="dlg-text">[Admin] Crash Party controls</div><ul class="dlg-links"><li><a href="#e18">→ entry #18</a> <span class="dlg-link-preview">“CRASH PARTY CONTROLS”</span></li></ul></div>
 <div class="dlg-node reply" id="r159"><div class="dlg-head"><span class="dlg-id">reply #159</span> <span class="dlg-action">→ <code>_homerheavfrg</code></span></div><div class="dlg-text">To. The Great Forge Of Númenor</div></div>
 <div class="dlg-node reply" id="r160"><div class="dlg-head"><span class="dlg-id">reply #160</span> <span class="dlg-action">→ <code>_homerdeadmarsh</code></span></div><div class="dlg-text">To. The Dead Marshes (Pumpkin King)</div></div>
+<div class="dlg-node reply" id="r161"><div class="dlg-head"><span class="dlg-id">reply #161</span></div><div class="dlg-text">[Admin] Loot Lab</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r162"><div class="dlg-head"><span class="dlg-id">reply #162</span> <span class="dlg-action">→ <code>lootlab_lvup1</code></span></div><div class="dlg-text">Level +1</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r163"><div class="dlg-head"><span class="dlg-id">reply #163</span> <span class="dlg-action">→ <code>lootlab_lvup10</code></span></div><div class="dlg-text">Level +10</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r164"><div class="dlg-head"><span class="dlg-id">reply #164</span> <span class="dlg-action">→ <code>lootlab_lvdn1</code></span></div><div class="dlg-text">Level -1</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r165"><div class="dlg-head"><span class="dlg-id">reply #165</span> <span class="dlg-action">→ <code>lootlab_lvdn10</code></span></div><div class="dlg-text">Level -10</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r166"><div class="dlg-head"><span class="dlg-id">reply #166</span> <span class="dlg-action">→ <code>lootlab_floor</code></span></div><div class="dlg-text">Next rarity floor</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r167"><div class="dlg-head"><span class="dlg-id">reply #167</span> <span class="dlg-action">→ <code>lootlab_roll1</code></span></div><div class="dlg-text">Roll 1 item</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r168"><div class="dlg-head"><span class="dlg-id">reply #168</span> <span class="dlg-action">→ <code>lootlab_roll10</code></span></div><div class="dlg-text">Roll 10 items</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r169"><div class="dlg-head"><span class="dlg-id">reply #169</span> <span class="dlg-action">→ <code>lootlab_stock</code></span></div><div class="dlg-text">Put 5 rolled items in the nearest container</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r170"><div class="dlg-head"><span class="dlg-id">reply #170</span> <span class="dlg-action">→ <code>lootlab_dump</code></span></div><div class="dlg-text">Dump the loot stamps of every rolled item in my pack</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r171"><div class="dlg-head"><span class="dlg-id">reply #171</span></div><div class="dlg-text">Done.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

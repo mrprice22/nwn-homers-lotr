@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script forge_dis_c3</title>
+  <title>Script lootlab_floor</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -58,6 +58,7 @@
 <a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
 <a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
 <a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
 <a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
 <a href="../manual/Customizations/Progression.html">Character Progression</a>
 <a href="../manual/Customizations/Spells.html">Spell Changes</a>
@@ -69,16 +70,23 @@
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
       
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_dis_c3</code></h1><pre class="nss-source"><code>// Show disenchant slot 3 when the target item has more than 3 properties.
-int StartingConditional()
+<h1>Script: <code>lootlab_floor</code></h1><pre class="nss-source"><code>// lootlab_floor.nss - Loot Lab: cycle the rarity floor Common -&gt; ... -&gt; Legendary -&gt; Common.
+// Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
+#include &quot;lootlab_inc&quot;
+
+void main()
 {
-    return GetLocalInt(GetPCSpeaker(), &quot;FORGE_DIS_COUNT&quot;) &gt; 3;
+    object oPC = LL_Speaker();
+    if (!LL_Authorised(oPC)) return;
+    SetLocalInt(oPC, &quot;LOOTLAB_FLOOR&quot;, (LL_Floor(oPC) + 1) % LOOTD_RARITY_COUNT);
+    LL_SetTokens(oPC);
 }
 </code></pre>
   </main>
