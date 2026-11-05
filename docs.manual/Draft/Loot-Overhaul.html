@@ -196,11 +196,15 @@ in this order:</p>
     its appearance from the <code>bases.json</code> model pools.</li>
   <li><strong>Rarity.</strong> Roll it, apply the floor, then a weighted one- or two-band
     upgrade.</li>
-  <li><strong>Affixes.</strong> Roll up to the rarity's count. Build each one with
-    <code>IPGetItemPropertyByID</code>, not <code>itemprocs</code>, which depends on conversation
-    locals. Same-type affixes merge rather than stack (see the bonus-ledger note).</li>
-  <li><strong>Budget.</strong> Check the value with <code>ForgeItemValue</code> /
-    <code>ForgeRebuildValue</code>; never read it in place after a removal.</li>
+  <li><strong>Affixes.</strong> Roll up to the rarity's count. Build each one with the
+    generated <code>Loot_MakeIP</code>, which calls the native <code>ItemProperty*</code>
+    constructors. It does not use <code>itemprocs</code>, which depends on conversation locals, or
+    <code>IPGetItemPropertyByID</code>, which builds Damage Vulnerability as a resistance and
+    Decreased Saving Throw Specific as a bonus. Affixes carry an exclusion group, so an item never
+    gets two of one kind and same-type properties never stack.</li>
+  <li><strong>Budget.</strong> Price the whole set on a scratch forge blank, the way
+    <code>ForgeRebuildValue</code> prices any item. Step it down until it fits, and only then apply it
+    to the real item, so nothing is ever read back after a removal.</li>
   <li><strong>Name.</strong> Coloured <code>&lt;Prefix&gt; &lt;Base&gt; of &lt;Suffix&gt;</code>.
     The word lists are prose, so the local LLM may draft them, with every write recorded in the
     ledger.</li>
@@ -292,6 +296,12 @@ edit. <code>forge_inc</code> is an include, so this needs a clean repack.</p>
     names: Spell Resistance, amulet alternatives to the 25% physical-immunity answer, and
     caster <code>magicstaff</code> affixes. Avoid simply bigger attacks-per-round or divine
     damage.</li>
+  <li><strong>As built (2026-11-05).</strong> The golden refactor found seven copies of the rule, not
+    six. They are now one <code>item_accessible()</code> (nwn_manager <code>5bd9cce</code>), with zero
+    diff on all four corpora. The starter set has 68 affixes, 10 of them downsides, and 32 named items
+    awaiting review. Value budgets are anchored to obtainable gear, not the forge caps: Legendary
+    reaches 3.2M at level 60, about the 95th percentile. 35% of rolls drop unidentified. The
+    working reference is <code>CLAUDE-loot.md</code>.</li>
 </ul>
 
 <h3 id="p3">3. Chests and containers (<code>rng-based-gear-diablo-world-of-warcraft-style</code>)</h3>

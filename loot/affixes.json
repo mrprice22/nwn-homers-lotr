@@ -1,0 +1,2789 @@
+{
+ "_doc": "Affixes. type = itempropdef row (must be in loot_model.SUPPORTED_IP); sub = subtype row (omit when the property has none); ladder = cost-table rows in ascending power; window = [lowest, highest] ladder index at loot level 1 and 60 (linear between); cats = categories it may roll on; weight = relative pick weight; min_level = lowest loot level; group = exclusion group (an item never carries two affixes of one group, so same-type properties never stack); role = upside or downside (a downside is a trade-off - allowed at any tier, admin 2026-11-05); prefix / suffix name the item '<prefix> <base> of <suffix>' (first two upsides). Banned outright (season3-meta-shakeup, devcrit): Haste, Divine damage, critical-hit immunity.",
+ "affixes": [
+  {
+   "id": "enh",
+   "type": 6,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     6,
+     9
+    ]
+   },
+   "cats": [
+    "melee",
+    "caster"
+   ],
+   "weight": 60,
+   "min_level": 1,
+   "role": "upside",
+   "group": "hit",
+   "prefix": "Honed",
+   "suffix": "Sharpness",
+   "note": "Enhancement and Attack Bonus share the 'hit' group: the engine applies only the higher, so an item never rolls both."
+  },
+  {
+   "id": "ab",
+   "type": 56,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     6,
+     9
+    ]
+   },
+   "cats": [
+    "ranged",
+    "caster"
+   ],
+   "weight": 60,
+   "min_level": 1,
+   "role": "upside",
+   "group": "hit",
+   "prefix": "Precise",
+   "suffix": "Accuracy"
+  },
+  {
+   "id": "dmg_acid",
+   "type": 16,
+   "sub": 6,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     7,
+     11
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 14,
+   "min_level": 1,
+   "role": "upside",
+   "group": "dmg_acid",
+   "prefix": "Corroding",
+   "suffix": "Acid"
+  },
+  {
+   "id": "dmg_cold",
+   "type": 16,
+   "sub": 7,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     7,
+     11
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 14,
+   "min_level": 1,
+   "role": "upside",
+   "group": "dmg_cold",
+   "prefix": "Frostbitten",
+   "suffix": "Frost"
+  },
+  {
+   "id": "dmg_elec",
+   "type": 16,
+   "sub": 9,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     7,
+     11
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 14,
+   "min_level": 1,
+   "role": "upside",
+   "group": "dmg_elec",
+   "prefix": "Shocking",
+   "suffix": "Lightning"
+  },
+  {
+   "id": "dmg_fire",
+   "type": 16,
+   "sub": 10,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     7,
+     11
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 14,
+   "min_level": 1,
+   "role": "upside",
+   "group": "dmg_fire",
+   "prefix": "Burning",
+   "suffix": "Flame"
+  },
+  {
+   "id": "dmg_sonic",
+   "type": 16,
+   "sub": 13,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     7,
+     11
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 14,
+   "min_level": 1,
+   "role": "upside",
+   "group": "dmg_sonic",
+   "prefix": "Resonant",
+   "suffix": "Thunder"
+  },
+  {
+   "id": "dmg_neg",
+   "type": 16,
+   "sub": 11,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     7,
+     11
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 14,
+   "min_level": 1,
+   "role": "upside",
+   "group": "dmg_neg",
+   "prefix": "Shadowed",
+   "suffix": "Shadow"
+  },
+  {
+   "id": "keen",
+   "type": 43,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 12,
+   "min_level": 10,
+   "role": "upside",
+   "group": "keen",
+   "prefix": "Keen",
+   "suffix": "Keenness"
+  },
+  {
+   "id": "masscrit",
+   "type": 74,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     6,
+     10
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "masscrit",
+   "prefix": "Brutal",
+   "suffix": "Ruin"
+  },
+  {
+   "id": "mighty",
+   "type": 45,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     5,
+     9
+    ]
+   },
+   "cats": [
+    "ranged"
+   ],
+   "weight": 40,
+   "min_level": 1,
+   "role": "upside",
+   "group": "mighty",
+   "prefix": "Mighty",
+   "suffix": "Might"
+  },
+  {
+   "id": "vampregen",
+   "type": 67,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     5
+    ]
+   },
+   "cats": [
+    "melee"
+   ],
+   "weight": 10,
+   "min_level": 5,
+   "role": "upside",
+   "group": "vampregen",
+   "prefix": "Thirsting",
+   "suffix": "the Leech"
+  },
+  {
+   "id": "ac",
+   "type": 1,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     4,
+     7
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 40,
+   "min_level": 1,
+   "role": "upside",
+   "group": "ac",
+   "prefix": "Warded",
+   "suffix": "Warding"
+  },
+  {
+   "id": "abil_str",
+   "type": 0,
+   "sub": 0,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "abil_str",
+   "prefix": "Strong",
+   "suffix": "Strength"
+  },
+  {
+   "id": "abil_dex",
+   "type": 0,
+   "sub": 1,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "ranged"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "abil_dex",
+   "prefix": "Nimble",
+   "suffix": "Grace"
+  },
+  {
+   "id": "abil_con",
+   "type": 0,
+   "sub": 2,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "abil_con",
+   "prefix": "Hardy",
+   "suffix": "Endurance"
+  },
+  {
+   "id": "abil_int",
+   "type": 0,
+   "sub": 3,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "abil_int",
+   "prefix": "Learned",
+   "suffix": "Lore"
+  },
+  {
+   "id": "abil_wis",
+   "type": 0,
+   "sub": 4,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "abil_wis",
+   "prefix": "Wise",
+   "suffix": "Insight"
+  },
+  {
+   "id": "abil_cha",
+   "type": 0,
+   "sub": 5,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "abil_cha",
+   "prefix": "Noble",
+   "suffix": "Command"
+  },
+  {
+   "id": "regen",
+   "type": 51,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     5
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "ranged"
+   ],
+   "weight": 10,
+   "min_level": 5,
+   "role": "upside",
+   "group": "regen",
+   "prefix": "Mending",
+   "suffix": "Renewal"
+  },
+  {
+   "id": "save_univ",
+   "type": 40,
+   "sub": 0,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     6
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster",
+    "ranged"
+   ],
+   "weight": 20,
+   "min_level": 1,
+   "role": "upside",
+   "group": "save",
+   "prefix": "Steadfast",
+   "suffix": "Resolve",
+   "note": "The four save affixes share the 'save' group, so an item carries at most one."
+  },
+  {
+   "id": "save_fort",
+   "type": 41,
+   "sub": 1,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     4,
+     8
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster",
+    "ranged"
+   ],
+   "weight": 10,
+   "min_level": 1,
+   "role": "upside",
+   "group": "save",
+   "prefix": "Hale",
+   "suffix": "Fortitude"
+  },
+  {
+   "id": "save_will",
+   "type": 41,
+   "sub": 2,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     4,
+     8
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster",
+    "ranged"
+   ],
+   "weight": 10,
+   "min_level": 1,
+   "role": "upside",
+   "group": "save",
+   "prefix": "Iron-willed",
+   "suffix": "Will"
+  },
+  {
+   "id": "save_ref",
+   "type": 41,
+   "sub": 3,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     4,
+     8
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster",
+    "ranged"
+   ],
+   "weight": 10,
+   "min_level": 1,
+   "role": "upside",
+   "group": "save",
+   "prefix": "Quick",
+   "suffix": "Reflexes"
+  },
+  {
+   "id": "sr",
+   "type": 39,
+   "ladder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     8,
+     16
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 25,
+   "min_level": 1,
+   "role": "upside",
+   "group": "sr",
+   "prefix": "Spellwarded",
+   "suffix": "Spell Warding",
+   "note": "season3-meta-shakeup axis: SR is almost unused (best in play SR 16) and cuts against the bard buff stack. Ladder row n = SR 10+2n, so L60 rolls SR 26-42."
+  },
+  {
+   "id": "imm_acid",
+   "type": 20,
+   "sub": 6,
+   "ladder": [
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "shield",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_acid",
+   "prefix": "Unetched",
+   "suffix": "the Alchemist",
+   "note": "season3-meta-shakeup axis: elemental immunity as an amulet alternative to the 25% physical-immunity answer. Physical (0-2,4) is deliberately absent."
+  },
+  {
+   "id": "imm_cold",
+   "type": 20,
+   "sub": 7,
+   "ladder": [
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "shield",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_cold",
+   "prefix": "Hearth-warm",
+   "suffix": "the Hearth"
+  },
+  {
+   "id": "imm_elec",
+   "type": 20,
+   "sub": 9,
+   "ladder": [
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "shield",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_elec",
+   "prefix": "Grounded",
+   "suffix": "the Lightning-rod"
+  },
+  {
+   "id": "imm_fire",
+   "type": 20,
+   "sub": 10,
+   "ladder": [
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "shield",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_fire",
+   "prefix": "Flame-warded",
+   "suffix": "the Salamander"
+  },
+  {
+   "id": "imm_sonic",
+   "type": 20,
+   "sub": 13,
+   "ladder": [
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "shield",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_sonic",
+   "prefix": "Muffled",
+   "suffix": "Silence"
+  },
+  {
+   "id": "imm_neg",
+   "type": 20,
+   "sub": 11,
+   "ladder": [
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     3,
+     7
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "shield",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_neg",
+   "prefix": "Hallowed",
+   "suffix": "the Living"
+  },
+  {
+   "id": "res_acid",
+   "type": 23,
+   "sub": 6,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     6
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "res_acid",
+   "prefix": "Acid-proof",
+   "suffix": "Acid Ward"
+  },
+  {
+   "id": "res_cold",
+   "type": 23,
+   "sub": 7,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     6
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "res_cold",
+   "prefix": "Frost-proof",
+   "suffix": "Frost Ward"
+  },
+  {
+   "id": "res_elec",
+   "type": 23,
+   "sub": 9,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     6
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "res_elec",
+   "prefix": "Storm-proof",
+   "suffix": "Storm Ward"
+  },
+  {
+   "id": "res_fire",
+   "type": 23,
+   "sub": 10,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     6
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "res_fire",
+   "prefix": "Fire-proof",
+   "suffix": "Fire Ward"
+  },
+  {
+   "id": "res_sonic",
+   "type": 23,
+   "sub": 13,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     6
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "res_sonic",
+   "prefix": "Deafened",
+   "suffix": "Sound Ward"
+  },
+  {
+   "id": "res_neg",
+   "type": 23,
+   "sub": 11,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     2,
+     6
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "res_neg",
+   "prefix": "Life-bound",
+   "suffix": "Death Ward"
+  },
+  {
+   "id": "dr",
+   "type": 22,
+   "sub": 4,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     1,
+     4
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "upside",
+   "group": "dr",
+   "prefix": "Adamant",
+   "suffix": "the Bulwark",
+   "note": "Damage Reduction 5..50 soak vs +5 weapons."
+  },
+  {
+   "id": "imm_fear",
+   "type": 37,
+   "sub": 5,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_fear",
+   "prefix": "Fearless",
+   "suffix": "Courage"
+  },
+  {
+   "id": "imm_disease",
+   "type": 37,
+   "sub": 4,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 1,
+   "role": "upside",
+   "group": "imm_disease",
+   "prefix": "Untainted",
+   "suffix": "Purity"
+  },
+  {
+   "id": "imm_poison",
+   "type": 37,
+   "sub": 3,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 10,
+   "role": "upside",
+   "group": "imm_poison",
+   "prefix": "Venom-proof",
+   "suffix": "the Viper"
+  },
+  {
+   "id": "imm_paralysis",
+   "type": 37,
+   "sub": 7,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 20,
+   "role": "upside",
+   "group": "imm_paralysis",
+   "prefix": "Unstilled",
+   "suffix": "Motion"
+  },
+  {
+   "id": "imm_drain",
+   "type": 37,
+   "sub": 1,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 25,
+   "role": "upside",
+   "group": "imm_drain",
+   "prefix": "Unwithering",
+   "suffix": "Vigor"
+  },
+  {
+   "id": "imm_mind",
+   "type": 37,
+   "sub": 2,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 30,
+   "role": "upside",
+   "group": "imm_mind",
+   "prefix": "Clear-minded",
+   "suffix": "Clarity"
+  },
+  {
+   "id": "imm_knockdown",
+   "type": 37,
+   "sub": 6,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 35,
+   "role": "upside",
+   "group": "imm_knockdown",
+   "prefix": "Sure-footed",
+   "suffix": "Footing"
+  },
+  {
+   "id": "imm_death",
+   "type": 37,
+   "sub": 9,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "jewelry",
+    "armor",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 40,
+   "role": "upside",
+   "group": "imm_death",
+   "prefix": "Deathless",
+   "suffix": "Life"
+  },
+  {
+   "id": "fom",
+   "type": 75,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "wearable",
+    "armor",
+    "jewelry"
+   ],
+   "weight": 5,
+   "min_level": 20,
+   "role": "upside",
+   "group": "fom",
+   "prefix": "Unhindered",
+   "suffix": "Freedom"
+  },
+  {
+   "id": "trueseeing",
+   "type": 71,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "wearable",
+    "jewelry"
+   ],
+   "weight": 2,
+   "min_level": 45,
+   "role": "upside",
+   "group": "trueseeing",
+   "prefix": "All-seeing",
+   "suffix": "True Sight"
+  },
+  {
+   "id": "darkvision",
+   "type": 26,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "wearable",
+    "jewelry"
+   ],
+   "weight": 6,
+   "min_level": 1,
+   "role": "upside",
+   "group": "darkvision",
+   "prefix": "Night-eyed",
+   "suffix": "the Owl"
+  },
+  {
+   "id": "evasion",
+   "type": 38,
+   "ladder": [
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     0,
+     0
+    ]
+   },
+   "cats": [
+    "armor",
+    "wearable",
+    "jewelry"
+   ],
+   "weight": 3,
+   "min_level": 30,
+   "role": "upside",
+   "group": "evasion",
+   "prefix": "Elusive",
+   "suffix": "Evasion"
+  },
+  {
+   "id": "slot_wiz",
+   "type": 13,
+   "sub": 10,
+   "ladder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     5,
+     9
+    ]
+   },
+   "cats": [
+    "caster",
+    "jewelry"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "upside",
+   "group": "slot_wiz",
+   "prefix": "Arcane",
+   "suffix": "the Magus"
+  },
+  {
+   "id": "slot_sorc",
+   "type": 13,
+   "sub": 9,
+   "ladder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     5,
+     9
+    ]
+   },
+   "cats": [
+    "caster",
+    "jewelry"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "upside",
+   "group": "slot_sorc",
+   "prefix": "Sorcerous",
+   "suffix": "the Bloodline"
+  },
+  {
+   "id": "slot_cleric",
+   "type": 13,
+   "sub": 2,
+   "ladder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     5,
+     9
+    ]
+   },
+   "cats": [
+    "caster",
+    "jewelry"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "upside",
+   "group": "slot_cleric",
+   "prefix": "Blessed",
+   "suffix": "Devotion"
+  },
+  {
+   "id": "slot_druid",
+   "type": 13,
+   "sub": 3,
+   "ladder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     5,
+     9
+    ]
+   },
+   "cats": [
+    "caster",
+    "jewelry"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "upside",
+   "group": "slot_druid",
+   "prefix": "Verdant",
+   "suffix": "the Grove"
+  },
+  {
+   "id": "asf",
+   "type": 84,
+   "ladder": [
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1,
+    0
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     4,
+     9
+    ]
+   },
+   "cats": [
+    "caster",
+    "armor",
+    "shield"
+   ],
+   "weight": 12,
+   "min_level": 1,
+   "role": "upside",
+   "group": "asf",
+   "prefix": "Supple",
+   "suffix": "Ease",
+   "note": "Arcane spell failure -5%..-50% (iprp_arcspell rows 9..0)."
+  },
+  {
+   "id": "skill_conc",
+   "type": 52,
+   "sub": 1,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50
+   ],
+   "window": {
+    "1": [
+     0,
+     2
+    ],
+    "60": [
+     8,
+     19
+    ]
+   },
+   "cats": [
+    "caster",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "upside",
+   "group": "skill_conc",
+   "prefix": "Focused",
+   "suffix": "Focus"
+  },
+  {
+   "id": "skill_spellcraft",
+   "type": 52,
+   "sub": 16,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50
+   ],
+   "window": {
+    "1": [
+     0,
+     2
+    ],
+    "60": [
+     8,
+     19
+    ]
+   },
+   "cats": [
+    "caster",
+    "jewelry",
+    "wearable"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "upside",
+   "group": "skill_spellcraft",
+   "prefix": "Erudite",
+   "suffix": "Spellcraft"
+  },
+  {
+   "id": "skill_disc",
+   "type": 52,
+   "sub": 3,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50
+   ],
+   "window": {
+    "1": [
+     0,
+     2
+    ],
+    "60": [
+     8,
+     19
+    ]
+   },
+   "cats": [
+    "armor",
+    "shield",
+    "wearable"
+   ],
+   "weight": 6,
+   "min_level": 1,
+   "role": "upside",
+   "group": "skill_disc",
+   "prefix": "Disciplined",
+   "suffix": "Discipline"
+  },
+  {
+   "id": "down_ac",
+   "type": 28,
+   "sub": 0,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     1,
+     4
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 20,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_ac",
+   "note": "Dodge AC penalty."
+  },
+  {
+   "id": "down_str",
+   "type": 27,
+   "sub": 0,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     1,
+     4
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_abil"
+  },
+  {
+   "id": "down_dex",
+   "type": 27,
+   "sub": 1,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     1,
+     4
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_abil"
+  },
+  {
+   "id": "down_con",
+   "type": 27,
+   "sub": 2,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     1,
+     4
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_abil"
+  },
+  {
+   "id": "down_save",
+   "type": 49,
+   "sub": 0,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     1,
+     4
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 10,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_save"
+  },
+  {
+   "id": "down_vuln_fire",
+   "type": 24,
+   "sub": 10,
+   "ladder": [
+    1,
+    2,
+    3
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     1,
+     2
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_vuln"
+  },
+  {
+   "id": "down_vuln_cold",
+   "type": 24,
+   "sub": 7,
+   "ladder": [
+    1,
+    2,
+    3
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     1,
+     2
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_vuln"
+  },
+  {
+   "id": "down_vuln_elec",
+   "type": 24,
+   "sub": 9,
+   "ladder": [
+    1,
+    2,
+    3
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     1,
+     2
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_vuln"
+  },
+  {
+   "id": "down_vuln_neg",
+   "type": 24,
+   "sub": 11,
+   "ladder": [
+    1,
+    2,
+    3
+   ],
+   "window": {
+    "1": [
+     0,
+     0
+    ],
+    "60": [
+     1,
+     2
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged",
+    "armor",
+    "shield",
+    "jewelry",
+    "wearable",
+    "caster"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_vuln"
+  },
+  {
+   "id": "down_ab",
+   "type": 60,
+   "ladder": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "window": {
+    "1": [
+     0,
+     1
+    ],
+    "60": [
+     1,
+     4
+    ]
+   },
+   "cats": [
+    "melee",
+    "ranged"
+   ],
+   "weight": 8,
+   "min_level": 1,
+   "role": "downside",
+   "group": "down_ab"
+  }
+ ]
+}

@@ -1,0 +1,120 @@
+{
+  "_doc": "Rarity tiers, lowest first; the index (0-4) is LOOT_RARITY. weight = relative drop weight. affixes = [min, max] upside affixes. Chances are per-mille ints: downside_chance (a trade-off affix, which grants one extra upside and raises the budget by downside_budget_pct), unidentified_chance, upgrade_one / upgrade_two (bump the rolled tier after the floor is applied), named_chance (top tier only: award a named.json item instead). budget = item value ceiling in gp by loot level, piecewise-linear; the runtime enforces it with the engine's own GetGoldPieceValue on a forge blank. Anchored to obtainable gear (2026-11-05): p50 24k, p75 130k, p90 1.18M, p95 3.24M of the module's 2,900 accessible items. color = a color.nss constant. roll_bias = each upside's ladder step is the best of (1 + roll_bias) rolls inside its level window.",
+  "tiers": [
+    {
+      "id": "common",
+      "name": "Common",
+      "color": "COLOR_WHITE",
+      "weight": 620,
+      "affixes": [
+        1,
+        1
+      ],
+      "downside_chance": 60,
+      "downside_budget_pct": 25,
+      "unidentified_chance": 350,
+      "upgrade_one": 80,
+      "upgrade_two": 10,
+      "named_chance": 0,
+      "budget": {
+        "1": 1500,
+        "20": 5000,
+        "40": 10000,
+        "60": 15000
+      },
+      "roll_bias": 0
+    },
+    {
+      "id": "uncommon",
+      "name": "Uncommon",
+      "color": "COLOR_GREEN",
+      "weight": 260,
+      "affixes": [
+        1,
+        2
+      ],
+      "downside_chance": 100,
+      "downside_budget_pct": 25,
+      "unidentified_chance": 350,
+      "upgrade_one": 60,
+      "upgrade_two": 8,
+      "named_chance": 0,
+      "budget": {
+        "1": 4000,
+        "20": 12000,
+        "40": 20000,
+        "60": 25000
+      },
+      "roll_bias": 0
+    },
+    {
+      "id": "rare",
+      "name": "Rare",
+      "color": "COLOR_BLUE",
+      "weight": 90,
+      "affixes": [
+        2,
+        3
+      ],
+      "downside_chance": 120,
+      "downside_budget_pct": 25,
+      "unidentified_chance": 350,
+      "upgrade_one": 40,
+      "upgrade_two": 5,
+      "named_chance": 0,
+      "budget": {
+        "1": 10000,
+        "20": 35000,
+        "40": 80000,
+        "60": 130000
+      },
+      "roll_bias": 1
+    },
+    {
+      "id": "epic",
+      "name": "Epic",
+      "color": "COLOR_PURPLE",
+      "weight": 25,
+      "affixes": [
+        3,
+        4
+      ],
+      "downside_chance": 140,
+      "downside_budget_pct": 25,
+      "unidentified_chance": 350,
+      "upgrade_one": 20,
+      "upgrade_two": 0,
+      "named_chance": 0,
+      "budget": {
+        "1": 30000,
+        "20": 150000,
+        "40": 500000,
+        "60": 1200000
+      },
+      "roll_bias": 1
+    },
+    {
+      "id": "legendary",
+      "name": "Legendary",
+      "color": "COLOR_ORANGE",
+      "weight": 5,
+      "affixes": [
+        4,
+        4
+      ],
+      "downside_chance": 160,
+      "downside_budget_pct": 25,
+      "unidentified_chance": 350,
+      "upgrade_one": 0,
+      "upgrade_two": 0,
+      "named_chance": 200,
+      "budget": {
+        "1": 60000,
+        "20": 400000,
+        "40": 1400000,
+        "60": 3200000
+      },
+      "roll_bias": 2
+    }
+  ]
+}

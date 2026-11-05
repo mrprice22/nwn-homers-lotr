@@ -1,0 +1,5 @@
+{
+  "_doc": "Creature CR -> loot level 1..60, piecewise-linear over cr_points [[CR, level], ...] and clamped at both ends. Boss CRs reach 9,540, so the bands are log-shaped: most of the range is spent where players actually level. boss_overrides pins a specific boss resref to a loot level (Phase 4 reads it). Tune with bin/loot-sim.py.",
+  "cr_points": [[0, 1], [40, 30], [200, 45], [1000, 55], [10000, 60]],
+  "boss_overrides": {}
+}

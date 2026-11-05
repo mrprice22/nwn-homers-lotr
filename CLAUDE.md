@@ -809,6 +809,7 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
   behind the case-sensitive bytes `BMU V1.0`, why `ambientmusic.2da` rows are append-only
   (areas store the row number, so renumbering repoints them), why music gets its own hak,
   and the `MusicBackgroundChangeDay()` row+1 off-by-one the jukebox turns on
+- [CLAUDE-loot.md](CLAUDE-loot.md) — Season 3 rolled loot (Loot Overhaul): `loot/*.json` → `bin/gen-loot-tables.py` → `loot_data_inc.nss` → `Loot_Roll()` in `loot_inc.nss`, the `check_loot_tables` gate rules, `bin/loot-sim.py`, the Loot Lab admin menu, and why a loot-data change needs `repack-homers-lotr-clean`
 - [CLAUDE-merit.md](CLAUDE-merit.md) — Merit award + redemption system: `meritdb` schema (earned vs escrowed `merit_spent`), the `merit_redeem.nss` catalogue, how to add/graduate a redemption option, custom-token ranges, and the Barliman NPC + DM EmoteWand flow
 
 ## Useful references

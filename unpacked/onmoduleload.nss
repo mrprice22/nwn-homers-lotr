@@ -38,6 +38,7 @@
 #include "mw_db"
 #include "cp_inc"
 #include "jb_db"
+#include "loot_db"
 
 
 void main()
@@ -363,5 +364,9 @@ Graf_RestoreCanvas();
 // use. Note the queue is NOT drained at load: it is paid for, and
 // JB_Reconcile() restarts whatever was mid-song when the server went down.
 JB_InitDb();
+
+// Season 3 rolled loot: loot_roll_log (balance telemetry; Phases 6/7 add the
+// wishlist and Fate-token lockout tables). See loot_db.nss (roadmap: lo-loot-core).
+Loot_InitDb();
 
 }   //end of main

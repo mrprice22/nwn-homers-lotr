@@ -262,6 +262,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: loot tables…"
+if python3 "$HERE/check_loot_tables.py"; then
+  echo "ok: loot tables"
+else
+  echo "fail: loot tables"
+  rc=1
+fi
+
 # Keep this LAST and keep it loud. It is the gate that stops a live season
 # being packed with cheat gear, the dev builder NPC or an early-access wipe
 # warning still switched on — the one failure in this file that reaches every
