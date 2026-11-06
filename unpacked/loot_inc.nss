@@ -378,6 +378,15 @@ int Loot_IsRolled(object oItem)
     return GetLocalInt(oItem, "LOOT_VER") > 0;
 }
 
+// A rolled item put on a non-PC creature (a corpse, Phase 4) must be droppable:
+// Jasperre's DeathCheck / DeleteAllThings destroys a dead creature's
+// non-droppable items, so it would never reach the party roll.
+void Loot_MarkCorpseLoot(object oItem, object oDest)
+{
+    if (GetObjectType(oDest) == OBJECT_TYPE_CREATURE && !GetIsPC(oDest))
+        SetDroppableFlag(oItem, TRUE);
+}
+
 // Move an item built in the forge vault to its destination.
 object Loot_Deliver(object oItem, object oDest)
 {
@@ -385,7 +394,34 @@ object Loot_Deliver(object oItem, object oDest)
     object oCopy = CopyItem(oItem, oDest, TRUE);
     if (!GetIsObjectValid(oCopy)) return oItem;
     DestroyObject(oItem);
+    Loot_MarkCorpseLoot(oCopy, oDest);
     return oCopy;
+}
+
+// A named-pool award inside its level window, created on oDest and stamped at
+// nRarity.  OBJECT_INVALID when the pool has nothing for this level/profile.
+// Mirrors loot_model.give_named: Loot_Roll's named branch and a boss's separate
+// named roll (loot_ondeath, Phase 4) both come through here.
+object Loot_GiveNamed(int nLvl, int nRarity, string sProfile, object oBeneficiary, object oDest)
+{
+    int nProfile = LootD_ProfileIndex(sProfile);
+    if (nProfile < 0) return OBJECT_INVALID;
+    int nNamed = Loot_PickNamed(nLvl, nProfile);
+    if (nNamed < 0) return OBJECT_INVALID;
+    string sRes = LootD_NamedResRef(nNamed);
+    object oNamed = CreateItemOnObject(sRes, oDest);
+    if (!GetIsObjectValid(oNamed))
+    {
+        Loot_Warn("named item '" + sRes + "' could not be created");
+        return OBJECT_INVALID;
+    }
+    Loot_StampCommon(oNamed, nLvl, nRarity, sProfile);
+    SetLocalInt(oNamed, "LOOT_NAMED", 1);
+    SetLocalInt(oNamed, "LOOT_AFX_N", 0);
+    Loot_MarkCorpseLoot(oNamed, oDest);
+    Loot_LogRoll(sProfile == "lab" ? "lab" : "roll", sProfile, nLvl, nRarity,
+                 GetBaseItemType(oNamed), sRes, -1, oBeneficiary);
+    return oNamed;
 }
 
 // ---------------------------------------------------------------------------
@@ -413,22 +449,8 @@ object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
     // 2. named pool
     if (Random(1000) < LootD_RarityNamed(nRarity))
     {
-        int nNamed = Loot_PickNamed(nLvl, nProfile);
-        if (nNamed >= 0)
-        {
-            string sRes = LootD_NamedResRef(nNamed);
-            object oNamed = CreateItemOnObject(sRes, oDest);
-            if (GetIsObjectValid(oNamed))
-            {
-                Loot_StampCommon(oNamed, nLvl, nRarity, sProfile);
-                SetLocalInt(oNamed, "LOOT_NAMED", 1);
-                SetLocalInt(oNamed, "LOOT_AFX_N", 0);
-                Loot_LogRoll(sProfile == "lab" ? "lab" : "roll", sProfile, nLvl, nRarity,
-                             GetBaseItemType(oNamed), sRes, -1, oBeneficiary);
-                return oNamed;
-            }
-            Loot_Warn("named item '" + sRes + "' could not be created");
-        }
+        object oNamed = Loot_GiveNamed(nLvl, nRarity, sProfile, oBeneficiary, oDest);
+        if (GetIsObjectValid(oNamed)) return oNamed;
     }
 
     // 3. base
@@ -617,6 +639,38 @@ int Loot_AreaLevel(object oArea)
     if (n > 0) return n;
     n = LootD_AreaLevel(GetResRef(oArea));
     if (n > 0) SetLocalInt(oArea, "LOOT_AREA_LVL", n);
+    return n;
+}
+
+// ---------------------------------------------------------------------------
+// Creatures (Phase 4) - mirrors loot_model.creature_class / champion rules
+// ---------------------------------------------------------------------------
+
+// A creature is a NATURAL elite (never a champion: it already is one) when it
+// is hand-listed elite_include, or when its CR's loot level is at least its
+// area's loot level + LOOTD_ELITE_MARGIN and it is not listed elite_exclude.
+// Reads the BASE CR, so a champion's raised CR never feeds back into this.
+int Loot_IsNaturalElite(object oCre)
+{
+    int nList = LootD_CreatureListed(GetResRef(oCre));
+    if (nList == LOOTD_LIST_ELITE) return TRUE;
+    if (nList == LOOTD_LIST_NOT_ELITE) return FALSE;
+    int nArea = Loot_AreaLevel(GetArea(oCre));
+    if (nArea <= 0) return FALSE;
+    float fCR = GetLocalInt(oCre, "LOOT_CHAMP") ? GetLocalFloat(oCre, "LOOT_CHAMP_BASECR")
+                                               : GetChallengeRating(oCre);
+    return LootD_LevelForCR(fCR) >= nArea + LOOTD_ELITE_MARGIN;
+}
+
+// Per-mille chance a normal creature spawning in oArea becomes a champion,
+// cached on the area as LOOT_AREA_CHAMP (stored +1 so a real 0 still caches).
+int Loot_AreaChampion(object oArea)
+{
+    if (!GetIsObjectValid(oArea)) return 0;
+    int n = GetLocalInt(oArea, "LOOT_AREA_CHAMP");
+    if (n > 0) return n - 1;
+    n = LootD_AreaChampion(GetResRef(oArea));
+    SetLocalInt(oArea, "LOOT_AREA_CHAMP", n + 1);
     return n;
 }
 

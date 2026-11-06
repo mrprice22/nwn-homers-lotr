@@ -810,6 +810,11 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
   (areas store the row number, so renumbering repoints them), why music gets its own hak,
   and the `MusicBackgroundChangeDay()` row+1 off-by-one the jukebox turns on
 - [CLAUDE-loot.md](CLAUDE-loot.md) — Season 3 rolled loot (Loot Overhaul): `loot/*.json` → `bin/gen-loot-tables.py` → `loot_data_inc.nss` → `Loot_Roll()` in `loot_inc.nss`, the `check_loot_tables` gate rules, `bin/loot-sim.py`, the Loot Lab admin menu, and why a loot-data change needs `repack-homers-lotr-clean`
+- [CLAUDE-creature-cr.md](CLAUDE-creature-cr.md) — creature challenge ratings: the toolset
+  recomputes a stored CR only in its Properties dialog, so any edit outside it leaves CR stale (XP,
+  encounter budgets, the boss rule, loot levels and elites all read it). nwn_manager's `bin/nwn-cr`
+  reproduces the formula (86% within 10%) and resyncs; `bin/creature-cr-audit.py` lists the drift and
+  what a resync would change; `bin/buff-named-elites.py` is the pattern for a genuine buff
 - [CLAUDE-merit.md](CLAUDE-merit.md) — Merit award + redemption system: `meritdb` schema (earned vs escrowed `merit_spent`), the `merit_redeem.nss` catalogue, how to add/graduate a redemption option, custom-token ranges, and the Barliman NPC + DM EmoteWand flow
 
 ## Useful references

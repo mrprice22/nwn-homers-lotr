@@ -18,6 +18,7 @@
 
 const int LOOTLAB_TOK_LEVEL = 6450;
 const int LOOTLAB_TOK_FLOOR = 6451;
+const int LOOTLAB_TOK_FORCE = 6452;   // "ON" / "OFF": force creature drops on my kills
 
 // The admin running the menu: the dialog speaker, or OBJECT_SELF so that
 // ExecuteScript("lootlab_...", oPC) works too.
@@ -54,6 +55,7 @@ void LL_SetTokens(object oPC)
 {
     SetCustomToken(LOOTLAB_TOK_LEVEL, IntToString(LL_Level(oPC)));
     SetCustomToken(LOOTLAB_TOK_FLOOR, Loot_RarityLabel(LL_Floor(oPC)));
+    SetCustomToken(LOOTLAB_TOK_FORCE, GetLocalInt(oPC, "LOOT_FORCE_DROPS") ? "ON" : "OFF");
 }
 
 void LL_AdjustLevel(int nDelta)

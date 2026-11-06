@@ -444,6 +444,29 @@ def nss_include(data=None):
     w("    return 0;")
     w("}")
     w("")
+    w("// Registered boss resref (canonical or alias, brd_db.nss) - never a champion.")
+    w("int LootD_IsBoss(string sResRef)")
+    w("{")
+    for rr in sorted(lm.boss_resrefs()):
+        w("    if (sResRef == %s) return TRUE;" % _q(rr))
+    w("    return FALSE;")
+    w("}")
+    w("")
+    ch = lm.champions_cfg(data)
+    w("// Champions (sources.json creatures.champions), read by loot_champion.nss.")
+    for k in ("chance", "hp_pct", "ab", "damage", "ac", "saves"):
+        w("const int LOOTD_CHAMP_%s = %d;" % (k.upper(), ch[k]))
+    w("const string LOOTD_CHAMP_PREFIX = %s;" % _q(ch["name_prefix"]))
+    w("// Area resref -> per-mille champion chance, where it differs from LOOTD_CHAMP_CHANCE")
+    w("// (lower where the area already has natural elites; loot_model.area_champion_chances).")
+    w("int LootD_AreaChampion(string sArea)")
+    w("{")
+    for area, pm in lm.area_champion_chances(data).items():
+        if pm != ch["chance"]:
+            w("    if (sArea == %s) return %d;" % (_q(area), pm))
+    w("    return LOOTD_CHAMP_CHANCE;")
+    w("}")
+    w("")
     w("// TRUE for a faction id (NWNX_Creature_GetFaction) whose reputation toward PCs is")
     w("// <= 10 in repute.fac - the same \"hostile\" the area loot levels use.")
     L.extend(_switch_fn("int LootD_IsHostileFaction(int nI)",

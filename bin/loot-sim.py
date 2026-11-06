@@ -201,6 +201,17 @@ def creature_report(data, margin=None):
         n = lm.creature_rolls(data, cls, cr) + c.get("named_chance", 0) / 1000.0
         return c["chance"] / 1000.0 * n
 
+    champ = lm.area_champion_chances(data)
+    champ_base = lm.champions_cfg(data)["chance"]
+
+    def expected(r):
+        """Expected drops from one kill of slot r, a normal creature's chance
+        of spawning as a champion (elite drop chance) included."""
+        if r["cls"] != "normal":
+            return per_kill(r["cls"], r["cr"]) if r["cls"] else 0.0
+        p = champ.get(r["area"], champ_base) / 1000.0
+        return (1 - p) * per_kill("normal", r["cr"]) + p * per_kill("elite", r["cr"])
+
     rows = []
     for sl in slots:
         rr = sl["resref"]
@@ -280,7 +291,10 @@ def creature_report(data, margin=None):
     for cls in lm.CREATURE_CLASSES:
         rs = [r for r in rows if r["cls"] == cls]
         w("| %s | %d | %d | %.1f |" % (cls, len(rs), len({r["resref"] for r in rs}),
-                                      sum(per_kill(cls, r["cr"]) for r in rs)))
+                                      sum(expected(r) for r in rs)))
+    nrm = [r for r in rows if r["cls"] == "normal"]
+    w("| ... of which champions (expected per clear) | %.0f | | |" % sum(
+        champ.get(r["area"], champ_base) / 1000.0 for r in nrm))
     ex = [r for r in rows if r["cls"] is None]
     w("| excluded | %d | %d | 0 |" % (len(ex), len({r["resref"] for r in ex})))
     w("")
@@ -333,9 +347,38 @@ def creature_report(data, margin=None):
                                          cc["exclude"][rr]))
         w("")
 
+    ch = lm.champions_cfg(data)
+    w("## Champions")
+    w("")
+    w("A normal creature may spawn as a champion: '%s' name prefix, a glow, +%d%% hit points, "
+      "+%d attack, +%d damage, +%d AC, +%d saves, and the elite drop chance. Its CR rises by what "
+      "the toolset formula's hit-point term pays for the extra HP (so XP and drop level follow). "
+      "Kills count under the base creature in the bestiary, with a separate champion tally."
+      % (ch["name_prefix"], ch["hp_pct"], ch["ab"], ch["damage"], ch["ac"], ch["saves"]))
+    w("")
+    w("Chance per spawn: %.1f%% in an area with no natural elites, falling linearly with the area's "
+      "natural elite share to %.1f%% at %.0f%% elites, never lower." % (
+          ch["chance"] / 10.0, ch["min_chance"] / 10.0, ch["density_cap"] / 10.0))
+    w("")
+    w("| champion chance | areas |")
+    w("|---|---|")
+    for pm, n in sorted(collections.Counter(champ.values()).items(), reverse=True):
+        w("| %.1f%% | %d |" % (pm / 10.0, n))
+    w("")
+    w("Areas below the base chance:")
+    w("")
+    w("| area | natural elites / slots | champion chance |")
+    w("|---|---|---|")
+    for a in sorted((a for a, pm in champ.items() if pm != champ_base),
+                    key=lambda a: (champ[a], aname(a).lower())):
+        rs = [r for r in rows if r["area"] == a and r["cls"] in ("normal", "elite")]
+        w("| %s (`%s`) | %d / %d | %.1f%% |" % (aname(a), a, sum(r["cls"] == "elite" for r in rs),
+                                               len(rs), champ[a] / 10.0))
+    w("")
+
     w("## Drops per area")
     w("")
-    w("Areas with hostile creatures, by drops per clear (highest first).")
+    w("Areas with hostile creatures, by drops per clear (highest first, champions included).")
     w("")
     w("| area | area CR | lvl | slots | elite | boss | drops per clear | chest gear per fill |")
     w("|---|---|---|---|---|---|---|---|")
@@ -345,7 +388,7 @@ def creature_report(data, margin=None):
         by_area[r["area"]].append(r)
     table = []
     for a, rs in by_area.items():
-        drops = sum(per_kill(r["cls"], r["cr"]) for r in rs if r["cls"])
+        drops = sum(expected(r) for r in rs)
         table.append((-round(drops, 6), aname(a).lower(), a, rs, drops))
     for _, _, a, rs, drops in sorted(table):
         w("| %s (`%s`) | %s | %d | %d | %d | %d | %.2f | %.2f |" % (

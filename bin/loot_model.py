@@ -758,6 +758,44 @@ def creature_rolls(data, cls, cr):
     return n
 
 
+CHAMPION_KEYS = {"_doc": None, "chance": (0, 1000), "min_chance": (0, 1000), "density_cap": (1, 1000),
+                 "hp_pct": (0, 1000), "ab": (0, 20), "damage": (0, 20), "ac": (0, 20),
+                 "saves": (0, 20), "name_prefix": None}
+
+
+def champions_cfg(data):
+    return creatures_cfg(data).get("champions", {})
+
+
+def champion_chance(data, natural_elites, slots):
+    """Per-mille chance a normal creature in an area becomes a champion:
+    ``chance`` with no natural elites, falling linearly with the area's natural
+    elite share (per mille of its normal+elite slots) to ``min_chance`` at
+    ``density_cap``.  Mirrors LootD_AreaChampion (precomputed per area)."""
+    c = champions_cfg(data)
+    if not slots:
+        return int(c["chance"])
+    d = 1000.0 * natural_elites / slots
+    return max(int(c["min_chance"]), int(round(c["chance"] * (1 - d / c["density_cap"]))))
+
+
+def area_champion_chances(data):
+    """{area: per-mille champion chance} for every area with normal/elite slots."""
+    alv = {a: (e.get("level") or 0) for a, e in data["area_levels"]["areas"].items()}
+    bosses = boss_resrefs()
+    tally = {}
+    for s in creature_slots():
+        if s["resref"] in bosses:
+            continue
+        cls = creature_class(data, s["resref"], s["cr"], alv.get(s["area"], 0), False)
+        if cls is None:
+            continue
+        t = tally.setdefault(s["area"], [0, 0])
+        t[1] += 1
+        t[0] += cls == "elite"
+    return {a: champion_chance(data, e, n) for a, (e, n) in sorted(tally.items())}
+
+
 def creature_drop(data, cls, cr, level, rng=None, model=None):
     """What one kill of a ``cls`` creature leaves on the corpse (a list of
     roll() dicts, empty when the drop chance misses).  Mirrors loot_ondeath."""
@@ -818,6 +856,24 @@ def validate_creatures(data):
             if rr in seen:
                 errs.append("%s: also listed in %s" % (tag, seen[rr]))
             seen[rr] = key
+    ch = c.get("champions")
+    if not isinstance(ch, dict):
+        errs.append("sources.json creatures: the \"champions\" block is missing")
+    else:
+        for k in set(ch) - set(CHAMPION_KEYS):
+            errs.append("sources.json creatures champions: unknown key %r" % k)
+        for k, rng_ in CHAMPION_KEYS.items():
+            if rng_ is None:
+                continue
+            v = ch.get(k)
+            if not isinstance(v, int) or isinstance(v, bool) or not rng_[0] <= v <= rng_[1]:
+                errs.append("sources.json creatures champions: %s must be an int %d..%d" % (k, rng_[0], rng_[1]))
+        if isinstance(ch.get("min_chance"), int) and isinstance(ch.get("chance"), int) \
+                and ch["min_chance"] > ch["chance"]:
+            errs.append("sources.json creatures champions: min_chance is above chance")
+        np_ = ch.get("name_prefix")
+        if not isinstance(np_, str) or not np_.strip() or '"' in np_ or "\\" in np_:
+            errs.append("sources.json creatures champions: name_prefix must be a plain non-empty string")
     bosses = boss_resrefs()
     for rr, lvl in data["levels"].get("boss_overrides", {}).items():
         tag = "levels.json boss_overrides %s" % rr

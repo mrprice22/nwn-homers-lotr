@@ -3456,6 +3456,36 @@
               }
             },
             {
+              "__struct_id": 0,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
+                "value": 172
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
+              "__struct_id": 0,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
+                "value": 173
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
               "__struct_id": 9,
               "Active": {
                 "type": "resref",
@@ -3487,7 +3517,7 @@
         "Text": {
           "type": "cexolocstring",
           "value": {
-            "0": "LOOT LAB\n\nLoot level: <CUSTOM6450>\nRarity floor: <CUSTOM6451>\n\nRolls use the 'lab' profile from loot/sources.json and land in your pack; every lab roll is logged to lootdb. The floor is the lowest rarity a roll may land on - it can still roll higher.\n\n\"Dump\" prints each rolled item in your pack with its loot stamps and its value against its rarity's budget."
+            "0": "LOOT LAB\n\nLoot level: <CUSTOM6450>\nRarity floor: <CUSTOM6451>\n\nRolls use the 'lab' profile from loot/sources.json and land in your pack; every lab roll is logged to lootdb. The floor is the lowest rarity a roll may land on - it can still roll higher.\n\n\"Dump\" prints each rolled item in your pack with its loot stamps and its value against its rarity's budget.\n\nForce creature drops: <CUSTOM6452> - while ON, every creature you help kill drops as if its chance were 100% and tells you its class and loot level."
           }
         }
       }
@@ -11881,6 +11911,120 @@
           "type": "cexolocstring",
           "value": {
             "0": "Done."
+          }
+        }
+      },
+      {
+        "__struct_id": 172,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "Loot Lab: toggle LOOT_FORCE_DROPS (Phase 4 UAT)."
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": [
+            {
+              "__struct_id": 0,
+              "Active": {
+                "type": "resref",
+                "value": "lootlab_tok"
+              },
+              "Index": {
+                "type": "dword",
+                "value": 19
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            }
+          ]
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": "lootlab_force"
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "Force creature drops on my kills: <CUSTOM6452>"
+          }
+        }
+      },
+      {
+        "__struct_id": 173,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "Loot Lab: force a champion promotion (Phase 4 UAT)."
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": [
+            {
+              "__struct_id": 0,
+              "Active": {
+                "type": "resref",
+                "value": "lootlab_tok"
+              },
+              "Index": {
+                "type": "dword",
+                "value": 19
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            }
+          ]
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": "lootlab_champ"
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "Make the nearest hostile creature a champion"
           }
         }
       }

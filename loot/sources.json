@@ -67,6 +67,18 @@
       "elite":  {"chance": 250,  "profile": "creature"},
       "boss":   {"chance": 1000, "profile": "boss", "extra_roll_cr": 1000, "named_chance": 100}
     },
+    "champions": {
+      "_doc": "Diablo-style champions (Phase 4): when a normal creature in a hostile faction spawns (bst_install -> loot_champion.nss), it may become a champion - 'Elite' name prefix, a glow, hp_pct % more hit points, +ab attack, +damage damage (bonus pool), +ac AC and +saves saves - and drops at the elite class's chance. chance is per mille in an area with no natural elites; it falls linearly with the area's natural elite share (per mille of its normal+elite slots), reaching min_chance at density_cap, never below. Its CR is raised by what the toolset formula's hit-point term pays for the extra HP, so kill XP and the drop's loot level follow. Never: bosses, natural elites, summons, plot/immortal, exclude, LOOT_NONE / LOOT_NO_CHAMP.",
+      "chance": 50,
+      "min_chance": 10,
+      "density_cap": 250,
+      "hp_pct": 100,
+      "ab": 4,
+      "damage": 2,
+      "ac": 4,
+      "saves": 4,
+      "name_prefix": "Elite"
+    },
     "elite_include": {},
     "elite_exclude": {},
     "exclude": {}

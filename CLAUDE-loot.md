@@ -145,6 +145,61 @@ loot/sources.json "scripts" ─► gen-loot-tables.py --apply ─► unpacked/<s
 - `python3 bin/loot-sim.py --chests` prints gear, rarity mix, gold, gem share and consumables per
   fill for every container profile, plus chests by area level.
 
+## Creatures and bosses (Phase 4)
+
+```
+bst_install (every spawn) ─► loot_champion.nss   maybe promote to a champion
+bst_ondeath (PC-credited kill) ─► loot_ondeath.nss   roll the drop onto the corpse
+                                   └─ Loot_Roll / Loot_GiveNamed (loot_inc) ─► party roll on pickup
+```
+
+All numbers live in `loot/sources.json` `"creatures"`; `bin/loot-sim.py --creatures --write`
+regenerates the review report **`CLAUDE-loot-creature-audit.md`** (the gate only *notes* when it
+is stale).
+
+- **Classes.** `boss` = in the Roll of the Fallen registry (`LootD_IsBoss`, generated from the
+  `brd_db.nss` block) - 100%, the `boss` profile (2 Epic+ rolls, +1 at CR >= `extra_roll_cr`), plus a
+  separate named-pool roll at `named_chance`. `elite` = a champion, `elite_include`, or **CR loot
+  level >= area loot level + `elite_margin`** (5) unless `elite_exclude` - 25%. `normal` - 4%.
+  `exclude` never drops. Normal and elite need a hostile faction (`LootD_IsHostileFaction`, the same
+  rule as the area levels); bosses drop whatever their faction (six are placed as Commoners).
+- **Area loot level = the median hostile CR** (`levels.json` `area_percentile` 50). The 75th
+  percentile was tried and reverted: it barely moved towns, and a creature that is a quarter of its
+  area's hostiles then sets the level itself, so no buff can make it elite there.
+- **The drop rolls at the creature's own CR level** (a boss can be pinned by
+  `levels.json` `boss_overrides`), is delivered to the corpse **droppable** (`Loot_MarkCorpseLoot`;
+  Jasperre's `DeleteAllThings` destroys a corpse's non-droppable items), staggered 0.1 s apart from
+  the module object so a boss never builds 3-4 items in one frame. Python mirror:
+  `loot_model.creature_drop`.
+- **CR is the stored `ChallengeRating`**, and the toolset recomputes it only in the Properties
+  dialog. It is checked with nwn_manager's `bin/nwn-cr` (see [CLAUDE-creature-cr.md](CLAUDE-creature-cr.md));
+  a creature made stronger outside the toolset must get its CR resynced or it will not class as elite.
+- **Making a named "Elite" truly elite:** `bin/buff-named-elites.py` - real stat and gear buffs
+  (non-droppable new gear in empty slots, item Cost from `loot_model.CostModel`), lockstep across
+  blueprint + placements, then `nwn-cr --resync`. Never elite-by-name (admin, 2026-11-06). Done:
+  Carrok Elite Guard; Dol Guldur City (12 regular `dgbowman`, 5 elite Bow Men, General, Captain).
+
+### Champions
+
+- **Who:** a normal creature in a hostile faction - never a boss, natural elite, summon/henchman,
+  plot/immortal, `exclude`, `LOOT_NONE` or `LOOT_NO_CHAMP`.
+- **How often:** `champions.chance` per mille (5%) in an area with no natural elites, falling linearly
+  with the area's natural-elite share to `min_chance` (1%) at `density_cap` (25%). Precomputed per
+  area (`loot_model.area_champion_chances` -> `LootD_AreaChampion`), cached on the area as
+  `LOOT_AREA_CHAMP`. Champions are runtime only, so they never move an area's median.
+- **What:** "Elite " name prefix, a red glow, +100% max HP (`NWNX_Object_SetMaxHitPoints`), +4 AC
+  and saves (supernatural, tagged `LOOT_CHAMP`), +4 attack / +2 damage through the bonus pool
+  (`BPOOL_SRC_CHAMP` - never a raw `EffectAttackIncrease`, `check_bonus_pool` enforces it).
+- **CR follows the power, not the other way round:** the new CR is the stored CR plus the toolset
+  formula's hit-point term for the added HP (0.2 x HD x walk/PC-walk / average class HP x race
+  CRModifier, read from the 2DAs at spawn), set with `NWNX_Creature_SetChallengeRating`. Kill XP
+  and the drop's loot level follow. Sizing the buff *to* a CR target was rejected: reaching an
+  area's elite bar takes a median x4 and up to x20+ HP.
+- **Bestiary:** a champion counts under its base creature (same canonical resref) and is tallied in
+  `kills.champ_kills` (migrated by `Bst_InitDb`); messages and the server-first record use the base
+  name (`LOOT_CHAMP_NAME`) and base CR (`LOOT_CHAMP_BASECR`). The book shows "Champions:N"; the wiki
+  creature page adds a Champions column.
+
 ## Loot Lab
 
 Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
@@ -154,7 +209,10 @@ Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
 - roll 1 or 10 items into your pack;
 - restock the nearest container: a loot container gets one real fill of its own profile at its
   own loot level (and reports the area's level); anything else gets 5 lab-level items;
-- dump every rolled item's stamps with its engine value against its budget.
+- dump every rolled item's stamps with its engine value against its budget;
+- **force creature drops on my kills** (token 6452, PC local `LOOT_FORCE_DROPS`): every kill you help
+  make drops at 100% and prints `LOOT: <name> class=.. cr=.. lvl=.. area=.. -> n item(s)`;
+- **make the nearest hostile creature a champion** (skips the chance roll, keeps every eligibility rule).
 
 Phases 5 and 7 add "grant a gem" and "grant a Shard of Fate" here.
 

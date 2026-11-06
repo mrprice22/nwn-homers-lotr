@@ -31,6 +31,8 @@ fails the repack when:
       - an elite_include / elite_exclude / exclude resref with no .utc or no
         reason, or listed twice;
       - a levels.json boss_overrides key that is not a registered boss.
+      - a creatures.champions block that is missing, has an unknown key, a value
+        out of range, min_chance above chance, or an empty name_prefix.
     A stale CLAUDE-loot-creature-audit.md is only a note (re-run
     bin/loot-sim.py --creatures --write).
 

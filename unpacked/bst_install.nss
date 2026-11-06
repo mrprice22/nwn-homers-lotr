@@ -10,7 +10,8 @@
 // scripts that chain to it like x2_def_spawn, leash_spawn, the nw_ch_ac9 /
 // sp_dropin9 / nw_c2_(omni|herbi)vore family, and the area-specific spawns) and,
 // as a safety net, from leash_to_area (area OnEnter). The bst_hooked guard makes
-// it idempotent no matter how many of those fire.
+// it idempotent no matter how many of those fire. It also rolls the Loot
+// Overhaul champion promotion (loot_champion), once, for the same reason.
 
 const int BST_EVENT_ON_DAMAGED = 5004;   // EVENT_SCRIPT_CREATURE_ON_DAMAGED
 const int BST_EVENT_ON_DEATH   = 5010;   // EVENT_SCRIPT_CREATURE_ON_DEATH
@@ -33,4 +34,9 @@ void main()
 
     SetEventScript(oCre, BST_EVENT_ON_DAMAGED, "bst_ondamage");
     SetEventScript(oCre, BST_EVENT_ON_DEATH,   "bst_ondeath");
+
+    // Loot Overhaul Phase 4: this is the one hook every creature passes through
+    // once, so the champion roll lives here. ExecuteScript keeps loot_inc (and
+    // the generated loot tables) out of this script's include tree.
+    ExecuteScript("loot_champion", oCre);
 }

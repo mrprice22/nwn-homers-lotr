@@ -115,7 +115,10 @@ const string BPOOL_SRC_MUSIC   = "musc";   // Jukebox listening,  scaled duratio
 // monster that walks away from the pumpkins (or a smashed pumpkin) loses it
 // on its own. Monsters only - never a PC.
 const string BPOOL_SRC_PUMPKIN = "pump";   // Pumpkin aura,       ~18s, refreshing
-const int    BPOOL_SRC_COUNT   = 14;
+// Loot Overhaul Phase 4 champions (loot_champion.nss): a normal creature that
+// spawns as a champion carries its attack and damage bonus here, permanently.
+const string BPOOL_SRC_CHAMP   = "chmp";   // Champion,           permanent
+const int    BPOOL_SRC_COUNT   = 15;
 
 // Flat damage bonus the engine can express. IPGetDamageBonusConstantFromNumber
 // clamps here too; above it the number simply cannot be represented.
@@ -202,6 +205,7 @@ string BPool_SourceAt(int nIndex)
         case 11: return BPOOL_SRC_DIVWRA;
         case 12: return BPOOL_SRC_MUSIC;
         case 13: return BPOOL_SRC_PUMPKIN;
+        case 14: return BPOOL_SRC_CHAMP;
     }
     return "";
 }

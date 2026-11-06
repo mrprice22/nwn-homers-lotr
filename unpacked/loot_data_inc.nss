@@ -776,6 +776,176 @@ int LootD_BossLevel(string sResRef)
     return 0;
 }
 
+// Registered boss resref (canonical or alias, brd_db.nss) - never a champion.
+int LootD_IsBoss(string sResRef)
+{
+    if (sResRef == "adwarfajudica003") return TRUE;
+    if (sResRef == "adwarfajudica0_3") return TRUE;
+    if (sResRef == "adwarfguardia001") return TRUE;
+    if (sResRef == "akhorahil004") return TRUE;
+    if (sResRef == "akhorahil006_2") return TRUE;
+    if (sResRef == "anaraliathewidow") return TRUE;
+    if (sResRef == "angmar") return TRUE;
+    if (sResRef == "aragornsonofarat") return TRUE;
+    if (sResRef == "arohirrimsold006") return TRUE;
+    if (sResRef == "azagoth001") return TRUE;
+    if (sResRef == "badass_2") return TRUE;
+    if (sResRef == "basilisk008") return TRUE;
+    if (sResRef == "bauglirthegene_2") return TRUE;
+    if (sResRef == "creature002") return TRUE;
+    if (sResRef == "creature003") return TRUE;
+    if (sResRef == "creature005") return TRUE;
+    if (sResRef == "creature007") return TRUE;
+    if (sResRef == "creature007_2") return TRUE;
+    if (sResRef == "creature009") return TRUE;
+    if (sResRef == "creature012_2") return TRUE;
+    if (sResRef == "creature013") return TRUE;
+    if (sResRef == "creature016") return TRUE;
+    if (sResRef == "creature017_2") return TRUE;
+    if (sResRef == "creature019") return TRUE;
+    if (sResRef == "creature023_2") return TRUE;
+    if (sResRef == "cultmember002_2") return TRUE;
+    if (sResRef == "cultmember002_3") return TRUE;
+    if (sResRef == "drgblue004") return TRUE;
+    if (sResRef == "drowfight023_2") return TRUE;
+    if (sResRef == "drowrogue024_2") return TRUE;
+    if (sResRef == "elrond001_2") return TRUE;
+    if (sResRef == "eowyntheshieldma") return TRUE;
+    if (sResRef == "frost001") return TRUE;
+    if (sResRef == "galadriel") return TRUE;
+    if (sResRef == "gandalf001") return TRUE;
+    if (sResRef == "garbag") return TRUE;
+    if (sResRef == "gimli_2") return TRUE;
+    if (sResRef == "glorfindel002") return TRUE;
+    if (sResRef == "gntfire003") return TRUE;
+    if (sResRef == "gollum") return TRUE;
+    if (sResRef == "gondorianguar005") return TRUE;
+    if (sResRef == "gondorianguar0_2") return TRUE;
+    if (sResRef == "gondorianguar0_4") return TRUE;
+    if (sResRef == "gondorianwiza001") return TRUE;
+    if (sResRef == "greaterelvenw003") return TRUE;
+    if (sResRef == "grimbeorntheo001") return TRUE;
+    if (sResRef == "gwathdorlord001") return TRUE;
+    if (sResRef == "harethofthehalad") return TRUE;
+    if (sResRef == "highpriestofmora") return TRUE;
+    if (sResRef == "highwizardofgo_2") return TRUE;
+    if (sResRef == "jester") return TRUE;
+    if (sResRef == "kainnatheward001") return TRUE;
+    if (sResRef == "kerufall003") return TRUE;
+    if (sResRef == "legolasgreenl001") return TRUE;
+    if (sResRef == "maggotfarmer") return TRUE;
+    if (sResRef == "radagastthebro_2") return TRUE;
+    if (sResRef == "railthewhiteh001") return TRUE;
+    if (sResRef == "railthewhiteh003") return TRUE;
+    if (sResRef == "rangerofthe002") return TRUE;
+    if (sResRef == "sarumanthewhi001") return TRUE;
+    if (sResRef == "shadowlordof001") return TRUE;
+    if (sResRef == "shadowlordof_2") return TRUE;
+    if (sResRef == "shelob001") return TRUE;
+    if (sResRef == "shopkeep002_2") return TRUE;
+    if (sResRef == "strongminitao002") return TRUE;
+    if (sResRef == "summanus") return TRUE;
+    if (sResRef == "templemistress_2") return TRUE;
+    if (sResRef == "thecursedone002") return TRUE;
+    if (sResRef == "thehighmageofbar") return TRUE;
+    if (sResRef == "themightysmag002") return TRUE;
+    if (sResRef == "themutantterror") return TRUE;
+    if (sResRef == "theoden002") return TRUE;
+    if (sResRef == "thranduil_2") return TRUE;
+    if (sResRef == "trollking") return TRUE;
+    if (sResRef == "ulmothevalar_2") return TRUE;
+    if (sResRef == "urukai010") return TRUE;
+    if (sResRef == "urukai013") return TRUE;
+    if (sResRef == "weathertopkin004") return TRUE;
+    if (sResRef == "weathertopque003") return TRUE;
+    if (sResRef == "witchking") return TRUE;
+    return FALSE;
+}
+
+// Champions (sources.json creatures.champions), read by loot_champion.nss.
+const int LOOTD_CHAMP_CHANCE = 50;
+const int LOOTD_CHAMP_HP_PCT = 100;
+const int LOOTD_CHAMP_AB = 4;
+const int LOOTD_CHAMP_DAMAGE = 2;
+const int LOOTD_CHAMP_AC = 4;
+const int LOOTD_CHAMP_SAVES = 4;
+const string LOOTD_CHAMP_PREFIX = "Elite";
+// Area resref -> per-mille champion chance, where it differs from LOOTD_CHAMP_CHANCE
+// (lower where the area already has natural elites; loot_model.area_champion_chances).
+int LootD_AreaChampion(string sArea)
+{
+    if (sArea == "angmar") return 10;
+    if (sArea == "area010") return 10;
+    if (sArea == "blackgatge") return 12;
+    if (sArea == "carndum") return 10;
+    if (sArea == "carrok") return 12;
+    if (sArea == "carrokgreater") return 20;
+    if (sArea == "carroklesser") return 12;
+    if (sArea == "cryptsofthelosts") return 10;
+    if (sArea == "dolguldur") return 21;
+    if (sArea == "dolguldurcity") return 16;
+    if (sArea == "dunland") return 37;
+    if (sArea == "dwarrowdelfea001") return 18;
+    if (sArea == "dwarrowdelfeast") return 41;
+    if (sArea == "edoras") return 21;
+    if (sArea == "enchantedcave002") return 10;
+    if (sArea == "eredduathroada") return 10;
+    if (sArea == "ettenmoors") return 10;
+    if (sArea == "gapofrohaneast") return 10;
+    if (sArea == "goblingategreate") return 39;
+    if (sArea == "goblingatelesser") return 44;
+    if (sArea == "goblingatemines") return 34;
+    if (sArea == "goblintownmainha") return 16;
+    if (sArea == "goblintownwarren") return 27;
+    if (sArea == "gondorwesta") return 10;
+    if (sArea == "gondorwestb") return 10;
+    if (sArea == "greateastroadb") return 26;
+    if (sArea == "greateastroadc") return 23;
+    if (sArea == "greateastroadd") return 10;
+    if (sArea == "greatnorthroad") return 10;
+    if (sArea == "greenwaysouth") return 16;
+    if (sArea == "helmsdeep001") return 10;
+    if (sArea == "isengardouterrim") return 10;
+    if (sArea == "kallristcryptlow") return 35;
+    if (sArea == "kallristcryptupp") return 10;
+    if (sArea == "kallristdarkrim") return 25;
+    if (sArea == "kallristnorthsho") return 25;
+    if (sArea == "kallristwestshor") return 28;
+    if (sArea == "loogazlair") return 46;
+    if (sArea == "meringstream") return 10;
+    if (sArea == "minastirith") return 10;
+    if (sArea == "minastirithgates") return 17;
+    if (sArea == "mirkwoodcentral") return 10;
+    if (sArea == "mirkwoodcentrale") return 10;
+    if (sArea == "mirkwoodcentrals") return 10;
+    if (sArea == "mirkwoodeast") return 10;
+    if (sArea == "mirkwoodnorth") return 10;
+    if (sArea == "mirkwoodwest") return 10;
+    if (sArea == "mistymountainsa") return 31;
+    if (sArea == "mistymountainsb") return 25;
+    if (sArea == "morialevel1cente") return 25;
+    if (sArea == "nazgulguildhouse") return 21;
+    if (sArea == "nindalf") return 10;
+    if (sArea == "planeoftherender") return 34;
+    if (sArea == "ruinsofannuminas") return 10;
+    if (sArea == "sharkeyschamber") return 26;
+    if (sArea == "theabyssofmoria") return 10;
+    if (sArea == "theangmarmountai") return 10;
+    if (sArea == "thebarrowdowns") return 35;
+    if (sArea == "thedimrillstair") return 30;
+    if (sArea == "thepelennorfield") return 10;
+    if (sArea == "theruinsofdale") return 28;
+    if (sArea == "thesecretpassofm") return 28;
+    if (sArea == "thewold") return 10;
+    if (sArea == "tombofgarmir") return 34;
+    if (sArea == "tombofmendegilat") return 18;
+    if (sArea == "tombofperan") return 10;
+    if (sArea == "tombofvinyalonde") return 10;
+    if (sArea == "toweroforthanc") return 10;
+    if (sArea == "woldsouth") return 10;
+    return LOOTD_CHAMP_CHANCE;
+}
+
 // TRUE for a faction id (NWNX_Creature_GetFaction) whose reputation toward PCs is
 // <= 10 in repute.fac - the same "hostile" the area loot levels use.
 int LootD_IsHostileFaction(int nI)
