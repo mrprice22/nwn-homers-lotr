@@ -507,6 +507,40 @@ def cr_table():
         print("   %2d-%2d  %d" % (b * 10 + 1, b * 10 + 10, hist[b]))
 
 
+def wishlist_report(data, wish_bases, feats, caster, auto, n, seed):
+    """Phase 6: share of each candidate base with and without the wishlist, per
+    profile.  Mirrors Loot_WishPick through loot_model.roll(wish=...)."""
+    cands = lm.wish_candidates(data, wish_bases, feats, caster, auto)
+    names = {b["base"]: b["name"] for c in lm.CATEGORIES for b in data["bases"]["categories"][c]}
+    if wish_bases:
+        src = "wishlist"
+    elif not auto:
+        src = "Auto off"
+    else:
+        src = "Auto (%s)" % ("focus feats" if feats and any(
+            set(data["costs"]["baseitems"][str(b)].get("focus_feats", [])) & set(feats)
+            for b, _ in cands) else "proficiency")
+    print("candidates (%s, chance %d/1000): %s" % (
+        src, lm.wishlist_cfg(data)["chance"],
+        ", ".join("%s x%d" % (names.get(b, b), w) for b, w in cands) or "none - plain random"))
+    rows = {b for b, _ in cands}
+    print("%-13s %10s %10s" % ("profile", "without", "with"))
+    for prof in data["sources"]["profiles"]:
+        res = []
+        for wish in (None, cands):
+            rng = random.Random(seed)
+            hit = tot = 0
+            for _ in range(n):
+                r = lm.roll(data, 40, data["sources"]["profiles"][prof].get("rarity_floor", 0),
+                            prof, rng=rng, wish=wish)
+                if r.get("named"):
+                    continue
+                tot += 1
+                hit += r["base"] in rows
+            res.append(100.0 * hit / max(tot, 1))
+        print("%-13s %9.1f%% %9.1f%%" % (prof, res[0], res[1]))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--n", type=int, default=20000)
@@ -519,6 +553,13 @@ def main():
     ap.add_argument("--chests", action="store_true")
     ap.add_argument("--creatures", action="store_true")
     ap.add_argument("--gems", action="store_true")
+    ap.add_argument("--wishlist", default=None, metavar="BASE[,BASE...]",
+                    help="Phase 6: share of these base rows per profile with/without the wishlist")
+    ap.add_argument("--auto-feats", default=None, metavar="FEAT[,FEAT...]",
+                    help="Phase 6: with an empty --wishlist, the Auto list for these feat rows")
+    ap.add_argument("--caster", action="store_true",
+                    help="with --auto-feats: the character is a caster (magic staves in tier 2)")
+    ap.add_argument("--auto-off", action="store_true", help="with --auto-feats: Auto switched off")
     ap.add_argument("--margin", type=int, default=None,
                     help="with --creatures: preview another elite_margin")
     ap.add_argument("--write", action="store_true",
@@ -540,6 +581,11 @@ def main():
         return 0
     if a.gems:
         gems(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)
+        return 0
+    if a.wishlist is not None or a.auto_feats is not None:
+        ints = lambda t: [int(x) for x in (t or "").split(",") if x.strip()]
+        wishlist_report(data, ints(a.wishlist), ints(a.auto_feats), a.caster,
+                        not a.auto_off, min(a.n, 5000), a.seed)
         return 0
     if a.creatures:
         if a.write and a.margin is not None:

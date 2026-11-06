@@ -775,6 +775,198 @@ int LootD_AreaLevel(string sArea)
     return 0;
 }
 
+// Loot wishlist (Phase 6, loot/sources.json "wishlist").
+const int LOOTD_WISH_MAX = 5;
+const int LOOTD_WISH_CHANCE = 400;
+const int LOOTD_WISH_FOCUS_W = 1;
+
+// Loot base item row -> category index (LootD_CatName), -1 = not a loot base.
+int LootD_BaseCat(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 0;
+        case 4: return 0;
+        case 5: return 0;
+        case 6: return 1;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 1;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 3;
+        case 16: return 2;
+        case 17: return 5;
+        case 18: return 0;
+        case 19: return 4;
+        case 21: return 5;
+        case 22: return 0;
+        case 26: return 5;
+        case 28: return 0;
+        case 32: return 0;
+        case 33: return 0;
+        case 35: return 0;
+        case 36: return 5;
+        case 37: return 0;
+        case 38: return 0;
+        case 40: return 0;
+        case 41: return 0;
+        case 42: return 0;
+        case 45: return 6;
+        case 47: return 0;
+        case 50: return 0;
+        case 51: return 0;
+        case 52: return 4;
+        case 53: return 0;
+        case 55: return 0;
+        case 56: return 3;
+        case 57: return 3;
+        case 58: return 0;
+        case 60: return 0;
+        case 61: return 1;
+        case 78: return 5;
+        case 80: return 5;
+        case 108: return 0;
+        case 111: return 0;
+        case 300: return 0;
+        case 301: return 0;
+        case 302: return 0;
+        case 303: return 0;
+        case 304: return 0;
+        case 316: return 0;
+        case 318: return 0;
+    }
+    return -1;
+}
+
+// Weapon-focus family feats of a loot base ('|feat|feat|', baseitems.2da
+// WeaponFocusFeat .. WeaponOfChoiceFeat) - wishlist Auto tier 1.
+string LootD_BaseFocusFeats(int nI)
+{
+    switch (nI)
+    {
+        case 0: return "|103|633|141|671|65|723|925|";
+        case 1: return "|106|636|144|674|68|726|928|";
+        case 2: return "|110|640|148|678|72|730|931|";
+        case 3: return "|123|652|161|690|85|742|940|";
+        case 4: return "|114|644|152|682|76|734|935|";
+        case 5: return "|115|645|153|683|77|735|936|";
+        case 6: return "|92|622|130|660|54|712|";
+        case 7: return "|93|623|131|661|55|713|";
+        case 8: return "|101|631|139|669|63|721|";
+        case 9: return "|94|624|132|662|56|714|921|";
+        case 10: return "|112|642|150|680|74|732|933|";
+        case 11: return "|102|632|140|670|64|722|";
+        case 12: return "|127|655|165|693|89|745|943|";
+        case 13: return "|107|637|145|675|69|727|929|";
+        case 18: return "|111|641|149|679|73|731|932|";
+        case 22: return "|90|620|128|658|52|710|920|";
+        case 28: return "|43|619|47|657|15|709|919|";
+        case 32: return "|125|653|163|691|87|743|941|";
+        case 33: return "|126|654|164|692|88|744|942|";
+        case 35: return "|116|646|154|684|78|736|937|";
+        case 37: return "|113|643|151|681|75|733|934|";
+        case 38: return "|108|638|146|676|70|728|930|";
+        case 40: return "|117|647|155|685|79|737|880|";
+        case 41: return "|122|651|160|689|84|741|939|";
+        case 42: return "|118|648|156|686|80|738|881|";
+        case 45: return "|";
+        case 47: return "|95|625|133|663|57|715|922|";
+        case 50: return "|96|626|134|664|58|716|923|";
+        case 51: return "|104|634|142|672|66|724|926|";
+        case 53: return "|105|635|143|673|67|725|927|";
+        case 55: return "|121|650|159|688|83|740|938|";
+        case 58: return "|97|627|135|665|59|717|924|";
+        case 60: return "|98|628|136|666|60|718|879|";
+        case 61: return "|99|629|137|667|61|719|";
+        case 108: return "|952|956|953|957|954|958|959|";
+        case 111: return "|993|997|994|998|995|999|1000|";
+        case 300: return "|24734|24739|24744|24749|24754|24759|24769|";
+        case 301: return "|24602|24614|24626|24638|24650|24662|24686|";
+        case 302: return "|24603|24615|24627|24639|24651|24663|24687|";
+        case 303: return "|24604|24616|24628|24640|24652|24664|24688|";
+        case 304: return "|24605|24617|24629|24641|24653|24665|24689|";
+        case 316: return "|24606|24618|24630|24642|24654|24666|24690|";
+        case 318: return "|24610|24622|24634|24646|24658|24670|24694|";
+    }
+    return "|";
+}
+
+// Proficiency feats of a loot base, any one of which lets a character use it
+// ('|' = none needed; baseitems.2da ReqFeat0-4) - wishlist Auto tier 2.
+string LootD_BaseReqFeats(int nI)
+{
+    switch (nI)
+    {
+        case 0: return "|45|50|";
+        case 1: return "|45|256|";
+        case 2: return "|45|";
+        case 3: return "|44|";
+        case 4: return "|45|";
+        case 5: return "|45|";
+        case 6: return "|46|49|50|51|";
+        case 7: return "|46|49|50|51|";
+        case 8: return "|45|256|";
+        case 9: return "|46|50|";
+        case 10: return "|45|";
+        case 11: return "|45|50|256|";
+        case 12: return "|44|";
+        case 13: return "|45|";
+        case 18: return "|45|";
+        case 22: return "|46|48|49|50|51|";
+        case 28: return "|46|48|49|50|51|";
+        case 32: return "|44|";
+        case 33: return "|44|";
+        case 35: return "|45|";
+        case 37: return "|45|";
+        case 38: return "|45|49|50|";
+        case 40: return "|44|49|";
+        case 41: return "|44|";
+        case 42: return "|44|";
+        case 45: return "|";
+        case 47: return "|46|50|";
+        case 50: return "|46|48|49|50|51|";
+        case 51: return "|45|50|256|";
+        case 53: return "|45|48|";
+        case 55: return "|44|";
+        case 58: return "|46|48|";
+        case 60: return "|46|48|";
+        case 61: return "|46|48|49|50|";
+        case 108: return "|44|";
+        case 111: return "|44|";
+        case 300: return "|45|";
+        case 301: return "|45|";
+        case 302: return "|45|";
+        case 303: return "|44|49|";
+        case 304: return "|44|49|";
+        case 316: return "|45|";
+        case 318: return "|45|";
+    }
+    return "|";
+}
+
+// TRUE for a class row that casts spells (classes.2da SpellCaster).
+int LootD_ClassCaster(int nI)
+{
+    switch (nI)
+    {
+        case 1:
+        case 2:
+        case 3:
+        case 6:
+        case 7:
+        case 9:
+        case 10:
+            return TRUE;
+    }
+    return FALSE;
+}
+
 // Creature drops (loot/sources.json "creatures"), read by loot_ondeath.nss.
 const int LOOTD_CLASS_NORMAL = 0;
 const int LOOTD_CLASS_ELITE = 1;

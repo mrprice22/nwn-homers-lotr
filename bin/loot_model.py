@@ -484,8 +484,13 @@ def eligible(aff, cat, level, role, used_groups):
             and aff["weight"] > 0 and aff["group"] not in used_groups)
 
 
-def roll(data, level, floor=0, profile="lab", rng=None, model=None):
-    """One rolled item as a dict (see keys at the end).  Mirrors Loot_Roll."""
+def roll(data, level, floor=0, profile="lab", rng=None, model=None, wish=None):
+    """One rolled item as a dict (see keys at the end).  Mirrors Loot_Roll.
+
+    ``wish`` (Phase 6) is the beneficiary's resolved candidate list,
+    ``[(base_row, weight), ...]`` from ``wish_candidates()``: with the wishlist
+    chance the base is drawn from it (filtered to the profile) instead of the
+    category pick.  None = no beneficiary, as for a roll with no PC."""
     rng = rng or random.Random()
     model = model or CostModel(data["costs"])
     level = max(1, min(MAX_LEVEL, int(level)))
@@ -503,10 +508,16 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None):
         if n:
             return n
 
-    cats = [c for c in CATEGORIES if prof["categories"].get(c, 0) > 0]
-    cat = weighted(rng, cats, lambda c: prof["categories"][c])
-    bases = data["bases"]["categories"][cat]
-    base = weighted(rng, bases, lambda b: b["weight"] if not allowed or b["base"] in allowed else 0)
+    base = None
+    if wish is not None:
+        base = wish_pick(data, prof, wish, rng)
+    if base is not None:
+        cat = base_category(data, base["base"])
+    else:
+        cats = [c for c in CATEGORIES if prof["categories"].get(c, 0) > 0]
+        cat = weighted(rng, cats, lambda c: prof["categories"][c])
+        bases = data["bases"]["categories"][cat]
+        base = weighted(rng, bases, lambda b: b["weight"] if not allowed or b["base"] in allowed else 0)
 
     affixes = data["affixes"]["affixes"]
     lo_n, hi_n = tier["affixes"]
@@ -582,6 +593,105 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None):
             "value": value, "budget": budget, "downside": has_down,
             "unidentified": unid,
             "name": item_name(base["name"], [affixes[i] for i, _ in chosen])}
+
+
+# ---------------------------------------------------------------------------
+# Phase 6: loot wishlist (sources.json "wishlist"; runtime Loot_WishPick)
+# ---------------------------------------------------------------------------
+
+WISH_AUTO_CATS = ("melee", "ranged")       # tier 1 (focus feats)
+WISH_PROF_CATS = ("melee", "ranged", "caster")   # tier 2 (proficiency)
+
+
+def wishlist_cfg(data):
+    return data["sources"].get("wishlist", {})
+
+
+def base_entry(data, row):
+    for cat in CATEGORIES:
+        for b in data["bases"]["categories"].get(cat, []):
+            if b["base"] == row:
+                return b
+    return None
+
+
+def base_category(data, row):
+    for cat in CATEGORIES:
+        if any(b["base"] == row for b in data["bases"]["categories"].get(cat, [])):
+            return cat
+    return None
+
+
+def wish_candidates(data, wish_bases=None, feats=None, caster=False, auto=True):
+    """The beneficiary's candidate list ``[(base_row, weight), ...]``.  Mirrors
+    Loot_WishCands: the wishlist (uniform), else Auto tier 1 (weapon-focus
+    family feats held, ``focus_weight`` each), else Auto tier 2 (every
+    melee/ranged/caster base the character is proficient with, at its bases.json
+    weight; a magic staff - a base with no proficiency feats in the caster
+    category - only when ``caster``).  ``feats`` is the set of feat rows held;
+    ``auto=False`` (the player's toggle) skips both Auto tiers."""
+    if wish_bases:
+        return [(b, 1) for b in wish_bases]
+    if not auto:
+        return []
+    feats = set(feats or ())
+    bi = data["costs"]["baseitems"]
+    fw = wishlist_cfg(data).get("focus_weight", 1)
+    out = []
+    for cat in WISH_AUTO_CATS:
+        for b in data["bases"]["categories"][cat]:
+            n = sum(1 for f in bi[str(b["base"])].get("focus_feats", []) if f in feats)
+            if n:
+                out.append((b["base"], n * fw))
+    if out:
+        return out
+    for cat in WISH_PROF_CATS:
+        for b in data["bases"]["categories"][cat]:
+            req = bi[str(b["base"])].get("req_feats", [])
+            if cat == "caster" and not caster:
+                continue
+            if not req or any(f in feats for f in req):
+                out.append((b["base"], b["weight"]))
+    return out
+
+
+def wish_pick(data, prof, wish, rng):
+    """A bases.json entry drawn from ``wish`` for this profile, or None (the
+    chance missed, or no candidate fits the profile).  Mirrors Loot_WishPick."""
+    if rng.randrange(1000) >= wishlist_cfg(data).get("chance", 0):
+        return None
+    allowed = prof.get("bases")
+    fits = [(row, w) for row, w in wish
+            if prof["categories"].get(base_category(data, row) or "", 0) > 0
+            and (not allowed or row in allowed) and w > 0]
+    pick = weighted(rng, fits, lambda x: x[1])
+    return base_entry(data, pick[0]) if pick else None
+
+
+def validate_wishlist(data):
+    errs = []
+    wl = data["sources"].get("wishlist")
+    if not isinstance(wl, dict):
+        return ["sources.json: missing the \"wishlist\" block (Phase 6)"]
+    p = wl.get("picks")
+    if not isinstance(p, int) or not 1 <= p <= 10:
+        errs.append("sources.json wishlist: picks must be an int 1..10")
+    c = wl.get("chance")
+    if not isinstance(c, int) or not 0 <= c <= 1000:
+        errs.append("sources.json wishlist: chance must be a per-mille int 0..1000")
+    fw = wl.get("focus_weight")
+    if not isinstance(fw, int) or fw < 1:
+        errs.append("sources.json wishlist: focus_weight must be an int >= 1")
+    bi = data["costs"]["baseitems"]
+    for cat in WISH_PROF_CATS:
+        for b in data["bases"]["categories"][cat]:
+            ent = bi.get(str(b["base"]), {})
+            if "focus_feats" not in ent or "req_feats" not in ent:
+                errs.append("_costs.json: base %d has no focus_feats/req_feats - run "
+                            "gen-loot-tables.py --refresh-costs" % b["base"])
+    if "caster_classes" not in data["costs"]:
+        errs.append("_costs.json: no caster_classes - run gen-loot-tables.py --refresh-costs")
+    return errs
 
 
 def give_named(data, level, rarity, allowed, rng):
@@ -1152,6 +1262,7 @@ def validate(data, item_index=None):
     errs.extend(validate_containers(data))
     errs.extend(validate_creatures(data))
     errs.extend(validate_gems(data))
+    errs.extend(validate_wishlist(data))
 
     # -- sanity ceiling against the module's own obtainable gear
     if item_index is not None:

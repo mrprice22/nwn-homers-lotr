@@ -135,20 +135,34 @@ void main()
             + (bChamp ? " - a champion!" : "."));
     }
 
-    // Loot Overhaul Phase 4: rolled drops on the corpse. The beneficiary (Phase
-    // 6's wishlist reads it) is a random valid contributor. ExecuteScript keeps
-    // loot_inc and the generated loot tables out of this script's include tree.
+    // Loot Overhaul Phase 4: rolled drops on the corpse. The beneficiary (whose
+    // Phase 6 wishlist steers the drop's base items) is a random valid
+    // contributor who is PRESENT - in the corpse's area; with none, LOOT_BENEF
+    // stays unset and the drop is plain random. ExecuteScript keeps loot_inc and
+    // the generated loot tables out of this script's include tree.
     {
-        int nPick = Random(nValid);
-        int nSeen = 0;
+        object oHere = GetArea(oCre);
+        int nPresent = 0;
         for (i = 0; i < nN; i++)
         {
             object m = GetLocalObject(oCre, "bst_ctrb_" + IntToString(i));
-            if (!GetIsObjectValid(m) || !GetIsPC(m) || GetIsDM(m)) continue;
-            if (nSeen++ == nPick)
+            if (GetIsObjectValid(m) && GetIsPC(m) && !GetIsDM(m) && GetArea(m) == oHere)
+                nPresent++;
+        }
+        if (nPresent > 0)
+        {
+            int nPick = Random(nPresent);
+            int nSeen = 0;
+            for (i = 0; i < nN; i++)
             {
-                SetLocalObject(oCre, "LOOT_BENEF", m);
-                break;
+                object m = GetLocalObject(oCre, "bst_ctrb_" + IntToString(i));
+                if (!GetIsObjectValid(m) || !GetIsPC(m) || GetIsDM(m) || GetArea(m) != oHere)
+                    continue;
+                if (nSeen++ == nPick)
+                {
+                    SetLocalObject(oCre, "LOOT_BENEF", m);
+                    break;
+                }
             }
         }
         ExecuteScript("loot_ondeath", oCre);

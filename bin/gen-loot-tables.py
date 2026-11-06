@@ -91,6 +91,13 @@ def _resman_reader():
     return read
 
 
+FOCUS_FEAT_COLS = ("WeaponFocusFeat", "EpicWeaponFocusFeat", "WeaponSpecializationFeat",
+                   "EpicWeaponSpecializationFeat", "WeaponImprovedCriticalFeat",
+                   "EpicWeaponOverwhelmingCriticalFeat", "EpicWeaponDevastatingCriticalFeat",
+                   "WeaponOfChoiceFeat")
+REQ_FEAT_COLS = ("ReqFeat0", "ReqFeat1", "ReqFeat2", "ReqFeat3", "ReqFeat4")
+
+
 def refresh_costs():
     read = _resman_reader()
     _, ipd = lm.read_2da_text(read("itempropdef"))
@@ -141,11 +148,23 @@ def refresh_costs():
         ent = {"label": r.get("label"), "base_cost": lm._num(r.get("BaseCost"), 0),
                "mult": lm._num(r.get("ItemMultiplier"), 1),
                "stacking": int(lm._num(r.get("Stacking"), 1)),
-               "model_type": int(lm._num(r.get("ModelType"), 0)), "armor_ac": None}
+               "model_type": int(lm._num(r.get("ModelType"), 0)), "armor_ac": None,
+               # Phase 6 wishlist Auto: the weapon-focus family feats of the base
+               # (tier 1) and the proficiency feats any one of which lets a
+               # character use it (tier 2; none = anyone).
+               "focus_feats": [int(r[c]) for c in FOCUS_FEAT_COLS
+                               if lm._num(r.get(c)) is not None],
+               "req_feats": [int(r[c]) for c in REQ_FEAT_COLS
+                             if lm._num(r.get(c)) is not None]}
         if row == 16:
             u = json.loads(p.read_text())
             ent["armor_ac"] = out["parts_chest"].get(str(lm.gff(u, "ArmorPart_Torso", 0)), 0)
         out["baseitems"][str(row)] = ent
+    # Phase 6: class rows that cast spells (classes.2da SpellCaster) - the
+    # wishlist's proficiency tier offers a magic staff only to a caster.
+    _, cls = lm.read_2da_text(read("classes"))
+    out["caster_classes"] = sorted(int(k) for k, v in cls.items()
+                                   if lm._num(v.get("SpellCaster"), 0) == 1)
     path = lm.LOOT_DIR / "_costs.json"
     path.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
     print("wrote %s (%d property types, %d cost tables, %d base items)"
@@ -408,6 +427,41 @@ def nss_include(data=None):
         if e.get("level"):
             w("    if (sArea == %s) return %d;" % (_q(a), e["level"]))
     w("    return 0;")
+    w("}")
+    w("")
+
+    # -- wishlist (Phase 6, sources.json "wishlist"; read by loot_inc Loot_WishPick)
+    wl = lm.wishlist_cfg(data)
+    w("// Loot wishlist (Phase 6, loot/sources.json \"wishlist\").")
+    w("const int LOOTD_WISH_MAX = %d;" % wl["picks"])
+    w("const int LOOTD_WISH_CHANCE = %d;" % wl["chance"])
+    w("const int LOOTD_WISH_FOCUS_W = %d;" % wl["focus_weight"])
+    w("")
+    base_rows = sorted((b["base"], cats.index(c)) for c in cats for b in bases[c])
+    w("// Loot base item row -> category index (LootD_CatName), -1 = not a loot base.")
+    L.extend(_switch_fn("int LootD_BaseCat(int nI)", base_rows, "-1", str))
+    bi = costs["baseitems"]
+    def feat_list(row, key):
+        return "|" + "".join("%d|" % f for f in bi[str(row)].get(key, []))
+    wrows = [r for r, ci in base_rows if cats[ci] in lm.WISH_PROF_CATS]
+    w("// Weapon-focus family feats of a loot base ('|feat|feat|', baseitems.2da")
+    w("// WeaponFocusFeat .. WeaponOfChoiceFeat) - wishlist Auto tier 1.")
+    L.extend(_switch_fn("string LootD_BaseFocusFeats(int nI)",
+                        [(r, feat_list(r, "focus_feats")) for r in wrows], '"|"', _q))
+    w("// Proficiency feats of a loot base, any one of which lets a character use it")
+    w("// ('|' = none needed; baseitems.2da ReqFeat0-4) - wishlist Auto tier 2.")
+    L.extend(_switch_fn("string LootD_BaseReqFeats(int nI)",
+                        [(r, feat_list(r, "req_feats")) for r in wrows], '"|"', _q))
+    w("// TRUE for a class row that casts spells (classes.2da SpellCaster).")
+    w("int LootD_ClassCaster(int nI)")
+    w("{")
+    w("    switch (nI)")
+    w("    {")
+    for c in costs["caster_classes"]:
+        w("        case %d:" % c)
+    w("            return TRUE;")
+    w("    }")
+    w("    return FALSE;")
     w("}")
     w("")
 

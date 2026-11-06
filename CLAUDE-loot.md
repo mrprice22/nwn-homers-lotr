@@ -4,7 +4,7 @@ Roadmap epic `loot-overhaul`; the design and phase plan are in
 [docs.manual/Draft/Loot-Overhaul.html](docs.manual/Draft/Loot-Overhaul.html). This file
 is the working reference for the code as built. Phase 2 (`lo-loot-core`) built the
 engine; phase 3 (`rng-based-gear-diablo-world-of-warcraft-style`) put it in every chest and
-container; phases 4–7 plug the remaining sources into it.
+container; phases 4–7 plug the remaining sources into it (phase 6 = the wishlist).
 
 ## One data source, three readers
 
@@ -259,6 +259,39 @@ mod_cliententer (10.5 s) ─► gem_login ─► Gem_BeginScan ─► gem_scan_s
   independently of the gear chance; a boss's gem has `boss_floor`. The Loot Lab force-drops switch
   forces the gem too.
 
+## Wishlist (Phase 6)
+
+Roadmap `lo-wishlist`. Config: `loot/sources.json` `"wishlist"` (`picks` 5, `chance` 400 per
+mille, `focus_weight`). Python mirror: `loot_model.wish_candidates` / `wish_pick` and
+`roll(..., wish=...)` (**change one, change the other**). `python3 bin/loot-sim.py --wishlist 1,13`
+or `--auto-feats 51 --caster` prints the share of the candidate bases per profile, with and without.
+
+```
+rest menu "Loot wishlist..." (emotewand R176) ─► lw_open ─► lw_nui (window) ─► lw_evt (clicks)
+                                                                   └─ loot_db Loot_WishAdd/Remove/Clear/SetAuto
+Loot_Roll step 3 ─► Loot_WishPick(oBeneficiary, profile) ─► base row, else the normal category pick
+```
+
+- **Storage:** `lootdb` `loot_wishlist(uuid, base)`, keyed by `GetObjectUUID`; the row
+  `base = -1` means Auto off. Cached on the PC as `LOOT_WISH` (`"|1|13|"`), loaded on first use and
+  rewritten by every change, so a roll never queries SQLite. DDL in `Loot_InitDb` (onmoduleload).
+- **The pick:** only for a PC beneficiary, at `LOOTD_WISH_CHANCE`; candidates are the picks
+  (uniform), else the Auto list; each must fit the profile (`LootD_ProfileCatWeight` of its
+  `LootD_BaseCat` > 0 and `LootD_ProfileBaseOk`). Nothing fits = the normal pick. Only the base
+  item is steered - never the rarity, affixes, budget or the named-pool branch.
+- **Auto** (`Loot_AutoList`, cached as `LOOT_AUTO` per `GetHitDice`, tier in `LOOT_AUTO_TIER`):
+  tier 1 = melee/ranged bases whose weapon-focus family feats the PC holds
+  (`LootD_BaseFocusFeats`, `focus_weight` per feat); tier 2 when tier 1 is empty = melee/ranged/caster
+  bases the PC is proficient with (any of `LootD_BaseReqFeats`, or none needed) at their base
+  weight, the magic staff only when spellcasting classes (`LootD_ClassCaster`) hold at least half
+  the PC's levels (admin 2026-11-06: a wizard leans to dagger/club/crossbows/quarterstaff/magic
+  staff). The feat and caster columns come from `baseitems.2da` / `classes.2da` via
+  `--refresh-costs` into `_costs.json`; the gate fails when they are missing.
+- **Beneficiary:** the chest opener (`LootChest_Beneficiary`), or for a corpse a random PC
+  contributor **in the corpse's area** (`bst_ondeath` -> `LOOT_BENEF`; nobody present = unset =
+  unbiased). Loot Lab rolls are for the admin, so lab "Roll 10" shows the bias.
+- **Known gap:** the prod -> dev vault sync copies `.bic` files, not `lootdb`, so wishlists reset on dev.
+
 ## Loot Lab
 
 Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
@@ -275,6 +308,9 @@ Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
 
 - **grant a random socket gem** / **one gem of every family**, at the rarity floor as the gem's tier
   (`lootlab_gem1` / `lootlab_gemall`, Phase 5); the dump also prints sockets and gem-touched properties.
+
+- **show my loot wishlist and Auto weights** (`lootlab_wish`, Phase 6): the stored picks, the Auto
+  tier and list, and the candidates a roll for you draws from.
 
 Phase 7 adds "grant a Shard of Fate" here.
 

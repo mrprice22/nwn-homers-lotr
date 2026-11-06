@@ -82,5 +82,11 @@
     "elite_include": {},
     "elite_exclude": {},
     "exclude": {}
+  },
+  "wishlist": {
+    "_doc": "Phase 6 (lo-wishlist). A character picks up to 'picks' base items (rest menu > Loot wishlist...; lootdb loot_wishlist). Each gear roll made FOR that character (the chest opener, or a random damage contributor present at the kill) draws its base item from the wishlist with 'chance' per mille, uniformly among the picks the source profile allows (its categories and its 'bases' filter); otherwise the roll is unchanged. Rarity, affixes and budget never change. With an empty wishlist and Auto on, the candidates are AUTO: tier 1 = the melee/ranged bases whose weapon-focus family feats (baseitems.2da WeaponFocusFeat .. WeaponOfChoiceFeat) the character holds, weight 'focus_weight' per feat held; if none, tier 2 = every melee/ranged/caster base the character is proficient with (holds any ReqFeat0-4, or the base has none), at its bases.json weight, a magic staff only for a character whose spellcasting classes (classes.2da SpellCaster) hold at least half its levels. Auto off + empty wishlist = plain random loot.",
+    "picks": 5,
+    "chance": 400,
+    "focus_weight": 1
   }
 }

@@ -4,7 +4,8 @@
 // Run by bst_ondeath, only on the path where at least one PC contributed (a
 // PC's own summon, or a kill with no PC behind it, returns before this), after
 // the bestiary has recorded the kill.  bst_ondeath sets LOOT_BENEF (a random
-// valid contributor) on the corpse first.
+// PC contributor in the corpse's area; unset when none is) on the corpse
+// first - it is who Loot_Roll steers by their Phase 6 wishlist.
 //
 // Never: LOOT_NONE, anything with a master (an enemy summon), an `exclude`d
 // creature, or - bosses aside - a creature outside the hostile factions.

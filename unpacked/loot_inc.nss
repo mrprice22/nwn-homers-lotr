@@ -11,7 +11,10 @@
 //                a one- or two-tier upgrade;
 //   2. named   - a top-tier roll may award a curated existing item instead
 //                (loot/named.json, inside its loot-level window);
-//   3. base    - category from the profile's weights, then a base item; the
+//   3. base    - with the wishlist chance, a base item from the beneficiary's
+//                wishlist or Auto list (Phase 6, Loot_WishPick), inside the
+//                profile's categories and base filter; otherwise
+//                category from the profile's weights, then a base item; the
 //                item is created from that base's forge blank (forge_inc
 //                ForgeBlankResRef) and given a random appearance taken from
 //                one of the module's own items of that base;
@@ -193,6 +196,172 @@ int Loot_PickBase(int nCat, int nProfile)
     {
         r -= Loot_BaseWeightFor(nCat, k, nProfile);
         if (r < 0) return LootD_BaseRow(nCat, k);
+    }
+    return -1;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: the loot wishlist (lo-wishlist).  Mirrors loot_model.wish_candidates
+// and wish_pick.  Candidate lists are "row:weight|row:weight|" strings.
+// ---------------------------------------------------------------------------
+
+const string LOOT_AUTO      = "LOOT_AUTO";       // PC local: cached Auto list
+const string LOOT_AUTO_KEY  = "LOOT_AUTO_KEY";   // PC local: hit dice it was built at
+const string LOOT_AUTO_TIER = "LOOT_AUTO_TIER";  // PC local: 1 focus, 2 proficiency, 0 none
+
+// How many of the feats in sList ("|feat|feat|") oPC holds.
+int Loot_FeatsHeld(object oPC, string sList)
+{
+    int n = 0;
+    int nPos = 1;
+    int nLen = GetStringLength(sList);
+    while (nPos < nLen)
+    {
+        int nEnd = FindSubString(sList, "|", nPos);
+        if (nEnd < 0) break;
+        if (GetHasFeat(StringToInt(GetSubString(sList, nPos, nEnd - nPos)), oPC)) n++;
+        nPos = nEnd + 1;
+    }
+    return n;
+}
+
+// TRUE when spellcasting classes (classes.2da SpellCaster) hold at least half
+// of oPC's levels - the wishlist's proficiency tier offers a magic staff only then.
+int Loot_IsCaster(object oPC)
+{
+    int nCast = 0;
+    int i;
+    for (i = 1; i <= 8; i++)
+    {
+        int nClass = GetClassByPosition(i, oPC);
+        if (nClass == CLASS_TYPE_INVALID) break;
+        if (LootD_ClassCaster(nClass)) nCast += GetLevelByPosition(i, oPC);
+    }
+    return nCast > 0 && nCast * 2 >= GetHitDice(oPC);
+}
+
+// The Auto candidate list, cached on the PC per hit-dice total (a level-up,
+// legendary levels included, rebuilds it).  Tier 1: melee/ranged bases whose
+// weapon-focus family feats oPC holds, LOOTD_WISH_FOCUS_W per feat.  Tier 2 when
+// tier 1 is empty: melee/ranged/caster bases oPC is proficient with, at their
+// base weight; a caster-category base (the magic staff) only for a caster.
+string Loot_AutoList(object oPC)
+{
+    int nKey = GetHitDice(oPC);
+    if (GetLocalInt(oPC, LOOT_AUTO_KEY) == nKey)
+        return GetLocalString(oPC, LOOT_AUTO);
+
+    string sOut = "";
+    int nTier = 0;
+    int c, k;
+    for (c = 0; c < LOOTD_CAT_COUNT; c++)
+    {
+        string sCat = LootD_CatName(c);
+        if (sCat != "melee" && sCat != "ranged") continue;
+        int n = LootD_BaseCount(c);
+        for (k = 0; k < n; k++)
+        {
+            int nBase = LootD_BaseRow(c, k);
+            int nHeld = Loot_FeatsHeld(oPC, LootD_BaseFocusFeats(nBase));
+            if (nHeld > 0)
+                sOut += IntToString(nBase) + ":" + IntToString(nHeld * LOOTD_WISH_FOCUS_W) + "|";
+        }
+    }
+    if (sOut != "")
+        nTier = 1;
+    else
+    {
+        int bCaster = Loot_IsCaster(oPC);
+        for (c = 0; c < LOOTD_CAT_COUNT; c++)
+        {
+            string sCat = LootD_CatName(c);
+            if (sCat != "melee" && sCat != "ranged" && sCat != "caster") continue;
+            if (sCat == "caster" && !bCaster) continue;
+            int n = LootD_BaseCount(c);
+            for (k = 0; k < n; k++)
+            {
+                int nBase = LootD_BaseRow(c, k);
+                string sReq = LootD_BaseReqFeats(nBase);
+                if (sReq == "|" || Loot_FeatsHeld(oPC, sReq) > 0)
+                    sOut += IntToString(nBase) + ":" + IntToString(LootD_BaseWeight(c, k)) + "|";
+            }
+        }
+        if (sOut != "") nTier = 2;
+    }
+    SetLocalString(oPC, LOOT_AUTO, sOut);
+    SetLocalInt(oPC, LOOT_AUTO_KEY, nKey);
+    SetLocalInt(oPC, LOOT_AUTO_TIER, nTier);
+    return sOut;
+}
+
+// oPC's candidates: the wishlist picks (weight 1 each), else the Auto list
+// when Auto is on, else "" (plain random loot).
+string Loot_WishCands(object oPC)
+{
+    string sList = Loot_WishGet(oPC);
+    string sOut = "";
+    int nPos = 1;
+    int nLen = GetStringLength(sList);
+    while (nPos < nLen)
+    {
+        int nEnd = FindSubString(sList, "|", nPos);
+        if (nEnd < 0) break;
+        int nBase = StringToInt(GetSubString(sList, nPos, nEnd - nPos));
+        if (nBase >= 0) sOut += IntToString(nBase) + ":1|";
+        nPos = nEnd + 1;
+    }
+    if (sOut != "") return sOut;
+    if (!Loot_WishAutoOn(oPC)) return "";
+    return Loot_AutoList(oPC);
+}
+
+// Weight of candidate base nBase for profile nProfile: nW when the profile
+// rolls the base's category and its base filter allows it, else 0.
+int Loot_WishFit(int nProfile, int nBase, int nW)
+{
+    int nCat = LootD_BaseCat(nBase);
+    if (nCat < 0 || nW <= 0) return 0;
+    if (LootD_ProfileCatWeight(nProfile, nCat) <= 0) return 0;
+    if (!LootD_ProfileBaseOk(nProfile, nBase)) return 0;
+    return nW;
+}
+
+// A base item row drawn from oBenef's wishlist / Auto list for this profile,
+// or -1 (no PC, the LOOTD_WISH_CHANCE roll missed, or nothing fits).
+int Loot_WishPick(object oBenef, int nProfile)
+{
+    if (!GetIsObjectValid(oBenef) || !GetIsPC(oBenef) || GetIsDM(oBenef)) return -1;
+    if (Random(1000) >= LOOTD_WISH_CHANCE) return -1;
+    string s = Loot_WishCands(oBenef);
+    int nLen = GetStringLength(s);
+    if (nLen == 0) return -1;
+    int nPass;
+    int nTotal = 0;
+    int r = 0;
+    for (nPass = 0; nPass < 2; nPass++)
+    {
+        if (nPass == 1)
+        {
+            if (nTotal <= 0) return -1;
+            r = Random(nTotal);
+        }
+        int nPos = 0;
+        while (nPos < nLen)
+        {
+            int nColon = FindSubString(s, ":", nPos);
+            int nEnd = FindSubString(s, "|", nPos);
+            if (nColon < 0 || nEnd < 0) break;
+            int nBase = StringToInt(GetSubString(s, nPos, nColon - nPos));
+            int nW = Loot_WishFit(nProfile, nBase,
+                         StringToInt(GetSubString(s, nColon + 1, nEnd - nColon - 1)));
+            if (nPass == 0) nTotal += nW;
+            else
+            {
+                r -= nW;
+                if (r < 0) return nBase;
+            }
+            nPos = nEnd + 1;
+        }
     }
     return -1;
 }
@@ -470,7 +639,8 @@ object Loot_GiveNamed(int nLvl, int nRarity, string sProfile, object oBeneficiar
 //   nLevel       loot level 1..60 (LootD_LevelForCR maps a CR onto it)
 //   nRarityFloor lowest rarity index the roll may land on
 //   sProfile     loot/sources.json profile ("lab", "chest_low", "boss", ...)
-//   oBeneficiary who it is for (Phase 6 wishlist; logged), may be invalid
+//   oBeneficiary who it is for: steers the base item through their wishlist
+//                (Phase 6, Loot_WishPick) and is logged; may be invalid
 // Returns the item, or OBJECT_INVALID when nothing could be built.
 object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
                  object oBeneficiary, object oDest)
@@ -491,9 +661,16 @@ object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
         if (GetIsObjectValid(oNamed)) return oNamed;
     }
 
-    // 3. base
-    int nCat = Loot_PickCategory(nProfile);
-    int nBase = nCat < 0 ? -1 : Loot_PickBase(nCat, nProfile);
+    // 3. base: the beneficiary's wishlist / Auto list first (Phase 6)
+    int nCat = -1;
+    int nBase = Loot_WishPick(oBeneficiary, nProfile);
+    if (nBase >= 0)
+        nCat = LootD_BaseCat(nBase);
+    else
+    {
+        nCat = Loot_PickCategory(nProfile);
+        nBase = nCat < 0 ? -1 : Loot_PickBase(nCat, nProfile);
+    }
     if (nBase < 0)
     {
         Loot_Warn("profile '" + sProfile + "' has no base items");
