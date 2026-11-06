@@ -103,6 +103,16 @@ void main()
     string sCan     = Bst_Canonical(GetResRef(oCre));
     float  fCR      = GetChallengeRating(oCre);
     string sCreName = GetName(oCre);
+    // A Loot Overhaul champion (loot_champion.nss) is the same creature on a good
+    // day: it is counted - and named, and server-firsted - as its base creature,
+    // and tallied in champ_kills too.  Its raised CR still pays the kill XP.
+    int    bChamp   = GetLocalInt(oCre, &quot;LOOT_CHAMP&quot;);
+    float  fBaseCR  = fCR;
+    if (bChamp)
+    {
+        sCreName = GetLocalString(oCre, &quot;LOOT_CHAMP_NAME&quot;);
+        fBaseCR  = GetLocalFloat(oCre, &quot;LOOT_CHAMP_BASECR&quot;);
+    }
 
     // A creature that is itself a PC&#x27;s summon/associate (summoned monster from
     // any spell or feat, familiar, animal companion, henchman) is not a bestiary
@@ -182,7 +192,7 @@ void main()
         if (!GetIsObjectValid(oSlayer)) oSlayer = m;
 
         string sUuid = GetObjectUUID(m);
-        Bst_RecordKill(sUuid, GetPCPublicCDKey(m), GetName(m), sCan, bParty);
+        Bst_RecordKill(sUuid, GetPCPublicCDKey(m), GetName(m), sCan, bParty, bChamp);
 
         // Legendary-tier kill XP (roadmap: ll-xp-award-balance). The engine pays
         // nothing above level 40 because xptable.2da was never extended, so 41+
@@ -200,7 +210,41 @@ void main()
 
         int nTotal = Bst_GetTotal(sUuid, sCan);
         SendMessageToPC(m, &quot;[Bestiary] You have slain &quot; + IntToString(nTotal) + &quot; &quot;
-            + sCreName + (bParty ? &quot; (Party).&quot; : &quot; (Solo).&quot;));
+            + sCreName + (bParty ? &quot; (Party)&quot; : &quot; (Solo)&quot;)
+            + (bChamp ? &quot; - a champion!&quot; : &quot;.&quot;));
+    }
+
+    // Loot Overhaul Phase 4: rolled drops on the corpse. The beneficiary (whose
+    // Phase 6 wishlist steers the drop&#x27;s base items) is a random valid
+    // contributor who is PRESENT - in the corpse&#x27;s area; with none, LOOT_BENEF
+    // stays unset and the drop is plain random. ExecuteScript keeps loot_inc and
+    // the generated loot tables out of this script&#x27;s include tree.
+    {
+        object oHere = GetArea(oCre);
+        int nPresent = 0;
+        for (i = 0; i &lt; nN; i++)
+        {
+            object m = GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i));
+            if (GetIsObjectValid(m) &amp;&amp; GetIsPC(m) &amp;&amp; !GetIsDM(m) &amp;&amp; GetArea(m) == oHere)
+                nPresent++;
+        }
+        if (nPresent &gt; 0)
+        {
+            int nPick = Random(nPresent);
+            int nSeen = 0;
+            for (i = 0; i &lt; nN; i++)
+            {
+                object m = GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i));
+                if (!GetIsObjectValid(m) || !GetIsPC(m) || GetIsDM(m) || GetArea(m) != oHere)
+                    continue;
+                if (nSeen++ == nPick)
+                {
+                    SetLocalObject(oCre, &quot;LOOT_BENEF&quot;, m);
+                    break;
+                }
+            }
+        }
+        ExecuteScript(&quot;loot_ondeath&quot;, oCre);
     }
 
     // Uncatalogued kill: the creature was slain (and recorded above) but isn&#x27;t in
@@ -215,7 +259,7 @@ void main()
         {
             SetLocalInt(oMod, sGuard, 1);
             string sLog = &quot;[Bestiary] Uncatalogued creature slain: &#x27;&quot; + sCreName
-                + &quot;&#x27; (resref &quot; + sCan + &quot;, CR &quot; + IntToString(FloatToInt(fCR))
+                + &quot;&#x27; (resref &quot; + sCan + &quot;, CR &quot; + IntToString(FloatToInt(fBaseCR))
                 + &quot;) by &quot; + GetName(oSlayer)
                 + &quot;. Add it to the module or refresh the wiki catalogue.&quot;;
             WriteTimestampedLogEntry(sLog);
@@ -224,14 +268,14 @@ void main()
     }
 
     // Server-first broadcast for hard creatures.
-    if (fCR &gt;= BST_SF_CR &amp;&amp; GetIsObjectValid(oSlayer)
-        &amp;&amp; Bst_RegisterServerFirst(sCan, fCR, GetObjectUUID(oSlayer),
+    if (fBaseCR &gt;= BST_SF_CR &amp;&amp; GetIsObjectValid(oSlayer)
+        &amp;&amp; Bst_RegisterServerFirst(sCan, fBaseCR, GetObjectUUID(oSlayer),
                                    GetName(oSlayer), GetPCPublicCDKey(oSlayer),
                                    GetPCPlayerName(oSlayer)))
     {
         string sMsg = &quot;[SERVER FIRST] &quot; + GetName(oSlayer)
             + (bParty ? &quot;&#x27;s party&quot; : &quot;&quot;) + &quot; has slain &quot; + sCreName
-            + &quot; (CR &quot; + IntToString(FloatToInt(fCR))
+            + &quot; (CR &quot; + IntToString(FloatToInt(fBaseCR))
             + &quot;) for the first time on the server!&quot;;
         object oP = GetFirstPC();
         while (GetIsObjectValid(oP))

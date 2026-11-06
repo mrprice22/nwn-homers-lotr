@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script lw_nui</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>lw_nui</code></h1><pre class="nss-source"><code>// lw_nui.nss - the Loot Wishlist window (Loot Overhaul Phase 6, lo-wishlist).
+//
+// Opened from the rest menu (&quot;Loot wishlist...&quot;, emotewand.dlg -&gt; lw_open).
+// Event handling is in lw_evt.nss, registered per-window via NuiCreate&#x27;s
+// sEventScript. Storage and the PC-side cache are in loot_db.nss; the roll-time
+// pick (Loot_WishPick) and the Auto list (Loot_AutoList) are in loot_inc.nss.
+//
+// SHAPE. One category at a time (the loot/bases.json categories), chosen with
+// the row of buttons under the header, then one row per base item with an
+// Add / Remove button. A summary pane at the bottom says what is picked and
+// what Auto is doing. The window is REBUILT after every change, as csp_nui and
+// legfeat_nui are: the header count, the buttons and the summary all move.
+//
+// The traps this repo&#x27;s other NUI windows recorded, all respected here:
+// resrefs are capped at 16 characters; nw_inc_nui has no `&amp;` reference
+// parameters; EVERY child gets an explicit width and the list group an
+// explicit size (or it sizes to its longest label and clips the header); and a
+// tooltip cannot hold a long string (one line, never wraps, strips &quot;\n&quot;), so
+// the long text lives in a `text` widget, which does wrap.
+
+#include &quot;nw_inc_nui&quot;
+#include &quot;loot_inc&quot;
+
+const string LW_WIN = &quot;lootwish&quot;;     // NuiCreate window id
+const string LW_TOK = &quot;LW_TOK&quot;;       // PC local: this window&#x27;s token
+const string LW_CAT = &quot;LW_CAT&quot;;       // PC local: selected category index, +1
+
+const float LW_WIN_W    = 660.0;
+const float LW_WIN_H    = 620.0;
+const float LW_LIST_W   = 620.0;
+const float LW_LIST_H   = 300.0;
+const float LW_COL_BTN  = 90.0;
+const float LW_COL_NAME = 220.0;
+const float LW_COL_NOTE = 260.0;
+const float LW_ROW_H    = 30.0;
+const float LW_HDR_H    = 26.0;
+const float LW_TAB_W    = 84.0;
+const float LW_SUM_H    = 110.0;
+
+void LW_Open(object oPC);
+void LW_Close(object oPC);
+
+// Player-facing name of a loot category (LootD_CatName).
+string LW_CatLabel(string sCat)
+{
+    if (sCat == &quot;melee&quot;)    return &quot;Melee&quot;;
+    if (sCat == &quot;ranged&quot;)   return &quot;Ranged&quot;;
+    if (sCat == &quot;armor&quot;)    return &quot;Armor&quot;;
+    if (sCat == &quot;shield&quot;)   return &quot;Shields&quot;;
+    if (sCat == &quot;jewelry&quot;)  return &quot;Jewelry&quot;;
+    if (sCat == &quot;wearable&quot;) return &quot;Wearables&quot;;
+    if (sCat == &quot;caster&quot;)   return &quot;Staves&quot;;
+    return sCat;
+}
+
+int LW_Selected(object oPC)
+{
+    int nSel = GetLocalInt(oPC, LW_CAT) - 1;
+    if (nSel &lt; 0 || nSel &gt;= LOOTD_CAT_COUNT) nSel = 0;
+    return nSel;
+}
+
+// TRUE when nBase is on oPC&#x27;s Auto list and that list comes from focus feats.
+int LW_FeatsFavour(object oPC, int nBase)
+{
+    string sAuto = Loot_AutoList(oPC);
+    if (GetLocalInt(oPC, LOOT_AUTO_TIER) != 1) return FALSE;
+    return FindSubString(&quot;|&quot; + sAuto, &quot;|&quot; + IntToString(nBase) + &quot;:&quot;) &gt;= 0;
+}
+
+// &quot;A, B and C&quot; of the base items in a &quot;row:w|row:w|&quot; or &quot;|row|row|&quot; list.
+string LW_Names(string sList, int bWeighted)
+{
+    string sOut = &quot;&quot;;
+    int nPos = bWeighted ? 0 : 1;
+    int nLen = GetStringLength(sList);
+    while (nPos &lt; nLen)
+    {
+        int nEnd = FindSubString(sList, &quot;|&quot;, nPos);
+        if (nEnd &lt; 0) break;
+        string sTok = GetSubString(sList, nPos, nEnd - nPos);
+        if (bWeighted) sTok = GetStringLeft(sTok, FindSubString(sTok, &quot;:&quot;));
+        int nBase = StringToInt(sTok);
+        if (nBase &gt;= 0 &amp;&amp; sTok != &quot;&quot;)
+            sOut += (sOut == &quot;&quot; ? &quot;&quot; : &quot;, &quot;) + LootD_BaseName(nBase);
+        nPos = nEnd + 1;
+    }
+    return sOut;
+}
+
+string LW_Summary(object oPC)
+{
+    string sPct = IntToString(LOOTD_WISH_CHANCE / 10) + &quot;%&quot;;
+    string sPicks = LW_Names(Loot_WishGet(oPC), FALSE);
+    if (sPicks != &quot;&quot;)
+        return &quot;Your wishlist: &quot; + sPicks + &quot;.\n&quot;
+             + sPct + &quot; of the gear rolled for you is one of these, whenever the chest or &quot;
+             + &quot;creature can drop that kind of item. (Auto is not used while you have picks.)&quot;;
+    if (!Loot_WishAutoOn(oPC))
+        return &quot;Your wishlist is empty and Auto is off: the loot rolled for you is plain random.&quot;;
+    string sAuto = Loot_AutoList(oPC);
+    int nTier = GetLocalInt(oPC, LOOT_AUTO_TIER);
+    if (nTier == 1)
+        return &quot;Your wishlist is empty, so Auto is choosing: &quot; + sPct + &quot; of the gear rolled for &quot;
+             + &quot;you leans toward the weapons your feats favour - &quot; + LW_Names(sAuto, TRUE) + &quot;.&quot;;
+    if (nTier == 2)
+        return &quot;Your wishlist is empty, so Auto is choosing. You have no weapon focus feats, so &quot;
+             + sPct + &quot; of the gear rolled for you leans toward the weapons you are proficient &quot;
+             + &quot;with.&quot;;
+    return &quot;Your wishlist is empty and Auto has nothing to lean toward: the loot rolled for you &quot;
+         + &quot;is plain random.&quot;;
+}
+
+json LW_Row(object oPC, int nBase, int bFull)
+{
+    int bHas = Loot_WishHas(oPC, nBase);
+    json jRow = JsonArray();
+
+    json jBtn = NuiId(NuiButton(JsonString(bHas ? &quot;Remove&quot; : &quot;Add&quot;)), &quot;b&quot; + IntToString(nBase));
+    jBtn = NuiEnabled(jBtn, JsonBool(bHas || !bFull));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, LW_COL_BTN));
+
+    string sName = LootD_BaseName(nBase);
+    if (bHas) sName = &quot;* &quot; + sName;
+    jRow = JsonArrayInsert(jRow, NuiWidth(NuiLabel(JsonString(sName),
+        JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE)), LW_COL_NAME));
+
+    string sNote = &quot;&quot;;
+    if (bHas) sNote = &quot;on your wishlist&quot;;
+    else if (LW_FeatsFavour(oPC, nBase)) sNote = &quot;your feats favour this&quot;;
+    jRow = JsonArrayInsert(jRow, NuiWidth(NuiLabel(JsonString(sNote),
+        JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE)), LW_COL_NOTE));
+
+    return NuiHeight(NuiRow(jRow), LW_ROW_H);
+}
+
+json LW_Tabs(int nSel)
+{
+    json jRow = JsonArray();
+    int c;
+    for (c = 0; c &lt; LOOTD_CAT_COUNT; c++)
+    {
+        json jBtn = NuiId(NuiButton(JsonString(LW_CatLabel(LootD_CatName(c)))),
+                          &quot;c&quot; + IntToString(c));
+        jBtn = NuiEnabled(jBtn, JsonBool(c != nSel));
+        jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, LW_TAB_W));
+    }
+    return NuiHeight(NuiRow(jRow), LW_ROW_H);
+}
+
+json LW_Label(string s, float fW)
+{
+    return NuiHeight(NuiWidth(NuiLabel(JsonString(s), JsonInt(NUI_HALIGN_CENTER),
+        JsonInt(NUI_VALIGN_MIDDLE)), fW), LW_HDR_H);
+}
+
+json LW_Window(object oPC)
+{
+    int nCount = Loot_WishCount(oPC);
+    int bFull = nCount &gt;= LOOTD_WISH_MAX;
+    int nSel = LW_Selected(oPC);
+
+    json jCol = JsonArray();
+    jCol = JsonArrayInsert(jCol, LW_Label(&quot;Wishlist: &quot; + IntToString(nCount) + &quot; of &quot;
+        + IntToString(LOOTD_WISH_MAX) + &quot; item types picked&quot;, LW_LIST_W));
+    jCol = JsonArrayInsert(jCol, LW_Label(&quot;Pick the kinds of gear you want random loot to &quot;
+        + &quot;favour. Change it any time out of combat.&quot;, LW_LIST_W));
+    jCol = JsonArrayInsert(jCol, LW_Tabs(nSel));
+
+    json jList = JsonArray();
+    int n = LootD_BaseCount(nSel);
+    int k;
+    for (k = 0; k &lt; n; k++)
+        jList = JsonArrayInsert(jList, LW_Row(oPC, LootD_BaseRow(nSel, k), bFull));
+    json jGroup = NuiGroup(NuiCol(jList), TRUE, NUI_SCROLLBARS_Y);
+    jGroup = NuiWidth(jGroup, LW_LIST_W);
+    jGroup = NuiHeight(jGroup, LW_LIST_H);
+    jCol = JsonArrayInsert(jCol, jGroup);
+
+    json jSum = NuiText(JsonString(LW_Summary(oPC)), TRUE, NUI_SCROLLBARS_AUTO);
+    jSum = NuiWidth(jSum, LW_LIST_W);
+    jSum = NuiHeight(jSum, LW_SUM_H);
+    jCol = JsonArrayInsert(jCol, jSum);
+
+    int bAuto = Loot_WishAutoOn(oPC);
+    json jFoot = JsonArray();
+    json jClear = NuiId(NuiButton(JsonString(&quot;Clear wishlist&quot;)), &quot;bclear&quot;);
+    jClear = NuiEnabled(jClear, JsonBool(nCount &gt; 0));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(jClear, 150.0));
+    json jAuto = NuiId(NuiButton(JsonString(bAuto ? &quot;Auto: on&quot; : &quot;Auto: off&quot;)), &quot;bauto&quot;);
+    jAuto = NuiTooltip(jAuto, JsonString(bAuto ? &quot;Turn Auto off&quot; : &quot;Turn Auto on&quot;));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(jAuto, 150.0));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(NuiId(NuiButton(JsonString(&quot;Close&quot;)), &quot;bclose&quot;), 120.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
+
+    return NuiWindow(NuiCol(jCol), JsonString(&quot;Loot Wishlist&quot;),
+        NuiRect(-1.0, -1.0, LW_WIN_W, LW_WIN_H),
+        JsonBool(FALSE),   // resizable
+        JsonBool(FALSE),   // collapsed
+        JsonBool(TRUE),    // closable
+        JsonBool(FALSE),   // transparent
+        JsonBool(TRUE));   // border
+}
+
+void LW_Close(object oPC)
+{
+    int nTok = GetLocalInt(oPC, LW_TOK);
+    if (nTok) NuiDestroy(oPC, nTok);
+    DeleteLocalInt(oPC, LW_TOK);
+}
+
+// Open (or re-open) the window. Destroys any stale instance first, so calling
+// this after a change is how it refreshes.
+void LW_Open(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+    int nOld = NuiFindWindow(oPC, LW_WIN);
+    if (nOld) NuiDestroy(oPC, nOld);
+    SetLocalInt(oPC, LW_TOK, NuiCreate(oPC, LW_Window(oPC), LW_WIN, &quot;lw_evt&quot;));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

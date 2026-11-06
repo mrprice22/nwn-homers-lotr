@@ -202,6 +202,11 @@
           <li><a href="#loot-rarity">Rarity tiers</a></li>
           <li><a href="#loot-levels">Loot levels</a></li>
           <li><a href="#loot-chests">Chests and containers</a></li>
+          <li><a href="#loot-creatures">Creature and boss drops</a></li>
+          <li><a href="#loot-wishlist">Loot wishlist</a></li>
+          <li><a href="#sockets">Sockets</a></li>
+          <li><a href="#gems">Socket gems</a></li>
+          <li><a href="#fate-token">Shard of Fate</a></li>
         </ol></li>
       <li><a href="Items.html">Custom Gameplay Items</a></li>
       <li><a href="Factions.html">Good/Evil Faction</a></li>
@@ -225,9 +230,10 @@
 a rarity, a coloured name and random enchantments, scaled to where the item came from.</p>
 
 <div class="tip-box">
-<strong>Being built now.</strong> The loot engine and rolled chests are on the test realm. Creatures and
-bosses switch over to it next, all before Season 3 opens. Each stage adds its own section to this
-page as it lands: wishlists, sockets and gems, and the Shard of Fate.
+<strong>Being built now.</strong> The loot engine and rolled chests are on the test realm. Creature and
+boss drops, sockets and gems, and the loot wishlist are finished and reach the test realm together
+with the next build. The Shard of Fate comes last, and all of it lands before Season 3 opens. Each
+stage has its own section on this page.
 </div>
 
 <h3 id="loot-rarity">Rarity tiers</h3>
@@ -304,6 +310,138 @@ stock treasure. The stock treasure stopped scaling at character level 17, so abo
   of the module's named items of that kind instead.</li>
   <li><strong>Unchanged:</strong> quest chests and their rewards, the Donations Chest, bookshelves and
   books.</li>
+</ul>
+
+<h3 id="loot-creatures">Creature and boss drops</h3>
+<p>Monsters now drop rolled gear too, on top of whatever they always carried. The drop lands on the
+corpse, so in a party it goes through the usual Need / Greed roll. A kill only counts when a player
+helped make it: your own summons, and creatures killed by traps or other monsters, drop nothing extra.</p>
+<ul>
+  <li><strong>Ordinary creatures</strong> drop a rolled item 4% of the time.</li>
+  <li><strong>Elites</strong> drop one 25% of the time. A creature is an elite when it is clearly stronger
+  than the place it lives in: its challenge rating's loot level is at least five above its area's.</li>
+  <li><strong>Bosses</strong> on the Roll of the Fallen always drop: two items of at least Epic rarity
+  (three from the hardest bosses), and sometimes one of the module's named items as well.</li>
+  <li><strong>Shards of Fate.</strong> About one boss kill in ten also drops a
+  <a href="#fate-token">Shard of Fate</a>. It always goes through the party's Need / Greed roll, even
+  though it is worth almost nothing in gold.</li>
+  <li><strong>The level is the creature's own.</strong> A drop rolls at the loot level of the creature's
+  challenge rating, not the area's and not yours, so a tougher monster drops better gear.</li>
+</ul>
+<p><strong>Champions.</strong> Now and then an ordinary monster spawns as a champion: its name gains
+"Elite", it glows red, and it has double the hit points and better attack, damage, armour class and
+saves than its kind. It drops like an elite, gives more experience, and counts in your bestiary as its
+ordinary kind, with a separate tally of the champions you have slain. Champions are commonest where
+elites are rare (about 1 spawn in 20) and rarer in places already full of elites (down to 1 in 100).</p>
+
+<h3 id="loot-wishlist">Loot wishlist</h3>
+<p>You can choose the kinds of gear you want to see more of. Open the rest menu and pick
+<strong>Loot wishlist...</strong>: a window lists every kind of item that can drop, grouped as melee
+weapons, ranged weapons, armour, shields, jewellery, other wearables and staves. Add up to
+<strong>five</strong>, for example longswords, tower shields and rings.</p>
+<ul>
+  <li><strong>40% of the gear rolled for you</strong> is one of the item types on your wishlist,
+  whenever the source can drop that kind of item. A chest that only holds ranged weapons still gives
+  ranged weapons. The wishlist chooses only the type of item. Its rarity and enchantments are rolled
+  exactly as before.</li>
+  <li><strong>Who the loot is rolled for:</strong> the player who opens a chest. For a creature's drop,
+  one of the players who helped kill it and are still in the area, chosen at random. So in a party,
+  everyone's wishlist gets its turn.</li>
+  <li><strong>Change it any time</strong> out of combat, free. Your wishlist belongs to your character
+  and is kept when you log out.</li>
+  <li><strong>Auto.</strong> With an empty wishlist, the same 40% leans toward the weapons your feats
+  favour: Weapon Focus, Weapon Specialization, Improved Critical, their epic versions and Weapon of
+  Choice, more strongly the more of them you hold. With none of those feats, it leans toward the
+  weapons you are proficient with. A spellcaster also leans toward magic staves, so a wizard sees more
+  daggers, clubs, crossbows, quarterstaffs and magic staves. The window shows what Auto is doing for
+  you, and its <strong>Auto</strong> button switches it off if you would rather have plain random
+  loot.</li>
+</ul>
+
+<h3 id="sockets">Sockets</h3>
+<p>Gear can carry <strong>sockets</strong>: empty slots that take a <a href="#gems">socket gem</a>. An
+item's sockets are listed at the end of its description, for example
+<em>Sockets (1/2): Flawed Emberstone, [empty]</em>.</p>
+<ul>
+  <li><strong>Rolled loot</strong> gets its sockets from its rarity: Common none, Uncommon 0&ndash;1,
+  Rare 1, Epic 1&ndash;2, Legendary 2&ndash;3.</li>
+  <li><strong>Existing gear</strong> gets sockets too: hand-made items, shop stock and the gear you already
+  own. Every weapon, armour, shield, ring, amulet, belt, cloak, helmet and so on gets one socket, and the
+  most valuable pieces get two. Plot items, cursed items and stacks (ammunition, throwing weapons) get
+  none. Gear you carry gets its sockets when you log in; anything else gets them the first time you try
+  to set a gem in it.</li>
+  <li><strong>Sockets are not forge slots.</strong> An enchantment a gem adds does not use up one of the
+  item's forge enchantment slots. Its value still counts towards a forge's value cap, like any other
+  worth in the piece.</li>
+  <li><strong>Socketing is permanent.</strong> A gem cannot be taken out again, and no forge will strike or
+  rework an enchantment a gem gave or raised.</li>
+</ul>
+
+<h3 id="gems">Socket gems</h3>
+<p>A socket gem is used from your pack: activate it and target an item in your inventory, worn or
+carried. The item must be identified and have an open socket. The gem is used up only when it takes; if
+it cannot be set, you keep it and are told why.</p>
+<ul>
+  <li><strong>Gems raise, they never replace.</strong> Each gem belongs to one family and raises the
+  item's own enchantment of that kind by a number of steps. If the item has none, the gem adds it. A
+  Fire gem on a sword with 1d6 fire damage makes it 1d8, 1d10 or more, depending on the gem; a gem
+  never lowers what the item already has.</li>
+  <li><strong>Caps.</strong> A gem can raise elemental damage up to <strong>2d10</strong> and enhancement or
+  attack bonus up to <strong>+16</strong>. Armour Class and ability bonuses stop at +10 and saving throws
+  at +8. A gem that would not make the item any stronger is refused.</li>
+  <li><strong>The damage steps</strong> are +1, +2, +3, +4, 1d6, 1d8, 1d10, 2d6, 2d8, 2d10. A flat +5 counts
+  as better than 1d8, so one step takes it to 1d10.</li>
+  <li><strong>Where gems fit.</strong> Damage gems go into melee weapons. Enhancement / attack gems go
+  into weapons and magic staves (melee weapons get enhancement, ranged weapons attack bonus). Armour
+  Class, ability and saving throw gems go into armour, shields, jewellery and other worn gear; Dexterity
+  gems also fit ranged weapons, and Intelligence, Wisdom and Charisma gems also fit magic staves.</li>
+</ul>
+<table class="data change-table">
+  <thead><tr><th>Gem</th><th>Raises</th></tr></thead>
+  <tbody>
+    <tr><td>Emberstone, Frostglass, Bilestone, Stormshard, Echo Crystal, Shadowpearl</td><td>Fire, cold, acid, electrical, sonic or negative energy damage</td></tr>
+    <tr><td>Keenstone</td><td>Enhancement or attack bonus</td></tr>
+    <tr><td>Wardstone</td><td>Armour Class</td></tr>
+    <tr><td>Bloodstone, Windstone, Heartstone, Lorestone, Moonstone, Starstone</td><td>Strength, Dexterity, Constitution, Intelligence, Wisdom or Charisma</td></tr>
+    <tr><td>Oathstone</td><td>All saving throws</td></tr>
+  </tbody>
+</table>
+<p><strong>Gem rarity.</strong> Every gem comes in five cuts, coloured like loot rarity: <em>Chipped</em>
+(Common), <em>Flawed</em> (Uncommon), <em>Cut</em> (Rare), <em>Flawless</em> (Epic) and
+<em>Radiant</em> (Legendary). A rarer cut adds more steps: a damage gem adds 1 to 5 steps, the others 1
+to 3.</p>
+<p><strong>Where gems come from.</strong> Chests sometimes hold one (large chests most often), ordinary
+monsters drop one now and then, elites more often, and every boss on the Roll of the Fallen drops one.
+Easy places give the lower cuts: Radiant gems only drop at loot level 45 and above, and bosses never
+drop below a Cut gem where the area allows it.</p>
+
+<h3 id="fate-token">Shard of Fate</h3>
+<p>A Shard of Fate is a rare crystal token with two uses. Either use spends it.</p>
+<ul>
+  <li><strong>Reforge an item's fate.</strong> Put a piece of rolled loot on the anvil of a Forge of
+  Wonders smith (Tagget, Kimli, Bellnius or the Kallrist forge), keep the Shard in your pack, and ask the
+  smith to <em>reforge its fate</em>. The item's random enchantments are removed and new ones are
+  rolled at the same loot level and rarity, so the result is never stronger than a fresh drop of that
+  rarity could be. The item keeps its base type, look, sockets and description. Enchantments you
+  added at a forge yourself, and gems set in its sockets, stay as they are, and the new enchantments
+  never duplicate them. The smith asks you to confirm first, because a reforge cannot be undone.</li>
+  <li><strong>What a reforge refuses.</strong> Items that were not rolled (quest rewards, store stock,
+  hand-made gear) and the named items a Legendary roll can award have nothing random to change. An item
+  whose forged enchantments already fill it, or that sits at the forge's value limit, may have no room
+  for anything new. In every one of these cases the smith hands the Shard back.</li>
+  <li><strong>The forge's limits still apply.</strong> A reforge never takes an item past the forge's
+  value limit or enchantment count, unless the item was already past them before the reforge, and then
+  it never grows.</li>
+  <li><strong>A bonus roll on a boss.</strong> When a boss on the Roll of the Fallen dies and you helped
+  to kill it, you are in the same area and you carry a Shard, a window asks whether to spend it. If you
+  accept, one more item from that boss's loot (Epic rarity or better, at the boss's loot level) goes
+  straight into your pack, without a party roll. You have 60 seconds to choose. If you keep the
+  Shard or let the window close, nothing is spent.</li>
+  <li><strong>Once a day per boss.</strong> Each character can take one bonus roll per boss every 24
+  hours. A boss you have already used a bonus roll on today does not ask again, and other bosses are
+  unaffected.</li>
+  <li><strong>Where Shards come from.</strong> About one boss kill in ten drops one, and the merit
+  shop sells them for 3 merit. A Shard can be traded or given away, but no merchant will buy one.</li>
 </ul>
 
   </div><!-- .mw-content -->

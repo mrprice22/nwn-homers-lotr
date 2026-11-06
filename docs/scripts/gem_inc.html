@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script gem_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>gem_inc</code></h1><pre class="nss-source"><code>// gem_inc.nss - Loot Overhaul Phase 5: gem sockets (roadmap Socket-system-for-weapons).
+//
+// Design: docs.manual/Draft/Loot-Overhaul.html#p5 (adopting Draft/Gem-Socketing.html
+// minus its retired jail parts).  Data: loot/gems.json + loot/sockets.json, compiled
+// into socket_data_inc.nss by bin/gen-loot-tables.py.  bin/loot_model.py gem_merge /
+// item_sockets / gem_drop are the Python mirrors loot-sim and the build gate run -
+// change one, change the other.
+//
+// Item locals (they live in the .bic and survive the party roll&#x27;s CopyItem):
+//   SOCKET_MAX       sockets the item has (never lowered)
+//   SOCKET_FILLED    how many are filled
+//   SOCKET_&lt;n&gt;_GEM   resref of the gem in socket n
+//   SOCKET_VER       socket-schema version last reconciled (LOOTD_SOCK_VER)
+//   SOCKET_ROLLED    a rolled item&#x27;s own count (loot_inc Loot_Roll)
+//   SOCKET_BASEDESC / SOCKET_DESC_SET   the description before the socket line
+//   GEM_P_N, GEM_P_&lt;i&gt;, GEM_P_&lt;i&gt;_OWN   ForgePropSig of every property a gem has
+//                    touched, and whether a gem CREATED it.  forge_inc reads them:
+//                    a gem-created property fills no forge slot, and no forge may
+//                    strike or rework a gem-touched one (socketing is permanent).
+//
+// A gem RAISES a property of its family by its tier&#x27;s steps on the family ladder
+// (cost rows weakest first; the last rung is the cap: 2d10 damage, +16 attack), or
+// adds it when the item has none.  It never overwrites: an existing value is the
+// starting rung (one off the ladder is placed by power, i.e. average damage), and
+// a gem that would not make the item stronger is refused and NOT consumed.
+//
+// Includes loot_inc (-&gt; forge_inc, color).  Do not include &quot;itemprocs&quot; next to it.
+
+#include &quot;loot_inc&quot;
+#include &quot;socket_data_inc&quot;
+
+// ---------------------------------------------------------------------------
+// Gem identity: blueprint resref sgem_&lt;family&gt;_&lt;tier&gt;
+// ---------------------------------------------------------------------------
+
+int Gem_FamilyOfResRef(string sRes)
+{
+    int nP = GetStringLength(LOOTD_GEM_PREFIX);
+    if (GetStringLeft(sRes, nP) != LOOTD_GEM_PREFIX) return -1;
+    int n = GetStringLength(sRes);
+    if (n &lt; nP + 3 || GetSubString(sRes, n - 2, 1) != &quot;_&quot;) return -1;
+    return LootD_GemFamIndex(GetSubString(sRes, nP, n - nP - 2));
+}
+
+int Gem_TierOfResRef(string sRes)
+{
+    return Loot_Clamp(StringToInt(GetStringRight(sRes, 1)), 0, LOOTD_GEMTIER_COUNT - 1);
+}
+
+string Gem_ResRef(int nFam, int nTier)
+{
+    return LOOTD_GEM_PREFIX + LootD_GemFamId(nFam) + &quot;_&quot; + IntToString(nTier);
+}
+
+// &quot;Flawed Emberstone&quot;, in its tier&#x27;s rarity colour.
+string Gem_Name(int nFam, int nTier)
+{
+    return ColorString(LootD_GemTierWord(nTier) + &quot; &quot; + LootD_GemFamStone(nFam),
+                       Loot_RarityColor(nTier));
+}
+
+int Gem_IsGem(object oItem)
+{
+    return Gem_FamilyOfResRef(GetResRef(oItem)) &gt;= 0;
+}
+
+// ---------------------------------------------------------------------------
+// Socket count
+// ---------------------------------------------------------------------------
+
+// Category index (LootD_CatName) of a socketable item, -1 = never socketed.
+int Gem_ItemCat(object oItem)
+{
+    return LootD_SockBaseCat(GetBaseItemType(oItem));
+}
+
+// The loot/sockets.json count listed for a module resref, or -1 when unlisted.
+int Gem_ListedCount(string sRes)
+{
+    string sKey = &quot;|&quot; + sRes + &quot;:&quot;;
+    string sFirst = GetStringLeft(sRes, 1);
+    int k;
+    for (k = 0; k &lt; 64; k++)
+    {
+        string s = LootD_SockList(sFirst, k);
+        if (s == &quot;&quot;) return -1;
+        int i = FindSubString(s, sKey);
+        if (i &gt;= 0) return StringToInt(GetSubString(s, i + GetStringLength(sKey), 1));
+    }
+    return -1;
+}
+
+// How many sockets oItem should have.  Mirrors loot_model.item_sockets.
+int Gem_SocketMax(object oItem)
+{
+    if (!GetIsObjectValid(oItem) || GetObjectType(oItem) != OBJECT_TYPE_ITEM) return 0;
+    int n;
+    if (Loot_IsRolled(oItem) &amp;&amp; !GetLocalInt(oItem, &quot;LOOT_NAMED&quot;))
+        n = GetLocalInt(oItem, &quot;SOCKET_ROLLED&quot;);
+    else
+    {
+        if (Gem_ItemCat(oItem) &lt; 0 || GetPlotFlag(oItem) || GetItemCursedFlag(oItem)
+            || GetItemStackSize(oItem) &gt; 1)
+            return 0;
+        n = Gem_ListedCount(GetResRef(oItem));
+        if (n &lt; 0) n = LOOTD_SOCK_DEFAULT;
+    }
+    return Loot_Clamp(n, 0, LOOTD_SOCK_MAX);
+}
+
+// The socket line, rebuilt from the item&#x27;s socket locals.
+void Gem_Describe(object oItem)
+{
+    int nFilled = GetLocalInt(oItem, &quot;SOCKET_FILLED&quot;);
+    string s = &quot;&quot;;
+    int i;
+    for (i = 0; i &lt; nFilled; i++)
+    {
+        string sRes = GetLocalString(oItem, &quot;SOCKET_&quot; + IntToString(i) + &quot;_GEM&quot;);
+        int nFam = Gem_FamilyOfResRef(sRes);
+        if (i &gt; 0) s += &quot;, &quot;;
+        s += nFam &gt;= 0 ? Gem_Name(nFam, Gem_TierOfResRef(sRes)) : sRes;
+    }
+    Loot_SetSocketDesc(oItem, s, nFilled);
+}
+
+// Bring oItem up to its socket count - it only ever ADDS sockets - and stamp the
+// schema version so the login pass skips it until LOOTD_SOCK_VER is bumped.
+// Items that can never hold a socket are left untouched (no locals on them).
+// Returns the item&#x27;s socket count.
+int Gem_Reconcile(object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return 0;
+    int nCur = GetLocalInt(oItem, &quot;SOCKET_MAX&quot;);
+    if (GetLocalInt(oItem, &quot;SOCKET_VER&quot;) == LOOTD_SOCK_VER) return nCur;
+    if (Gem_ItemCat(oItem) &lt; 0 || GetItemStackSize(oItem) &gt; 1) return nCur;
+    SetLocalInt(oItem, &quot;SOCKET_VER&quot;, LOOTD_SOCK_VER);
+    int nWant = Gem_SocketMax(oItem);
+    if (nWant &gt; nCur)
+    {
+        SetLocalInt(oItem, &quot;SOCKET_MAX&quot;, nWant);
+        Gem_Describe(oItem);
+        return nWant;
+    }
+    return nCur;
+}
+
+// ---------------------------------------------------------------------------
+// The merge (mirrors loot_model.gem_merge)
+// ---------------------------------------------------------------------------
+
+// Strength of cost row nRow of property type nType.
+int Gem_Power(int nType, int nRow)
+{
+    return nType == ITEM_PROPERTY_DAMAGE_BONUS ? LootD_DmgPower(nRow) : nRow;
+}
+
+// TRUE when gem family nFam may go into an item of category nCat.
+int Gem_Fits(int nFam, int nCat)
+{
+    if (nCat &lt; 0) return FALSE;
+    string sCat = &quot;|&quot; + LootD_CatName(nCat) + &quot;|&quot;;
+    int k;
+    for (k = 0; k &lt; LootD_GemFamAffixCount(nFam); k++)
+        if (FindSubString(LootD_AffixCats(LootD_GemFamAffix(nFam, k)), sCat) &gt;= 0)
+            return TRUE;
+    return FALSE;
+}
+
+// Index of a GEM_P_ / LOOT_AFX_ style signature in a counted list, or -1.
+int Gem_SigIndex(object oItem, string sCountVar, string sPrefix, string sSig)
+{
+    int n = GetLocalInt(oItem, sCountVar);
+    int i;
+    for (i = 0; i &lt; n; i++)
+        if (GetLocalString(oItem, sPrefix + IntToString(i)) == sSig)
+            return i;
+    return -1;
+}
+
+// Drop entry nAt from LOOT_AFX_*: a gemmed property is no longer a random affix,
+// so the Phase 7 reforge (which strips exactly LOOT_AFX_*) can never take a gem.
+void Gem_DropLootAffix(object oItem, int nAt)
+{
+    int n = GetLocalInt(oItem, &quot;LOOT_AFX_N&quot;);
+    int i;
+    for (i = nAt; i &lt; n - 1; i++)
+        SetLocalString(oItem, &quot;LOOT_AFX_&quot; + IntToString(i),
+                       GetLocalString(oItem, &quot;LOOT_AFX_&quot; + IntToString(i + 1)));
+    DeleteLocalString(oItem, &quot;LOOT_AFX_&quot; + IntToString(n - 1));
+    SetLocalInt(oItem, &quot;LOOT_AFX_N&quot;, n - 1);
+}
+
+// Record that a gem made sNew (replacing sOld, &quot;&quot; when it created the property).
+void Gem_TrackProp(object oItem, string sOld, string sNew)
+{
+    int i = sOld == &quot;&quot; ? -1 : Gem_SigIndex(oItem, &quot;GEM_P_N&quot;, &quot;GEM_P_&quot;, sOld);
+    if (i &lt; 0)
+    {
+        i = GetLocalInt(oItem, &quot;GEM_P_N&quot;);
+        SetLocalInt(oItem, &quot;GEM_P_N&quot;, i + 1);
+        SetLocalInt(oItem, &quot;GEM_P_&quot; + IntToString(i) + &quot;_OWN&quot;, sOld == &quot;&quot;);
+    }
+    SetLocalString(oItem, &quot;GEM_P_&quot; + IntToString(i), sNew);
+    if (sOld != &quot;&quot;)
+    {
+        int j = Gem_SigIndex(oItem, &quot;LOOT_AFX_N&quot;, &quot;LOOT_AFX_&quot;, sOld);
+        if (j &gt;= 0) Gem_DropLootAffix(oItem, j);
+    }
+}
+
+// Apply gem (nFam, nTier) to oItem.  &quot;&quot; on success (the change is described in
+// the GEM_LAST_MSG local on the item), else the reason it was refused - in which
+// case NOTHING on the item changed.
+string Gem_Apply(object oItem, int nFam, int nTier)
+{
+    int nCat = Gem_ItemCat(oItem);
+    if (!Gem_Fits(nFam, nCat))
+        return &quot;A &quot; + LootD_GemFamStone(nFam) + &quot; cannot be set in this kind of item.&quot;;
+    int nLen = LootD_GemFamLadderLen(nFam);
+    int nSteps = LootD_GemFamSteps(nFam, nTier);
+    string sCat = &quot;|&quot; + LootD_CatName(nCat) + &quot;|&quot;;
+
+    // 1. the item&#x27;s own property of the family, in the family&#x27;s preference order
+    int nType = -1;
+    int nSub = -1;
+    int nOld = -1;
+    itemproperty ipOld;
+    int k;
+    for (k = 0; k &lt; LootD_GemFamAffixCount(nFam) &amp;&amp; nOld &lt; 0; k++)
+    {
+        int t = LootD_GemFamType(nFam, k);
+        int s = LootD_GemFamSub(nFam, k);
+        itemproperty ip = GetFirstItemProperty(oItem);
+        while (GetIsItemPropertyValid(ip))
+        {
+            if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
+                &amp;&amp; GetItemPropertyType(ip) == t
+                &amp;&amp; (s &lt; 0 || GetItemPropertySubType(ip) == s))
+            {
+                nType = t;
+                nSub = s;
+                nOld = GetItemPropertyCostTableValue(ip);
+                ipOld = ip;
+                break;
+            }
+            ip = GetNextItemProperty(oItem);
+        }
+    }
+
+    // 2. the new rung
+    int nNew;
+    if (nOld &gt;= 0)
+    {
+        int nPos = -1;
+        int bOn = FALSE;
+        for (k = 0; k &lt; nLen; k++)
+            if (LootD_GemFamLadder(nFam, k) == nOld) { nPos = k; bOn = TRUE; break; }
+        if (!bOn)
+        {
+            int nPw = Gem_Power(nType, nOld);
+            for (k = 0; k &lt; nLen; k++)
+                if (Gem_Power(nType, LootD_GemFamLadder(nFam, k)) &lt;= nPw) nPos = k;
+        }
+        int nIdx = nPos + nSteps;
+        if (nIdx &gt; nLen - 1) nIdx = nLen - 1;
+        if (nIdx &lt;= nPos)
+            return &quot;Its &quot; + LootD_GemFamEffect(nFam) + &quot; is already at the socket cap.&quot;;
+        nNew = LootD_GemFamLadder(nFam, nIdx);
+        if (!bOn &amp;&amp; Gem_Power(nType, nNew) &lt;= Gem_Power(nType, nOld))
+            return &quot;That gem would not make its &quot; + LootD_GemFamEffect(nFam) + &quot; any stronger.&quot;;
+    }
+    else
+    {
+        // created: the first of the family&#x27;s affixes this category allows
+        for (k = 0; k &lt; LootD_GemFamAffixCount(nFam); k++)
+            if (FindSubString(LootD_AffixCats(LootD_GemFamAffix(nFam, k)), sCat) &gt;= 0)
+            {
+                nType = LootD_GemFamType(nFam, k);
+                nSub = LootD_GemFamSub(nFam, k);
+                break;
+            }
+        if (nType &lt; 0)
+            return &quot;A &quot; + LootD_GemFamStone(nFam) + &quot; cannot be set in this kind of item.&quot;;
+        int nI = nSteps &gt; nLen ? nLen - 1 : nSteps - 1;
+        nNew = LootD_GemFamLadder(nFam, nI);
+    }
+
+    // 3. build and self-check before touching the item
+    itemproperty ipNew = Loot_MakeIP(nType, nSub &lt; 0 ? 0 : nSub, nNew);
+    if (!GetIsItemPropertyValid(ipNew) || GetItemPropertyType(ipNew) != nType
+        || GetItemPropertyCostTableValue(ipNew) != nNew)
+    {
+        Loot_Warn(&quot;gem family &#x27;&quot; + LootD_GemFamId(nFam) + &quot;&#x27; built the wrong property (type &quot;
+                  + IntToString(GetItemPropertyType(ipNew)) + &quot; cost &quot;
+                  + IntToString(GetItemPropertyCostTableValue(ipNew)) + &quot;)&quot;);
+        return &quot;The gem will not take - tell the admin (LOOT: in the server log).&quot;;
+    }
+    string sOldName = nOld &gt;= 0 ? ForgePropName(ipOld) : &quot;&quot;;
+    string sOldSig = nOld &gt;= 0 ? ForgePropSig(ipOld) : &quot;&quot;;
+    if (nOld &gt;= 0)
+        RemoveItemProperty(oItem, ipOld);
+    AddItemProperty(DURATION_TYPE_PERMANENT, ipNew, oItem);
+
+    // 4. the new property&#x27;s signature, read off the item (its cost row tells it
+    // apart from the old one, which may still be listed until the script ends)
+    string sNewSig = &quot;&quot;;
+    itemproperty ipS = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ipS))
+    {
+        if (GetItemPropertyDurationType(ipS) == DURATION_TYPE_PERMANENT
+            &amp;&amp; GetItemPropertyType(ipS) == nType
+            &amp;&amp; GetItemPropertyCostTableValue(ipS) == nNew
+            &amp;&amp; (nSub &lt; 0 || GetItemPropertySubType(ipS) == nSub))
+        {
+            sNewSig = ForgePropSig(ipS);
+            break;
+        }
+        ipS = GetNextItemProperty(oItem);
+    }
+    if (sNewSig == &quot;&quot;) sNewSig = ForgePropSig(ipNew);
+    Gem_TrackProp(oItem, sOldSig, sNewSig);
+    SetLocalString(oItem, &quot;GEM_LAST_MSG&quot;, nOld &gt;= 0
+        ? sOldName + &quot; -&gt; &quot; + ForgePropName(ipNew)
+        : ForgePropName(ipNew) + &quot; (new)&quot;);
+    return &quot;&quot;;
+}
+
+// Set gem oGem into oItem (both already validated as items the socketing PC
+// holds).  &quot;&quot; on success, else the refusal - the gem is consumed only on success.
+string Gem_Socket(object oItem, object oGem)
+{
+    string sRes = GetResRef(oGem);
+    int nFam = Gem_FamilyOfResRef(sRes);
+    if (nFam &lt; 0) return &quot;That is not a socket gem.&quot;;
+    if (Gem_IsGem(oItem)) return &quot;A gem cannot be set in another gem.&quot;;
+    if (!GetIdentified(oItem)) return &quot;Identify the item first - you cannot see where a gem would sit.&quot;;
+    int nMax = Gem_Reconcile(oItem);
+    if (nMax &lt;= 0) return &quot;That item has no sockets.&quot;;
+    int nFilled = GetLocalInt(oItem, &quot;SOCKET_FILLED&quot;);
+    if (nFilled &gt;= nMax) return &quot;Every socket in that item is already filled.&quot;;
+    int nTier = Gem_TierOfResRef(sRes);
+    string sWhy = Gem_Apply(oItem, nFam, nTier);
+    if (sWhy != &quot;&quot;) return sWhy;
+    SetLocalString(oItem, &quot;SOCKET_&quot; + IntToString(nFilled) + &quot;_GEM&quot;, sRes);
+    SetLocalInt(oItem, &quot;SOCKET_FILLED&quot;, nFilled + 1);
+    Gem_Describe(oItem);
+    DestroyObject(oGem);
+    return &quot;&quot;;
+}
+
+// ---------------------------------------------------------------------------
+// Drops (mirrors loot_model.gem_tier / gem_drop)
+// ---------------------------------------------------------------------------
+
+int Gem_RollTier(int nLvl, int nFloor)
+{
+    int nF = LootD_GemBandFloor(nLvl);
+    if (nFloor &gt; nF) nF = nFloor;
+    int nT = Loot_PickRarity(Loot_Clamp(nF, 0, LOOTD_RARITY_COUNT - 1));
+    int nC = LootD_GemBandCeil(nLvl);
+    return nT &gt; nC ? nC : nT;
+}
+
+int Gem_PickFamily()
+{
+    int nTotal = 0;
+    int i;
+    for (i = 0; i &lt; LOOTD_GEMFAM_COUNT; i++) nTotal += LootD_GemFamWeight(i);
+    if (nTotal &lt;= 0) return -1;
+    int r = Random(nTotal);
+    for (i = 0; i &lt; LOOTD_GEMFAM_COUNT; i++)
+    {
+        r -= LootD_GemFamWeight(i);
+        if (r &lt; 0) return i;
+    }
+    return -1;
+}
+
+// Create gem (nFam, nTier) on oDest, named in its rarity colour.
+object Gem_Create(int nFam, int nTier, object oDest)
+{
+    object oGem = CreateItemOnObject(Gem_ResRef(nFam, nTier), oDest);
+    if (!GetIsObjectValid(oGem))
+    {
+        Loot_Warn(&quot;gem &#x27;&quot; + Gem_ResRef(nFam, nTier) + &quot;&#x27; could not be created&quot;);
+        return OBJECT_INVALID;
+    }
+    SetName(oGem, Gem_Name(nFam, nTier));
+    Loot_MarkCorpseLoot(oGem, oDest);
+    return oGem;
+}
+
+// One random gem at loot level nLvl, tier floor nFloor, onto oDest.
+object Gem_Drop(int nLvl, int nFloor, object oDest)
+{
+    int nFam = Gem_PickFamily();
+    if (nFam &lt; 0) return OBJECT_INVALID;
+    return Gem_Create(nFam, Gem_RollTier(Loot_Clamp(nLvl, 1, LOOTD_MAX_LEVEL), nFloor), oDest);
+}
+
+// ---------------------------------------------------------------------------
+// Login pass: give existing gear its sockets (gem_scan_step does the work)
+// ---------------------------------------------------------------------------
+
+// Queue every item oPC carries or wears; gem_scan_step reconciles a few per step.
+void Gem_BeginScan(object oPC)
+{
+    if (!GetIsObjectValid(oPC) || !GetIsPC(oPC) || GetIsDM(oPC)) return;
+    int n = 0;
+    int i;
+    for (i = 0; i &lt; INVENTORY_SLOT_CWEAPON_L; i++)
+    {
+        object oE = GetItemInSlot(i, oPC);
+        if (GetIsObjectValid(oE) &amp;&amp; GetLocalInt(oE, &quot;SOCKET_VER&quot;) != LOOTD_SOCK_VER
+            &amp;&amp; Gem_ItemCat(oE) &gt;= 0)
+        {
+            SetLocalObject(oPC, &quot;GEM_SCAN_&quot; + IntToString(n), oE);
+            n++;
+        }
+    }
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        if (GetLocalInt(oItem, &quot;SOCKET_VER&quot;) != LOOTD_SOCK_VER &amp;&amp; Gem_ItemCat(oItem) &gt;= 0)
+        {
+            SetLocalObject(oPC, &quot;GEM_SCAN_&quot; + IntToString(n), oItem);
+            n++;
+        }
+        oItem = GetNextItemInInventory(oPC);
+    }
+    SetLocalInt(oPC, &quot;GEM_SCAN_N&quot;, n);
+    SetLocalInt(oPC, &quot;GEM_SCAN_I&quot;, 0);
+    if (n &gt; 0)
+        DelayCommand(0.1, ExecuteScript(&quot;gem_scan_step&quot;, oPC));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

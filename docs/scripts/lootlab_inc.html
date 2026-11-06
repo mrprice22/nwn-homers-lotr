@@ -90,13 +90,16 @@
 // State lives on the admin&#x27;s PC as locals: LOOTLAB_LVL (loot level 1..60,
 // defaults to the PC&#x27;s hit dice) and LOOTLAB_FLOOR (rarity floor index).
 // Custom tokens: 6450 = loot level, 6451 = rarity floor label.
-// Phases 5 and 7 add &quot;grant a gem&quot; / &quot;grant a Shard of Fate&quot; here.
+// Phase 5 added &quot;grant a socket gem&quot; (lootlab_gem1 / lootlab_gemall, which
+// include gem_inc themselves); Phase 7 added &quot;grant a Shard of Fate&quot; and &quot;clear
+// my Shard of Fate lockouts&quot; (lootlab_fate / lootlab_fateclr).
 
 #include &quot;admin_db&quot;
 #include &quot;loot_inc&quot;
 
 const int LOOTLAB_TOK_LEVEL = 6450;
 const int LOOTLAB_TOK_FLOOR = 6451;
+const int LOOTLAB_TOK_FORCE = 6452;   // &quot;ON&quot; / &quot;OFF&quot;: force creature drops on my kills
 
 // The admin running the menu: the dialog speaker, or OBJECT_SELF so that
 // ExecuteScript(&quot;lootlab_...&quot;, oPC) works too.
@@ -133,6 +136,7 @@ void LL_SetTokens(object oPC)
 {
     SetCustomToken(LOOTLAB_TOK_LEVEL, IntToString(LL_Level(oPC)));
     SetCustomToken(LOOTLAB_TOK_FLOOR, Loot_RarityLabel(LL_Floor(oPC)));
+    SetCustomToken(LOOTLAB_TOK_FORCE, GetLocalInt(oPC, &quot;LOOT_FORCE_DROPS&quot;) ? &quot;ON&quot; : &quot;OFF&quot;);
 }
 
 void LL_AdjustLevel(int nDelta)

@@ -82,8 +82,12 @@
 // Campaign DB: &quot;bestiarydb&quot; (SQLite, file database/bestiary.sqlite3)
 //
 // Tables:
-//   kills        (uuid, cdkey, char_name, resref, solo_kills, party_kills, last_kill)
+//   kills        (uuid, cdkey, char_name, resref, solo_kills, party_kills, last_kill,
+//                 champ_kills)
 //                  PRIMARY KEY (uuid, resref) - per-character per-creature totals.
+//                  champ_kills: how many of those (solo + party) were Loot Overhaul
+//                  champions (loot_champion.nss) - a champion counts under its
+//                  base creature, and is tallied here as well.
 //                  Character identity is GetObjectUUID (persists in the .bic);
 //                  cdkey kept so per-(character,cdkey) aggregation is possible.
 //   server_first (resref PK, cr, first_uuid, first_name, first_cdkey, first_player_name, first_at)
@@ -126,6 +130,16 @@ void Bst_InitDb()
     q = SqlPrepareQueryCampaign(BST_DB,
         &quot;CREATE INDEX IF NOT EXISTS idx_kills_resref ON kills(resref)&quot;);
     SqlStep(q);
+    // Migration: champ_kills (Loot Overhaul Phase 4). CREATE TABLE IF NOT EXISTS
+    // never alters an existing table, so add the column where it is missing.
+    q = SqlPrepareQueryCampaign(BST_DB,
+        &quot;SELECT 1 FROM pragma_table_info(&#x27;kills&#x27;) WHERE name=&#x27;champ_kills&#x27;&quot;);
+    if (!SqlStep(q))
+    {
+        q = SqlPrepareQueryCampaign(BST_DB,
+            &quot;ALTER TABLE kills ADD COLUMN champ_kills INTEGER NOT NULL DEFAULT 0&quot;);
+        SqlStep(q);
+    }
 
     q = SqlPrepareQueryCampaign(BST_DB,
         &quot;CREATE TABLE IF NOT EXISTS server_first (&quot; +
@@ -190,15 +204,18 @@ string Bst_Canonical(string sResref)
 }
 
 // Add one kill of sResref (already canonical) to a character&#x27;s record.
-// bParty TRUE -&gt; party kill, FALSE -&gt; solo kill.
-void Bst_RecordKill(string sUuid, string sCdkey, string sName, string sResref, int bParty)
+// bParty TRUE -&gt; party kill, FALSE -&gt; solo kill.  bChamp TRUE -&gt; the creature was
+// a champion: it still counts as a kill of sResref, and in champ_kills too.
+void Bst_RecordKill(string sUuid, string sCdkey, string sName, string sResref, int bParty,
+                    int bChamp = FALSE)
 {
     sqlquery q = SqlPrepareQueryCampaign(BST_DB,
-        &quot;INSERT INTO kills(uuid,cdkey,char_name,resref,solo_kills,party_kills,last_kill)&quot; +
-        &quot; VALUES(@u,@k,@n,@r,@s,@p,datetime(&#x27;now&#x27;))&quot; +
+        &quot;INSERT INTO kills(uuid,cdkey,char_name,resref,solo_kills,party_kills,last_kill,champ_kills)&quot; +
+        &quot; VALUES(@u,@k,@n,@r,@s,@p,datetime(&#x27;now&#x27;),@c)&quot; +
         &quot; ON CONFLICT(uuid,resref) DO UPDATE SET&quot; +
         &quot; solo_kills=solo_kills+@s,&quot; +
         &quot; party_kills=party_kills+@p,&quot; +
+        &quot; champ_kills=champ_kills+@c,&quot; +
         &quot; cdkey=excluded.cdkey,&quot; +
         &quot; char_name=excluded.char_name,&quot; +
         &quot; last_kill=excluded.last_kill&quot;);
@@ -208,6 +225,7 @@ void Bst_RecordKill(string sUuid, string sCdkey, string sName, string sResref, i
     SqlBindString(q, &quot;@r&quot;, sResref);
     SqlBindInt(q, &quot;@s&quot;, bParty ? 0 : 1);
     SqlBindInt(q, &quot;@p&quot;, bParty ? 1 : 0);
+    SqlBindInt(q, &quot;@c&quot;, bChamp ? 1 : 0);
     SqlStep(q);
 }
 
@@ -467,7 +485,7 @@ void Bst_BuildPage(object oPC)
             &quot; ORDER BY cr DESC, name ASC LIMIT 9 OFFSET @off&quot;);
     else if (nMode == 0)
         q = SqlPrepareQueryCampaign(BST_DB,
-            &quot;SELECT c.resref, c.name, c.cr, k.solo_kills, k.party_kills&quot; +
+            &quot;SELECT c.resref, c.name, c.cr, k.solo_kills, k.party_kills, k.champ_kills&quot; +
             &quot; FROM catalogue c JOIN kills k ON k.resref=c.resref&quot; +
             &quot; WHERE k.uuid=@u ORDER BY c.cr DESC, c.name ASC LIMIT 9 OFFSET @off&quot;);
     else
@@ -491,9 +509,14 @@ void Bst_BuildPage(object oPC)
         if (nMode == 2)
             sLabel = sName + &quot;  (CR &quot; + IntToString(nCR) + &quot;)  - &quot; + SqlGetString(q, 3);
         else if (nMode == 0)
+        {
             sLabel = sName + &quot;  (CR &quot; + IntToString(nCR) + &quot;)  [Solo:&quot;
                    + IntToString(SqlGetInt(q, 3)) + &quot; Party:&quot;
-                   + IntToString(SqlGetInt(q, 4)) + &quot;]&quot;;
+                   + IntToString(SqlGetInt(q, 4));
+            int nChamp = SqlGetInt(q, 5);
+            if (nChamp &gt; 0) sLabel += &quot; Champions:&quot; + IntToString(nChamp);
+            sLabel += &quot;]&quot;;
+        }
         else
             sLabel = sName + &quot;  (CR &quot; + IntToString(nCR) + &quot;)&quot;;
 

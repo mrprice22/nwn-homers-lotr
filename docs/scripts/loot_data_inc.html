@@ -245,6 +245,32 @@ int LootD_RarityRollBias(int nI)
     return 0;
 }
 
+int LootD_RaritySockMin(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 1;
+        case 3: return 1;
+        case 4: return 2;
+    }
+    return 0;
+}
+
+int LootD_RaritySockMax(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 1;
+        case 3: return 2;
+        case 4: return 3;
+    }
+    return 0;
+}
+
 // Value budget (gp) for rarity nI at loot level nLvl, before the downside bonus.
 int LootD_RarityBudget(int nI, int nLvl)
 {
@@ -496,6 +522,25 @@ int LootD_ProfileGemChance(int nI)
     return 0;
 }
 
+int LootD_ProfileSockGemChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 50;
+        case 2: return 100;
+        case 3: return 200;
+        case 4: return 100;
+        case 5: return 100;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
 // TRUE when profile nProfile may roll base row nBase (its optional &quot;bases&quot; filter).
 int LootD_ProfileBaseOk(int nProfile, int nBase)
 {
@@ -622,14 +667,14 @@ int LootD_AreaLevel(string sArea)
     if (sArea == &quot;area013&quot;) return 46;
     if (sArea == &quot;area014&quot;) return 54;
     if (sArea == &quot;area016&quot;) return 47;
-    if (sArea == &quot;area018&quot;) return 31;
+    if (sArea == &quot;area018&quot;) return 32;
     if (sArea == &quot;area022&quot;) return 50;
     if (sArea == &quot;area023&quot;) return 55;
     if (sArea == &quot;area025&quot;) return 45;
-    if (sArea == &quot;area028&quot;) return 56;
+    if (sArea == &quot;area028&quot;) return 55;
     if (sArea == &quot;area031&quot;) return 54;
     if (sArea == &quot;area078&quot;) return 38;
-    if (sArea == &quot;bagend001&quot;) return 47;
+    if (sArea == &quot;bagend001&quot;) return 49;
     if (sArea == &quot;balinstomb&quot;) return 38;
     if (sArea == &quot;beorn&quot;) return 31;
     if (sArea == &quot;billfernyshouse&quot;) return 2;
@@ -652,7 +697,7 @@ int LootD_AreaLevel(string sArea)
     if (sArea == &quot;castlehomelessgr&quot;) return 1;
     if (sArea == &quot;cavesofdolguldur&quot;) return 45;
     if (sArea == &quot;celeduinbanks&quot;) return 4;
-    if (sArea == &quot;chamberofrecords&quot;) return 6;
+    if (sArea == &quot;chamberofrecords&quot;) return 5;
     if (sArea == &quot;chetwood001&quot;) return 3;
     if (sArea == &quot;cirithungol&quot;) return 44;
     if (sArea == &quot;citidelofstars&quot;) return 44;
@@ -667,7 +712,7 @@ int LootD_AreaLevel(string sArea)
     if (sArea == &quot;dunharrow&quot;) return 32;
     if (sArea == &quot;dunland&quot;) return 6;
     if (sArea == &quot;dunlandwarparty&quot;) return 4;
-    if (sArea == &quot;durinsbridge&quot;) return 6;
+    if (sArea == &quot;durinsbridge&quot;) return 5;
     if (sArea == &quot;dwarrowdelfea001&quot;) return 8;
     if (sArea == &quot;dwarrowdelfeast&quot;) return 6;
     if (sArea == &quot;edoras&quot;) return 31;
@@ -710,7 +755,7 @@ int LootD_AreaLevel(string sArea)
     if (sArea == &quot;harad&quot;) return 43;
     if (sArea == &quot;heavensdisdain&quot;) return 55;
     if (sArea == &quot;heavensscorn&quot;) return 55;
-    if (sArea == &quot;helmsdeep001&quot;) return 39;
+    if (sArea == &quot;helmsdeep001&quot;) return 40;
     if (sArea == &quot;hennethannun&quot;) return 44;
     if (sArea == &quot;hennethannun002&quot;) return 45;
     if (sArea == &quot;houseofdispai001&quot;) return 1;
@@ -740,10 +785,10 @@ int LootD_AreaLevel(string sArea)
     if (sArea == &quot;minastirithgates&quot;) return 33;
     if (sArea == &quot;minastirithtemp&quot;) return 48;
     if (sArea == &quot;mirkwoodcentral&quot;) return 4;
-    if (sArea == &quot;mirkwoodcentrale&quot;) return 22;
-    if (sArea == &quot;mirkwoodcentrals&quot;) return 22;
+    if (sArea == &quot;mirkwoodcentrale&quot;) return 24;
+    if (sArea == &quot;mirkwoodcentrals&quot;) return 24;
     if (sArea == &quot;mirkwoodeast&quot;) return 4;
-    if (sArea == &quot;mirkwoodnorth&quot;) return 22;
+    if (sArea == &quot;mirkwoodnorth&quot;) return 24;
     if (sArea == &quot;mirkwoodwest&quot;) return 4;
     if (sArea == &quot;mistymountainsa&quot;) return 5;
     if (sArea == &quot;mistymountainsb&quot;) return 6;
@@ -759,7 +804,7 @@ int LootD_AreaLevel(string sArea)
     if (sArea == &quot;northernfores005&quot;) return 44;
     if (sArea == &quot;northernforestso&quot;) return 45;
     if (sArea == &quot;oldbackroad&quot;) return 16;
-    if (sArea == &quot;oldforest001&quot;) return 29;
+    if (sArea == &quot;oldforest001&quot;) return 30;
     if (sArea == &quot;oldforestroad&quot;) return 7;
     if (sArea == &quot;orcarmory&quot;) return 45;
     if (sArea == &quot;pathtohelmsdeep&quot;) return 45;
@@ -772,15 +817,15 @@ int LootD_AreaLevel(string sArea)
     if (sArea == &quot;sharkeyschamber&quot;) return 1;
     if (sArea == &quot;sharkeysmill&quot;) return 1;
     if (sArea == &quot;shelobslair&quot;) return 42;
-    if (sArea == &quot;shirebilbohouse&quot;) return 47;
+    if (sArea == &quot;shirebilbohouse&quot;) return 49;
     if (sArea == &quot;shirehobbiton001&quot;) return 3;
     if (sArea == &quot;theabyssofmoria&quot;) return 27;
     if (sArea == &quot;theangmarmountai&quot;) return 15;
-    if (sArea == &quot;thebalrogofmoria&quot;) return 49;
+    if (sArea == &quot;thebalrogofmoria&quot;) return 55;
     if (sArea == &quot;thebarrowdowns&quot;) return 3;
     if (sArea == &quot;thecirithungolpa&quot;) return 42;
-    if (sArea == &quot;thedimrillstair&quot;) return 6;
-    if (sArea == &quot;thegatesofmoria&quot;) return 6;
+    if (sArea == &quot;thedimrillstair&quot;) return 5;
+    if (sArea == &quot;thegatesofmoria&quot;) return 5;
     if (sArea == &quot;thehallsoftruth&quot;) return 31;
     if (sArea == &quot;theloft&quot;) return 1;
     if (sArea == &quot;thenorthdowns001&quot;) return 3;
@@ -809,6 +854,198 @@ int LootD_AreaLevel(string sArea)
     return 0;
 }
 
+// Loot wishlist (Phase 6, loot/sources.json &quot;wishlist&quot;).
+const int LOOTD_WISH_MAX = 5;
+const int LOOTD_WISH_CHANCE = 400;
+const int LOOTD_WISH_FOCUS_W = 1;
+
+// Loot base item row -&gt; category index (LootD_CatName), -1 = not a loot base.
+int LootD_BaseCat(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 0;
+        case 4: return 0;
+        case 5: return 0;
+        case 6: return 1;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 1;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 3;
+        case 16: return 2;
+        case 17: return 5;
+        case 18: return 0;
+        case 19: return 4;
+        case 21: return 5;
+        case 22: return 0;
+        case 26: return 5;
+        case 28: return 0;
+        case 32: return 0;
+        case 33: return 0;
+        case 35: return 0;
+        case 36: return 5;
+        case 37: return 0;
+        case 38: return 0;
+        case 40: return 0;
+        case 41: return 0;
+        case 42: return 0;
+        case 45: return 6;
+        case 47: return 0;
+        case 50: return 0;
+        case 51: return 0;
+        case 52: return 4;
+        case 53: return 0;
+        case 55: return 0;
+        case 56: return 3;
+        case 57: return 3;
+        case 58: return 0;
+        case 60: return 0;
+        case 61: return 1;
+        case 78: return 5;
+        case 80: return 5;
+        case 108: return 0;
+        case 111: return 0;
+        case 300: return 0;
+        case 301: return 0;
+        case 302: return 0;
+        case 303: return 0;
+        case 304: return 0;
+        case 316: return 0;
+        case 318: return 0;
+    }
+    return -1;
+}
+
+// Weapon-focus family feats of a loot base (&#x27;|feat|feat|&#x27;, baseitems.2da
+// WeaponFocusFeat .. WeaponOfChoiceFeat) - wishlist Auto tier 1.
+string LootD_BaseFocusFeats(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;|103|633|141|671|65|723|925|&quot;;
+        case 1: return &quot;|106|636|144|674|68|726|928|&quot;;
+        case 2: return &quot;|110|640|148|678|72|730|931|&quot;;
+        case 3: return &quot;|123|652|161|690|85|742|940|&quot;;
+        case 4: return &quot;|114|644|152|682|76|734|935|&quot;;
+        case 5: return &quot;|115|645|153|683|77|735|936|&quot;;
+        case 6: return &quot;|92|622|130|660|54|712|&quot;;
+        case 7: return &quot;|93|623|131|661|55|713|&quot;;
+        case 8: return &quot;|101|631|139|669|63|721|&quot;;
+        case 9: return &quot;|94|624|132|662|56|714|921|&quot;;
+        case 10: return &quot;|112|642|150|680|74|732|933|&quot;;
+        case 11: return &quot;|102|632|140|670|64|722|&quot;;
+        case 12: return &quot;|127|655|165|693|89|745|943|&quot;;
+        case 13: return &quot;|107|637|145|675|69|727|929|&quot;;
+        case 18: return &quot;|111|641|149|679|73|731|932|&quot;;
+        case 22: return &quot;|90|620|128|658|52|710|920|&quot;;
+        case 28: return &quot;|43|619|47|657|15|709|919|&quot;;
+        case 32: return &quot;|125|653|163|691|87|743|941|&quot;;
+        case 33: return &quot;|126|654|164|692|88|744|942|&quot;;
+        case 35: return &quot;|116|646|154|684|78|736|937|&quot;;
+        case 37: return &quot;|113|643|151|681|75|733|934|&quot;;
+        case 38: return &quot;|108|638|146|676|70|728|930|&quot;;
+        case 40: return &quot;|117|647|155|685|79|737|880|&quot;;
+        case 41: return &quot;|122|651|160|689|84|741|939|&quot;;
+        case 42: return &quot;|118|648|156|686|80|738|881|&quot;;
+        case 45: return &quot;|&quot;;
+        case 47: return &quot;|95|625|133|663|57|715|922|&quot;;
+        case 50: return &quot;|96|626|134|664|58|716|923|&quot;;
+        case 51: return &quot;|104|634|142|672|66|724|926|&quot;;
+        case 53: return &quot;|105|635|143|673|67|725|927|&quot;;
+        case 55: return &quot;|121|650|159|688|83|740|938|&quot;;
+        case 58: return &quot;|97|627|135|665|59|717|924|&quot;;
+        case 60: return &quot;|98|628|136|666|60|718|879|&quot;;
+        case 61: return &quot;|99|629|137|667|61|719|&quot;;
+        case 108: return &quot;|952|956|953|957|954|958|959|&quot;;
+        case 111: return &quot;|993|997|994|998|995|999|1000|&quot;;
+        case 300: return &quot;|24734|24739|24744|24749|24754|24759|24769|&quot;;
+        case 301: return &quot;|24602|24614|24626|24638|24650|24662|24686|&quot;;
+        case 302: return &quot;|24603|24615|24627|24639|24651|24663|24687|&quot;;
+        case 303: return &quot;|24604|24616|24628|24640|24652|24664|24688|&quot;;
+        case 304: return &quot;|24605|24617|24629|24641|24653|24665|24689|&quot;;
+        case 316: return &quot;|24606|24618|24630|24642|24654|24666|24690|&quot;;
+        case 318: return &quot;|24610|24622|24634|24646|24658|24670|24694|&quot;;
+    }
+    return &quot;|&quot;;
+}
+
+// Proficiency feats of a loot base, any one of which lets a character use it
+// (&#x27;|&#x27; = none needed; baseitems.2da ReqFeat0-4) - wishlist Auto tier 2.
+string LootD_BaseReqFeats(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;|45|50|&quot;;
+        case 1: return &quot;|45|256|&quot;;
+        case 2: return &quot;|45|&quot;;
+        case 3: return &quot;|44|&quot;;
+        case 4: return &quot;|45|&quot;;
+        case 5: return &quot;|45|&quot;;
+        case 6: return &quot;|46|49|50|51|&quot;;
+        case 7: return &quot;|46|49|50|51|&quot;;
+        case 8: return &quot;|45|256|&quot;;
+        case 9: return &quot;|46|50|&quot;;
+        case 10: return &quot;|45|&quot;;
+        case 11: return &quot;|45|50|256|&quot;;
+        case 12: return &quot;|44|&quot;;
+        case 13: return &quot;|45|&quot;;
+        case 18: return &quot;|45|&quot;;
+        case 22: return &quot;|46|48|49|50|51|&quot;;
+        case 28: return &quot;|46|48|49|50|51|&quot;;
+        case 32: return &quot;|44|&quot;;
+        case 33: return &quot;|44|&quot;;
+        case 35: return &quot;|45|&quot;;
+        case 37: return &quot;|45|&quot;;
+        case 38: return &quot;|45|49|50|&quot;;
+        case 40: return &quot;|44|49|&quot;;
+        case 41: return &quot;|44|&quot;;
+        case 42: return &quot;|44|&quot;;
+        case 45: return &quot;|&quot;;
+        case 47: return &quot;|46|50|&quot;;
+        case 50: return &quot;|46|48|49|50|51|&quot;;
+        case 51: return &quot;|45|50|256|&quot;;
+        case 53: return &quot;|45|48|&quot;;
+        case 55: return &quot;|44|&quot;;
+        case 58: return &quot;|46|48|&quot;;
+        case 60: return &quot;|46|48|&quot;;
+        case 61: return &quot;|46|48|49|50|&quot;;
+        case 108: return &quot;|44|&quot;;
+        case 111: return &quot;|44|&quot;;
+        case 300: return &quot;|45|&quot;;
+        case 301: return &quot;|45|&quot;;
+        case 302: return &quot;|45|&quot;;
+        case 303: return &quot;|44|49|&quot;;
+        case 304: return &quot;|44|49|&quot;;
+        case 316: return &quot;|45|&quot;;
+        case 318: return &quot;|45|&quot;;
+    }
+    return &quot;|&quot;;
+}
+
+// TRUE for a class row that casts spells (classes.2da SpellCaster).
+int LootD_ClassCaster(int nI)
+{
+    switch (nI)
+    {
+        case 1:
+        case 2:
+        case 3:
+        case 6:
+        case 7:
+        case 9:
+        case 10:
+            return TRUE;
+    }
+    return FALSE;
+}
+
 // Creature drops (loot/sources.json &quot;creatures&quot;), read by loot_ondeath.nss.
 const int LOOTD_CLASS_NORMAL = 0;
 const int LOOTD_CLASS_ELITE = 1;
@@ -816,6 +1053,16 @@ const int LOOTD_CLASS_BOSS = 2;
 const int LOOTD_ELITE_MARGIN = 5;
 const int LOOTD_BOSS_EXTRA_CR = 1000;
 const int LOOTD_BOSS_NAMED = 100;
+// A boss&#x27;s socket gem has this tier floor (loot/gems.json boss_floor, Phase 5).
+const int LOOTD_GEM_BOSS_FLOOR = 2;
+// The Shard of Fate (loot/tokens.json &quot;fate&quot;, Phase 7): blueprint/tag, boss
+// drop chance per mille, bonus-roll prompt timeout and lockout (seconds), and
+// the profile a bonus roll draws from.
+const string LOOTD_FATE_RESREF = &quot;lo_fate_shard&quot;;
+const int LOOTD_FATE_BOSS_CHANCE = 100;
+const int LOOTD_FATE_TIMEOUT = 60;
+const int LOOTD_FATE_LOCKOUT = 86400;
+const string LOOTD_FATE_PROFILE = &quot;boss&quot;;
 const int LOOTD_LIST_NONE = 0;
 const int LOOTD_LIST_ELITE = 1;
 const int LOOTD_LIST_NOT_ELITE = 2;
@@ -827,6 +1074,17 @@ int LootD_CreatureChance(int nI)
     {
         case 0: return 40;
         case 1: return 250;
+        case 2: return 1000;
+    }
+    return 0;
+}
+
+int LootD_CreatureGemChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 20;
+        case 1: return 150;
         case 2: return 1000;
     }
     return 0;
@@ -853,6 +1111,179 @@ int LootD_CreatureListed(string sResRef)
 int LootD_BossLevel(string sResRef)
 {
     return 0;
+}
+
+// Registered boss resref (canonical or alias, brd_db.nss) - never a champion.
+int LootD_IsBoss(string sResRef)
+{
+    if (sResRef == &quot;adwarfajudica003&quot;) return TRUE;
+    if (sResRef == &quot;adwarfajudica0_3&quot;) return TRUE;
+    if (sResRef == &quot;adwarfguardia001&quot;) return TRUE;
+    if (sResRef == &quot;akhorahil004&quot;) return TRUE;
+    if (sResRef == &quot;akhorahil006_2&quot;) return TRUE;
+    if (sResRef == &quot;anaraliathewidow&quot;) return TRUE;
+    if (sResRef == &quot;angmar&quot;) return TRUE;
+    if (sResRef == &quot;aragornsonofarat&quot;) return TRUE;
+    if (sResRef == &quot;arohirrimsold006&quot;) return TRUE;
+    if (sResRef == &quot;azagoth001&quot;) return TRUE;
+    if (sResRef == &quot;badass_2&quot;) return TRUE;
+    if (sResRef == &quot;basilisk008&quot;) return TRUE;
+    if (sResRef == &quot;bauglirthegene_2&quot;) return TRUE;
+    if (sResRef == &quot;creature002&quot;) return TRUE;
+    if (sResRef == &quot;creature003&quot;) return TRUE;
+    if (sResRef == &quot;creature005&quot;) return TRUE;
+    if (sResRef == &quot;creature007&quot;) return TRUE;
+    if (sResRef == &quot;creature007_2&quot;) return TRUE;
+    if (sResRef == &quot;creature009&quot;) return TRUE;
+    if (sResRef == &quot;creature012_2&quot;) return TRUE;
+    if (sResRef == &quot;creature013&quot;) return TRUE;
+    if (sResRef == &quot;creature016&quot;) return TRUE;
+    if (sResRef == &quot;creature017_2&quot;) return TRUE;
+    if (sResRef == &quot;creature019&quot;) return TRUE;
+    if (sResRef == &quot;creature023_2&quot;) return TRUE;
+    if (sResRef == &quot;cultmember002_2&quot;) return TRUE;
+    if (sResRef == &quot;cultmember002_3&quot;) return TRUE;
+    if (sResRef == &quot;drgblue004&quot;) return TRUE;
+    if (sResRef == &quot;drowfight023_2&quot;) return TRUE;
+    if (sResRef == &quot;drowrogue024_2&quot;) return TRUE;
+    if (sResRef == &quot;elrond001_2&quot;) return TRUE;
+    if (sResRef == &quot;eowyntheshieldma&quot;) return TRUE;
+    if (sResRef == &quot;frost001&quot;) return TRUE;
+    if (sResRef == &quot;galadriel&quot;) return TRUE;
+    if (sResRef == &quot;gandalf001&quot;) return TRUE;
+    if (sResRef == &quot;garbag&quot;) return TRUE;
+    if (sResRef == &quot;gimli_2&quot;) return TRUE;
+    if (sResRef == &quot;glorfindel002&quot;) return TRUE;
+    if (sResRef == &quot;gntfire003&quot;) return TRUE;
+    if (sResRef == &quot;gollum&quot;) return TRUE;
+    if (sResRef == &quot;gondorianguar005&quot;) return TRUE;
+    if (sResRef == &quot;gondorianguar0_2&quot;) return TRUE;
+    if (sResRef == &quot;gondorianguar0_4&quot;) return TRUE;
+    if (sResRef == &quot;gondorianwiza001&quot;) return TRUE;
+    if (sResRef == &quot;greaterelvenw003&quot;) return TRUE;
+    if (sResRef == &quot;grimbeorntheo001&quot;) return TRUE;
+    if (sResRef == &quot;gwathdorlord001&quot;) return TRUE;
+    if (sResRef == &quot;harethofthehalad&quot;) return TRUE;
+    if (sResRef == &quot;highpriestofmora&quot;) return TRUE;
+    if (sResRef == &quot;highwizardofgo_2&quot;) return TRUE;
+    if (sResRef == &quot;jester&quot;) return TRUE;
+    if (sResRef == &quot;kainnatheward001&quot;) return TRUE;
+    if (sResRef == &quot;kerufall003&quot;) return TRUE;
+    if (sResRef == &quot;legolasgreenl001&quot;) return TRUE;
+    if (sResRef == &quot;maggotfarmer&quot;) return TRUE;
+    if (sResRef == &quot;radagastthebro_2&quot;) return TRUE;
+    if (sResRef == &quot;railthewhiteh001&quot;) return TRUE;
+    if (sResRef == &quot;railthewhiteh003&quot;) return TRUE;
+    if (sResRef == &quot;raitheen&quot;) return TRUE;
+    if (sResRef == &quot;rangerofthe002&quot;) return TRUE;
+    if (sResRef == &quot;sarumanthewhi001&quot;) return TRUE;
+    if (sResRef == &quot;shadowlordof001&quot;) return TRUE;
+    if (sResRef == &quot;shadowlordof_2&quot;) return TRUE;
+    if (sResRef == &quot;shelob001&quot;) return TRUE;
+    if (sResRef == &quot;shopkeep002_2&quot;) return TRUE;
+    if (sResRef == &quot;strongminitao002&quot;) return TRUE;
+    if (sResRef == &quot;summanus&quot;) return TRUE;
+    if (sResRef == &quot;templemistress_2&quot;) return TRUE;
+    if (sResRef == &quot;thecursedone002&quot;) return TRUE;
+    if (sResRef == &quot;thehighmageofbar&quot;) return TRUE;
+    if (sResRef == &quot;themightysmag002&quot;) return TRUE;
+    if (sResRef == &quot;themutantterror&quot;) return TRUE;
+    if (sResRef == &quot;theoden002&quot;) return TRUE;
+    if (sResRef == &quot;thranduil_2&quot;) return TRUE;
+    if (sResRef == &quot;trollking&quot;) return TRUE;
+    if (sResRef == &quot;ulmothevalar_2&quot;) return TRUE;
+    if (sResRef == &quot;unnamedhorror&quot;) return TRUE;
+    if (sResRef == &quot;urukai010&quot;) return TRUE;
+    if (sResRef == &quot;urukai013&quot;) return TRUE;
+    if (sResRef == &quot;weathertopkin004&quot;) return TRUE;
+    if (sResRef == &quot;weathertopque003&quot;) return TRUE;
+    if (sResRef == &quot;witchking&quot;) return TRUE;
+    return FALSE;
+}
+
+// Champions (sources.json creatures.champions), read by loot_champion.nss.
+const int LOOTD_CHAMP_CHANCE = 50;
+const int LOOTD_CHAMP_HP_PCT = 100;
+const int LOOTD_CHAMP_AB = 4;
+const int LOOTD_CHAMP_DAMAGE = 2;
+const int LOOTD_CHAMP_AC = 4;
+const int LOOTD_CHAMP_SAVES = 4;
+const string LOOTD_CHAMP_PREFIX = &quot;Elite&quot;;
+// Area resref -&gt; per-mille champion chance, where it differs from LOOTD_CHAMP_CHANCE
+// (lower where the area already has natural elites; loot_model.area_champion_chances).
+int LootD_AreaChampion(string sArea)
+{
+    if (sArea == &quot;angmar&quot;) return 10;
+    if (sArea == &quot;area010&quot;) return 10;
+    if (sArea == &quot;blackgatge&quot;) return 12;
+    if (sArea == &quot;carndum&quot;) return 10;
+    if (sArea == &quot;carrok&quot;) return 12;
+    if (sArea == &quot;carrokgreater&quot;) return 20;
+    if (sArea == &quot;carroklesser&quot;) return 12;
+    if (sArea == &quot;cryptsofthelosts&quot;) return 10;
+    if (sArea == &quot;dolguldur&quot;) return 21;
+    if (sArea == &quot;dolguldurcity&quot;) return 16;
+    if (sArea == &quot;dunland&quot;) return 37;
+    if (sArea == &quot;dwarrowdelfea001&quot;) return 18;
+    if (sArea == &quot;dwarrowdelfeast&quot;) return 41;
+    if (sArea == &quot;edoras&quot;) return 21;
+    if (sArea == &quot;enchantedcave002&quot;) return 10;
+    if (sArea == &quot;eredduathroada&quot;) return 10;
+    if (sArea == &quot;ettenmoors&quot;) return 10;
+    if (sArea == &quot;gapofrohaneast&quot;) return 10;
+    if (sArea == &quot;goblingategreate&quot;) return 39;
+    if (sArea == &quot;goblingatelesser&quot;) return 44;
+    if (sArea == &quot;goblingatemines&quot;) return 34;
+    if (sArea == &quot;goblintownmainha&quot;) return 16;
+    if (sArea == &quot;goblintownwarren&quot;) return 27;
+    if (sArea == &quot;gondorwesta&quot;) return 10;
+    if (sArea == &quot;gondorwestb&quot;) return 10;
+    if (sArea == &quot;greateastroadb&quot;) return 26;
+    if (sArea == &quot;greateastroadc&quot;) return 23;
+    if (sArea == &quot;greateastroadd&quot;) return 10;
+    if (sArea == &quot;greatnorthroad&quot;) return 10;
+    if (sArea == &quot;greenwaysouth&quot;) return 16;
+    if (sArea == &quot;helmsdeep001&quot;) return 10;
+    if (sArea == &quot;icequeenlair&quot;) return 40;
+    if (sArea == &quot;isengardouterrim&quot;) return 10;
+    if (sArea == &quot;kallristcryptlow&quot;) return 35;
+    if (sArea == &quot;kallristcryptupp&quot;) return 10;
+    if (sArea == &quot;kallristdarkrim&quot;) return 25;
+    if (sArea == &quot;kallristnorthsho&quot;) return 25;
+    if (sArea == &quot;kallristwestshor&quot;) return 28;
+    if (sArea == &quot;loogazlair&quot;) return 46;
+    if (sArea == &quot;meringstream&quot;) return 10;
+    if (sArea == &quot;minastirith&quot;) return 10;
+    if (sArea == &quot;minastirithgates&quot;) return 17;
+    if (sArea == &quot;mirkwoodcentral&quot;) return 10;
+    if (sArea == &quot;mirkwoodcentrale&quot;) return 10;
+    if (sArea == &quot;mirkwoodcentrals&quot;) return 10;
+    if (sArea == &quot;mirkwoodeast&quot;) return 10;
+    if (sArea == &quot;mirkwoodnorth&quot;) return 10;
+    if (sArea == &quot;mirkwoodwest&quot;) return 10;
+    if (sArea == &quot;mistymountainsa&quot;) return 31;
+    if (sArea == &quot;mistymountainsb&quot;) return 25;
+    if (sArea == &quot;morialevel1cente&quot;) return 25;
+    if (sArea == &quot;nazgulguildhouse&quot;) return 21;
+    if (sArea == &quot;nindalf&quot;) return 10;
+    if (sArea == &quot;planeoftherender&quot;) return 39;
+    if (sArea == &quot;ruinsofannuminas&quot;) return 10;
+    if (sArea == &quot;sharkeyschamber&quot;) return 26;
+    if (sArea == &quot;theabyssofmoria&quot;) return 10;
+    if (sArea == &quot;theangmarmountai&quot;) return 10;
+    if (sArea == &quot;thebarrowdowns&quot;) return 35;
+    if (sArea == &quot;thedimrillstair&quot;) return 30;
+    if (sArea == &quot;thepelennorfield&quot;) return 10;
+    if (sArea == &quot;theruinsofdale&quot;) return 28;
+    if (sArea == &quot;thesecretpassofm&quot;) return 28;
+    if (sArea == &quot;thewold&quot;) return 10;
+    if (sArea == &quot;tombofgarmir&quot;) return 34;
+    if (sArea == &quot;tombofmendegilat&quot;) return 18;
+    if (sArea == &quot;tombofperan&quot;) return 10;
+    if (sArea == &quot;tombofvinyalonde&quot;) return 10;
+    if (sArea == &quot;toweroforthanc&quot;) return 10;
+    if (sArea == &quot;woldsouth&quot;) return 10;
+    return LOOTD_CHAMP_CHANCE;
 }
 
 // TRUE for a faction id (NWNX_Creature_GetFaction) whose reputation toward PCs is

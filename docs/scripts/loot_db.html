@@ -86,7 +86,8 @@
 // matter (every Loot Lab roll, and any Epic-or-better roll from anywhere).  It
 // is deliberately NOT every roll - a synchronous SQLite commit per chest item
 // would be felt as server lag once Phase 3 puts chests on Loot_Roll.
-// Phase 6 (wishlist) and Phase 7 (Fate token lockout) add their tables here.
+// Phase 6 adds loot_wishlist (a character&#x27;s picked base items; the row
+// base = -1 means &quot;Auto off&quot;); Phase 7 (Fate token lockout) adds its table here.
 //
 // Loot_InitDb() is the only DDL and is called from onmoduleload.nss, never
 // from client enter (CLAUDE.md: DDL off the login frame).  Table names avoid
@@ -107,6 +108,17 @@ void Loot_InitDb()
         &quot;source TEXT, profile TEXT, lvl INTEGER, rarity INTEGER,&quot; +
         &quot;base INTEGER, item TEXT, value INTEGER, beneficiary TEXT)&quot;);
     SqlStep(q);
+    q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS loot_wishlist (&quot; +
+        &quot;uuid TEXT NOT NULL, base INTEGER NOT NULL, PRIMARY KEY (uuid, base))&quot;);
+    SqlStep(q);
+    // Phase 7: the Shard of Fate bonus-roll lockout - one per character per
+    // boss per rolling LOOTD_FATE_LOCKOUT seconds (at = unix time of the roll).
+    q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS loot_fate_lockout (&quot; +
+        &quot;uuid TEXT NOT NULL, boss TEXT NOT NULL, at INTEGER NOT NULL,&quot; +
+        &quot;PRIMARY KEY (uuid, boss))&quot;);
+    SqlStep(q);
 }
 
 // Record one roll.  sItem is the rolled name (or the named-pool resref);
@@ -114,7 +126,7 @@ void Loot_InitDb()
 void Loot_LogRoll(string sSource, string sProfile, int nLvl, int nRarity,
                   int nBase, string sItem, int nValue, object oBeneficiary)
 {
-    if (sSource != &quot;lab&quot; &amp;&amp; nRarity &lt; LOOT_LOG_MIN_RARITY)
+    if (sSource != &quot;lab&quot; &amp;&amp; sSource != &quot;fate&quot; &amp;&amp; nRarity &lt; LOOT_LOG_MIN_RARITY)
         return;
     sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
         &quot;INSERT INTO loot_roll_log (source, profile, lvl, rarity, base, item, value, beneficiary) &quot; +
@@ -128,6 +140,142 @@ void Loot_LogRoll(string sSource, string sProfile, int nLvl, int nRarity,
     SqlBindInt(q, &quot;@v&quot;, nValue);
     SqlBindString(q, &quot;@u&quot;, GetIsObjectValid(oBeneficiary) ? GetObjectUUID(oBeneficiary) : &quot;&quot;);
     SqlStep(q);
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: the loot wishlist (lo-wishlist)
+// ---------------------------------------------------------------------------
+// Keyed by GetObjectUUID (per character, like the bestiary). Rolls never read
+// the DB per item: the list is cached on the PC as LOOT_WISH = &quot;|1|13|&quot; (plus
+// &quot;|-1|&quot; when Auto is off), loaded once by Loot_WishGet and rewritten by every
+// change below in the same call. Known gap: the prod -&gt; dev vault sync copies
+// the .bic but not lootdb, so wishlists reset on the dev realm.
+
+const string LOOT_WISH    = &quot;LOOT_WISH&quot;;     // PC local: cached list
+const string LOOT_WISH_OK = &quot;LOOT_WISH_OK&quot;;  // PC local: cache loaded
+const int    LOOT_WISH_AUTO_OFF = -1;        // sentinel row: Auto switched off
+
+// Read the character&#x27;s rows from lootdb into the PC cache and return it.
+string Loot_WishLoad(object oPC)
+{
+    string sList = &quot;|&quot;;
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;SELECT base FROM loot_wishlist WHERE uuid = @u ORDER BY rowid&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    while (SqlStep(q))
+        sList += IntToString(SqlGetInt(q, 0)) + &quot;|&quot;;
+    SetLocalString(oPC, LOOT_WISH, sList);
+    SetLocalInt(oPC, LOOT_WISH_OK, TRUE);
+    return sList;
+}
+
+// The cached list (&quot;|row|row|&quot;, may hold &quot;|-1|&quot;), loading it on first use.
+string Loot_WishGet(object oPC)
+{
+    if (!GetLocalInt(oPC, LOOT_WISH_OK)) return Loot_WishLoad(oPC);
+    return GetLocalString(oPC, LOOT_WISH);
+}
+
+int Loot_WishHas(object oPC, int nBase)
+{
+    return FindSubString(Loot_WishGet(oPC), &quot;|&quot; + IntToString(nBase) + &quot;|&quot;) &gt;= 0;
+}
+
+int Loot_WishAutoOn(object oPC)
+{
+    return !Loot_WishHas(oPC, LOOT_WISH_AUTO_OFF);
+}
+
+// Number of picked base items (the Auto sentinel does not count).
+int Loot_WishCount(object oPC)
+{
+    string s = Loot_WishGet(oPC);
+    int n = 0;
+    int i;
+    for (i = 1; i &lt; GetStringLength(s); i++)
+        if (GetSubString(s, i, 1) == &quot;|&quot;) n++;
+    return n - !Loot_WishAutoOn(oPC);
+}
+
+void Loot_WishAdd(object oPC, int nBase)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;INSERT OR IGNORE INTO loot_wishlist (uuid, base) VALUES (@u, @b)&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@b&quot;, nBase);
+    SqlStep(q);
+    Loot_WishLoad(oPC);
+}
+
+void Loot_WishRemove(object oPC, int nBase)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;DELETE FROM loot_wishlist WHERE uuid = @u AND base = @b&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@b&quot;, nBase);
+    SqlStep(q);
+    Loot_WishLoad(oPC);
+}
+
+// Remove every pick; the Auto setting is kept.
+void Loot_WishClear(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;DELETE FROM loot_wishlist WHERE uuid = @u AND base &gt;= 0&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlStep(q);
+    Loot_WishLoad(oPC);
+}
+
+void Loot_WishSetAuto(object oPC, int bOn)
+{
+    if (bOn) Loot_WishRemove(oPC, LOOT_WISH_AUTO_OFF);
+    else     Loot_WishAdd(oPC, LOOT_WISH_AUTO_OFF);
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7: Shard of Fate bonus-roll lockout (lo-fate-token)
+// ---------------------------------------------------------------------------
+// One bonus roll per character (GetObjectUUID) per boss resref per rolling
+// nLockout seconds (loot/tokens.json fate.lockout_s, admin 2026-11-06). Read
+// only at a boss death and on a Spend click, so the per-call query is cheap.
+
+// Seconds until oPC may take another bonus roll on sBoss; 0 = free now.
+int Loot_FateLockedFor(object oPC, string sBoss, int nLockout)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;SELECT at + @n - CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER) FROM loot_fate_lockout &quot; +
+        &quot;WHERE uuid = @u AND boss = @b&quot;);
+    SqlBindInt(q, &quot;@n&quot;, nLockout);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@b&quot;, sBoss);
+    if (!SqlStep(q)) return 0;
+    int nLeft = SqlGetInt(q, 0);
+    return nLeft &gt; 0 ? nLeft : 0;
+}
+
+// Record that oPC took a bonus roll on sBoss now.
+void Loot_FateLock(object oPC, string sBoss)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;INSERT OR REPLACE INTO loot_fate_lockout (uuid, boss, at) &quot; +
+        &quot;VALUES (@u, @b, CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER))&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@b&quot;, sBoss);
+    SqlStep(q);
+}
+
+// Loot Lab: clear every lockout oPC holds. Returns how many were cleared.
+int Loot_FateClear(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;SELECT COUNT(*) FROM loot_fate_lockout WHERE uuid = @u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    int n = SqlStep(q) ? SqlGetInt(q, 0) : 0;
+    q = SqlPrepareQueryCampaign(LOOT_DB, &quot;DELETE FROM loot_fate_lockout WHERE uuid = @u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlStep(q);
+    return n;
 }
 </code></pre>
   </main>

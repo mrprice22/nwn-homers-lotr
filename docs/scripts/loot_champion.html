@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script loot_champion</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>loot_champion</code></h1><pre class="nss-source"><code>// loot_champion - Loot Overhaul Phase 4: maybe promote a freshly spawned creature
+// to a CHAMPION (Diablo-style).  OBJECT_SELF = the creature.
+//
+// Run once per creature by bst_install (which every OnSpawn reaches, with the
+// leash OnEnter as a safety net), and by the Loot Lab&#x27;s &quot;make the nearest
+// hostile a champion&quot; (which sets LOOT_CHAMP_FORCE first).
+//
+// Candidates: a normal creature in a hostile faction - never a PC/DM, a summon
+// or henchman (any master), plot or immortal, a registered boss, a natural
+// elite, an `exclude`-listed creature, or one carrying LOOT_NONE / LOOT_NO_CHAMP.
+// Chance: per mille, per area (Loot_AreaChampion; lower where the area already
+// has natural elites).  All numbers: loot/sources.json creatures.champions.
+//
+// A champion gets a fixed power buff and an honest CR:
+//   * name &quot;&lt;prefix&gt; &lt;name&gt;&quot; (the base name is kept in LOOT_CHAMP_NAME for the
+//     bestiary messages), a glow;
+//   * LOOTD_CHAMP_HP_PCT % more max hit points;
+//   * +AC (dodge) and +saves, supernatural (cannot be dispelled);
+//   * +attack and +damage through the bonus pool (BPOOL_SRC_CHAMP) - never a
+//     raw EffectAttackIncrease, which would suppress every pooled bonus;
+//   * CR raised by what the toolset&#x27;s CR formula pays for the extra HP (the
+//     formula&#x27;s hit-point term, nwn_manager bin/nwn_wiki/cr.py), so kill XP and
+//     the drop&#x27;s loot level follow.  The base CR is kept in LOOT_CHAMP_BASECR.
+// Its drop uses the elite chance (loot_ondeath reads LOOT_CHAMP); the bestiary
+// counts it under the base creature, plus a champion tally.
+
+#include &quot;loot_inc&quot;
+#include &quot;nwnx_creature&quot;
+#include &quot;nwnx_object&quot;
+#include &quot;bonus_pool_inc&quot;
+
+// The toolset CR formula&#x27;s hit-point term, per hit point:
+//   0.2 * HD * (walk rate / PC walk rate) / average class HP * race CRModifier
+// WalkRate 7 (&quot;Default&quot;) takes the appearance&#x27;s MOVERATE, as the toolset does.
+float LootC_HpSlope(object oCre)
+{
+    float fAvg = 0.0;
+    int i;
+    for (i = 1; i &lt;= 3; i++)
+    {
+        int nCls = GetClassByPosition(i, oCre);
+        if (nCls == CLASS_TYPE_INVALID) continue;
+        int nDie = StringToInt(Get2DAString(&quot;classes&quot;, &quot;HitDie&quot;, nCls));
+        if (nDie &lt;= 0) nDie = 8;
+        fAvg += IntToFloat(GetLevelByPosition(i, oCre)) * IntToFloat(nDie + 1) / 2.0;
+    }
+    if (fAvg &lt;= 0.0) return 0.0;
+
+    float fPc = StringToFloat(Get2DAString(&quot;creaturespeed&quot;, &quot;WALKRATE&quot;, 0));
+    if (fPc &lt;= 0.0) fPc = 2.0;
+    float fWalk = 1.75;                                  // NORM
+    int nRate = GetMovementRate(oCre);
+    if (nRate == 7)
+    {
+        string sMove = GetStringUpperCase(Get2DAString(&quot;appearance&quot;, &quot;MOVERATE&quot;,
+                                                       GetAppearanceType(oCre)));
+        int r;
+        for (r = 0; r &lt;= 8; r++)
+            if (GetStringUpperCase(Get2DAString(&quot;creaturespeed&quot;, &quot;2DAName&quot;, r)) == sMove)
+            {
+                fWalk = StringToFloat(Get2DAString(&quot;creaturespeed&quot;, &quot;WALKRATE&quot;, r));
+                break;
+            }
+    }
+    else
+        fWalk = StringToFloat(Get2DAString(&quot;creaturespeed&quot;, &quot;WALKRATE&quot;, nRate));
+
+    float fMod = StringToFloat(Get2DAString(&quot;racialtypes&quot;, &quot;CRModifier&quot;, GetRacialType(oCre)));
+    if (fMod &lt;= 0.0) fMod = 1.0;
+    return 0.2 * IntToFloat(GetHitDice(oCre)) * (fWalk / fPc) / fAvg * fMod;
+}
+
+int LootC_IsCandidate(object oCre)
+{
+    if (GetObjectType(oCre) != OBJECT_TYPE_CREATURE) return FALSE;
+    if (GetIsPC(oCre) || GetIsDM(oCre) || GetIsDead(oCre)) return FALSE;
+    if (GetLocalInt(oCre, &quot;LOOT_CHAMP&quot;)) return FALSE;            // already one
+    if (GetLocalInt(oCre, &quot;LOOT_NONE&quot;) || GetLocalInt(oCre, &quot;LOOT_NO_CHAMP&quot;)) return FALSE;
+    if (GetIsObjectValid(GetMaster(oCre))) return FALSE;          // summons, henchmen
+    if (GetPlotFlag(oCre) || GetImmortal(oCre)) return FALSE;
+    string sRes = GetResRef(oCre);
+    if (LootD_IsBoss(sRes)) return FALSE;
+    if (LootD_CreatureListed(sRes) == LOOTD_LIST_NEVER) return FALSE;
+    if (!LootD_IsHostileFaction(NWNX_Creature_GetFaction(oCre))) return FALSE;
+    if (Loot_IsNaturalElite(oCre)) return FALSE;
+    return TRUE;
+}
+
+void LootC_Promote(object oCre)
+{
+    float fCR = GetChallengeRating(oCre);
+    string sName = GetName(oCre);
+    SetLocalInt(oCre, &quot;LOOT_CHAMP&quot;, 1);
+    SetLocalString(oCre, &quot;LOOT_CHAMP_NAME&quot;, sName);
+    SetLocalFloat(oCre, &quot;LOOT_CHAMP_BASECR&quot;, fCR);
+    SetName(oCre, LOOTD_CHAMP_PREFIX + &quot; &quot; + sName);
+
+    int nMax = GetMaxHitPoints(oCre);
+    int nAdd = nMax * LOOTD_CHAMP_HP_PCT / 100;
+    if (nAdd &gt; 0)
+    {
+        NWNX_Object_SetMaxHitPoints(oCre, nMax + nAdd);
+        NWNX_Object_SetCurrentHitPoints(oCre, nMax + nAdd);
+    }
+
+    effect e = EffectACIncrease(LOOTD_CHAMP_AC, AC_DODGE_BONUS);
+    e = EffectLinkEffects(e, EffectSavingThrowIncrease(SAVING_THROW_ALL, LOOTD_CHAMP_SAVES));
+    e = EffectLinkEffects(e, EffectVisualEffect(VFX_DUR_GLOW_LIGHT_RED));
+    e = TagEffect(SupernaturalEffect(e), &quot;LOOT_CHAMP&quot;);
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, e, oCre);
+    BPool_Set(oCre, BPOOL_CH_ATTACK, BPOOL_SRC_CHAMP, LOOTD_CHAMP_AB);
+    BPool_Set(oCre, BPOOL_CH_DAMAGE, BPOOL_SRC_CHAMP, LOOTD_CHAMP_DAMAGE);
+
+    // The CR the toolset would compute for the buffed creature: the stored CR
+    // plus the formula&#x27;s hit-point term for the added HP.  Whole numbers from 1
+    // up, as the toolset stores them.
+    float fNew = fCR + LootC_HpSlope(oCre) * IntToFloat(nAdd);
+    if (fNew &gt;= 1.0) fNew = IntToFloat(FloatToInt(fNew + 0.5));
+    if (fNew &gt; fCR) NWNX_Creature_SetChallengeRating(oCre, fNew);
+}
+
+void main()
+{
+    object oCre = OBJECT_SELF;
+    int bForce = GetLocalInt(oCre, &quot;LOOT_CHAMP_FORCE&quot;);
+    DeleteLocalInt(oCre, &quot;LOOT_CHAMP_FORCE&quot;);
+    if (!LootC_IsCandidate(oCre)) return;
+    if (!bForce &amp;&amp; Random(1000) &gt;= Loot_AreaChampion(GetArea(oCre))) return;
+    LootC_Promote(oCre);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

@@ -80,7 +80,7 @@
 <h1>Conversation: <code>emotewand</code></h1>
 <dl class="meta">
 <dt>NPC lines</dt><dd>20</dd>
-<dt>PC replies</dt><dd>172</dd>
+<dt>PC replies</dt><dd>180</dd>
 <dt>NumWords</dt><dd>241</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
@@ -317,7 +317,15 @@
 <tr><td><code>lootlab_roll1</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>lootlab_roll10</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>lootlab_stock</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>lootlab_dump</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>lootlab_dump</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_force</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_champ</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_gem1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_gemall</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lw_open</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_wish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_fate</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>lootlab_fateclr</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/mw-path-of-meaning.html">The Path of Meaning</a></td><td><code>mw path of meaning</code></td><td>1</td></tr></tbody></table>
 <h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM5001&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5002&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
@@ -349,7 +357,8 @@
 <tr><td><code>&lt;CUSTOM5095&gt;</code></td><td><a href="../scripts/tele_menu.html">tele_menu</a></td></tr>
 <tr><td><code>&lt;CUSTOM5096&gt;</code></td><td><a href="../scripts/tele_open_1.html">tele_open_1</a>, <a href="../scripts/tele_open_2.html">tele_open_2</a>, <a href="../scripts/tele_open_3.html">tele_open_3</a>, <a href="../scripts/tele_open_4.html">tele_open_4</a>, <a href="../scripts/tele_open_5.html">tele_open_5</a>, <a href="../scripts/tele_set.html">tele_set</a></td></tr>
 <tr><td><code>&lt;CUSTOM6450&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
-<tr><td><code>&lt;CUSTOM6451&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
+<tr><td><code>&lt;CUSTOM6451&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM6452&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a></li>
 </ul>
@@ -960,7 +969,9 @@ Rarity floor: <span class="custom-token custom-token-unknown" title="SetCustomTo
 
 Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pack; every lab roll is logged to lootdb. The floor is the lowest rarity a roll may land on - it can still roll higher.
 
-&quot;Dump&quot; prints each rolled item in your pack with its loot stamps and its value against its rarity&#x27;s budget.</div>
+&quot;Dump&quot; prints each rolled item in your pack with its loot stamps and its value against its rarity&#x27;s budget.
+
+Force creature drops: <span class="custom-token custom-token-unknown" title="SetCustomToken(6452, ...) — no setter found in static analysis">&lt;CUSTOM6452&gt;</span> - while ON, every creature you help kill drops as if its chance were 100% and tells you its class and loot level.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #162</span> <span class="dlg-action">→ <code>lootlab_lvup1</code></span> <a class="dlg-anchor" href="#r162" title="jump to flat reply #162">¶</a></summary>
@@ -1021,6 +1032,55 @@ Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pa
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #170</span> <span class="dlg-action">→ <code>lootlab_dump</code></span> <a class="dlg-anchor" href="#r170" title="jump to flat reply #170">¶</a></summary>
 <div class="dlg-text">Dump the loot stamps of every rolled item in my pack</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #172</span> <span class="dlg-action">→ <code>lootlab_force</code></span> <a class="dlg-anchor" href="#r172" title="jump to flat reply #172">¶</a></summary>
+<div class="dlg-text">Force creature drops on my kills: <span class="custom-token custom-token-unknown" title="SetCustomToken(6452, ...) — no setter found in static analysis">&lt;CUSTOM6452&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #173</span> <span class="dlg-action">→ <code>lootlab_champ</code></span> <a class="dlg-anchor" href="#r173" title="jump to flat reply #173">¶</a></summary>
+<div class="dlg-text">Make the nearest hostile creature a champion</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #174</span> <span class="dlg-action">→ <code>lootlab_gem1</code></span> <a class="dlg-anchor" href="#r174" title="jump to flat reply #174">¶</a></summary>
+<div class="dlg-text">Grant a random socket gem (tier = rarity floor)</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #175</span> <span class="dlg-action">→ <code>lootlab_gemall</code></span> <a class="dlg-anchor" href="#r175" title="jump to flat reply #175">¶</a></summary>
+<div class="dlg-text">Grant one socket gem of every family (tier = rarity floor)</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #177</span> <span class="dlg-action">→ <code>lootlab_wish</code></span> <a class="dlg-anchor" href="#r177" title="jump to flat reply #177">¶</a></summary>
+<div class="dlg-text">Show my loot wishlist and Auto weights</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #178</span> <span class="dlg-action">→ <code>lootlab_fate</code></span> <a class="dlg-anchor" href="#r178" title="jump to flat reply #178">¶</a></summary>
+<div class="dlg-text">Grant me a Shard of Fate</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #179</span> <span class="dlg-action">→ <code>lootlab_fateclr</code></span> <a class="dlg-anchor" href="#r179" title="jump to flat reply #179">¶</a></summary>
+<div class="dlg-text">Clear my Shard of Fate bonus-roll lockouts</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></div>
 </div>
@@ -1391,6 +1451,10 @@ Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pa
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #176</span> <span class="dlg-action">→ <code>lw_open</code></span> <a class="dlg-anchor" href="#r176" title="jump to flat reply #176">¶</a></summary>
+<div class="dlg-text">Loot wishlist...</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #142</span> <small class="muted">(if <code>sp_testkit</code>)</small> <a class="dlg-anchor" href="#r142" title="jump to flat reply #142">¶</a></summary>
 <div class="dlg-text">&lt;StartHighlight&gt;[MW Teleports]&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
@@ -1405,7 +1469,7 @@ Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pa
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#r29">→ reply #29</a> <span class="dlg-link-preview">“[Admin Options]”</span> <small class="muted">(if <code>_cdkey</code>)</small></li><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“Teleports.”</span></li><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“Force Rest”</span></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Role Dice.”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“[Summons Options.]”</span> <small class="muted">(if <code>_cdkeysum1</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“[Options of the Homeless]”</span> <small class="muted">(if <code>_cdkeyhome</code>)</small></li><li><a href="#r70">→ reply #70</a> <span class="dlg-link-preview">“[Summon a Legend.]”</span> <small class="muted">(if <code>mw_any_unl</code>)</small></li><li><a href="#r110">→ reply #110</a> <span class="dlg-link-preview">“Party loot roll settings...”</span></li><li><a href="#r142">→ reply #142</a> <span class="dlg-link-preview">“[MW Teleports]”</span> <small class="muted">(if <code>sp_testkit</code>)</small></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#r29">→ reply #29</a> <span class="dlg-link-preview">“[Admin Options]”</span> <small class="muted">(if <code>_cdkey</code>)</small></li><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“Teleports.”</span></li><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“Force Rest”</span></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Role Dice.”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“[Summons Options.]”</span> <small class="muted">(if <code>_cdkeysum1</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“[Options of the Homeless]”</span> <small class="muted">(if <code>_cdkeyhome</code>)</small></li><li><a href="#r70">→ reply #70</a> <span class="dlg-link-preview">“[Summon a Legend.]”</span> <small class="muted">(if <code>mw_any_unl</code>)</small></li><li><a href="#r110">→ reply #110</a> <span class="dlg-link-preview">“Party loot roll settings...”</span></li><li><a href="#r176">→ reply #176</a> <span class="dlg-link-preview">“Loot wishlist...”</span></li><li><a href="#r142">→ reply #142</a> <span class="dlg-link-preview">“[MW Teleports]”</span> <small class="muted">(if <code>sp_testkit</code>)</small></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Hello &lt;FullName&gt;.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Teleports.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“To. Castle of Homeless”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“To. Balrog”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“To. Weather Top”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“To. Hobbiton”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“To. Angmar”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“To. Dunharrow”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“To. The Lord of the Dark Arts”</span></li><li><a href="#r143">→ reply #143</a> <span class="dlg-link-preview">“To. Basilisk Lair”</span></li><li><a href="#r145">→ reply #145</a> <span class="dlg-link-preview">“To. Kallrist Crypt Forge”</span></li><li><a href="#r159">→ reply #159</a> <span class="dlg-link-preview">“To. The Great Forge Of Númenor”</span></li><li><a href="#r160">→ reply #160</a> <span class="dlg-link-preview">“To. The Dead Marshes (Pumpkin King)”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Exit.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Hello &lt;FullName&gt; Would you like to summons your Pet Rock?</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Heck yeah!!”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“No thank you.”</span></li></ul></div>
@@ -1439,7 +1503,9 @@ Rarity floor: <span class="custom-token custom-token-unknown" title="SetCustomTo
 
 Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pack; every lab roll is logged to lootdb. The floor is the lowest rarity a roll may land on - it can still roll higher.
 
-&quot;Dump&quot; prints each rolled item in your pack with its loot stamps and its value against its rarity&#x27;s budget.</div><ul class="dlg-links"><li><a href="#r162">→ reply #162</a> <span class="dlg-link-preview">“Level +1”</span></li><li><a href="#r163">→ reply #163</a> <span class="dlg-link-preview">“Level +10”</span></li><li><a href="#r164">→ reply #164</a> <span class="dlg-link-preview">“Level -1”</span></li><li><a href="#r165">→ reply #165</a> <span class="dlg-link-preview">“Level -10”</span></li><li><a href="#r166">→ reply #166</a> <span class="dlg-link-preview">“Next rarity floor”</span></li><li><a href="#r167">→ reply #167</a> <span class="dlg-link-preview">“Roll 1 item”</span></li><li><a href="#r168">→ reply #168</a> <span class="dlg-link-preview">“Roll 10 items”</span></li><li><a href="#r169">→ reply #169</a> <span class="dlg-link-preview">“Put 5 rolled items in the nearest container”</span></li><li><a href="#r170">→ reply #170</a> <span class="dlg-link-preview">“Dump the loot stamps of every rolled item in my pack”</span></li><li><a href="#r171">→ reply #171</a> <span class="dlg-link-preview">“Done.”</span></li></ul></div>
+&quot;Dump&quot; prints each rolled item in your pack with its loot stamps and its value against its rarity&#x27;s budget.
+
+Force creature drops: <span class="custom-token custom-token-unknown" title="SetCustomToken(6452, ...) — no setter found in static analysis">&lt;CUSTOM6452&gt;</span> - while ON, every creature you help kill drops as if its chance were 100% and tells you its class and loot level.</div><ul class="dlg-links"><li><a href="#r162">→ reply #162</a> <span class="dlg-link-preview">“Level +1”</span></li><li><a href="#r163">→ reply #163</a> <span class="dlg-link-preview">“Level +10”</span></li><li><a href="#r164">→ reply #164</a> <span class="dlg-link-preview">“Level -1”</span></li><li><a href="#r165">→ reply #165</a> <span class="dlg-link-preview">“Level -10”</span></li><li><a href="#r166">→ reply #166</a> <span class="dlg-link-preview">“Next rarity floor”</span></li><li><a href="#r167">→ reply #167</a> <span class="dlg-link-preview">“Roll 1 item”</span></li><li><a href="#r168">→ reply #168</a> <span class="dlg-link-preview">“Roll 10 items”</span></li><li><a href="#r169">→ reply #169</a> <span class="dlg-link-preview">“Put 5 rolled items in the nearest container”</span></li><li><a href="#r170">→ reply #170</a> <span class="dlg-link-preview">“Dump the loot stamps of every rolled item in my pack”</span></li><li><a href="#r172">→ reply #172</a> <span class="dlg-link-preview">“Force creature drops on my kills:”</span></li><li><a href="#r173">→ reply #173</a> <span class="dlg-link-preview">“Make the nearest hostile creature a champion”</span></li><li><a href="#r174">→ reply #174</a> <span class="dlg-link-preview">“Grant a random socket gem (tier = rarity floor)”</span></li><li><a href="#r175">→ reply #175</a> <span class="dlg-link-preview">“Grant one socket gem of every family (tier = rarity floor)”</span></li><li><a href="#r177">→ reply #177</a> <span class="dlg-link-preview">“Show my loot wishlist and Auto weights”</span></li><li><a href="#r178">→ reply #178</a> <span class="dlg-link-preview">“Grant me a Shard of Fate”</span></li><li><a href="#r179">→ reply #179</a> <span class="dlg-link-preview">“Clear my Shard of Fate bonus-roll lockouts”</span></li><li><a href="#r171">→ reply #171</a> <span class="dlg-link-preview">“Done.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Exit.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">&lt;StartHighlight&gt;[Options of the Homeless]&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Hello .”</span></li></ul></div>
@@ -1613,6 +1679,14 @@ Rolls use the &#x27;lab&#x27; profile from loot/sources.json and land in your pa
 <div class="dlg-node reply" id="r169"><div class="dlg-head"><span class="dlg-id">reply #169</span> <span class="dlg-action">→ <code>lootlab_stock</code></span></div><div class="dlg-text">Put 5 rolled items in the nearest container</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r170"><div class="dlg-head"><span class="dlg-id">reply #170</span> <span class="dlg-action">→ <code>lootlab_dump</code></span></div><div class="dlg-text">Dump the loot stamps of every rolled item in my pack</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r171"><div class="dlg-head"><span class="dlg-id">reply #171</span></div><div class="dlg-text">Done.</div></div>
+<div class="dlg-node reply" id="r172"><div class="dlg-head"><span class="dlg-id">reply #172</span> <span class="dlg-action">→ <code>lootlab_force</code></span></div><div class="dlg-text">Force creature drops on my kills: <span class="custom-token custom-token-unknown" title="SetCustomToken(6452, ...) — no setter found in static analysis">&lt;CUSTOM6452&gt;</span></div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r173"><div class="dlg-head"><span class="dlg-id">reply #173</span> <span class="dlg-action">→ <code>lootlab_champ</code></span></div><div class="dlg-text">Make the nearest hostile creature a champion</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r174"><div class="dlg-head"><span class="dlg-id">reply #174</span> <span class="dlg-action">→ <code>lootlab_gem1</code></span></div><div class="dlg-text">Grant a random socket gem (tier = rarity floor)</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r175"><div class="dlg-head"><span class="dlg-id">reply #175</span> <span class="dlg-action">→ <code>lootlab_gemall</code></span></div><div class="dlg-text">Grant one socket gem of every family (tier = rarity floor)</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r176"><div class="dlg-head"><span class="dlg-id">reply #176</span> <span class="dlg-action">→ <code>lw_open</code></span></div><div class="dlg-text">Loot wishlist...</div></div>
+<div class="dlg-node reply" id="r177"><div class="dlg-head"><span class="dlg-id">reply #177</span> <span class="dlg-action">→ <code>lootlab_wish</code></span></div><div class="dlg-text">Show my loot wishlist and Auto weights</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r178"><div class="dlg-head"><span class="dlg-id">reply #178</span> <span class="dlg-action">→ <code>lootlab_fate</code></span></div><div class="dlg-text">Grant me a Shard of Fate</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r179"><div class="dlg-head"><span class="dlg-id">reply #179</span> <span class="dlg-action">→ <code>lootlab_fateclr</code></span></div><div class="dlg-text">Clear my Shard of Fate bonus-roll lockouts</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“LOOT LAB”</span> <small class="muted">(if <code>lootlab_tok</code>)</small></li></ul></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

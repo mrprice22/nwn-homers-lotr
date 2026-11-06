@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script socket_data_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>socket_data_inc</code></h1><pre class="nss-source"><code>// socket_data_inc.nss - GENERATED by bin/gen-loot-tables.py. Do not edit.
+// Re-run: python3 bin/gen-loot-tables.py --apply   (source: loot/gems.json, loot/sockets.json)
+// Read by gem_inc.nss (Loot Overhaul Phase 5, sockets and gems). Validated by
+// tests/check_loot_tables.py.  Affix indices refer to loot_data_inc.
+
+const int LOOTD_SOCK_VER = 1;
+const int LOOTD_SOCK_MAX = 3;
+const int LOOTD_SOCK_DEFAULT = 1;
+const int LOOTD_GEMFAM_COUNT = 15;
+const int LOOTD_GEMTIER_COUNT = 5;
+const string LOOTD_GEM_PREFIX = &quot;sgem_&quot;;
+
+string LootD_GemFamId(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;fire&quot;;
+        case 1: return &quot;cold&quot;;
+        case 2: return &quot;acid&quot;;
+        case 3: return &quot;elec&quot;;
+        case 4: return &quot;sonic&quot;;
+        case 5: return &quot;neg&quot;;
+        case 6: return &quot;hit&quot;;
+        case 7: return &quot;ac&quot;;
+        case 8: return &quot;str&quot;;
+        case 9: return &quot;dex&quot;;
+        case 10: return &quot;con&quot;;
+        case 11: return &quot;int&quot;;
+        case 12: return &quot;wis&quot;;
+        case 13: return &quot;cha&quot;;
+        case 14: return &quot;saves&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// Gem family id -&gt; index (-1 = unknown).
+int LootD_GemFamIndex(string sId)
+{
+    if (sId == &quot;fire&quot;) return 0;
+    if (sId == &quot;cold&quot;) return 1;
+    if (sId == &quot;acid&quot;) return 2;
+    if (sId == &quot;elec&quot;) return 3;
+    if (sId == &quot;sonic&quot;) return 4;
+    if (sId == &quot;neg&quot;) return 5;
+    if (sId == &quot;hit&quot;) return 6;
+    if (sId == &quot;ac&quot;) return 7;
+    if (sId == &quot;str&quot;) return 8;
+    if (sId == &quot;dex&quot;) return 9;
+    if (sId == &quot;con&quot;) return 10;
+    if (sId == &quot;int&quot;) return 11;
+    if (sId == &quot;wis&quot;) return 12;
+    if (sId == &quot;cha&quot;) return 13;
+    if (sId == &quot;saves&quot;) return 14;
+    return -1;
+}
+
+string LootD_GemFamStone(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;Emberstone&quot;;
+        case 1: return &quot;Frostglass&quot;;
+        case 2: return &quot;Bilestone&quot;;
+        case 3: return &quot;Stormshard&quot;;
+        case 4: return &quot;Echo Crystal&quot;;
+        case 5: return &quot;Shadowpearl&quot;;
+        case 6: return &quot;Keenstone&quot;;
+        case 7: return &quot;Wardstone&quot;;
+        case 8: return &quot;Bloodstone&quot;;
+        case 9: return &quot;Windstone&quot;;
+        case 10: return &quot;Heartstone&quot;;
+        case 11: return &quot;Lorestone&quot;;
+        case 12: return &quot;Moonstone&quot;;
+        case 13: return &quot;Starstone&quot;;
+        case 14: return &quot;Oathstone&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string LootD_GemFamEffect(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;Fire damage&quot;;
+        case 1: return &quot;Cold damage&quot;;
+        case 2: return &quot;Acid damage&quot;;
+        case 3: return &quot;Electrical damage&quot;;
+        case 4: return &quot;Sonic damage&quot;;
+        case 5: return &quot;Negative energy damage&quot;;
+        case 6: return &quot;Enhancement or Attack bonus&quot;;
+        case 7: return &quot;Armor Class&quot;;
+        case 8: return &quot;Strength&quot;;
+        case 9: return &quot;Dexterity&quot;;
+        case 10: return &quot;Constitution&quot;;
+        case 11: return &quot;Intelligence&quot;;
+        case 12: return &quot;Wisdom&quot;;
+        case 13: return &quot;Charisma&quot;;
+        case 14: return &quot;Saving throws (universal)&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_GemFamWeight(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 10;
+        case 1: return 10;
+        case 2: return 10;
+        case 3: return 10;
+        case 4: return 10;
+        case 5: return 10;
+        case 6: return 20;
+        case 7: return 15;
+        case 8: return 6;
+        case 9: return 6;
+        case 10: return 6;
+        case 11: return 6;
+        case 12: return 6;
+        case 13: return 6;
+        case 14: return 10;
+    }
+    return 0;
+}
+
+int LootD_GemFamAffixCount(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 1;
+        case 2: return 1;
+        case 3: return 1;
+        case 4: return 1;
+        case 5: return 1;
+        case 6: return 2;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 1;
+        case 10: return 1;
+        case 11: return 1;
+        case 12: return 1;
+        case 13: return 1;
+        case 14: return 1;
+    }
+    return 0;
+}
+
+int LootD_GemFamLadderLen(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 10;
+        case 1: return 10;
+        case 2: return 10;
+        case 3: return 10;
+        case 4: return 10;
+        case 5: return 10;
+        case 6: return 16;
+        case 7: return 10;
+        case 8: return 10;
+        case 9: return 10;
+        case 10: return 10;
+        case 11: return 10;
+        case 12: return 10;
+        case 13: return 10;
+        case 14: return 8;
+    }
+    return 0;
+}
+
+// Per family: nK-th affix (loot_data_inc index), its property type and subtype
+// (-1 = the type has none), ladder rung nK (cost row) and steps for tier nK.
+int LootD_GemFamAffix(int nFam, int nK)
+{
+    switch (nFam * 100 + nK)
+    {
+        case 0: return 5;
+        case 100: return 3;
+        case 200: return 2;
+        case 300: return 4;
+        case 400: return 6;
+        case 500: return 7;
+        case 600: return 0;
+        case 601: return 1;
+        case 700: return 12;
+        case 800: return 13;
+        case 900: return 14;
+        case 1000: return 15;
+        case 1100: return 16;
+        case 1200: return 17;
+        case 1300: return 18;
+        case 1400: return 20;
+    }
+    return -1;
+}
+
+int LootD_GemFamType(int nFam, int nK)
+{
+    switch (nFam * 100 + nK)
+    {
+        case 0: return 16;
+        case 100: return 16;
+        case 200: return 16;
+        case 300: return 16;
+        case 400: return 16;
+        case 500: return 16;
+        case 600: return 6;
+        case 601: return 56;
+        case 700: return 1;
+        case 800: return 0;
+        case 900: return 0;
+        case 1000: return 0;
+        case 1100: return 0;
+        case 1200: return 0;
+        case 1300: return 0;
+        case 1400: return 40;
+    }
+    return -1;
+}
+
+int LootD_GemFamSub(int nFam, int nK)
+{
+    switch (nFam * 100 + nK)
+    {
+        case 0: return 10;
+        case 100: return 7;
+        case 200: return 6;
+        case 300: return 9;
+        case 400: return 13;
+        case 500: return 11;
+        case 600: return -1;
+        case 601: return -1;
+        case 700: return -1;
+        case 800: return 0;
+        case 900: return 1;
+        case 1000: return 2;
+        case 1100: return 3;
+        case 1200: return 4;
+        case 1300: return 5;
+        case 1400: return 0;
+    }
+    return -1;
+}
+
+int LootD_GemFamLadder(int nFam, int nK)
+{
+    switch (nFam * 100 + nK)
+    {
+        case 0: return 1;
+        case 1: return 2;
+        case 2: return 3;
+        case 3: return 4;
+        case 4: return 7;
+        case 5: return 8;
+        case 6: return 9;
+        case 7: return 10;
+        case 8: return 11;
+        case 9: return 13;
+        case 100: return 1;
+        case 101: return 2;
+        case 102: return 3;
+        case 103: return 4;
+        case 104: return 7;
+        case 105: return 8;
+        case 106: return 9;
+        case 107: return 10;
+        case 108: return 11;
+        case 109: return 13;
+        case 200: return 1;
+        case 201: return 2;
+        case 202: return 3;
+        case 203: return 4;
+        case 204: return 7;
+        case 205: return 8;
+        case 206: return 9;
+        case 207: return 10;
+        case 208: return 11;
+        case 209: return 13;
+        case 300: return 1;
+        case 301: return 2;
+        case 302: return 3;
+        case 303: return 4;
+        case 304: return 7;
+        case 305: return 8;
+        case 306: return 9;
+        case 307: return 10;
+        case 308: return 11;
+        case 309: return 13;
+        case 400: return 1;
+        case 401: return 2;
+        case 402: return 3;
+        case 403: return 4;
+        case 404: return 7;
+        case 405: return 8;
+        case 406: return 9;
+        case 407: return 10;
+        case 408: return 11;
+        case 409: return 13;
+        case 500: return 1;
+        case 501: return 2;
+        case 502: return 3;
+        case 503: return 4;
+        case 504: return 7;
+        case 505: return 8;
+        case 506: return 9;
+        case 507: return 10;
+        case 508: return 11;
+        case 509: return 13;
+        case 600: return 1;
+        case 601: return 2;
+        case 602: return 3;
+        case 603: return 4;
+        case 604: return 5;
+        case 605: return 6;
+        case 606: return 7;
+        case 607: return 8;
+        case 608: return 9;
+        case 609: return 10;
+        case 610: return 11;
+        case 611: return 12;
+        case 612: return 13;
+        case 613: return 14;
+        case 614: return 15;
+        case 615: return 16;
+        case 700: return 1;
+        case 701: return 2;
+        case 702: return 3;
+        case 703: return 4;
+        case 704: return 5;
+        case 705: return 6;
+        case 706: return 7;
+        case 707: return 8;
+        case 708: return 9;
+        case 709: return 10;
+        case 800: return 1;
+        case 801: return 2;
+        case 802: return 3;
+        case 803: return 4;
+        case 804: return 5;
+        case 805: return 6;
+        case 806: return 7;
+        case 807: return 8;
+        case 808: return 9;
+        case 809: return 10;
+        case 900: return 1;
+        case 901: return 2;
+        case 902: return 3;
+        case 903: return 4;
+        case 904: return 5;
+        case 905: return 6;
+        case 906: return 7;
+        case 907: return 8;
+        case 908: return 9;
+        case 909: return 10;
+        case 1000: return 1;
+        case 1001: return 2;
+        case 1002: return 3;
+        case 1003: return 4;
+        case 1004: return 5;
+        case 1005: return 6;
+        case 1006: return 7;
+        case 1007: return 8;
+        case 1008: return 9;
+        case 1009: return 10;
+        case 1100: return 1;
+        case 1101: return 2;
+        case 1102: return 3;
+        case 1103: return 4;
+        case 1104: return 5;
+        case 1105: return 6;
+        case 1106: return 7;
+        case 1107: return 8;
+        case 1108: return 9;
+        case 1109: return 10;
+        case 1200: return 1;
+        case 1201: return 2;
+        case 1202: return 3;
+        case 1203: return 4;
+        case 1204: return 5;
+        case 1205: return 6;
+        case 1206: return 7;
+        case 1207: return 8;
+        case 1208: return 9;
+        case 1209: return 10;
+        case 1300: return 1;
+        case 1301: return 2;
+        case 1302: return 3;
+        case 1303: return 4;
+        case 1304: return 5;
+        case 1305: return 6;
+        case 1306: return 7;
+        case 1307: return 8;
+        case 1308: return 9;
+        case 1309: return 10;
+        case 1400: return 1;
+        case 1401: return 2;
+        case 1402: return 3;
+        case 1403: return 4;
+        case 1404: return 5;
+        case 1405: return 6;
+        case 1406: return 7;
+        case 1407: return 8;
+    }
+    return 0;
+}
+
+int LootD_GemFamSteps(int nFam, int nK)
+{
+    switch (nFam * 100 + nK)
+    {
+        case 0: return 1;
+        case 1: return 2;
+        case 2: return 3;
+        case 3: return 4;
+        case 4: return 5;
+        case 100: return 1;
+        case 101: return 2;
+        case 102: return 3;
+        case 103: return 4;
+        case 104: return 5;
+        case 200: return 1;
+        case 201: return 2;
+        case 202: return 3;
+        case 203: return 4;
+        case 204: return 5;
+        case 300: return 1;
+        case 301: return 2;
+        case 302: return 3;
+        case 303: return 4;
+        case 304: return 5;
+        case 400: return 1;
+        case 401: return 2;
+        case 402: return 3;
+        case 403: return 4;
+        case 404: return 5;
+        case 500: return 1;
+        case 501: return 2;
+        case 502: return 3;
+        case 503: return 4;
+        case 504: return 5;
+        case 600: return 1;
+        case 601: return 1;
+        case 602: return 2;
+        case 603: return 2;
+        case 604: return 3;
+        case 700: return 1;
+        case 701: return 1;
+        case 702: return 2;
+        case 703: return 2;
+        case 704: return 3;
+        case 800: return 1;
+        case 801: return 1;
+        case 802: return 2;
+        case 803: return 2;
+        case 804: return 3;
+        case 900: return 1;
+        case 901: return 1;
+        case 902: return 2;
+        case 903: return 2;
+        case 904: return 3;
+        case 1000: return 1;
+        case 1001: return 1;
+        case 1002: return 2;
+        case 1003: return 2;
+        case 1004: return 3;
+        case 1100: return 1;
+        case 1101: return 1;
+        case 1102: return 2;
+        case 1103: return 2;
+        case 1104: return 3;
+        case 1200: return 1;
+        case 1201: return 1;
+        case 1202: return 2;
+        case 1203: return 2;
+        case 1204: return 3;
+        case 1300: return 1;
+        case 1301: return 1;
+        case 1302: return 2;
+        case 1303: return 2;
+        case 1304: return 3;
+        case 1400: return 1;
+        case 1401: return 1;
+        case 1402: return 2;
+        case 1403: return 2;
+        case 1404: return 3;
+    }
+    return 0;
+}
+
+string LootD_GemTierWord(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;Chipped&quot;;
+        case 1: return &quot;Flawed&quot;;
+        case 2: return &quot;Cut&quot;;
+        case 3: return &quot;Flawless&quot;;
+        case 4: return &quot;Radiant&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// Gem tier floor at loot level nLvl (gems.json level_bands).
+int LootD_GemBandFloor(int nLvl)
+{
+    if (nLvl &gt;= 45) return 2;
+    if (nLvl &gt;= 25) return 1;
+    if (nLvl &gt;= 10) return 0;
+    if (nLvl &gt;= 1) return 0;
+    return 0;
+}
+
+// Gem tier ceiling at loot level nLvl (gems.json level_bands).
+int LootD_GemBandCeil(int nLvl)
+{
+    if (nLvl &gt;= 45) return 4;
+    if (nLvl &gt;= 25) return 3;
+    if (nLvl &gt;= 10) return 2;
+    if (nLvl &gt;= 1) return 1;
+    return 0;
+}
+
+// 2 x average damage of an iprp_damagecost row (hak_2da/iprp_damagecost.2da).
+int LootD_DmgPower(int nI)
+{
+    switch (nI)
+    {
+        case 1: return 2;
+        case 2: return 4;
+        case 3: return 6;
+        case 4: return 8;
+        case 5: return 10;
+        case 6: return 5;
+        case 7: return 7;
+        case 8: return 9;
+        case 9: return 11;
+        case 10: return 14;
+        case 11: return 18;
+        case 12: return 10;
+        case 13: return 22;
+        case 14: return 13;
+        case 15: return 26;
+        case 16: return 12;
+        case 17: return 14;
+        case 18: return 16;
+        case 19: return 18;
+        case 20: return 20;
+        case 21: return 22;
+        case 22: return 24;
+        case 23: return 26;
+        case 24: return 28;
+        case 25: return 30;
+        case 26: return 32;
+        case 27: return 34;
+        case 28: return 36;
+        case 29: return 38;
+        case 30: return 40;
+        case 31: return 15;
+        case 32: return 20;
+        case 33: return 25;
+        case 34: return 30;
+        case 35: return 35;
+        case 36: return 40;
+        case 37: return 45;
+        case 38: return 50;
+        case 39: return 21;
+        case 40: return 28;
+        case 41: return 35;
+        case 42: return 42;
+        case 43: return 49;
+        case 44: return 56;
+        case 45: return 63;
+        case 46: return 70;
+        case 47: return 77;
+        case 48: return 84;
+        case 49: return 91;
+        case 50: return 98;
+        case 51: return 105;
+        case 52: return 27;
+        case 53: return 36;
+        case 54: return 45;
+        case 55: return 54;
+        case 56: return 63;
+        case 57: return 72;
+        case 58: return 81;
+        case 59: return 90;
+        case 60: return 99;
+        case 61: return 108;
+        case 62: return 117;
+        case 63: return 126;
+        case 64: return 135;
+        case 65: return 33;
+        case 66: return 44;
+        case 67: return 55;
+        case 68: return 66;
+        case 69: return 77;
+        case 70: return 88;
+        case 71: return 99;
+        case 72: return 110;
+        case 73: return 121;
+        case 74: return 132;
+        case 75: return 143;
+        case 76: return 154;
+        case 77: return 165;
+        case 78: return 39;
+        case 79: return 52;
+        case 80: return 65;
+        case 81: return 78;
+        case 82: return 91;
+        case 83: return 104;
+        case 84: return 117;
+        case 85: return 130;
+        case 86: return 63;
+        case 87: return 84;
+        case 88: return 105;
+        case 89: return 126;
+        case 90: return 147;
+        case 91: return 168;
+        case 92: return 189;
+        case 93: return 210;
+        case 94: return 231;
+        case 95: return 252;
+        case 96: return 273;
+        case 97: return 294;
+        case 98: return 315;
+        case 99: return 336;
+        case 100: return 357;
+        case 101: return 378;
+        case 102: return 399;
+        case 103: return 420;
+        case 104: return 441;
+        case 105: return 462;
+        case 106: return 483;
+        case 107: return 504;
+        case 108: return 525;
+        case 109: return 546;
+        case 110: return 567;
+        case 111: return 588;
+        case 112: return 609;
+        case 113: return 630;
+        case 114: return 651;
+        case 115: return 672;
+        case 116: return 693;
+        case 117: return 714;
+        case 118: return 735;
+        case 119: return 756;
+        case 120: return 777;
+        case 121: return 798;
+        case 122: return 819;
+        case 123: return 840;
+        case 124: return 143;
+        case 125: return 156;
+        case 126: return 169;
+        case 127: return 182;
+        case 128: return 195;
+        case 129: return 208;
+        case 130: return 221;
+        case 131: return 234;
+        case 132: return 247;
+        case 133: return 260;
+        case 134: return 55;
+        case 135: return 60;
+        case 136: return 65;
+        case 137: return 70;
+        case 138: return 75;
+        case 139: return 80;
+        case 140: return 85;
+        case 141: return 90;
+        case 142: return 95;
+        case 143: return 100;
+        case 144: return 112;
+        case 145: return 119;
+        case 146: return 126;
+        case 147: return 133;
+        case 148: return 140;
+        case 149: return 144;
+        case 150: return 153;
+        case 151: return 162;
+        case 152: return 171;
+        case 153: return 180;
+        case 154: return 176;
+        case 155: return 187;
+        case 156: return 198;
+        case 157: return 209;
+        case 158: return 220;
+    }
+    return 0;
+}
+
+// Socketable base item row -&gt; category index (LootD_CatName), -1 = never socketed.
+int LootD_SockBaseCat(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 0;
+        case 4: return 0;
+        case 5: return 0;
+        case 6: return 1;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 1;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 3;
+        case 16: return 2;
+        case 17: return 5;
+        case 18: return 0;
+        case 19: return 4;
+        case 21: return 5;
+        case 22: return 0;
+        case 26: return 5;
+        case 28: return 0;
+        case 32: return 0;
+        case 33: return 0;
+        case 35: return 0;
+        case 36: return 5;
+        case 37: return 0;
+        case 38: return 0;
+        case 40: return 0;
+        case 41: return 0;
+        case 42: return 0;
+        case 45: return 6;
+        case 47: return 0;
+        case 50: return 0;
+        case 51: return 0;
+        case 52: return 4;
+        case 53: return 0;
+        case 55: return 0;
+        case 56: return 3;
+        case 57: return 3;
+        case 58: return 0;
+        case 60: return 0;
+        case 61: return 1;
+        case 78: return 5;
+        case 80: return 5;
+        case 108: return 0;
+        case 111: return 0;
+        case 300: return 0;
+        case 301: return 0;
+        case 302: return 0;
+        case 303: return 0;
+        case 304: return 0;
+        case 309: return 0;
+        case 312: return 0;
+        case 313: return 0;
+        case 316: return 0;
+        case 318: return 0;
+        case 320: return 0;
+        case 321: return 0;
+        case 323: return 0;
+        case 324: return 0;
+    }
+    return -1;
+}
+
+// Module items whose socket count is not the eligible default, packed by the
+// resref&#x27;s first character into parts of at most 900 characters: &#x27;|&lt;resref&gt;:&lt;n&gt;|...&#x27;.
+// Gem_SocketMax searches them with FindSubString; an empty string ends a character&#x27;s parts.
+const int LOOTD_SOCK_EXCEPTIONS = 481;
+string LootD_SockList(string sFirst, int nPart)
+{
+    if (sFirst == &quot;0&quot;)
+    {
+        if (nPart == 0) return &quot;|015:2|028:2|030:2|033:2|048:2|051:2|052:2|054:2|059:2|064:2|065:2|066:2|067:2|068:2|071:2|073:2|074:2|075:2|081:2|088:2|089:2|090:2|091:2|093:2|095:2|096:2|097:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;1&quot;)
+    {
+        if (nPart == 0) return &quot;|101:2|102:2|103:2|104:2|105:2|109:2|110:2|112:2|115:2|122:2|125:2|127:2|131:2|132:2|136:2|137:2|141:2|142:2|143:2|144:2|146:2|147:2|148:2|149:2|150:2|151:2|152:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;a&quot;)
+    {
+        if (nPart == 0) return &quot;|aarcl015:2|adamantitesma001:2|ancientbow009:2|ancienthamme005:2|ancientmace005:2|ancientsword005:2|armofadam:2|armorofinvuln002:2|armorofinvuln003:2|armorofinvulnera:2|armourofelendil:2|avenger:2|avenger002:2|axeofthebrute001:2|axeofthewarrior2:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;b&quot;)
+    {
+        if (nPart == 0) return &quot;|badbrains:2|badbrains002:2|balrogskin:2|banditleather:2|basherofthemutan:2|basiliskclaw006:2|basiliskhard001:2|basiliskskin:2|basilisktail006:2|basiliskvisa002:2|bastardofthehobb:2|bastardswordofth:2|battleplateof011:2|beltofdarkwardin:2|beltofgreatne002:2|beltofgreatness:2|beltofpower002:2|beltofsorcerery:2|bilbosdefense:2|blackmist4:2|bladebuckle001:2|bladeofhareth:2|bladeofthedan001:2|bladeofthedancer:2|bladeoftheelf:2|bladesofthedeath:2|boneshard:2|bootsoflord011:2|bootsofquicke001:2|bootsofthedrider:2|bootsofthemighty:2|bossphysimmunear:2|branchofrivendel:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;c&quot;)
+    {
+        if (nPart == 0) return &quot;|carapaceofcha002:2|carapiceofshe001:2|carapiceofshello:2|celestialfury:2|cg_amu_cleric:2|cg_amu_druid:2|cg_amu_sorc:2|cg_amu_wiz:2|chainofithilien:2|chanceguard:2|chosenkama:2|cloth005:2|cloth012:2|cloth027:2|cloth032:2|cloth033:2|cloth034:2|crossbowofthedwa:2|crownofweathe002:2|cursedguantle002:2|cursedguantle003:2|cursedguantle004:2|cursedguantlets:2|cursedoneshel002:2|cursedplate:2|cursedplate002:2|cus_shiftertu001:2|cus_shiftertu002:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;d&quot;)
+    {
+        if (nPart == 0) return &quot;|darkdirk:2|darkshot:2|darkshot002:2|darkstonehamm002:2|dawnstar002:2|deadlywhisper:2|deadwizardstaff:2|deathspade:2|deathtool:2|decayerofdoom:2|denethorsplate:2|dgeliteboots:2|dgelitehelm:2|dgelitering:2|dggeneralbelt:2|dggeneralhelm:2|dggeneralring1:2|dggeneralring2:2|dgr_backbiter:2|doombringer:2|drowgauntletm002:2|drowwizardsta004:2|dunharrowaxe:2|dunharrowblade:2|dunharrowbutc001:2|dunharrowbutcher:2|dunharrowkama:2|dunharrowpike:2|dwarvenbattle001:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;e&quot;)
+    {
+        if (nPart == 0) return &quot;|easterlingfury:2|easterlinglaunc2:2|elitemordorarche:2|eliteorcgreataxe:2|eliteorcplate:2|epicamulet:2|epicarmor:2|epicbelt:2|epicboots:2|epicbracers:2|epichelmet:2|epickama001:2|epicmagerobe:2|epicmonkgloves:2|epicmonkrobe:2|epicshield:2|epicstaffofpower:2|evildeathhelmet:2|evildeathshield:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;f&quot;)
+    {
+        if (nPart == 0) return &quot;|felloak2:2|fightersfury:2|flailofwar:2|flameofudun003:2|frostbite:2|furyofthevala002:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;g&quot;)
+    {
+        if (nPart == 0) return &quot;|galadhrimhelm:2|galadhrimhelm002:2|galadhrimmonkbel:2|galadhrimwiza001:2|galadhrimwizards:2|garbsoflasgalen:2|gauntletsofcrush:2|gdmages:2|glamhring:2|glamhring001:2|glamhring003:2|glamhring2:2|gnasher:2|gondorianlong003:2|gondorianplat003:2|gondorianrobe001:2|graceofithilien:2|greataxeofakulat:2|greaterbowoftheg:2|greaterscarab004:2|greatswordofgond:2|greatswordofthe2:2|greenleaf:2|grond:2|gs_psionsblade:2|gwathdorshortswo:2|gwathdortrident:2|gwathdorwatch002:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;h&quot;)
+    {
+        if (nPart == 0) return &quot;|halberd007:2|hammerofmidnight:2|hammerofthunderg:2|handofpaladine:2|handsoftheapp001:2|headchopper:2|headsplitter004:2|headsplitter005:2|heartofthewild:2|helmofthedragonl:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;i&quot;)
+    {
+        if (nPart == 0) return &quot;|impaler:2|it_crewbs003:2|it_crewbs004:2|it_mring019:2|it_mring021:2|it_mring030:2|it_mring042:2|it_mring044:2|it_pmrobe001:2|it_wpmwhip_h001:2|item:2|item007:2|item009:2|item017:2|item018:2|item020:2|item022:2|item025:2|item026:2|item027:2|item028:2|item031:2|item035:2|item037:2|item040:2|item042:2|item043:2|item044:2|item045:2|item046:2|item047:2|item048:2|item051:2|item053:2|item054:2|item055:2|item056:2|item057:2|item058:2|item060:2|item061:2|item062:2|item066:2|item069:2|item071:2|item072:2|item075:2|item076:2|item080:2|item082:2|item084:2|item085:2|item086:2|item090:2|item091:2|item093:2|item0932:2|item095:2|item096:2|item098:2|item100:2|item1002:2|item102:2|item1052:2|item106:2|item116:2|item121:2|item122:2|item126:2|item127:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;j&quot;)
+    {
+        if (nPart == 0) return &quot;|jubmaghica:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;k&quot;)
+    {
+        if (nPart == 0) return &quot;|katanaofdolguldu:2|katanaofkings:2|katanaofkings001:2|katanaofkings002:2|katanaofthegreat:2|katanaofthenoble:2|keeperring:2|kukri051:2|kukriofthemum001:2|kukriofthemummyl:2|kukriofthereckle:2|kuotoapincers001:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;l&quot;)
+    {
+        if (nPart == 0) return &quot;|lesserrobe3or004:2|ls_bladeofros002:2|ls_bladeofros003:2|ls_bladeofroses:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;m&quot;)
+    {
+        if (nPart == 0) return &quot;|maarcl019:2|maarcl024:2|maarcl028:2|maarcl042:2|maarcl045:2|maceofdwarffoe:2|maceofminas:2|maceofthedark001:2|maceofthedark003:2|maceofthehigh001:2|maceofthehighcle:2|masterswordofthe:2|mcloth006:2|mcloth007:2|mcloth012:2|mcloth026:2|mdrowar029:2|mdrowar030:2|mdrowar031:2|mdrowar032:2|mdrowar034:2|mduerar011:2|meshoferynlasgal:2|mightofminas:2|mindmelter:2|morannon:2|mordorbow:2|morgrondbelt:2|morgrondring:2|morgulknife:2|mountdoomdecayer:2|mummyreaperscy:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;n&quot;)
+    {
+        if (nPart == 0) return &quot;|nazgulbattlet001:2|nazgulbattletuni:2|nazgulwarriorarm:2|nazgulwarriorboo:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;o&quot;)
+    {
+        if (nPart == 0) return &quot;|olorinsgift:2|olorinsgift002:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;p&quot;)
+    {
+        if (nPart == 0) return &quot;|prophetsrune:2|pyre:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;r&quot;)
+    {
+        if (nPart == 0) return &quot;|rapierofangmar:2|rapierofglorfind:2|rapierofmirkwood:2|rapierofthegh:2|ringofresistance:2|ringoftheshad001:2|rohirrimlongswor:2|rohirsoldiera003:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;s&quot;)
+    {
+        if (nPart == 0) return &quot;|scimitar006:2|scimitaroflothor:2|scimitarofthequi:2|serpentsstaff:2|shadowdecayer:2|shadowsmash:2|shieldmaiden:2|shieldofboromir:2|shieldofithilien:2|shieldofthero002:2|skullsplitter:2|smaugsbane001:2|solarsgreatsword:2|spearofdestany:2|spearofdistany:2|spearoftheroh004:2|staffoftheist002:2|staffoftheist003:2|staffoftheorcsh2:2|staffoftheorcsha:2|steelclash:2|steelofthemaiden:2|sting:2|stormcasterrob:2|stormriderwep:2|supernuts:2|swaftcutter:2|swordofceleborn:2|swordoflifest002:2|swordofthegen:2|swordoftheshi001:2|swordoftheshield:2|swordoftheste002:2|swordoftheste003:2|swordofthestewar:2|swordofthewitchk:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;t&quot;)
+    {
+        if (nPart == 0) return &quot;|tarrelskamaofthe:2|tempringofcrafti:2|test:2|thebalrogskull:2|thebladeofthe002:2|thebladeofthe003:2|thebladeofthe004:2|thebladeofthedea:2|thegnasher:2|thegutter:2|thehandofbroc:2|thehighstaff:2|theodensarmor002:2|theonering:2|thesevenstarsofd:2|theshadowofgreen:2|theuntouchable:2|theweathertop002:2|theweathertopcro:2|toothpick:2|tournamaentlongs:2|tournamentarm001:2|tournamentarmour:2|tournamentbattle:2|tournamentclub:2|tournamentdagge2:2|tournamentdagger:2|tournamentgaunt2:2|tournamentgauntl:2|tournamentgreat2:2|tournamentgreata:2|tournamentgreats:2|tournamenthal001:2|tournamenthalber:2|tournamentkama:2|tournamentkuk001:2|tournamentkukri:2|tournamentlongbo:2|tournamentmace:2|tournamentmaugdo:2|tournamentmornin:2|tournamentscimit:2|tournamentscythe:2|tournamentshort2:2|tournamentshortb:2|tournamentshorts:2|tournamenttowers:2|tournamentwarham:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;u&quot;)
+    {
+        if (nPart == 0) return &quot;|undeadheart:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;v&quot;)
+    {
+        if (nPart == 0) return &quot;|valarslegacy:2|veilsofarwen:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;w&quot;)
+    {
+        if (nPart == 0) return &quot;|warhammerofeog:2|warhammerofthest:2|warthslick001:2|wave4:2|waxmbt005:2|waxmbt009:2|wblmml005:2|wblmml006:2|wblmml008:2|wblmml009:2|wbwmln0082:2|whipoffire:2|whipoffire001:2|wiltedstaff003:2|wiltedtouch001:2|woodlandwasp:2|wplmsc005:2|wplsc0022:2|wplsc005:2|wrapofthecurs002:2|wspmku011:2|wswmdg004:2|wswmdg007:2|wswmgs007:2|wswmgs008:2|wswmls007:2|wswmls008:2|wswmrp005:2|wswmrp006:2|wswmrp008:2|wtop_royal_blade:2|wtop_royal_crown:2|wtop_royal_staff:2|wtop_royal_torc:2|&quot;;
+        return &quot;&quot;;
+    }
+    if (sFirst == &quot;z&quot;)
+    {
+        if (nPart == 0) return &quot;|zep_assassind001:2|zep_thayvian002:2|zomgwtfbbqhax:2|&quot;;
+        return &quot;&quot;;
+    }
+    return &quot;&quot;;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

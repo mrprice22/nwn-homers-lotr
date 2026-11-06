@@ -152,6 +152,16 @@ void main()
       return;
    }
 
+   // Socket gems (Loot Overhaul Phase 5): Tag == ResRef == sgem_&lt;family&gt;_&lt;tier&gt;,
+   // all handled by one script. Same stash convention as the branches above.
+   if(GetStringLeft(GetTag(oItem), 5) == &quot;sgem_&quot;)
+   {
+      SetLocalObject(oActivator, &quot;gem_item&quot;, oItem);
+      SetLocalObject(oActivator, &quot;gem_target&quot;, GetItemActivatedTarget());
+      ExecuteScript(&quot;gem_activate&quot;, oActivator);
+      return;
+   }
+
    // Tag-based scripting: execute item&#x27;s tag script if enabled
    if (GetModuleSwitchValue(MODULE_SWITCH_ENABLE_TAGBASED_SCRIPTS) == TRUE)
    {

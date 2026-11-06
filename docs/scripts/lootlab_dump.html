@@ -77,8 +77,9 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>lootlab_dump</code></h1><pre class="nss-source"><code>// lootlab_dump.nss - Loot Lab: for every rolled item in the admin&#x27;s pack, print
-// its LOOT_* stamps and its engine value against its rarity&#x27;s budget.
+<h1>Script: <code>lootlab_dump</code></h1><pre class="nss-source"><code>// lootlab_dump.nss - Loot Lab: for every rolled or socketed item in the admin&#x27;s
+// pack, print its LOOT_* stamps, its engine value against its rarity&#x27;s budget,
+// and its sockets and gem-touched properties (Phase 5).
 // Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
 #include &quot;lootlab_inc&quot;
 
@@ -90,14 +91,26 @@ void main()
     object oItem = GetFirstItemInInventory(oPC);
     while (GetIsObjectValid(oItem))
     {
-        if (Loot_IsRolled(oItem))
+        int nSock = GetLocalInt(oItem, &quot;SOCKET_MAX&quot;);
+        if (Loot_IsRolled(oItem) || nSock &gt; 0)
         {
-            SendMessageToPC(oPC, Loot_Describe(oItem));
+            string s = Loot_IsRolled(oItem) ? Loot_Describe(oItem)
+                     : GetName(oItem) + &quot; [not rolled] sockets &quot;
+                       + IntToString(GetLocalInt(oItem, &quot;SOCKET_FILLED&quot;)) + &quot;/&quot; + IntToString(nSock);
+            // Phase 5: the gems set in it and every property a gem has touched.
+            int i;
+            for (i = 0; i &lt; GetLocalInt(oItem, &quot;SOCKET_FILLED&quot;); i++)
+                s += &quot;\n   socket &quot; + IntToString(i) + &quot;: &quot;
+                   + GetLocalString(oItem, &quot;SOCKET_&quot; + IntToString(i) + &quot;_GEM&quot;);
+            for (i = 0; i &lt; GetLocalInt(oItem, &quot;GEM_P_N&quot;); i++)
+                s += &quot;\n   gem prop &quot; + GetLocalString(oItem, &quot;GEM_P_&quot; + IntToString(i))
+                   + (GetLocalInt(oItem, &quot;GEM_P_&quot; + IntToString(i) + &quot;_OWN&quot;) ? &quot; (created)&quot; : &quot; (raised)&quot;);
+            SendMessageToPC(oPC, s);
             nFound++;
         }
         oItem = GetNextItemInInventory(oPC);
     }
-    SendMessageToPC(oPC, &quot;Loot Lab: &quot; + IntToString(nFound) + &quot; rolled item(s) in your pack.&quot;);
+    SendMessageToPC(oPC, &quot;Loot Lab: &quot; + IntToString(nFound) + &quot; rolled or socketed item(s) in your pack.&quot;);
 }
 </code></pre>
   </main>

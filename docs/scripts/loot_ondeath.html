@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script loot_ondeath</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>loot_ondeath</code></h1><pre class="nss-source"><code>// loot_ondeath - Loot Overhaul Phase 4: rolled drops on a PC-credited kill.
+// OBJECT_SELF = the dying creature.  Mirrors loot_model.creature_drop.
+//
+// Run by bst_ondeath, only on the path where at least one PC contributed (a
+// PC&#x27;s own summon, or a kill with no PC behind it, returns before this), after
+// the bestiary has recorded the kill.  bst_ondeath sets LOOT_BENEF (a random
+// PC contributor in the corpse&#x27;s area; unset when none is) on the corpse
+// first - it is who Loot_Roll steers by their Phase 6 wishlist.
+//
+// Never: LOOT_NONE, anything with a master (an enemy summon), an `exclude`d
+// creature, or - bosses aside - a creature outside the hostile factions.
+// Class: boss (Roll of the Fallen registry) &gt; elite (a champion, elite_include,
+// or CR loot level &gt;= area loot level + margin, unless elite_exclude) &gt; normal.
+// Level: a boss&#x27;s levels.json boss_overrides pin, else the creature&#x27;s CR level
+// (a champion&#x27;s raised CR).  The rolls are delivered to the corpse, droppable,
+// so they reach the party roll; they are staggered 0.1s apart so a boss never
+// builds 3-4 items in one frame.  All numbers: loot/sources.json &quot;creatures&quot;.
+//
+// Loot Lab: a contributor carrying LOOT_FORCE_DROPS (lootlab_force) forces the
+// drop chance to 1000 and gets one &quot;LOOT:&quot; line per kill.
+//
+// Phase 7 (lo-fate-token): a boss also drops a Shard of Fate at
+// LOOTD_FATE_BOSS_CHANCE (forced drops force it), and every PC contributor in
+// the corpse&#x27;s area who carries a Shard and is not locked out on this boss is
+// offered a bonus roll (fate_open -&gt; the fate_inc NUI prompt).
+
+#include &quot;loot_inc&quot;
+#include &quot;nwnx_creature&quot;
+
+void LootO_Roll(int nLvl, int nFloor, string sProfile, object oBenef, object oDest)
+{
+    Loot_Roll(nLvl, nFloor, sProfile, oBenef, oDest);
+}
+
+void LootO_Named(int nLvl, string sProfile, object oBenef, object oDest)
+{
+    Loot_GiveNamed(nLvl, LOOT_RARITY_LEGENDARY, sProfile, oBenef, oDest);
+}
+
+// The first PC contributor with the Loot Lab &quot;force drops&quot; switch on.
+object LootO_Forcer(object oCre)
+{
+    int nN = GetLocalInt(oCre, &quot;bst_ctrb_n&quot;);
+    int i;
+    for (i = 0; i &lt; nN; i++)
+    {
+        object m = GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i));
+        if (GetIsObjectValid(m) &amp;&amp; GetIsPC(m) &amp;&amp; GetLocalInt(m, &quot;LOOT_FORCE_DROPS&quot;))
+            return m;
+    }
+    return OBJECT_INVALID;
+}
+
+void LootO_Shard(object oDest)
+{
+    Loot_DropShard(oDest);
+}
+
+// Offer the Shard of Fate bonus roll to every eligible contributor: a PC, in
+// the corpse&#x27;s area, carrying a Shard, not locked out on this boss.  The
+// lockout is re-checked on the Spend click (fate_inc Fate_Spend).
+void LootO_FateOffers(object oCre, string sRes, int nLvl)
+{
+    object oArea = GetArea(oCre);
+    string sName = GetName(oCre);
+    int nN = GetLocalInt(oCre, &quot;bst_ctrb_n&quot;);
+    int i;
+    for (i = 0; i &lt; nN; i++)
+    {
+        object m = GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i));
+        if (!GetIsObjectValid(m) || !GetIsPC(m) || GetIsDM(m)) continue;
+        if (GetArea(m) != oArea) continue;
+        if (GetLocalObject(m, &quot;FATE_P_CRE&quot;) == oCre) continue;   // listed twice
+        if (!GetIsObjectValid(Loot_FindShard(m))) continue;
+        if (Loot_FateLockedFor(m, sRes, LOOTD_FATE_LOCKOUT) &gt; 0) continue;
+        SetLocalObject(m, &quot;FATE_P_CRE&quot;, oCre);
+        SetLocalString(m, &quot;FATE_P_BOSS&quot;, sRes);
+        SetLocalString(m, &quot;FATE_P_BNAME&quot;, sName);
+        SetLocalInt(m, &quot;FATE_P_LVL&quot;, nLvl);
+        ExecuteScript(&quot;fate_open&quot;, m);
+    }
+}
+
+string LootO_ClassName(int nClass)
+{
+    if (nClass == LOOTD_CLASS_BOSS) return &quot;boss&quot;;
+    if (nClass == LOOTD_CLASS_ELITE) return &quot;elite&quot;;
+    return &quot;normal&quot;;
+}
+
+void main()
+{
+    object oCre = OBJECT_SELF;
+    if (GetLocalInt(oCre, &quot;LOOT_NONE&quot;)) return;
+    if (GetIsObjectValid(GetMaster(oCre))) return;
+    string sRes = GetResRef(oCre);
+    if (LootD_CreatureListed(sRes) == LOOTD_LIST_NEVER) return;
+    int bBoss = LootD_IsBoss(sRes);
+    if (!bBoss &amp;&amp; !LootD_IsHostileFaction(NWNX_Creature_GetFaction(oCre))) return;
+
+    int bChamp = GetLocalInt(oCre, &quot;LOOT_CHAMP&quot;);
+    int nClass = LOOTD_CLASS_NORMAL;
+    if (bBoss) nClass = LOOTD_CLASS_BOSS;
+    else if (bChamp || Loot_IsNaturalElite(oCre)) nClass = LOOTD_CLASS_ELITE;
+
+    float fCR = GetChallengeRating(oCre);
+    int nLvl = bBoss ? LootD_BossLevel(sRes) : 0;
+    if (nLvl &lt;= 0) nLvl = LootD_LevelForCR(fCR);
+
+    object oForcer = LootO_Forcer(oCre);
+    int nChance = GetIsObjectValid(oForcer) ? 1000 : LootD_CreatureChance(nClass);
+    string sProfile = LootD_CreatureProfile(nClass);
+    object oBenef = GetLocalObject(oCre, &quot;LOOT_BENEF&quot;);
+
+    int nMade = 0;
+    if (Random(1000) &lt; nChance)
+    {
+        int nProfile = LootD_ProfileIndex(sProfile);
+        if (nProfile &lt; 0)
+        {
+            Loot_Warn(&quot;creature class &quot; + LootO_ClassName(nClass) + &quot; names unknown profile &#x27;&quot;
+                      + sProfile + &quot;&#x27;&quot;);
+            return;
+        }
+        int nRolls = LootD_ProfileRolls(nProfile);
+        int nFloor = LootD_ProfileFloor(nProfile);
+        if (bBoss &amp;&amp; LOOTD_BOSS_EXTRA_CR &gt; 0 &amp;&amp; fCR &gt;= IntToFloat(LOOTD_BOSS_EXTRA_CR))
+            nRolls++;
+        int bNamed = bBoss &amp;&amp; Random(1000) &lt; LOOTD_BOSS_NAMED;
+        object oMod = GetModule();
+        int i;
+        for (i = 0; i &lt; nRolls; i++)
+            AssignCommand(oMod, DelayCommand(0.1 * IntToFloat(i),
+                LootO_Roll(nLvl, nFloor, sProfile, oBenef, oCre)));
+        if (bNamed)
+            AssignCommand(oMod, DelayCommand(0.1 * IntToFloat(nRolls),
+                LootO_Named(nLvl, sProfile, oBenef, oCre)));
+        nMade = nRolls + bNamed;
+    }
+
+    // Phase 5: a socket gem, rolled independently of the gear chance (a forced
+    // drop forces it too), delivered after the gear; a boss&#x27;s has a tier floor.
+    if (GetIsObjectValid(oForcer) || Random(1000) &lt; LootD_CreatureGemChance(nClass))
+    {
+        AssignCommand(GetModule(), DelayCommand(0.1 * IntToFloat(nMade),
+            Loot_DropSocketGem(nLvl, bBoss ? LOOTD_GEM_BOSS_FLOOR : 0, oCre)));
+        nMade++;
+    }
+
+    // Phase 7: the Shard of Fate - a boss drop, then the bonus-roll offers.
+    if (bBoss)
+    {
+        if (GetIsObjectValid(oForcer) || Random(1000) &lt; LOOTD_FATE_BOSS_CHANCE)
+        {
+            AssignCommand(GetModule(), DelayCommand(0.1 * IntToFloat(nMade), LootO_Shard(oCre)));
+            nMade++;
+        }
+        LootO_FateOffers(oCre, sRes, nLvl);
+    }
+
+    if (GetIsObjectValid(oForcer))
+        SendMessageToPC(oForcer, &quot;LOOT: &quot; + GetName(oCre) + &quot; class=&quot; + LootO_ClassName(nClass)
+            + (bChamp ? &quot; (champion)&quot; : &quot;&quot;) + &quot; cr=&quot; + IntToString(FloatToInt(fCR))
+            + &quot; lvl=&quot; + IntToString(nLvl)
+            + &quot; area=&quot; + IntToString(Loot_AreaLevel(GetArea(oCre)))
+            + &quot; -&gt; &quot; + IntToString(nMade) + &quot; item(s)&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

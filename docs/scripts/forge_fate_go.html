@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script forge_fate_go</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+          <a href="../creatures/inaccessible/index.html">Inaccessible</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Customizations</span><div class="nav-submenu-menu"><a href="../manual/Customizations/Combat.html">Combat</a>
+<a href="../manual/Customizations/Crafting.html">Appearance &amp;amp; Crafting</a>
+<a href="../manual/Customizations/Death.html">Death, Dying &amp;amp; Respawn</a>
+<a href="../manual/Customizations/Factions.html">Good/Evil Faction</a>
+<a href="../manual/Customizations/Items.html">Custom Gameplay Items</a>
+<a href="../manual/Customizations/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Customizations/Loot.html">Rolled Loot (Season 3)</a>
+<a href="../manual/Customizations/NotABug.html">Looks Like a Bug — Isn&#x27;t</a>
+<a href="../manual/Customizations/Progression.html">Character Progression</a>
+<a href="../manual/Customizations/Spells.html">Spell Changes</a>
+<a href="../manual/Customizations/Stock.html">Not Changed (Stock Standard)</a>
+<a href="../manual/Customizations/Systems.html">Notable Custom Systems</a></div></div>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Loot-Overhaul.html">Loot Overhaul — Design Notes</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>forge_fate_go</code></h1><pre class="nss-source"><code>// forge_fate_go.nss - &quot;Aye, reforge it&quot; (Loot Overhaul Phase 7, lo-fate-token).
+//
+// A Shard of Fate re-rolls the random affixes (LOOT_AFX_*) of the rolled item on
+// the anvil: same loot level, rarity, base and look; forged enchantments, gem
+// properties and sockets are kept.  Loot_Reforge (loot_inc) is transactional and
+// bounded - the affixes fit the rarity&#x27;s budget, the whole item stays within
+// max(its value now, this forge&#x27;s MODIFY_MAX) and the counted enchantments
+// within max(its count now, MODIFY_MAX_PROPS).  The Shard is consumed ONLY after
+// a committed reforge; every refusal keeps it.  Modelled on ForgeExpandDo
+// (forge_inc).  The smith (OBJECT_SELF) speaks the outcome; the reply loops
+// back to the forge menu.
+#include &quot;loot_inc&quot;
+
+void main()
+{
+    object oPC = GetPCSpeaker();
+    if (!ForgeRefreshAnvilContext(oPC))
+    {
+        SpeakString(&quot;Lay a single piece upon my anvil first, and I will see what fate &quot;
+            + &quot;it might have had.&quot;);
+        return;
+    }
+    object oItem = GetLocalObject(oPC, &quot;MODIFY_ITEM&quot;);
+    if (!GetIsObjectValid(Loot_FindShard(oPC)))
+    {
+        SpeakString(&quot;To reforge the fate of the &quot; + GetName(oItem) + &quot; I must break a &quot;
+            + &quot;Shard of Fate over it, and you carry none.&quot;);
+        return;
+    }
+    string sOld = GetName(oItem);
+    int nRes = Loot_Reforge(oItem, GetLocalInt(oPC, &quot;MODIFY_MAX&quot;),
+                            GetLocalInt(oPC, &quot;MODIFY_MAX_PROPS&quot;), oPC);
+    if (nRes == LOOT_FATE_NOT_ROLLED)
+    {
+        SpeakString(&quot;The &quot; + sOld + &quot; was made by a smith&#x27;s hand, not drawn from fate. &quot;
+            + &quot;There is nothing random in it for a Shard to change. Keep your Shard.&quot;);
+        return;
+    }
+    if (nRes == LOOT_FATE_NAMED)
+    {
+        SpeakString(&quot;The &quot; + sOld + &quot; is a storied piece; its fate was written long ago &quot;
+            + &quot;and a Shard cannot unwrite it. Keep your Shard.&quot;);
+        return;
+    }
+    if (nRes == LOOT_FATE_NO_ROOM)
+    {
+        SpeakString(&quot;I have tried, but there is no room left in the &quot; + sOld + &quot; for &quot;
+            + &quot;fate to work: what you have forged into it fills its weave. Keep your Shard.&quot;);
+        return;
+    }
+    if (nRes != LOOT_FATE_OK)
+    {
+        SpeakString(&quot;Something in the &quot; + sOld + &quot; resists the Shard. I will not risk it. &quot;
+            + &quot;Keep your Shard.&quot;);
+        ForgeLog(&quot;fate: PC=&quot; + GetName(oPC) + &quot; item=&#x27;&quot; + sOld + &quot;&#x27; refused, code &quot;
+            + IntToString(nRes));
+        return;
+    }
+    Loot_SpendShard(oPC);
+    // The staged-disenchant plan indexes the item&#x27;s properties; they changed.
+    ForgeStageClear(oPC);
+    DeleteLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;);
+    ForgeLog(&quot;fate: PC=&quot; + GetName(oPC) + &quot; item=&#x27;&quot; + sOld + &quot;&#x27; -&gt; &#x27;&quot; + GetName(oItem) + &quot;&#x27;&quot;);
+    ForgeRefreshAnvilContext(oPC);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_MAGBLUE), oPC);
+    SpeakString(&quot;The Shard breaks across the anvil and its light runs into the metal. &quot;
+        + &quot;What was the &quot; + sOld + &quot; is now the &quot; + GetName(oItem) + &quot;.&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
