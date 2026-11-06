@@ -4,7 +4,9 @@ Roadmap epic `loot-overhaul`; the design and phase plan are in
 [docs.manual/Draft/Loot-Overhaul.html](docs.manual/Draft/Loot-Overhaul.html). This file
 is the working reference for the code as built. Phase 2 (`lo-loot-core`) built the
 engine; phase 3 (`rng-based-gear-diablo-world-of-warcraft-style`) put it in every chest and
-container; phases 4–7 plug the remaining sources into it (phase 6 = the wishlist).
+container. Phases 4 (creature and boss drops), 5 (sockets and gems) and 6 (the wishlist) are
+built and committed but not yet rebuilt: they reach dev together in the one
+`repack-homers-lotr-clean` at the end of Phase 7 (the Shard of Fate), which is still to do.
 
 ## One data source, three readers
 
@@ -304,11 +306,9 @@ Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
 - dump every rolled item's stamps with its engine value against its budget;
 - **force creature drops on my kills** (token 6452, PC local `LOOT_FORCE_DROPS`): every kill you help
   make drops at 100% and prints `LOOT: <name> class=.. cr=.. lvl=.. area=.. -> n item(s)`;
-- **make the nearest hostile creature a champion** (skips the chance roll, keeps every eligibility rule).
-
+- **make the nearest hostile creature a champion** (skips the chance roll, keeps every eligibility rule);
 - **grant a random socket gem** / **one gem of every family**, at the rarity floor as the gem's tier
-  (`lootlab_gem1` / `lootlab_gemall`, Phase 5); the dump also prints sockets and gem-touched properties.
-
+  (`lootlab_gem1` / `lootlab_gemall`, Phase 5); the dump also prints sockets and gem-touched properties;
 - **show my loot wishlist and Auto weights** (`lootlab_wish`, Phase 6): the stored picks, the Auto
   tier and list, and the candidates a roll for you draws from.
 
