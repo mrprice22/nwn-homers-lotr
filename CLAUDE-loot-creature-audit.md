@@ -36,9 +36,9 @@ in the area once.
 
 | elite_margin | elite slots | % of non-boss | distinct creatures | areas |
 |---|---|---|---|---|
-| 3 | 736 | 17.8% | 133 | 86 |
-| **5** | 475 | 11.5% | 94 | 65 |
-| 7 | 362 | 8.8% | 66 | 55 |
+| 3 | 750 | 18.1% | 134 | 88 |
+| **5** | 489 | 11.8% | 95 | 68 |
+| 7 | 367 | 8.9% | 67 | 56 |
 | 10 | 198 | 4.8% | 46 | 37 |
 | 15 | 93 | 2.2% | 27 | 21 |
 
@@ -46,8 +46,8 @@ in the area once.
 
 | class | slots | distinct creatures | drops per full clear |
 |---|---|---|---|
-| normal | 3659 | 401 | 146.4 |
-| elite | 475 | 94 | 118.8 |
+| normal | 3645 | 400 | 145.8 |
+| elite | 489 | 95 | 122.2 |
 | boss | 80 | 80 | 184.0 |
 | excluded | 0 | 0 | 0 |
 
@@ -62,6 +62,9 @@ Grouped by area. *over* = how far the creature's loot level is above the area's.
 | Angmar (`angmar`) | 15 | 11 | Tirg the General | `gntfire001` | 53 | 31 | +20 | 1 | auto |
 | Angmar (`angmar`) | 15 | 11 | Ologai Troll | `ogreboss001` | 23 | 17 | +6 | 2 | auto |
 | Carn Dum (`carndum`) | 35 | 26 | Black Numenorean Archer | `blacknumenorea_2` | 80 | 33 | +7 | 2 | auto |
+| Carrok (`carrok`) | 16 | 12 | Carrok Elite Guard | `gntfrost003` | 24 | 18 | +6 | 5 | auto |
+| Carrok: Greater (`carrokgreater`) | 13 | 10 | Carrok Elite Guard | `gntfrost003` | 24 | 18 | +8 | 5 | auto |
+| Carrok: Lesser (`carroklesser`) | 16 | 12 | Carrok Elite Guard | `gntfrost003` | 24 | 18 | +6 | 4 | auto |
 | Dunland (`dunland`) | 8 | 6 | Dunland Shaman | `uthgard006` | 80 | 33 | +27 | 1 | auto |
 | Dwarrow Delf (east) (`dwarrowdelfea001`) | 11 | 8 | Wilder Chieftain | `bugbearboss006` | 30 | 22 | +14 | 1 | auto |
 | Dwarrow Delf (east) (`dwarrowdelfea001`) | 11 | 8 | Trollog Devestator | `ogremageboss001` | 21 | 16 | +8 | 3 | auto |
@@ -316,6 +319,7 @@ Areas with hostile creatures, by drops per clear (highest first).
 | Kerufall's Lair (`kerufallslair`) | 102 | 35 | 8 | 0 | 1 | 2.38 | 0.00 |
 | Lothlorien: Flets (`lothlorienflets`) | 102 | 35 | 8 | 0 | 1 | 2.38 | 0.00 |
 | Theoden's Hall (`theodenshall`) | 55 | 31 | 8 | 0 | 1 | 2.38 | 0.00 |
+| Carrok: Greater (`carrokgreater`) | 13 | 10 | 33 | 5 | 0 | 2.37 | 33.60 |
 | Isengard (Magic Room) (`isengardmagicroo`) | 116 | 37 | 7 | 0 | 1 | 2.34 | 0.00 |
 | Osgiliath: Citidal of the Stars (`citidelofstars`) | 190 | 44 | 7 | 0 | 1 | 2.34 | 0.00 |
 | Temple of Marr (`thehallsoftruth`) | 55 | 31 | 7 | 0 | 1 | 2.34 | 0.00 |
@@ -342,12 +346,14 @@ Areas with hostile creatures, by drops per clear (highest first).
 | Moria: The Balrog of Moria (`thebalrogofmoria`) | 555 | 49 | 1 | 0 | 1 | 2.10 | 0.00 |
 | The Pelennor Fields (`thepelennorfield`) | 32 | 24 | 21 | 6 | 0 | 2.10 | 0.00 |
 | Valinor: Realm of the spirits (`area022`) | 650 | 50 | 1 | 0 | 1 | 2.10 | 0.00 |
+| Carrok (`carrok`) | 16 | 12 | 26 | 5 | 0 | 2.09 | 0.00 |
 | Goblin Gate: Greater (`goblingategreate`) | 5 | 4 | 37 | 2 | 0 | 1.90 | 0.00 |
 | Mirkwood: North (`mirkwoodnorth`) | 29 | 22 | 15 | 6 | 0 | 1.86 | 0.00 |
 | Dwarrow Delf (east) (`dwarrowdelfea001`) | 11 | 8 | 25 | 4 | 0 | 1.84 | 0.00 |
 | Nîn-in-Eilph (`cardolan`) | 8 | 6 | 45 | 0 | 0 | 1.80 | 0.00 |
 | Kallrist, East shore (`kallristwestshor`) | 14 | 11 | 27 | 3 | 0 | 1.71 | 0.00 |
 | The Secret Pass of Mordor (`thesecretpassofm`) | 4 | 3 | 27 | 3 | 0 | 1.71 | 0.00 |
+| Carrok: Lesser (`carroklesser`) | 16 | 12 | 21 | 4 | 0 | 1.68 | 16.80 |
 | Goblin Gate: Lesser (`goblingatelesser`) | 3 | 3 | 35 | 1 | 0 | 1.61 | 31.80 |
 | The North Downs (`thenorthdowns001`) | 3 | 3 | 40 | 0 | 0 | 1.60 | 0.00 |
 | Kallrist, Land bridge (`kallristdarkrim`) | 15.5 | 12 | 24 | 3 | 0 | 1.59 | 0.00 |
@@ -357,7 +363,6 @@ Areas with hostile creatures, by drops per clear (highest first).
 | Enchanted Caverns (`enchantedcave001`) | 12.5 | 10 | 36 | 0 | 0 | 1.44 | 0.00 |
 | Great North Road (`greatnorthroad`) | 32 | 24 | 14 | 4 | 0 | 1.40 | 0.00 |
 | Mering Stream (`meringstream`) | 32 | 24 | 14 | 4 | 0 | 1.40 | 0.00 |
-| Carrok: Greater (`carrokgreater`) | 13 | 10 | 33 | 0 | 0 | 1.32 | 33.60 |
 | Bree Caverns (`breecaverns`) | 3 | 3 | 32 | 0 | 0 | 1.28 | 36.60 |
 | Gwathdor:  West Deeps (`gwathwest`) | 238 | 45 | 31 | 0 | 0 | 1.24 | 4.20 |
 | Angmar (`angmar`) | 15 | 11 | 13 | 3 | 0 | 1.15 | 0.00 |
@@ -365,7 +370,6 @@ Areas with hostile creatures, by drops per clear (highest first).
 | Mindalf (`nindalf`) | 28 | 21 | 12 | 3 | 0 | 1.11 | 0.00 |
 | Sharkey's Chamber (`sharkeyschamber`) | 1 | 1 | 17 | 2 | 0 | 1.10 | 20.10 |
 | Dead Marshes (`deadmarshes`) | 174 | 42 | 27 | 0 | 0 | 1.08 | 0.00 |
-| Carrok (`carrok`) | 16 | 12 | 26 | 0 | 0 | 1.04 | 0.00 |
 | Great East Road (`greateastroada`) | 3 | 3 | 26 | 0 | 0 | 1.04 | 0.00 |
 | Fornost (West) (`area004`) | 5 | 4 | 25 | 0 | 0 | 1.00 | 0.00 |
 | Celeduin Banks (`celeduinbanks`) | 5.5 | 4 | 24 | 0 | 0 | 0.96 | 0.00 |
@@ -374,7 +378,6 @@ Areas with hostile creatures, by drops per clear (highest first).
 | Mount Doom: Lower Caverns (`mountdoom002`) | 142 | 39 | 24 | 0 | 0 | 0.96 | 0.00 |
 | Númenor:  Arnenelos (`heavensdisdain`) | 1028 | 55 | 23 | 0 | 0 | 0.92 | 0.00 |
 | Temple of Nazgul (`area010`) | 75 | 33 | 7 | 3 | 0 | 0.91 | 0.00 |
-| Carrok: Lesser (`carroklesser`) | 16 | 12 | 21 | 0 | 0 | 0.84 | 16.80 |
 | Emyn Muil (`emynmuil`) | 62 | 32 | 21 | 0 | 0 | 0.84 | 0.00 |
 | Dunland (`dunland`) | 8 | 6 | 15 | 1 | 0 | 0.81 | 0.00 |
 | Bree Cave (`breecave`) | 0.33 | 1 | 20 | 0 | 0 | 0.80 | 31.20 |
