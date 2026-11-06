@@ -8,7 +8,11 @@ module-index/counter_gear.json:
   2. the five items that appear most often in the winning kit ("best_kit") of the
      78 bosses tracked by the Roll of the Fallen board (module-index/bosses.json).
 
-So each slot contributes 5-10 resrefs. Items are dropped from the table when they
+So each slot contributes 5-10 resrefs, plus the hand-curated EXTRAS (Akira's
+Mixtape, 3 Shards of Fate). An EXTRAS row's `copies` is how many separate items
+the chest is topped up to (DonCheatCopies) - the way to keep several of a
+non-stackable item, since a stack-size argument is silently ignored there
+(CLAUDE-gotchas.md). Items are dropped from the table when they
 
   * have no .uti blueprint in unpacked/ (CreateItemOnObject would fail),
   * are not player-obtainable per module-index/item_index.json, or
@@ -37,11 +41,16 @@ AMMO_SLOTS = {"ammo"}
 # Hand-curated additions that the top-value / boss-kit ranking can never pick,
 # because they are not equipment the counter-gear tables rank at all. Listed
 # HERE rather than in the generated table so a regeneration keeps them.
-# (resref, display name, stack, why)
+# (resref, display name, stack, copies, why) - `copies` is how many separate
+# items the chest is topped back up to (for a non-stackable item a tester needs
+# more than one of); `stack` is each item's stack size.
 EXTRAS = [
-    ("mw_mixtape", "Akira's Mixtape", 1,
+    ("mw_mixtape", "Akira's Mixtape", 1, 1,
      "extra: Meaningwave finale reward, so testers can take the permanent +1 "
      "to all six abilities without replaying the 7-guide meta-quest"),
+    ("lo_fate_shard", "Shard of Fate", 1, 3,
+     "extra: Loot Overhaul phase 7 token - 3 kept in the chest so testers can "
+     "reforge rolled loot and take boss bonus rolls without farming bosses"),
 ]
 
 
@@ -52,6 +61,7 @@ def load(name):
 
 def main():
     EXTRA_STACKS = {}
+    EXTRA_COPIES = {}
     cg = load("counter_gear.json")
     bosses = {b["resref"] for b in load("bosses.json")["bosses"]}
     items = {i["resref"]: i for i in load("item_index.json")["items"]}
@@ -107,7 +117,7 @@ def main():
     # "obtainable" by the item index), but still need a real blueprint and
     # must not be on the illicit-donations quarantine list.
     extra_picks = []
-    for r, name, stack, why in EXTRAS:
+    for r, name, stack, copies, why in EXTRAS:
         reason = None
         if not os.path.exists(os.path.join(ROOT, "unpacked", f"{r}.uti.json")):
             reason = "no .uti blueprint"
@@ -118,6 +128,7 @@ def main():
             continue
         extra_picks.append((r, name, 0, why))
         EXTRA_STACKS[r] = stack
+        EXTRA_COPIES[r] = copies
     if extra_picks:
         rows.append(("extra", "Extras", extra_picks))
 
@@ -166,6 +177,20 @@ def main():
     lines.append("            return 99;")
     for i, (s, label, r, name, gp, why) in enumerate(flat):
         n = EXTRA_STACKS.get(r, 1)
+        if s == "extra" and n != 1:
+            lines.append(f"        case {i}: // {name}")
+            lines.append(f"            return {n};")
+    lines.append("    }")
+    lines.append("    return 1;")
+    lines.append("}")
+    lines.append("")
+    lines.append("// How many separate copies of cheat-stock item n the chest is topped up to.")
+    lines.append("int DonCheatCopies(int n)")
+    lines.append("{")
+    lines.append("    switch (n)")
+    lines.append("    {")
+    for i, (s, label, r, name, gp, why) in enumerate(flat):
+        n = EXTRA_COPIES.get(r, 1)
         if s == "extra" and n != 1:
             lines.append(f"        case {i}: // {name}")
             lines.append(f"            return {n};")

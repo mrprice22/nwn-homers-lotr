@@ -348,6 +348,9 @@ merit shop: reward 305 ─► Merit_GrantInstant (deliver, then charge)
 - **Drop:** `Loot_DropShard` sets `PL_ALWAYS`. `inc_partyloot` `PL_OnItemAcquired` rolls such an
   item below the party's gp threshold (admin 2026-11-06: a Shard always goes to Need/Greed).
 - **Telemetry:** every reforge is logged to `loot_roll_log` with source `fate`, at any rarity.
+- **Test realms:** the Well of Eru Donations Chest cheat stock (dev and test roles only,
+  `SP_CHEAT_CHEST`) keeps **3** Shards of Fate, topped back up on every close - an `EXTRAS` row with
+  `copies` 3 in `bin/gen-cheat-chest.py`. Loot Lab's "Grant me a Shard of Fate" is the admin route.
 
 ## Loot Lab
 

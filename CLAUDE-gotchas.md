@@ -32,7 +32,11 @@
   it is only slower. When *counting* what someone already holds, sum
   `GetItemStackSize` over the inventory rather than using
   `GetItemPossessedBy` (which finds a stack of six and reports "has one",
-  and matches on **tag**, not resref).
+  and matches on **tag**, not resref). The Donations Chest cheat stock has a
+  proper count for this: an `EXTRAS` row in `bin/gen-cheat-chest.py` carries
+  `copies`, the generated `DonCheatCopies()` returns it, and
+  `DonCheatRestock` tops the chest up to that many separate items (3 Shards
+  of Fate). `stack` is still only the size of each one.
 
 - **A symlink in `database/` must resolve *inside the container*, not just on
   the host.** The server runs in podman with only two bind mounts,
