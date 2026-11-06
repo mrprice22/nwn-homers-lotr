@@ -177,6 +177,11 @@ def creature_report(data, margin=None):
     classes = cc["classes"]
     levels = data["levels"]
     alv = {a: (e.get("level") or 0) for a, e in data["area_levels"]["areas"].items()}
+    acr = {a: e.get("area_cr") for a, e in data["area_levels"]["areas"].items()}
+
+    def acr_s(a):
+        v = acr.get(a)
+        return "-" if v is None else "%g" % v
     bosses = lm.boss_resrefs()
     slots = lm.creature_slots(also=frozenset(bosses))
 
@@ -236,6 +241,13 @@ def creature_report(data, margin=None):
     w("`python3 bin/gen-loot-tables.py --apply` and re-run this report. `--margin N` previews another")
     w("margin without editing anything.")
     w("")
+    pct = lm.area_percentile(data)
+    w("**Levels are loot levels (1-60), not CRs.** A CR maps to a loot level through")
+    w("`loot/levels.json` `cr_points`: %s. An area's loot level is the %dth-percentile CR of"
+      % (", ".join("CR %d = %d" % (c, lm.level_for_cr(levels, c)) for c in (10, 25, 55, 100, 250, 500, 1000)), pct))
+    w("its hostile creatures (`area_percentile`), shown as *area CR*, unless")
+    w("`sources.json` `area_overrides` pins it.")
+    w("")
     w("Normal and elite creatures must be in a hostile faction (reputation toward PCs <= 10, the")
     w("area-level rule); registered bosses drop whatever faction they were placed in.")
     w("")
@@ -284,8 +296,8 @@ def creature_report(data, margin=None):
     w("")
     w("Grouped by area. *over* = how far the creature's loot level is above the area's.")
     w("")
-    w("| area | area lvl | creature | resref | CR | loot lvl | over | slots | why |")
-    w("|---|---|---|---|---|---|---|---|---|")
+    w("| area | area CR | area lvl | creature | resref | CR | loot lvl | over | slots | why |")
+    w("|---|---|---|---|---|---|---|---|---|---|")
     grp = collections.OrderedDict()
     for r in sorted((r for r in rows if r["cls"] == "elite"),
                     key=lambda r: (aname(r["area"]).lower(), r["area"], -r["cr"], r["resref"])):
@@ -295,10 +307,10 @@ def creature_report(data, margin=None):
         grp[k]["n"] += 1
     for (a, rr, cr), r in grp.items():
         why = "elite_include" if rr in cc.get("elite_include", {}) else "auto"
-        w("| %s (`%s`) | %d | %s | `%s` | %g | %d | %+d | %d | %s |" % (
-            aname(a), a, r["alvl"], cname(rr), rr, cr, r["lvl"], r["lvl"] - r["alvl"], r["n"], why))
+        w("| %s (`%s`) | %s | %d | %s | `%s` | %g | %d | %+d | %d | %s |" % (
+            aname(a), a, acr_s(a), r["alvl"], cname(rr), rr, cr, r["lvl"], r["lvl"] - r["alvl"], r["n"], why))
     if not grp:
-        w("| - | | | | | | | | |")
+        w("| - | | | | | | | | | |")
     w("")
 
     sup = [r for r in rows if r["resref"] in cc.get("elite_exclude", {})]
@@ -325,8 +337,8 @@ def creature_report(data, margin=None):
     w("")
     w("Areas with hostile creatures, by drops per clear (highest first).")
     w("")
-    w("| area | lvl | slots | elite | boss | drops per clear | chest gear per fill |")
-    w("|---|---|---|---|---|---|---|")
+    w("| area | area CR | lvl | slots | elite | boss | drops per clear | chest gear per fill |")
+    w("|---|---|---|---|---|---|---|---|")
     chest = _chest_gear_by_area(data)
     by_area = collections.defaultdict(list)
     for r in rows:
@@ -336,8 +348,8 @@ def creature_report(data, margin=None):
         drops = sum(per_kill(r["cls"], r["cr"]) for r in rs if r["cls"])
         table.append((-round(drops, 6), aname(a).lower(), a, rs, drops))
     for _, _, a, rs, drops in sorted(table):
-        w("| %s (`%s`) | %d | %d | %d | %d | %.2f | %.2f |" % (
-            aname(a), a, alv.get(a, 0), len(rs), sum(1 for r in rs if r["cls"] == "elite"),
+        w("| %s (`%s`) | %s | %d | %d | %d | %d | %.2f | %.2f |" % (
+            aname(a), a, acr_s(a), alv.get(a, 0), len(rs), sum(1 for r in rs if r["cls"] == "elite"),
             sum(1 for r in rs if r["cls"] == "boss"), drops, chest.get(a, 0.0)))
     w("")
     return "\n".join(L)

@@ -1,5 +1,6 @@
 {
-  "_doc": "Creature CR -> loot level 1..60, piecewise-linear over cr_points [[CR, level], ...] and clamped at both ends. Boss CRs reach 9,540, so the bands are log-shaped: most of the range is spent where players actually level. boss_overrides pins a specific boss resref to a loot level (Phase 4 reads it). Tune with bin/loot-sim.py.",
+  "_doc": "Creature CR -> loot level 1..60, piecewise-linear over cr_points [[CR, level], ...] and clamped at both ends. Boss CRs reach 9,540, so the bands are log-shaped: most of the range is spent where players actually level. area_percentile is the CR percentile of an area's hostile creatures that sets the area's loot level (75, so a town of many guards and a few veterans is levelled by the veterans; admin 2026-11-06, was the median). boss_overrides pins a specific boss resref to a loot level (Phase 4 reads it). Tune with bin/loot-sim.py.",
   "cr_points": [[0, 1], [40, 30], [200, 45], [1000, 55], [10000, 60]],
+  "area_percentile": 75,
   "boss_overrides": {}
 }

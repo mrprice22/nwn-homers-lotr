@@ -4,13 +4,14 @@
 Loot Overhaul Phase 3 (roadmap rng-based-gear-diablo-world-of-warcraft-style).
 A chest rolls at its AREA's loot level, not the opener's, so a level-60 player
 gets nothing special out of a level-5 dungeon's chests.  The level is the
-median CR of the area's hostile creatures (placed instances and placed
-encounter pools; "hostile" = reputation toward players <= 10 in
-repute.fac.json) run through loot/levels.json, unless loot/sources.json
-``area_overrides`` pins it.
+75th-percentile CR (loot/levels.json ``area_percentile``) of the area's hostile
+creatures (placed instances and placed encounter pools; "hostile" = reputation
+toward players <= 10 in repute.fac.json) run through loot/levels.json, unless
+loot/sources.json ``area_overrides`` pins it.  It was the median until
+2026-11-06; a town full of low-CR guards with a few veterans read too low.
 
 An area that holds a treasure container but has no hostile creatures - a town,
-an inn - has nothing to take a median of.  The build gate fails until such an
+an inn - has nothing to take a percentile of.  The build gate fails until such an
 area has an override; ``--suggest`` proposes one from the nearest areas that
 do have a level (module-index/area_graph.json, which the wiki build writes).
 
@@ -92,10 +93,10 @@ def suggest(doc):
 def table(doc):
     names = _names()
     rows = sorted(((e["level"] or 0, a, e) for a, e in doc["areas"].items() if e["chests"]))
-    print("%-4s %-18s %-6s %-9s %-8s %s" % ("lvl", "area", "chests", "medianCR", "source", "name"))
+    print("%-4s %-18s %-6s %-9s %-8s %s" % ("lvl", "area", "chests", "areaCR", "source", "name"))
     for lv, a, e in rows:
         print("%-4s %-18s %-6d %-9s %-8s %s" % (lv or "-", a, e["chests"],
-                                              e["median_cr"] if e["median_cr"] is not None else "-",
+                                              e["area_cr"] if e["area_cr"] is not None else "-",
                                               e["source"], names.get(a, "")))
 
 
