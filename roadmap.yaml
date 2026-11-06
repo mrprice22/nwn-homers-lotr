@@ -3480,16 +3480,47 @@ ideas:
     title: "Socket system for weapons, max dmg 2d10, max ab +16, limited properties"
     group: forge
     epic: loot-overhaul
-    status: soon
+    status: wip
     type: Enhancement
     player: "-Methonash-"
-    date: "2026-06-20"
+    date: "2026-11-06"
+    commit: 1a1a75fbb70
+    docs: Customizations/Loot.html#sockets
     discord: {'thread_id': '1549087384581443585', 'channel_id': '1544082593362874469', 'url': 'https://discord.com/channels/514343293761486848/1549087384581443585'}
-    impl_notes: "<div>Phase 5 of the Loot Overhaul (Draft/Loot-Overhaul.html#p5): adopts Draft/Gem-Socketing.html minus its forge-legality/jail integration (jail retired by lo-remove-jail). Random items roll socket count by rarity; existing items get sockets from a generated socket_def_inc + version-stamped login reconcile; gems merge with a same-type property (never overwrite a forged one), clamped to 2d10 damage / AB +16; sockets separate from forge property slots.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div><div><b>Chests (admin 2026-11-05):</b> loot containers should also hold socketable gems. Phase 3 left the hook: add a socket_gem_chance field to the chest_* profiles in loot/sources.json, its LootD_ accessor in gen-loot-tables.py, and a gem roll in Loot_FillContainer (loot_inc.nss) + loot_model.chest_contents.</div>"
+    notes: "<div>Gear now has <b>sockets</b>, and monsters, bosses and chests drop <b>socket gems</b> to fill them. Rolled loot gets 0 to 3 sockets by rarity; the gear you already own gets one (the most valuable pieces two) when you log in. Use a gem on an item in your pack: it raises that item's own enchantment of its kind - fire damage, enhancement, Armour Class, an ability or saving throws - or adds it, up to 2d10 damage and +16 enhancement or attack. A gem never lowers what the item has, a gem that would not help is refused and kept, and socketing is permanent. A gem's enchantment does not use up a forge slot. See <a href=\"Customizations.html#sockets\">Sockets</a> and <a href=\"Customizations.html#gems\">Socket gems</a>.</div>"
+    impl_notes: "<div>Phase 5 of the Loot Overhaul (Draft/Loot-Overhaul.html#p5): adopts Draft/Gem-Socketing.html minus its forge-legality/jail integration (jail retired by lo-remove-jail). Random items roll socket count by rarity; existing items get sockets from a generated socket_def_inc + version-stamped login reconcile; gems merge with a same-type property (never overwrite a forged one), clamped to 2d10 damage / AB +16; sockets separate from forge property slots.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div><div><b>Chests (admin 2026-11-05):</b> loot containers should also hold socketable gems. Phase 3 left the hook: add a socket_gem_chance field to the chest_* profiles in loot/sources.json, its LootD_ accessor in gen-loot-tables.py, and a gem roll in Loot_FillContainer (loot_inc.nss) + loot_model.chest_contents.</div><div><b>Built 2026-11-06 (commit 1a1a75fbb70, not rebuilt).</b> Data: loot/gems.json (15 families x 5 cuts, DRAFT catalogue for admin review: six elemental damage, Keenstone enhancement/attack, AC, six abilities, universal saves), loot/sockets.json (existing gear: 1 socket, 2 at blueprint Cost &gt;= 1.18M, 481 items; Plot/Cursed/stacks none; schema version for the login pass), rarity.json sockets (C 0 / U 0-1 / R 1 / E 1-2 / L 2-3), sources.json socket_gem_chance (chests 5-20%) and class gem_chance (normal 2%, elite 15%, boss 100% with a Cut floor). Generator: unpacked/socket_data_inc.nss (gem_inc only) + 75 generated sgem_&lt;fam&gt;_&lt;tier&gt; blueprints (base 24, targeted Unique Power iprp_spells 329, palette Misc &gt; Gems, icons from the miscsmall sheet). Runtime gem_inc.nss: Gem_Apply raises the family property by steps on its ladder or adds it; last rung = cap (2d10 / +16 gate invariants); damage ladder +1..+4, 1d6..2d10 (no flat +5, admin 2026-11-06); off-ladder values placed by average damage. gem_activate (dmfi_activate sgem_ branch), gem_login + gem_scan_step (login pass, 10.5 s, 8 items/step), gem_drop (via Loot_DropSocketGem from Loot_FillContainer / loot_ondeath). Forge: ForgePropInSet(ip, nSel, oItem) - gem-created props not COUNTED, gem-touched not REMOVABLE, PRICED unchanged; modifyitem refuses to rework a gem-touched property; a gemmed rolled affix leaves LOOT_AFX_* (Phase 7 reforge safe). Loot Lab: grant a random gem / one of each family (emotewand R174/R175). loot-sim --gems prints the merge table. Reference: CLAUDE-loot.md \"Sockets and gems (Phase 5)\".</div><div><b>Not rebuilt:</b> forge_inc, loot_inc, loot_data_inc and socket_data_inc are includes - this rides the single repack-homers-lotr-clean at the end of Loot Overhaul Phase 7 (status stays wip until that build reaches dev). 89 dependent scripts compile clean.</div>"
     design_questions:
       - question: "Can a gem ever be removed from its socket? Proposal: no - socketing is permanent and the gem is consumed (as the socket draft says)."
         status: answered
         answer: "Decided by admin 2026-11-05. No. Socketing is permanent and the gem is consumed."
+    manual_steps:
+      - step: "Review the draft gem catalogue in loot/gems.json (families, names, steps per cut, caps for AC/abilities/saves, drop chances in sources.json) and loot/sockets.json (1 socket for existing gear, 2 at Cost >= 1.18M); python3 bin/loot-sim.py --gems prints the merge table and drop rates. Say what to change."
+        status: open
+        kind: admin
+      - step: "Loot Lab: set the rarity floor and Grant one socket gem of every family. Each gem is in your pack, named in the floor's colour, with the right icon and description."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Activate an Emberstone and target a melee weapon in your pack that has 1 socket and no fire damage: it gains fire damage, the gem is used up, the description ends 'Sockets (1/1): ...', and a message shows what changed. Then target the same weapon with another gem: refused ('Every socket ... is already filled'), gem kept. This also proves the targeted Unique Power can pick an inventory item."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Socket a forged weapon that already has fire damage (e.g. 1d6): the fire damage is raised (1d8 or more), never replaced by a weaker value. A Wardstone on a sword and any gem on an unidentified item are refused and kept."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Log out and back in: socket locals and the description persist, and an older non-plot weapon or armour you carry now shows 'Sockets (0/1): [empty]' (0/2 for top-value gear)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "At a forge: an item with a gem-created property shows one fewer enchantment slot used; trying to forge the same property type on it is refused ('bound to a gem'); staged disenchant does not list the gemmed property."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "With Loot Lab force drops ON, kill a boss: its corpse holds one socket gem (Cut or better at boss loot levels) besides the gear; open a few high-level large chests and see an occasional gem."
+        status: open
+        kind: uat
+        tester: "admin"
   - id: Card-mendard-drops-elronds-sword
     title: "Card Menard in Edoras drops Elrond's sword"
     group: items-gear
