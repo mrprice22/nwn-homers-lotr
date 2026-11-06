@@ -12,7 +12,8 @@
 // defaults to the PC's hit dice) and LOOTLAB_FLOOR (rarity floor index).
 // Custom tokens: 6450 = loot level, 6451 = rarity floor label.
 // Phase 5 added "grant a socket gem" (lootlab_gem1 / lootlab_gemall, which
-// include gem_inc themselves); Phase 7 adds "grant a Shard of Fate".
+// include gem_inc themselves); Phase 7 added "grant a Shard of Fate" and "clear
+// my Shard of Fate lockouts" (lootlab_fate / lootlab_fateclr).
 
 #include "admin_db"
 #include "loot_inc"

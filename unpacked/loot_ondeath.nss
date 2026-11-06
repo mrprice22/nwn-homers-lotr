@@ -18,6 +18,11 @@
 //
 // Loot Lab: a contributor carrying LOOT_FORCE_DROPS (lootlab_force) forces the
 // drop chance to 1000 and gets one "LOOT:" line per kill.
+//
+// Phase 7 (lo-fate-token): a boss also drops a Shard of Fate at
+// LOOTD_FATE_BOSS_CHANCE (forced drops force it), and every PC contributor in
+// the corpse's area who carries a Shard and is not locked out on this boss is
+// offered a bonus roll (fate_open -> the fate_inc NUI prompt).
 
 #include "loot_inc"
 #include "nwnx_creature"
@@ -44,6 +49,36 @@ object LootO_Forcer(object oCre)
             return m;
     }
     return OBJECT_INVALID;
+}
+
+void LootO_Shard(object oDest)
+{
+    Loot_DropShard(oDest);
+}
+
+// Offer the Shard of Fate bonus roll to every eligible contributor: a PC, in
+// the corpse's area, carrying a Shard, not locked out on this boss.  The
+// lockout is re-checked on the Spend click (fate_inc Fate_Spend).
+void LootO_FateOffers(object oCre, string sRes, int nLvl)
+{
+    object oArea = GetArea(oCre);
+    string sName = GetName(oCre);
+    int nN = GetLocalInt(oCre, "bst_ctrb_n");
+    int i;
+    for (i = 0; i < nN; i++)
+    {
+        object m = GetLocalObject(oCre, "bst_ctrb_" + IntToString(i));
+        if (!GetIsObjectValid(m) || !GetIsPC(m) || GetIsDM(m)) continue;
+        if (GetArea(m) != oArea) continue;
+        if (GetLocalObject(m, "FATE_P_CRE") == oCre) continue;   // listed twice
+        if (!GetIsObjectValid(Loot_FindShard(m))) continue;
+        if (Loot_FateLockedFor(m, sRes, LOOTD_FATE_LOCKOUT) > 0) continue;
+        SetLocalObject(m, "FATE_P_CRE", oCre);
+        SetLocalString(m, "FATE_P_BOSS", sRes);
+        SetLocalString(m, "FATE_P_BNAME", sName);
+        SetLocalInt(m, "FATE_P_LVL", nLvl);
+        ExecuteScript("fate_open", m);
+    }
 }
 
 string LootO_ClassName(int nClass)
@@ -110,6 +145,17 @@ void main()
         AssignCommand(GetModule(), DelayCommand(0.1 * IntToFloat(nMade),
             Loot_DropSocketGem(nLvl, bBoss ? LOOTD_GEM_BOSS_FLOOR : 0, oCre)));
         nMade++;
+    }
+
+    // Phase 7: the Shard of Fate - a boss drop, then the bonus-roll offers.
+    if (bBoss)
+    {
+        if (GetIsObjectValid(oForcer) || Random(1000) < LOOTD_FATE_BOSS_CHANCE)
+        {
+            AssignCommand(GetModule(), DelayCommand(0.1 * IntToFloat(nMade), LootO_Shard(oCre)));
+            nMade++;
+        }
+        LootO_FateOffers(oCre, sRes, nLvl);
     }
 
     if (GetIsObjectValid(oForcer))

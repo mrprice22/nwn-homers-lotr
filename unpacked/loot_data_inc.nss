@@ -976,6 +976,14 @@ const int LOOTD_BOSS_EXTRA_CR = 1000;
 const int LOOTD_BOSS_NAMED = 100;
 // A boss's socket gem has this tier floor (loot/gems.json boss_floor, Phase 5).
 const int LOOTD_GEM_BOSS_FLOOR = 2;
+// The Shard of Fate (loot/tokens.json "fate", Phase 7): blueprint/tag, boss
+// drop chance per mille, bonus-roll prompt timeout and lockout (seconds), and
+// the profile a bonus roll draws from.
+const string LOOTD_FATE_RESREF = "lo_fate_shard";
+const int LOOTD_FATE_BOSS_CHANCE = 100;
+const int LOOTD_FATE_TIMEOUT = 60;
+const int LOOTD_FATE_LOCKOUT = 86400;
+const string LOOTD_FATE_PROFILE = "boss";
 const int LOOTD_LIST_NONE = 0;
 const int LOOTD_LIST_ELITE = 1;
 const int LOOTD_LIST_NOT_ELITE = 2;

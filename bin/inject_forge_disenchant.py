@@ -67,6 +67,21 @@ LEAVE_TEXT = "Leave it as it is."
 # tail - a hand-added reply in that range is silently deleted on re-injection.
 EXPAND_TEXT = ("Expand a property slot on the <CUSTOM100> with a Rune of "
                "Expansion. (<CUSTOM6120>/3 used)")
+# The Shard of Fate reforge (Loot Overhaul Phase 7, roadmap lo-fate-token). Same
+# anchors as the expand reply, plus D4 (re-rolling random affixes is bounded by
+# the forge's cap, so it is lawful there too). Gated by forge_fate_can (item on
+# the anvil AND a Shard carried), it opens a confirm entry D5 - a reforge cannot
+# be undone - whose "Aye" runs forge_fate_go and loops back to the anchor menu.
+FATE_TEXT = "Reforge the fate of the <CUSTOM100> with a Shard of Fate."
+FATE_CONFIRM_TEXT = ("A Shard of Fate will unmake every enchantment fate gave the "
+                     "<CUSTOM100> and draw new ones, at the same strength of fate. "
+                     "What you forged into it yourself, and any gems in its sockets, "
+                     "I leave alone. There is no undoing it, and the Shard is spent. "
+                     "Shall I?")
+FATE_YES_TEXT = "Aye, reforge it."
+FATE_NO_TEXT = "No, leave it as it is."
+FATE_GATE = "forge_fate_can"
+FATE_SCRIPT = "forge_fate_go"
 # Shown when "modify" is chosen on an item already at/over the forge's value cap:
 # offers ONLY the strip hook (no yes/no add-enchant flow that could only fail at
 # commit). worth=104, cap=105 are primed by the forge_can_mod / isitemonanvil gate.
@@ -155,7 +170,7 @@ def migrate(data) -> bool:
     r_base = min(l["Index"]["value"]
                  for l in entries[d1]["RepliesList"]["value"])
 
-    del entries[d1:]      # drop injected entries (D1, D2, D3, D4)
+    del entries[d1:]      # drop injected entries (D1, D2, D3, D4, D5)
     del replies[r_base:]  # drop injected replies (slots, commit, cancel, yes/no, hook, leave)
 
     # Drop any link into the removed reply block (the hook links on anchors).
@@ -231,6 +246,7 @@ def inject(path: Path):
     d2 = d1 + 1              # confirm entry
     d3 = d1 + 2              # success entry (returns to the forge hub)
     d4 = d1 + 3              # "at the limit — strike only" entry (over-cap modify)
+    d5 = d1 + 4              # Shard of Fate confirm entry
     r_slot0 = len(replies)   # 8 slot replies: r_slot0 .. r_slot0+7
     r_more = r_slot0 + 8     # "Show more enchantments"  (next page)
     r_prev = r_slot0 + 9     # "Show previous enchantments"
@@ -242,6 +258,9 @@ def inject(path: Path):
     r_hook = r_slot0 + 15
     r_leave = r_slot0 + 16   # D4 "Leave it as it is." -> hub
     r_expand = r_slot0 + 17  # "Expand a property slot" -> back to the anchor
+    r_fate = r_slot0 + 18    # "Reforge the fate of ..." -> D5
+    r_fyes = r_slot0 + 19    # D5 "Aye" (forge_fate_go) -> back to the anchor
+    r_fno = r_slot0 + 20     # D5 "No" -> hub
 
     # Entry D1: 8 paginated slot toggles + page nav + commit + cancel.
     e1 = node(d1, D1_TEXT, script="forge_stg_anvil", entry=True)
@@ -271,6 +290,13 @@ def inject(path: Path):
     e4["RepliesList"]["value"].append(link(1, r_leave, child=True))
     e4["RepliesList"]["value"].append(
         link(2, r_expand, active="isitemonanvil", child=True))
+    e4["RepliesList"]["value"].append(
+        link(3, r_fate, active=FATE_GATE, child=True))
+
+    # Entry D5: Shard of Fate confirm.
+    e5 = node(d5, FATE_CONFIRM_TEXT, entry=True)
+    e5["RepliesList"]["value"].append(link(0, r_fyes))
+    e5["RepliesList"]["value"].append(link(1, r_fno))
 
     new_replies = []
     # Slot toggles: each re-shows D1 (child link) so the cues refresh.
@@ -331,7 +357,20 @@ def inject(path: Path):
     r["EntriesList"]["value"].append(link(0, anchors[0][0], child=True))
     new_replies.append(r)
 
-    entries.extend([e1, e2, e3, e4])
+    # Shard of Fate: the hook owns D5 and re-primes the item tokens before D5's
+    # text renders; "Aye" reforges (forge_fate_go speaks the outcome, spends the
+    # Shard only on a committed reforge) and loops back to the anchor menu.
+    r = node(r_fate, FATE_TEXT, script=CTX_SCRIPT)
+    r["EntriesList"]["value"].append(link(0, d5))
+    new_replies.append(r)
+    r = node(r_fyes, FATE_YES_TEXT, script=FATE_SCRIPT)
+    r["EntriesList"]["value"].append(link(0, anchors[0][0], child=True))
+    new_replies.append(r)
+    r = node(r_fno, FATE_NO_TEXT)
+    r["EntriesList"]["value"].append(link(0, hub, child=True))
+    new_replies.append(r)
+
+    entries.extend([e1, e2, e3, e4, e5])
     replies.extend(new_replies)
 
     # Hook the new reply into every anchor menu entry. The entry that owns
@@ -341,6 +380,8 @@ def inject(path: Path):
         rl.append(link(len(rl), r_hook, active="isitemonanvil",
                        child=(ischild == 1)))
         rl.append(link(len(rl), r_expand, active="isitemonanvil",
+                       child=(ischild == 1)))
+        rl.append(link(len(rl), r_fate, active=FATE_GATE,
                        child=(ischild == 1)))
 
     # Re-gate the modify-confirm entry: open the add-enchant flow only when the
@@ -362,7 +403,7 @@ def inject(path: Path):
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     verb = "re-injected (migrated)" if migrated else "injected"
     print(f"{path.name}: {verb} (D1=entry {d1}, D2=entry {d2}, D3=entry {d3}, "
-          f"D4=entry {d4}, replies {r_slot0}..{r_expand}, hub=entry {hub}, "
+          f"D4=entry {d4}, D5=entry {d5}, replies {r_slot0}..{r_fno}, hub=entry {hub}, "
           f"anchors {[a for a, _ in anchors]})")
 
 

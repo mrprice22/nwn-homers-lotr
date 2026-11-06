@@ -31,6 +31,9 @@ loot_model.py).  In game, Loot Lab's "dump" prints the engine's own value.
                                                   #   gems per chest open / per kill, gem tier mix
                                                   #   by level, and the merge table (what each gem
                                                   #   does to each existing value)
+    python3 bin/loot-sim.py --reforge 40,3        # Shard of Fate (Phase 7): boss Shard drops, and
+                                                  #   N reforges of a level-40 Epic item - value vs
+                                                  #   budget, set changed, bounds never broken
 """
 
 from __future__ import annotations
@@ -541,6 +544,75 @@ def wishlist_report(data, wish_bases, feats, caster, auto, n, seed):
         print("%-13s %9.1f%% %9.1f%%" % (prof, res[0], res[1]))
 
 
+def reforge_report(data, spec, n, seed):
+    """Phase 7: the Shard of Fate.  Boss Shard drops per kill, then N reforges
+    of one rolled item (loot_model.reforge, the mirror of Loot_Reforge): the
+    affix count, value against the budget, how often the affix set changes,
+    and that a kept (forged) property's type is never re-rolled onto it."""
+    rng = random.Random(seed)
+    model = lm.CostModel(data["costs"])
+    fate = lm.tokens_cfg(data)
+    kills = 20000
+    got = sum(1 for _ in range(kills)
+              for x in lm.creature_drop(data, "boss", 0, 50, rng, model) if x.get("shard"))
+    print("== Shard of Fate (loot/tokens.json fate)")
+    print("   boss drop chance %d/1000 -> %.3f Shards per boss kill (%d simulated kills)"
+          % (fate.get("boss_chance", 0), got / kills, kills))
+    print("   bonus roll: %ds prompt, %dh lockout per boss, profile '%s'"
+          % (fate.get("bonus_timeout_s", 0), fate.get("lockout_s", 0) // 3600,
+             fate.get("bonus_profile")))
+    parts = [int(x) for x in (spec or "40,3").split(",") if x.strip()]
+    lvl = parts[0] if parts else 40
+    rar = parts[1] if len(parts) > 1 else 3
+    item = None
+    for _ in range(500):
+        r = lm.roll(data, lvl, rar, "lab", rng, model)
+        if r.get("named") is None and r["rarity"] == rar and r["affixes"] \
+                and (len(parts) < 3 or r["base"] == parts[2]):
+            item = r
+            break
+    if item is None:
+        print("   no rolled item matched level %d rarity %d%s"
+              % (lvl, rar, "" if len(parts) < 3 else " base %d" % parts[2]))
+        return
+    ab = lm.affix_by_id(data)
+    tiers = data["rarity"]["tiers"]
+    print("== reforging: %s [%s, level %d, base %d] value %d / budget %d"
+          % (item["name"], tiers[rar]["name"], lvl, item["base"], item["value"], item["budget"]))
+    print("   affixes now: %s" % ", ".join("%s@%d" % a for a in item["affixes"]))
+    # As the forge would see it: one forged Enhancement (+5) kept, and the
+    # whole item capped at its value now plus 25%.
+    kept = [(6, 0, 5)]
+    cap = int(model.item_value(item["base"], kept + [
+        (ab[i]["type"], ab[i].get("sub") or 0, c) for i, c in item["affixes"]]) * 1.25)
+    for label, kp, vcap in (("plain reforge", [], None),
+                            ("forged Enhancement +5 kept, whole item <= +25%%", kept, cap)):
+        cnt = collections.Counter()
+        vals, changed, over, dup, none = [], 0, 0, 0, 0
+        old = frozenset(a for a, _ in item["affixes"])
+        for _ in range(n):
+            f = lm.reforge(data, item["base"], lvl, rar, kp, rng, model, value_cap=vcap,
+                           prop_cap=6)
+            if f is None:
+                none += 1
+                continue
+            vals.append(f["value"])
+            ids = frozenset(a for a, _ in f["affixes"])
+            changed += ids != old
+            over += f["value"] > f["budget"] or (vcap is not None and f["total"] > vcap)
+            dup += any((ab[a]["type"], ab[a].get("sub") or 0) in {(t, s) for t, s, _c in kp}
+                       for a in ids)
+            cnt[len(f["affixes"])] += 1
+        vals.sort()
+        q = lambda p: vals[min(len(vals) - 1, int(p * len(vals)))] if vals else 0
+        print("   %s (%d reforges):" % (label % () if "%%" in label else label, n))
+        print("      affix count %s; value p50 %d p90 %d (budget %d); set changed %.0f%%;"
+              % (dict(sorted(cnt.items())), q(0.5), q(0.9), item["budget"],
+                 100.0 * changed / max(1, n - none)))
+        print("      over a bound: %d; duplicated a kept type: %d; nothing fitted (Shard kept): %d"
+              % (over, dup, none))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--n", type=int, default=20000)
@@ -553,6 +625,9 @@ def main():
     ap.add_argument("--chests", action="store_true")
     ap.add_argument("--creatures", action="store_true")
     ap.add_argument("--gems", action="store_true")
+    ap.add_argument("--reforge", nargs="?", const="", default=None, metavar="LVL,RARITY[,BASE]",
+                    help="Phase 7: Shard of Fate boss drops, and N reforges of one rolled "
+                         "item (default 40,3 = level 40, Epic)")
     ap.add_argument("--wishlist", default=None, metavar="BASE[,BASE...]",
                     help="Phase 6: share of these base rows per profile with/without the wishlist")
     ap.add_argument("--auto-feats", default=None, metavar="FEAT[,FEAT...]",
@@ -578,6 +653,9 @@ def main():
         return 1
     if a.chests:
         chests(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)
+        return 0
+    if a.reforge is not None:
+        reforge_report(data, a.reforge, min(a.n, 5000), a.seed)
         return 0
     if a.gems:
         gems(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)

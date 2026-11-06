@@ -499,7 +499,11 @@ void PL_OnItemAcquired()
 
     object oLeader = GetFactionLeader(oPC);
     if (PL_IsDisabled(oLeader)) return;
-    if (!bWasUnidentified && GetGoldPieceValue(oItem) < PL_GetThreshold(oLeader)) return;
+    // PL_ALWAYS (item local): roll it whatever its gp value - the Shard of Fate
+    // (Loot Overhaul Phase 7, loot_inc Loot_DropShard), worth little in gold but
+    // the whole point of a boss kill (admin 2026-11-06).
+    if (!bWasUnidentified && !GetLocalInt(oItem, "PL_ALWAYS")
+        && GetGoldPieceValue(oItem) < PL_GetThreshold(oLeader)) return;
 
     object oArea = GetArea(oPC);
 

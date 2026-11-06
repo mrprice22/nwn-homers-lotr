@@ -139,7 +139,9 @@ def load_data():
                         ("area_levels", {"areas": {}}), ("_items", {"items": {}}),
                         # Phase 5 (sockets and gems)
                         ("gems", {"families": [], "tiers": [], "level_bands": []}),
-                        ("sockets", {})):
+                        ("sockets", {}),
+                        # Phase 7 (the Shard of Fate)
+                        ("tokens", {})):
         d[stem.lstrip("_")] = _load(stem + ".json") if (LOOT_DIR / (stem + ".json")).exists() else empty
     return d
 
@@ -484,6 +486,135 @@ def eligible(aff, cat, level, role, used_groups):
             and aff["weight"] > 0 and aff["group"] not in used_groups)
 
 
+def roll_affixes(data, cat, level, tier, base_row, rng, model, block=frozenset(),
+                 max_new=None, total_fn=None, total_cap=None):
+    """Pick and budget one item's random affixes.  Mirrors Loot_RollAffixes:
+    shared by roll() and reforge() (Phase 7), with the RNG drawn in the same
+    order as before the split, so a seeded roll() is unchanged.
+
+    ``block``   (type, sub) pairs already on the item (a reforge's forged/gem
+                properties) - an affix that would build one is not eligible.
+    ``max_new`` most affixes this pick may add (downside included), or None.
+    ``total_fn(props) -> value`` with ``total_cap``: also step down while the
+                whole item (kept properties + these) is worth more than the cap.
+    Returns (chosen [[affix_index, ladder_index]], affix-only value, budget,
+    has_downside)."""
+    affixes = data["affixes"]["affixes"]
+    lo_n, hi_n = tier["affixes"]
+    n_up = lo_n + rng.randrange(hi_n - lo_n + 1)
+    chosen = []          # [affix_index, ladder_index]
+    used = set()
+
+    def ok(a, role):
+        return (eligible(a, cat, level, role, used)
+                and (a["type"], a.get("sub") or 0) not in block)
+
+    has_down = False
+    if rng.randrange(1000) < tier.get("downside_chance", 0) and (max_new is None or max_new >= 2):
+        pool = [i for i, a in enumerate(affixes) if ok(a, "downside")]
+        i = weighted(rng, pool, lambda k: affixes[k]["weight"])
+        if i is not None:
+            lo, hi = affix_window(affixes[i], level)
+            chosen.append([i, lo + rng.randrange(hi - lo + 1)])
+            used.add(affixes[i]["group"])
+            has_down = True
+            n_up += 1
+
+    bias = tier.get("roll_bias", 0)
+    for _ in range(n_up):
+        if max_new is not None and len(chosen) >= max_new:
+            break
+        pool = [i for i, a in enumerate(affixes) if ok(a, "upside")]
+        i = weighted(rng, pool, lambda k: affixes[k]["weight"])
+        if i is None:
+            break
+        lo, hi = affix_window(affixes[i], level)
+        # roll_bias: the best of (1 + bias) rolls inside the window.
+        step = lo + rng.randrange(hi - lo + 1)
+        for _b in range(bias):
+            step = max(step, lo + rng.randrange(hi - lo + 1))
+        chosen.append([i, step])
+        used.add(affixes[i]["group"])
+
+    budget = rarity_budget(tier, level, has_down)
+
+    def props():
+        return [(affixes[i]["type"], affixes[i].get("sub") or 0,
+                 affixes[i]["ladder"][k]) for i, k in chosen]
+
+    def over(v):
+        if v > budget:
+            return True
+        return total_fn is not None and total_fn(props()) > total_cap
+
+    value = model.item_value(base_row, props())
+    steps = 0
+    while over(value) and steps < 64:
+        steps += 1
+        # Step the LAST upside that can still step down (to the bottom of its
+        # ladder, not just of its level window: the rarity budget, not the
+        # loot level, decides how strong an item is); once none can, drop the
+        # last upside.  The first-rolled affix (the item's identity, its name
+        # prefix) is the last to give ground.
+        j = None
+        for k in range(len(chosen) - 1, -1, -1):
+            a = affixes[chosen[k][0]]
+            if a["role"] == "upside" and chosen[k][1] > 0:
+                j = k
+                break
+        if j is not None:
+            chosen[j][1] -= 1
+        else:
+            ups = [k for k, (i, _) in enumerate(chosen)
+                   if affixes[i]["role"] == "upside"]
+            if not ups:
+                break
+            chosen.pop(ups[-1])
+        value = model.item_value(base_row, props())
+    return chosen, value, budget, has_down
+
+
+def reforge(data, base_row, level, rarity, kept_props=(), rng=None, model=None,
+            value_cap=None, prop_cap=None, kept_counted=None):
+    """Phase 7: a Shard of Fate re-roll of a rolled item's random affixes.
+    Mirrors Loot_Reforge.  ``kept_props`` = the (type, sub, cost) properties
+    that stay (forged enchantments, gem properties); the new affixes avoid
+    their (type, sub), stay inside the rarity's budget for ``level`` (the same
+    budget the original roll had) and, when ``value_cap`` is given, keep the
+    whole item at or under it.  ``prop_cap`` bounds kept counted + new
+    affixes.  Returns a dict like roll(), or None when no upside fits (the
+    game then refuses and keeps the Shard)."""
+    rng = rng or random.Random()
+    model = model or CostModel(data["costs"])
+    level = max(1, min(MAX_LEVEL, int(level)))
+    tier = data["rarity"]["tiers"][rarity]
+    cat = base_category(data, base_row)
+    if cat is None:
+        return None
+    kept = list(kept_props)
+    block = frozenset((t, s) for t, s, _c in kept)
+    max_new = None
+    if prop_cap is not None:
+        max_new = max(0, prop_cap - (len(kept) if kept_counted is None else kept_counted))
+    total_fn = None
+    if value_cap is not None:
+        total_fn = lambda props: model.item_value(base_row, kept + props)
+    chosen, value, budget, has_down = roll_affixes(
+        data, cat, level, tier, base_row, rng, model, block, max_new, total_fn, value_cap)
+    affixes = data["affixes"]["affixes"]
+    if not any(affixes[i]["role"] == "upside" for i, _ in chosen):
+        return None
+    base = base_entry(data, base_row)
+    return {"rarity": rarity, "level": level, "category": cat, "base": base_row,
+            "affixes": [(affixes[i]["id"], affixes[i]["ladder"][k]) for i, k in chosen],
+            "value": value, "budget": budget, "downside": has_down,
+            "total": model.item_value(base_row, kept + [
+                (affixes[i]["type"], affixes[i].get("sub") or 0, affixes[i]["ladder"][k])
+                for i, k in chosen]),
+            "name": item_name(base["name"] if base else str(base_row),
+                              [affixes[i] for i, _ in chosen])}
+
+
 def roll(data, level, floor=0, profile="lab", rng=None, model=None, wish=None):
     """One rolled item as a dict (see keys at the end).  Mirrors Loot_Roll.
 
@@ -519,69 +650,9 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None, wish=None):
         bases = data["bases"]["categories"][cat]
         base = weighted(rng, bases, lambda b: b["weight"] if not allowed or b["base"] in allowed else 0)
 
+    chosen, value, budget, has_down = roll_affixes(data, cat, level, tier, base["base"],
+                                                   rng, model)
     affixes = data["affixes"]["affixes"]
-    lo_n, hi_n = tier["affixes"]
-    n_up = lo_n + rng.randrange(hi_n - lo_n + 1)
-    chosen = []          # [affix_index, ladder_index]
-    used = set()
-
-    has_down = False
-    if rng.randrange(1000) < tier.get("downside_chance", 0):
-        pool = [i for i, a in enumerate(affixes)
-                if eligible(a, cat, level, "downside", used)]
-        i = weighted(rng, pool, lambda k: affixes[k]["weight"])
-        if i is not None:
-            lo, hi = affix_window(affixes[i], level)
-            chosen.append([i, lo + rng.randrange(hi - lo + 1)])
-            used.add(affixes[i]["group"])
-            has_down = True
-            n_up += 1
-
-    bias = tier.get("roll_bias", 0)
-    for _ in range(n_up):
-        pool = [i for i, a in enumerate(affixes)
-                if eligible(a, cat, level, "upside", used)]
-        i = weighted(rng, pool, lambda k: affixes[k]["weight"])
-        if i is None:
-            break
-        lo, hi = affix_window(affixes[i], level)
-        # roll_bias: the best of (1 + bias) rolls inside the window.
-        step = lo + rng.randrange(hi - lo + 1)
-        for _b in range(bias):
-            step = max(step, lo + rng.randrange(hi - lo + 1))
-        chosen.append([i, step])
-        used.add(affixes[i]["group"])
-
-    budget = rarity_budget(tier, level, has_down)
-
-    def props():
-        return [(affixes[i]["type"], affixes[i].get("sub") or 0,
-                 affixes[i]["ladder"][k]) for i, k in chosen]
-
-    value = model.item_value(base["base"], props())
-    steps = 0
-    while value > budget and steps < 64:
-        steps += 1
-        # Step the LAST upside that can still step down (to the bottom of its
-        # ladder, not just of its level window: the rarity budget, not the
-        # loot level, decides how strong an item is); once none can, drop the
-        # last upside.  The first-rolled affix (the item's identity, its name
-        # prefix) is the last to give ground.
-        j = None
-        for k in range(len(chosen) - 1, -1, -1):
-            a = affixes[chosen[k][0]]
-            if a["role"] == "upside" and chosen[k][1] > 0:
-                j = k
-                break
-        if j is not None:
-            chosen[j][1] -= 1
-        else:
-            ups = [k for k, (i, _) in enumerate(chosen)
-                   if affixes[i]["role"] == "upside"]
-            if not ups:
-                break
-            chosen.pop(ups[-1])
-        value = model.item_value(base["base"], props())
 
     unid = rng.randrange(1000) < tier.get("unidentified_chance", 0)
     slo, shi = tier.get("sockets", [0, 0])
@@ -691,6 +762,60 @@ def validate_wishlist(data):
                             "gen-loot-tables.py --refresh-costs" % b["base"])
     if "caster_classes" not in data["costs"]:
         errs.append("_costs.json: no caster_classes - run gen-loot-tables.py --refresh-costs")
+    return errs
+
+
+# ---------------------------------------------------------------------------
+# Phase 7: the Shard of Fate (loot/tokens.json "fate")
+# ---------------------------------------------------------------------------
+
+FATE_BASE_ITEM = 29        # miscmedium: non-equippable, the inert-token base
+
+
+def tokens_cfg(data):
+    return (data.get("tokens") or {}).get("fate") or {}
+
+
+def validate_tokens(data):
+    errs = []
+    f = tokens_cfg(data)
+    if not f:
+        return ["tokens.json: missing the \"fate\" block (Phase 7, the Shard of Fate)"]
+    res = f.get("resref")
+    if not isinstance(res, str) or not 1 <= len(res) <= 16:
+        errs.append("tokens.json fate: resref must be a 1..16 character string")
+    else:
+        u = load_uti(res)
+        if u is None:
+            errs.append("tokens.json fate: no blueprint unpacked/%s.uti.json" % res)
+        else:
+            if gff(u, "BaseItem") != FATE_BASE_ITEM:
+                errs.append("%s: BaseItem must be %d (miscmedium, non-equippable)"
+                            % (res, FATE_BASE_ITEM))
+            if gff(u, "Tag") != res:
+                errs.append("%s: Tag must equal the resref (scripts find it by tag)" % res)
+            if int(gff(u, "Plot", 0) or 0) != 1:
+                errs.append("%s: must be Plot (tradeable, never sold to a store)" % res)
+            if int(gff(u, "Cursed", 0) or 0):
+                errs.append("%s: must not be Cursed (it is meant to be traded)" % res)
+            if int(gff(u, "StackSize", 1) or 1) != 1:
+                errs.append("%s: StackSize must be 1" % res)
+            if gff(u, "PropertiesList", []):
+                errs.append("%s: must carry no item properties (an inert token)" % res)
+        # The merit shop's reward 305 hard-codes the resref (merit_redeem.nss
+        # does not include the loot tables) - keep the two in step.
+        mr = UNPACKED / "merit_redeem.nss"
+        if mr.exists() and ('MERIT_FATE_SHARD = "%s"' % res) not in mr.read_text(errors="replace"):
+            errs.append("merit_redeem.nss: MERIT_FATE_SHARD must be \"%s\" (tokens.json "
+                        "fate.resref)" % res)
+    for key, lo, hi in (("boss_chance", 0, 1000), ("bonus_timeout_s", 10, 600),
+                        ("lockout_s", 0, 7 * 86400)):
+        v = f.get(key)
+        if not isinstance(v, int) or not lo <= v <= hi:
+            errs.append("tokens.json fate: %s must be an int %d..%d" % (key, lo, hi))
+    if f.get("bonus_profile") not in data["sources"]["profiles"]:
+        errs.append("tokens.json fate: bonus_profile %r is not a sources.json profile"
+                    % f.get("bonus_profile"))
     return errs
 
 
@@ -941,6 +1066,9 @@ def creature_drop(data, cls, cr, level, rng=None, model=None):
         g = gem_drop(data, level, int(data["gems"].get("boss_floor", 0)) if cls == "boss" else 0, rng)
         if g:
             out.append({"gem": g})
+    # Phase 7: a boss may drop a Shard of Fate (tokens.json fate.boss_chance).
+    if cls == "boss" and rng.randrange(1000) < int(tokens_cfg(data).get("boss_chance", 0)):
+        out.append({"shard": True})
     return out
 
 
@@ -1263,6 +1391,7 @@ def validate(data, item_index=None):
     errs.extend(validate_creatures(data))
     errs.extend(validate_gems(data))
     errs.extend(validate_wishlist(data))
+    errs.extend(validate_tokens(data))
 
     # -- sanity ceiling against the module's own obtainable gear
     if item_index is not None:

@@ -57,6 +57,10 @@ struct merit_reward
 // Catalogue - single source of truth. To add a redemption: add a case here and
 // register its id in Merit_CatReward / Merit_CatCount.
 
+// Shard of Fate blueprint for reward 305 (= loot/tokens.json fate.resref; the
+// loot gate fails if the two drift).
+const string MERIT_FATE_SHARD = "lo_fate_shard";
+
 struct merit_reward Merit_GetReward(int nId)
 {
     struct merit_reward r;
@@ -83,6 +87,7 @@ struct merit_reward Merit_GetReward(int nId)
         case 302: r.cost = 10;  r.needs_dm = 0; r.label = "Tournament gear - pick one piece"; break;
         case 303: r.cost = 25;  r.needs_dm = 1; r.label = "A hand-made duct-tape wallet mailed to you (3 colours + design)"; break;
         case 304: r.cost = 100; r.needs_dm = 1; r.label = "Become a DM"; break;
+        case 305: r.cost = 3;   r.needs_dm = 0; r.label = "A Shard of Fate (reforge a rolled item, or a bonus roll on a boss)"; break;
 
         // --- Player housing: area size (cost scales with Length x Width) ---
         case 401: r.cost = 1;  r.needs_dm = 1; r.label = "Player home - area size 2 (LxW)"; break;
@@ -112,7 +117,7 @@ int Merit_CatCount(int nCat)
     {
         case MERIT_CAT_TELE:      return 7;
         case MERIT_CAT_PREM:      return 4;
-        case MERIT_CAT_VANITY:    return 4;
+        case MERIT_CAT_VANITY:    return 5;
         case MERIT_CAT_HOUSESIZE: return 8;
         case MERIT_CAT_HOUSEFEAT: return 5;
     }
@@ -125,7 +130,7 @@ int Merit_CatReward(int nCat, int nIdx)
     {
         case MERIT_CAT_TELE:      return 101 + nIdx;  // 101..107
         case MERIT_CAT_PREM:      return 201 + nIdx;  // 201..204
-        case MERIT_CAT_VANITY:    return 301 + nIdx;  // 301..304
+        case MERIT_CAT_VANITY:    return 301 + nIdx;  // 301..305
         case MERIT_CAT_HOUSESIZE: return 401 + nIdx;  // 401..408
         case MERIT_CAT_HOUSEFEAT: return 501 + nIdx;  // 501..505
     }
@@ -404,10 +409,11 @@ void Merit_BuildCategory(object oPC, int nCat)
         }
 
         // Every option is now wired: DM-fulfilled options are delivered by a DM,
-        // tournament gear (302) and the premium 2x boosts (201-204) grant on the
-        // spot. Nothing carries the red [PLACEHOLDER] prefix anymore. MERIT_PH is
+        // tournament gear (302), the Shard of Fate (305) and the premium 2x
+        // boosts (201-204) grant on the spot. Nothing carries the red [PLACEHOLDER] prefix anymore. MERIT_PH is
         // kept for any future not-yet-wired instant reward.
-        string sPrefix = (r.needs_dm == 1 || nId == 302 || (nId >= 201 && nId <= 204))
+        string sPrefix = (r.needs_dm == 1 || nId == 302 || nId == 305
+                          || (nId >= 201 && nId <= 204))
                          ? "" : MERIT_PH;
         SetCustomToken(5060 + i, sPrefix + r.label + " [" + IntToString(r.cost) + " merit]");
     }
@@ -709,6 +715,24 @@ int Merit_GrantInstant(object oPC, int nId)
     {
         SendMessageToPC(oPC, "[Merit] You can no longer afford that.");
         return FALSE;
+    }
+
+    // A Shard of Fate (305, Loot Overhaul Phase 7): deliver FIRST, charge only
+    // once the item exists (the Merit_GrantTournament rule). A full pack still
+    // counts as delivered - the Shard lands at the PC's feet. The resref is
+    // loot/tokens.json fate.resref; loot_model.validate_tokens checks it here.
+    if (nId == 305)
+    {
+        object oShard = CreateItemOnObject(MERIT_FATE_SHARD, oPC);
+        if (!GetIsObjectValid(oShard))
+        {
+            SendMessageToPC(oPC, "[Merit] Could not create a Shard of Fate - no merit "
+                + "was spent. Please try again, or tell a DM if it keeps failing.");
+            return FALSE;
+        }
+        if (GetItemPossessor(oShard) != oPC)
+            SendMessageToPC(oPC, "[Merit] Your pack is full - your Shard of Fate is on "
+                + "the ground at your feet.");
     }
 
     Merit_Spend(sCdKey, r.cost);

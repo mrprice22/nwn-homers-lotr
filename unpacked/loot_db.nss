@@ -33,6 +33,13 @@ void Loot_InitDb()
         "CREATE TABLE IF NOT EXISTS loot_wishlist (" +
         "uuid TEXT NOT NULL, base INTEGER NOT NULL, PRIMARY KEY (uuid, base))");
     SqlStep(q);
+    // Phase 7: the Shard of Fate bonus-roll lockout - one per character per
+    // boss per rolling LOOTD_FATE_LOCKOUT seconds (at = unix time of the roll).
+    q = SqlPrepareQueryCampaign(LOOT_DB,
+        "CREATE TABLE IF NOT EXISTS loot_fate_lockout (" +
+        "uuid TEXT NOT NULL, boss TEXT NOT NULL, at INTEGER NOT NULL," +
+        "PRIMARY KEY (uuid, boss))");
+    SqlStep(q);
 }
 
 // Record one roll.  sItem is the rolled name (or the named-pool resref);
@@ -40,7 +47,7 @@ void Loot_InitDb()
 void Loot_LogRoll(string sSource, string sProfile, int nLvl, int nRarity,
                   int nBase, string sItem, int nValue, object oBeneficiary)
 {
-    if (sSource != "lab" && nRarity < LOOT_LOG_MIN_RARITY)
+    if (sSource != "lab" && sSource != "fate" && nRarity < LOOT_LOG_MIN_RARITY)
         return;
     sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
         "INSERT INTO loot_roll_log (source, profile, lvl, rarity, base, item, value, beneficiary) " +
@@ -145,4 +152,49 @@ void Loot_WishSetAuto(object oPC, int bOn)
 {
     if (bOn) Loot_WishRemove(oPC, LOOT_WISH_AUTO_OFF);
     else     Loot_WishAdd(oPC, LOOT_WISH_AUTO_OFF);
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7: Shard of Fate bonus-roll lockout (lo-fate-token)
+// ---------------------------------------------------------------------------
+// One bonus roll per character (GetObjectUUID) per boss resref per rolling
+// nLockout seconds (loot/tokens.json fate.lockout_s, admin 2026-11-06). Read
+// only at a boss death and on a Spend click, so the per-call query is cheap.
+
+// Seconds until oPC may take another bonus roll on sBoss; 0 = free now.
+int Loot_FateLockedFor(object oPC, string sBoss, int nLockout)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        "SELECT at + @n - CAST(strftime('%s','now') AS INTEGER) FROM loot_fate_lockout " +
+        "WHERE uuid = @u AND boss = @b");
+    SqlBindInt(q, "@n", nLockout);
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    SqlBindString(q, "@b", sBoss);
+    if (!SqlStep(q)) return 0;
+    int nLeft = SqlGetInt(q, 0);
+    return nLeft > 0 ? nLeft : 0;
+}
+
+// Record that oPC took a bonus roll on sBoss now.
+void Loot_FateLock(object oPC, string sBoss)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        "INSERT OR REPLACE INTO loot_fate_lockout (uuid, boss, at) " +
+        "VALUES (@u, @b, CAST(strftime('%s','now') AS INTEGER))");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    SqlBindString(q, "@b", sBoss);
+    SqlStep(q);
+}
+
+// Loot Lab: clear every lockout oPC holds. Returns how many were cleared.
+int Loot_FateClear(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        "SELECT COUNT(*) FROM loot_fate_lockout WHERE uuid = @u");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    int n = SqlStep(q) ? SqlGetInt(q, 0) : 0;
+    q = SqlPrepareQueryCampaign(LOOT_DB, "DELETE FROM loot_fate_lockout WHERE uuid = @u");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    SqlStep(q);
+    return n;
 }
