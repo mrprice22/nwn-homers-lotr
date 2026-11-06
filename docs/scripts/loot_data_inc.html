@@ -85,7 +85,7 @@
 const int LOOTD_RARITY_COUNT = 5;
 const int LOOTD_CAT_COUNT = 7;
 const int LOOTD_AFFIX_COUNT = 68;
-const int LOOTD_NAMED_COUNT = 32;
+const int LOOTD_NAMED_COUNT = 37;
 const int LOOTD_MAX_LEVEL = 60;
 const int LOOTD_MAX_PROPS = 6;
 
@@ -317,8 +317,13 @@ int LootD_ProfileIndex(string sProfile)
     if (sProfile == &quot;chest_low&quot;) return 1;
     if (sProfile == &quot;chest_med&quot;) return 2;
     if (sProfile == &quot;chest_high&quot;) return 3;
-    if (sProfile == &quot;creature&quot;) return 4;
-    if (sProfile == &quot;boss&quot;) return 5;
+    if (sProfile == &quot;chest_melee&quot;) return 4;
+    if (sProfile == &quot;chest_ranged&quot;) return 5;
+    if (sProfile == &quot;setti_belt&quot;) return 6;
+    if (sProfile == &quot;setti_ring&quot;) return 7;
+    if (sProfile == &quot;setti_shield&quot;) return 8;
+    if (sProfile == &quot;creature&quot;) return 9;
+    if (sProfile == &quot;boss&quot;) return 10;
     return -1;
 }
 
@@ -330,8 +335,13 @@ string LootD_ProfileName(int nI)
         case 1: return &quot;chest_low&quot;;
         case 2: return &quot;chest_med&quot;;
         case 3: return &quot;chest_high&quot;;
-        case 4: return &quot;creature&quot;;
-        case 5: return &quot;boss&quot;;
+        case 4: return &quot;chest_melee&quot;;
+        case 5: return &quot;chest_ranged&quot;;
+        case 6: return &quot;setti_belt&quot;;
+        case 7: return &quot;setti_ring&quot;;
+        case 8: return &quot;setti_shield&quot;;
+        case 9: return &quot;creature&quot;;
+        case 10: return &quot;boss&quot;;
     }
     return &quot;&quot;;
 }
@@ -368,20 +378,25 @@ int LootD_ProfileCatWeight(int nProfile, int nCat)
         case 304: return 16;
         case 305: return 18;
         case 306: return 8;
-        case 400: return 30;
-        case 401: return 8;
-        case 402: return 14;
-        case 403: return 6;
-        case 404: return 16;
-        case 405: return 18;
-        case 406: return 8;
-        case 500: return 30;
-        case 501: return 8;
-        case 502: return 14;
-        case 503: return 6;
-        case 504: return 16;
-        case 505: return 18;
-        case 506: return 8;
+        case 400: return 1;
+        case 501: return 1;
+        case 605: return 1;
+        case 704: return 1;
+        case 803: return 1;
+        case 900: return 30;
+        case 901: return 8;
+        case 902: return 14;
+        case 903: return 6;
+        case 904: return 16;
+        case 905: return 18;
+        case 906: return 8;
+        case 1000: return 30;
+        case 1001: return 8;
+        case 1002: return 14;
+        case 1003: return 6;
+        case 1004: return 16;
+        case 1005: return 18;
+        case 1006: return 8;
     }
     return 0;
 }
@@ -394,8 +409,13 @@ int LootD_ProfileRolls(int nI)
         case 1: return 1;
         case 2: return 2;
         case 3: return 3;
-        case 4: return 1;
+        case 4: return 2;
         case 5: return 2;
+        case 6: return 1;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 1;
+        case 10: return 2;
     }
     return 1;
 }
@@ -408,8 +428,530 @@ int LootD_ProfileFloor(int nI)
         case 1: return 0;
         case 2: return 0;
         case 3: return 1;
+        case 4: return 1;
+        case 5: return 1;
+        case 6: return 4;
+        case 7: return 4;
+        case 8: return 4;
+        case 9: return 0;
+        case 10: return 3;
+    }
+    return 0;
+}
+
+int LootD_ProfileGearChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1000;
+        case 1: return 600;
+        case 2: return 600;
+        case 3: return 700;
+        case 4: return 700;
+        case 5: return 700;
+        case 6: return 1000;
+        case 7: return 1000;
+        case 8: return 1000;
+        case 9: return 1000;
+        case 10: return 1000;
+    }
+    return 1000;
+}
+
+int LootD_ProfileGoldPct(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 8;
+        case 2: return 15;
+        case 3: return 25;
+        case 4: return 15;
+        case 5: return 15;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
+int LootD_ProfileGemChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 300;
+        case 2: return 300;
+        case 3: return 300;
+        case 4: return 300;
+        case 5: return 300;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
+// TRUE when profile nProfile may roll base row nBase (its optional &quot;bases&quot; filter).
+int LootD_ProfileBaseOk(int nProfile, int nBase)
+{
+    switch (nProfile)
+    {
+    case 6:
+        switch (nBase)
+        {
+            case 21: return TRUE;
+        }
+        return FALSE;
+    case 7:
+        switch (nBase)
+        {
+            case 52: return TRUE;
+        }
+        return FALSE;
+    case 8:
+        switch (nBase)
+        {
+            case 14: return TRUE;
+            case 56: return TRUE;
+            case 57: return TRUE;
+        }
+        return FALSE;
+    }
+    return TRUE;
+}
+
+int LootD_ProfileConsMin(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 1;
+        case 3: return 1;
         case 4: return 0;
-        case 5: return 3;
+        case 5: return 0;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
+int LootD_ProfileConsMax(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 3;
+        case 4: return 1;
+        case 5: return 1;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
+// Container script -&gt; its loot profile (&quot;&quot; = not a loot container script).
+string LootD_ScriptProfile(string sScript)
+{
+    if (sScript == &quot;chest_respawner&quot;) return &quot;chest_med&quot;;
+    if (sScript == &quot;chest_refilllow&quot;) return &quot;chest_low&quot;;
+    if (sScript == &quot;chestrespawnlow&quot;) return &quot;chest_low&quot;;
+    if (sScript == &quot;chest_refillhigh&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;chestrespawnhigh&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;nw_o2_classlow&quot;) return &quot;chest_low&quot;;
+    if (sScript == &quot;nw_o2_classmed&quot;) return &quot;chest_med&quot;;
+    if (sScript == &quot;nw_o2_classhig&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;nw_o2_generallow&quot;) return &quot;chest_low&quot;;
+    if (sScript == &quot;nw_o2_generalmed&quot;) return &quot;chest_med&quot;;
+    if (sScript == &quot;nw_o2_generalhig&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;x2_02_low&quot;) return &quot;chest_low&quot;;
+    if (sScript == &quot;x2_02_medium&quot;) return &quot;chest_med&quot;;
+    if (sScript == &quot;x2_02_high&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;x0_o2_anylow&quot;) return &quot;chest_low&quot;;
+    if (sScript == &quot;x0_o2_anymed&quot;) return &quot;chest_med&quot;;
+    if (sScript == &quot;x0_o2_anyhigh&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;x0_o2_anyuniq&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;x0_o2_noamlow&quot;) return &quot;chest_low&quot;;
+    if (sScript == &quot;x0_o2_noammed&quot;) return &quot;chest_med&quot;;
+    if (sScript == &quot;x0_o2_noamhigh&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;x0_o2_noamuniq&quot;) return &quot;chest_high&quot;;
+    if (sScript == &quot;x0_o2_mleelow&quot;) return &quot;chest_melee&quot;;
+    if (sScript == &quot;x0_o2_mleemed&quot;) return &quot;chest_melee&quot;;
+    if (sScript == &quot;x0_o2_mleehigh&quot;) return &quot;chest_melee&quot;;
+    if (sScript == &quot;x0_o2_mleeuniq&quot;) return &quot;chest_melee&quot;;
+    if (sScript == &quot;x0_o2_ranglow&quot;) return &quot;chest_ranged&quot;;
+    if (sScript == &quot;x0_o2_rangmed&quot;) return &quot;chest_ranged&quot;;
+    if (sScript == &quot;x0_o2_ranghigh&quot;) return &quot;chest_ranged&quot;;
+    if (sScript == &quot;x0_o2_ranguniq&quot;) return &quot;chest_ranged&quot;;
+    if (sScript == &quot;chest_settibelt&quot;) return &quot;setti_belt&quot;;
+    if (sScript == &quot;ches_settiring&quot;) return &quot;setti_ring&quot;;
+    if (sScript == &quot;chest_settishld&quot;) return &quot;setti_shield&quot;;
+    return &quot;&quot;;
+}
+
+// Area resref -&gt; loot level (loot/area_levels.json; 0 = no level).
+int LootD_AreaLevel(string sArea)
+{
+    if (sArea == &quot;alterwald&quot;) return 16;
+    if (sArea == &quot;angmar&quot;) return 11;
+    if (sArea == &quot;angmardungeon&quot;) return 48;
+    if (sArea == &quot;area002&quot;) return 48;
+    if (sArea == &quot;area003&quot;) return 49;
+    if (sArea == &quot;area004&quot;) return 4;
+    if (sArea == &quot;area005&quot;) return 46;
+    if (sArea == &quot;area006&quot;) return 4;
+    if (sArea == &quot;area007&quot;) return 55;
+    if (sArea == &quot;area008&quot;) return 46;
+    if (sArea == &quot;area009&quot;) return 49;
+    if (sArea == &quot;area010&quot;) return 33;
+    if (sArea == &quot;area011&quot;) return 39;
+    if (sArea == &quot;area012&quot;) return 1;
+    if (sArea == &quot;area013&quot;) return 46;
+    if (sArea == &quot;area014&quot;) return 54;
+    if (sArea == &quot;area016&quot;) return 47;
+    if (sArea == &quot;area018&quot;) return 31;
+    if (sArea == &quot;area022&quot;) return 50;
+    if (sArea == &quot;area023&quot;) return 55;
+    if (sArea == &quot;area025&quot;) return 45;
+    if (sArea == &quot;area028&quot;) return 56;
+    if (sArea == &quot;area031&quot;) return 54;
+    if (sArea == &quot;area078&quot;) return 38;
+    if (sArea == &quot;bagend001&quot;) return 47;
+    if (sArea == &quot;balinstomb&quot;) return 38;
+    if (sArea == &quot;beorn&quot;) return 31;
+    if (sArea == &quot;billfernyshouse&quot;) return 2;
+    if (sArea == &quot;blackgatge&quot;) return 39;
+    if (sArea == &quot;brandywinebridge&quot;) return 3;
+    if (sArea == &quot;bree&quot;) return 3;
+    if (sArea == &quot;breecave&quot;) return 1;
+    if (sArea == &quot;breecaverns&quot;) return 3;
+    if (sArea == &quot;breecrypt&quot;) return 3;
+    if (sArea == &quot;breecryptlowerle&quot;) return 3;
+    if (sArea == &quot;cardolan&quot;) return 6;
+    if (sArea == &quot;carndum&quot;) return 26;
+    if (sArea == &quot;carndumcity&quot;) return 28;
+    if (sArea == &quot;carndumsmithy&quot;) return 26;
+    if (sArea == &quot;carndumtemple&quot;) return 30;
+    if (sArea == &quot;carndumthrone&quot;) return 32;
+    if (sArea == &quot;carrok&quot;) return 12;
+    if (sArea == &quot;carrokgreater&quot;) return 10;
+    if (sArea == &quot;carroklesser&quot;) return 12;
+    if (sArea == &quot;castlehomelessgr&quot;) return 1;
+    if (sArea == &quot;cavesofdolguldur&quot;) return 45;
+    if (sArea == &quot;celeduinbanks&quot;) return 4;
+    if (sArea == &quot;chamberofrecords&quot;) return 6;
+    if (sArea == &quot;chetwood001&quot;) return 3;
+    if (sArea == &quot;cirithungol&quot;) return 44;
+    if (sArea == &quot;citidelofstars&quot;) return 44;
+    if (sArea == &quot;cryptsofthelosts&quot;) return 5;
+    if (sArea == &quot;darkcavern&quot;) return 55;
+    if (sArea == &quot;deadmarshes&quot;) return 42;
+    if (sArea == &quot;dolguldur&quot;) return 45;
+    if (sArea == &quot;dolguldur001&quot;) return 32;
+    if (sArea == &quot;dolguldurcast001&quot;) return 49;
+    if (sArea == &quot;dolguldurcastle&quot;) return 48;
+    if (sArea == &quot;dolguldurcity&quot;) return 45;
+    if (sArea == &quot;dunharrow&quot;) return 32;
+    if (sArea == &quot;dunland&quot;) return 6;
+    if (sArea == &quot;dunlandwarparty&quot;) return 4;
+    if (sArea == &quot;durinsbridge&quot;) return 6;
+    if (sArea == &quot;dwarrowdelfea001&quot;) return 8;
+    if (sArea == &quot;dwarrowdelfeast&quot;) return 6;
+    if (sArea == &quot;edoras&quot;) return 31;
+    if (sArea == &quot;emynarnen&quot;) return 14;
+    if (sArea == &quot;emynmuil&quot;) return 32;
+    if (sArea == &quot;enchantedcave001&quot;) return 10;
+    if (sArea == &quot;enchantedcave002&quot;) return 11;
+    if (sArea == &quot;eredduathroada&quot;) return 38;
+    if (sArea == &quot;ettenmoors&quot;) return 17;
+    if (sArea == &quot;falseheaven&quot;) return 55;
+    if (sArea == &quot;fangornforest&quot;) return 30;
+    if (sArea == &quot;fangornoutskirts&quot;) return 30;
+    if (sArea == &quot;forgottenking&quot;) return 30;
+    if (sArea == &quot;gapofrohaneast&quot;) return 17;
+    if (sArea == &quot;goblingategreate&quot;) return 4;
+    if (sArea == &quot;goblingatelesser&quot;) return 3;
+    if (sArea == &quot;goblingatemines&quot;) return 4;
+    if (sArea == &quot;goblintownmainha&quot;) return 4;
+    if (sArea == &quot;goblintownwarren&quot;) return 5;
+    if (sArea == &quot;gondorcrypts&quot;) return 45;
+    if (sArea == &quot;gondoremynarnen&quot;) return 15;
+    if (sArea == &quot;gondorwesta&quot;) return 24;
+    if (sArea == &quot;gondorwestb&quot;) return 24;
+    if (sArea == &quot;gravesofthelostk&quot;) return 5;
+    if (sArea == &quot;greateastroada&quot;) return 3;
+    if (sArea == &quot;greateastroadb&quot;) return 5;
+    if (sArea == &quot;greateastroadc&quot;) return 3;
+    if (sArea == &quot;greateastroadd&quot;) return 31;
+    if (sArea == &quot;greatnorthroad&quot;) return 24;
+    if (sArea == &quot;greenwaynorth&quot;) return 3;
+    if (sArea == &quot;greenwaysouth&quot;) return 3;
+    if (sArea == &quot;greenwaysoutheas&quot;) return 1;
+    if (sArea == &quot;gwathdorcave&quot;) return 31;
+    if (sArea == &quot;gwathdordeeps&quot;) return 45;
+    if (sArea == &quot;gwathdoroutskirt&quot;) return 42;
+    if (sArea == &quot;gwaththrone&quot;) return 45;
+    if (sArea == &quot;gwathtomb&quot;) return 46;
+    if (sArea == &quot;gwathwest&quot;) return 45;
+    if (sArea == &quot;halloftruth&quot;) return 33;
+    if (sArea == &quot;harad&quot;) return 43;
+    if (sArea == &quot;heavensdisdain&quot;) return 55;
+    if (sArea == &quot;heavensscorn&quot;) return 55;
+    if (sArea == &quot;helmsdeep001&quot;) return 39;
+    if (sArea == &quot;hennethannun&quot;) return 44;
+    if (sArea == &quot;hennethannun002&quot;) return 45;
+    if (sArea == &quot;houseofdispai001&quot;) return 1;
+    if (sArea == &quot;icequeenlair&quot;) return 16;
+    if (sArea == &quot;icequeennest&quot;) return 38;
+    if (sArea == &quot;isengardinnerrim&quot;) return 45;
+    if (sArea == &quot;isengardmagicroo&quot;) return 37;
+    if (sArea == &quot;isengardouterrim&quot;) return 35;
+    if (sArea == &quot;kallristcryptlow&quot;) return 9;
+    if (sArea == &quot;kallristcryptupp&quot;) return 9;
+    if (sArea == &quot;kallristdarkrim&quot;) return 12;
+    if (sArea == &quot;kallristeastshor&quot;) return 5;
+    if (sArea == &quot;kallristinner&quot;) return 5;
+    if (sArea == &quot;kallristnorthsho&quot;) return 12;
+    if (sArea == &quot;kallristouterban&quot;) return 13;
+    if (sArea == &quot;kallristsouthsho&quot;) return 11;
+    if (sArea == &quot;kallristwestshor&quot;) return 11;
+    if (sArea == &quot;kerufallslair&quot;) return 35;
+    if (sArea == &quot;lonelymountainma&quot;) return 31;
+    if (sArea == &quot;loogazlair&quot;) return 3;
+    if (sArea == &quot;lothlorien&quot;) return 42;
+    if (sArea == &quot;lothlorienflets&quot;) return 35;
+    if (sArea == &quot;lothloriennorth&quot;) return 35;
+    if (sArea == &quot;meringstream&quot;) return 24;
+    if (sArea == &quot;midgewaterswamp&quot;) return 2;
+    if (sArea == &quot;minastirith&quot;) return 33;
+    if (sArea == &quot;minastirithgates&quot;) return 33;
+    if (sArea == &quot;minastirithtemp&quot;) return 48;
+    if (sArea == &quot;mirkwoodcentral&quot;) return 4;
+    if (sArea == &quot;mirkwoodcentrale&quot;) return 22;
+    if (sArea == &quot;mirkwoodcentrals&quot;) return 22;
+    if (sArea == &quot;mirkwoodeast&quot;) return 4;
+    if (sArea == &quot;mirkwoodnorth&quot;) return 22;
+    if (sArea == &quot;mirkwoodwest&quot;) return 4;
+    if (sArea == &quot;mistymountainsa&quot;) return 5;
+    if (sArea == &quot;mistymountainsb&quot;) return 6;
+    if (sArea == &quot;morialevel1cente&quot;) return 8;
+    if (sArea == &quot;mountdoom&quot;) return 30;
+    if (sArea == &quot;mountdoom002&quot;) return 39;
+    if (sArea == &quot;mountgundabad001&quot;) return 30;
+    if (sArea == &quot;mountgundabadlev&quot;) return 30;
+    if (sArea == &quot;nazgulguildhouse&quot;) return 30;
+    if (sArea == &quot;nindalf&quot;) return 21;
+    if (sArea == &quot;northernfores001&quot;) return 45;
+    if (sArea == &quot;northernfores004&quot;) return 44;
+    if (sArea == &quot;northernfores005&quot;) return 44;
+    if (sArea == &quot;northernforestso&quot;) return 45;
+    if (sArea == &quot;oldbackroad&quot;) return 16;
+    if (sArea == &quot;oldforest001&quot;) return 29;
+    if (sArea == &quot;oldforestroad&quot;) return 7;
+    if (sArea == &quot;orcarmory&quot;) return 45;
+    if (sArea == &quot;pathtohelmsdeep&quot;) return 45;
+    if (sArea == &quot;planeoftherender&quot;) return 13;
+    if (sArea == &quot;rhosgobeltower&quot;) return 50;
+    if (sArea == &quot;rivendell&quot;) return 45;
+    if (sArea == &quot;rivendellupperha&quot;) return 41;
+    if (sArea == &quot;roadtobaraddur&quot;) return 3;
+    if (sArea == &quot;ruinsofannuminas&quot;) return 12;
+    if (sArea == &quot;sharkeyschamber&quot;) return 1;
+    if (sArea == &quot;sharkeysmill&quot;) return 1;
+    if (sArea == &quot;shelobslair&quot;) return 42;
+    if (sArea == &quot;shirebilbohouse&quot;) return 47;
+    if (sArea == &quot;shirehobbiton001&quot;) return 3;
+    if (sArea == &quot;theabyssofmoria&quot;) return 27;
+    if (sArea == &quot;theangmarmountai&quot;) return 15;
+    if (sArea == &quot;thebalrogofmoria&quot;) return 49;
+    if (sArea == &quot;thebarrowdowns&quot;) return 3;
+    if (sArea == &quot;thecirithungolpa&quot;) return 42;
+    if (sArea == &quot;thedimrillstair&quot;) return 6;
+    if (sArea == &quot;thegatesofmoria&quot;) return 6;
+    if (sArea == &quot;thehallsoftruth&quot;) return 31;
+    if (sArea == &quot;theloft&quot;) return 1;
+    if (sArea == &quot;thenorthdowns001&quot;) return 3;
+    if (sArea == &quot;theodenshall&quot;) return 31;
+    if (sArea == &quot;thepelennorfield&quot;) return 24;
+    if (sArea == &quot;theruinsofdale&quot;) return 1;
+    if (sArea == &quot;thesecretpassofm&quot;) return 3;
+    if (sArea == &quot;thestinkinsewer&quot;) return 2;
+    if (sArea == &quot;thetempleofmoran&quot;) return 6;
+    if (sArea == &quot;thetrollshalls&quot;) return 6;
+    if (sArea == &quot;thevalleyofriven&quot;) return 45;
+    if (sArea == &quot;thewitchkingsthr&quot;) return 32;
+    if (sArea == &quot;thewold&quot;) return 11;
+    if (sArea == &quot;thranduilshall&quot;) return 40;
+    if (sArea == &quot;tombofgarmir&quot;) return 3;
+    if (sArea == &quot;tombofmendegilat&quot;) return 3;
+    if (sArea == &quot;tombofperan&quot;) return 3;
+    if (sArea == &quot;tombofvinyalonde&quot;) return 3;
+    if (sArea == &quot;towerofalatar&quot;) return 1;
+    if (sArea == &quot;toweroforthanc&quot;) return 33;
+    if (sArea == &quot;towerofthehig001&quot;) return 38;
+    if (sArea == &quot;towerofthehighwi&quot;) return 55;
+    if (sArea == &quot;watchmandefender&quot;) return 33;
+    if (sArea == &quot;woldsouth&quot;) return 11;
+    if (sArea == &quot;woodoflegolas&quot;) return 36;
+    return 0;
+}
+
+// Creature drops (loot/sources.json &quot;creatures&quot;), read by loot_ondeath.nss.
+const int LOOTD_CLASS_NORMAL = 0;
+const int LOOTD_CLASS_ELITE = 1;
+const int LOOTD_CLASS_BOSS = 2;
+const int LOOTD_ELITE_MARGIN = 5;
+const int LOOTD_BOSS_EXTRA_CR = 1000;
+const int LOOTD_BOSS_NAMED = 100;
+const int LOOTD_LIST_NONE = 0;
+const int LOOTD_LIST_ELITE = 1;
+const int LOOTD_LIST_NOT_ELITE = 2;
+const int LOOTD_LIST_NEVER = 3;
+
+int LootD_CreatureChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 40;
+        case 1: return 250;
+        case 2: return 1000;
+    }
+    return 0;
+}
+
+string LootD_CreatureProfile(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;creature&quot;;
+        case 1: return &quot;creature&quot;;
+        case 2: return &quot;boss&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// A creature resref&#x27;s hand-listing: elite_include / elite_exclude / exclude.
+int LootD_CreatureListed(string sResRef)
+{
+    return LOOTD_LIST_NONE;
+}
+
+// Boss resref (canonical or alias) -&gt; pinned loot level (levels.json boss_overrides; 0 = none).
+int LootD_BossLevel(string sResRef)
+{
+    return 0;
+}
+
+// TRUE for a faction id (NWNX_Creature_GetFaction) whose reputation toward PCs is
+// &lt;= 10 in repute.fac - the same &quot;hostile&quot; the area loot levels use.
+int LootD_IsHostileFaction(int nI)
+{
+    switch (nI)
+    {
+        case 1: return TRUE;
+        case 5: return TRUE;
+        case 6: return TRUE;
+        case 7: return TRUE;
+    }
+    return FALSE;
+}
+
+// Consumables pool (loot/consumables.json), packed: entry i is CONS_ROW characters
+// at (i % 32) * CONS_ROW of chunk i / 32 - min level (2) max level (2) weight (4)
+// stack lo (2) stack hi (2) resref (16, &#x27;|&#x27;-padded).  A switch with one case per
+// entry would be a linear compare chain inside a weighted-pick loop - TMI territory.
+const int LOOTD_CONS_COUNT = 391;
+const int LOOTD_CONS_ROW = 28;
+const int LOOTD_CONS_CHUNK = 32;
+
+string LootD_ConsChunk(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;013300181030lesserflamearrow013300181030nw_wammar009||||013300181030nw_wammbo008||||013300181030nw_wammbu008||||013300181030wammar0042||||||013300181030wammar017|||||||013300181030wammar018|||||||013300181030wammar019|||||||013300181030wammar020|||||||013300181030wammar021|||||||013300181030wammar022|||||||025000181030flamearrow||||||025000181030lesserfirearrow|025300181030nw_wammar001||||025000181030nw_wammar010||||025000181030nw_wammbo001||||025000181030nw_wammbo0023|||025500181030nw_wammbo003||||025000181030nw_wammbo009||||025000181030nw_wammbu009||||025000181030wammar005|||||||025000181030wammar009|||||||025000181030wammar011|||||||025000181030wammar012|||||||025000181030wammar013|||||||025000181030wammar014|||||||025000181030wammar015|||||||025000181030wammar016|||||||025000181030wammar025|||||||025000181030wammar027|||||||025000181030wammar029|||||||046000181030nw_wammar002||||&quot;;
+        case 1: return &quot;046000181030nw_wammar004||||046000181030nw_wammar006||||046000181030nw_wammbo0022|||046000181030nw_wammbo004||||046000181030nw_wammbo005||||046000181030nw_wammbu004||||046000181030nw_wammbu005||||046000181030nw_wammbu006||||046000181030nw_wammbu007||||046000181030wammar024|||||||046000181030wammar030|||||||066000181030nw_wammar011||||066000181030nw_wammbo010||||066000181030nw_wammbu001||||066000181030nw_wammbu010||||066000181030superbflamearrow066000181030wammar010|||||||066000181030wammar041|||||||066000181030wammar042|||||||066000181030wammar043|||||||066000181030wammar044|||||||066000181030wammar045|||||||066000181030wammar046|||||||076000181030nw_wammbu002||||076000181030nw_wammbu003||||086000181030nw_wammar007||||086000181030nw_wammbo006||||086000181030pixiearrow2|||||116000181030hugearrow|||||||116000181030superbfirearrows116000181030titanarrow||||||116000181030wammar008|||||||&quot;;
+        case 2: return &quot;116000181030wammar035|||||||116000181030wammar036|||||||116000181030wammar037|||||||116000181030wammar0382||||||116000181030wammar039|||||||116000181030wammar040|||||||126000181030greaterfirear001126000181030greaterfirear002126000181030greaterfirear003126000181030greaterfirear004126000181030greaterfirear005126000181030greaterfirear006126000181030greaterfirear007126000181030greaterfirear008126000181030greaterfirear009126000181030greaterfirear010126000181030greaterfirearro2126000181030superbflamear001126000181030superbflamear003126000181030superbflamear004126000181030superbflamear005126000181030superbflamear006146000181030greateracidar001146000181030infernoarrows|||146000181030infernoarrows006146000181030infernoarrows010146000181030infernoarrows013146000181030suberbcoldbolt||146000181030superbacidbolt||146000181030superbacidicbol2146000181030superbbluntbolt|156000181030x2_wammbo001||||&quot;;
+        case 3: return &quot;176000181030infernoarrows003176000181030infernoarrows005176000181030infernoarrows007176000181030infernoarrows011176000181030superbflamear002256000181030arrowofmenace2||266000181030orcquivers2|||||276000181030arrowofthewood||296000181030slayerarrow|||||376000181030arrowofthrandui2436000181030boltofthewitchki436000181030deathdealer2||||446000181030slowdeath|||||||516000181030greaterfirearrow013100230101nw_it_medkit001|013300230101nw_it_medkit002|013900230101nw_it_medkit003|014700230101nw_it_medkit004|011800230101nw_it_picks001||014400230101nw_it_picks002||011100230101nw_it_trap001|||012100230101nw_it_trap002|||012700230101nw_it_trap003|||013000230101nw_it_trap005|||014200230101nw_it_trap006|||013600230101nw_it_trap009|||014600230101nw_it_trap013|||012400230101nw_it_trap029|||013600230101nw_it_trap030|||014300230101nw_it_trap031|||012400230101nw_it_trap033|||013600230101nw_it_trap034|||&quot;;
+        case 4: return &quot;014300230101nw_it_trap035|||012400230101nw_it_trap037|||013600230101nw_it_trap038|||014300230101nw_it_trap039|||013000230101nw_it_trap041|||014200230101nw_it_trap042|||025000230101nw_it_trap007|||025200230101nw_it_trap010|||025500230101nw_it_trap017|||025500230101nw_it_trap032|||025500230101nw_it_trap036|||025500230101nw_it_trap040|||025000230101nw_it_trap043|||046000230101nw_it_picks003||046000230101nw_it_trap008|||046000230101nw_it_trap014|||046000230101nw_it_trap021|||046000230101nw_it_trap044|||076000230101nw_it_trap012|||076000230101nw_it_trap018|||076000230101nw_it_trap025|||076000230101x2_it_picks001||096000230101x2_it_trap003|||096000230101x2_it_trap004|||116000230101nw_it_picks004||116000230101nw_it_trap022|||126000230101nw_it_trap016|||136000230101x2_it_picks002||156000230101nw_it_trap026|||176000230101nw_it_trap020|||226000230101nw_it_trap024|||256000230101nw_it_trap004|||&quot;;
+        case 5: return &quot;316000230101nw_it_trap028|||326000230101x2_it_trap002|||386000230101x2_it_trap001|||013001250102nw_it_mpotion001014301250102nw_it_mpotion002014601250102nw_it_mpotion005013601250102nw_it_mpotion009013401250102nw_it_mpotion020011201250102nw_it_mpotion021012301250102nw_it_mpotion022011901250102nw_it_mpotion023025201250102nw_it_mpotion007025201250102nw_it_mpotion008025201250102nw_it_mpotion010025201250102nw_it_mpotion011025201250102nw_it_mpotion013025201250102nw_it_mpotion014025201250102nw_it_mpotion015025201250102nw_it_mpotion016025201250102nw_it_mpotion017025201250102nw_it_mpotion018025201250102nw_it_mpotion019046001250102nw_it_mpotion003046001250102nw_it_mpotion004046001250102nw_it_mpotion006046001250102pot_curecrit20||146001250102it_mpotion028|||013500150101nw_it_sparscr001011000150101nw_it_sparscr002012000150101nw_it_sparscr003012000150101nw_it_sparscr004013500150101nw_it_sparscr101&quot;;
+        case 6: return &quot;013500150101nw_it_sparscr103013500150101nw_it_sparscr104012300150101nw_it_sparscr107013100150101nw_it_sparscr109013500150101nw_it_sparscr110013500150101nw_it_sparscr111013500150101nw_it_sparscr112013500150101nw_it_sparscr114013500150101nw_it_sparscr115013500150101nw_it_sparscr116013500150101nw_it_spdvscr202013500150101x1_it_sparscr101013500150101x1_it_sparscr103012300150101x1_it_spdvscr001013500150101x1_it_spdvscr102013500150101x1_it_spdvscr103013500150101x1_it_spdvscr104011300150101x2_it_spdvscr001014800150101x2_it_spdvscr101014800150101x2_it_spdvscr102013500150101x2_it_spdvscr103012800150101x2_it_spdvscr104013500150101x2_it_spdvscr107014400150101x2_it_spdvscr202013300150101x2_it_spdvscr203014200150101x2_it_spdvscr308025000150101nw_it_sparscr106025000150101nw_it_sparscr202025000150101nw_it_sparscr203025000150101nw_it_sparscr204025000150101nw_it_sparscr205025000150101nw_it_sparscr206&quot;;
+        case 7: return &quot;025000150101nw_it_sparscr207025000150101nw_it_sparscr209025000150101nw_it_sparscr211025000150101nw_it_sparscr212025000150101nw_it_sparscr213025000150101nw_it_sparscr215025000150101nw_it_sparscr216025000150101nw_it_sparscr218025000150101nw_it_sparscr219025000150101nw_it_sparscr308025600150101nw_it_sparscr317025600150101nw_it_sparscr318025000150101nw_it_spdvscr201025000150101nw_it_spdvscr203025000150101nw_it_spdvscr204025000150101x1_it_sparscr202025000150101x1_it_spdvscr205025000150101x1_it_spdvscr301025000150101x2_it_sparscr202025000150101x2_it_sparscr305025000150101x2_it_spdvscr201025000150101x2_it_spdvscr205035800150101nw_it_sparscr311035800150101nw_it_spdvscr302046000150101nw_it_sparscr302046000150101nw_it_sparscr304046000150101nw_it_sparscr305046000150101nw_it_sparscr307046000150101nw_it_sparscr309046000150101nw_it_sparscr310046000150101nw_it_sparscr312046000150101nw_it_sparscr313&quot;;
+        case 8: return &quot;046000150101nw_it_sparscr314046000150101nw_it_sparscr315046000150101nw_it_sparscr316046000150101nw_it_sparscr319046000150101nw_it_sparscr320046000150101nw_it_sparscr402046000150101nw_it_sparscr405046000150101nw_it_sparscr411046000150101nw_it_sparscr413046000150101nw_it_spdvscr301046000150101nw_it_spdvscr402046000150101x1_it_sparscr302046000150101x1_it_spdvscr304046000150101x2_it_spdvscr301046000150101x2_it_spdvscr305046000150101x2_it_spdvscr309046000150101x2_it_spdvscr402076000150101nw_it_sparscr401076000150101nw_it_sparscr403076000150101nw_it_sparscr406076000150101nw_it_sparscr408076000150101nw_it_sparscr409076000150101nw_it_sparscr410076000150101nw_it_sparscr412076000150101nw_it_sparscr415076000150101nw_it_sparscr416076000150101nw_it_sparscr417076000150101nw_it_sparscr418076000150101nw_it_sparscr501076000150101nw_it_sparscr503076000150101nw_it_sparscr505076000150101nw_it_spdvscr401&quot;;
+        case 9: return &quot;076000150101x1_it_spdvscr403076000150101x2_it_sparscr502076000150101x2_it_spdvscr401076000150101x2_it_spdvscr404076000150101x2_it_spdvscr405086000150101nw_it_sparscr507096000150101nw_it_sparscr407116000150101nw_it_sparscr510116000150101nw_it_sparscr512116000150101nw_it_sparscr513116000150101nw_it_sparscr608116000150101nw_it_spdvscr501136000150101it_spdvscr606|||136000150101nw_it_sparscr601136000150101nw_it_sparscr602136000150101nw_it_sparscr603136000150101nw_it_sparscr604136000150101nw_it_sparscr606136000150101nw_it_sparscr609136000150101nw_it_sparscr610136000150101nw_it_sparscr611136000150101nw_it_sparscr612136000150101nw_it_sparscr614136000150101nw_it_sparscr615136000150101x1_it_sparscr601136000150101x2_it_spdvscr602166000150101it_spdvscr607|||166000150101nw_it_sparscr701166000150101nw_it_sparscr702166000150101nw_it_sparscr703166000150101nw_it_sparscr704166000150101nw_it_sparscr706&quot;;
+        case 10: return &quot;166000150101nw_it_sparscr707166000150101nw_it_sparscr708166000150101nw_it_sparscr709166000150101nw_it_sparscr802166000150101nw_it_spdvscr701166000150101nw_it_spdvscr702166000150101x1_it_spdvscr602166000150101x1_it_spdvscr702166000150101x2_it_spdvscr701196000150101nw_it_sparscr801196000150101nw_it_sparscr803196000150101nw_it_sparscr804196000150101nw_it_sparscr806196000150101nw_it_sparscr807196000150101nw_it_sparscr809196000150101nw_it_sparscr810196000150101nw_it_sparscr811196000150101nw_it_sparscr812196000150101x1_it_spdvscr801216000150101nw_it_sparscr902216000150101nw_it_sparscr903216000150101nw_it_sparscr905216000150101nw_it_sparscr906216000150101nw_it_sparscr907216000150101nw_it_sparscr909216000150101nw_it_sparscr910216000150101nw_it_sparscr911216000150101nw_it_sparscr912216000150101nw_it_sparscr913216000150101nw_it_sparscr914216000150101x2_it_spdvscr901014600300520nw_wthmax002||||&quot;;
+        case 11: return &quot;013000300520nw_wthmdt0022|||014600300520nw_wthmdt0023|||014600300520nw_wthmsh002||||014100300103x1_wmgrenade003|014700300103x1_wmgrenade005|025100300103x1_wmgrenade004|025100300103x1_wmgrenade007|046000300520nw_wthmdt005||||046000300520nw_wthmdt006||||046000300520nw_wthmsh003||||046000300520wthmsh007|||||||056000300520nw_wthmax005||||056000300520nw_wthmax008||||056000300520nw_wthmdt008||||056000300520nw_wthmsh008||||066000300520nw_wthmsh007||||076000300520nw_wthmax007||||116000300520nw_wthmax009||||116000300520nw_wthmdt009||||116000300520nw_wthmsh004||||116000300520nw_wthmsh009||||156000300520dart4|||||||||||156000300520dartofsleep|||||156000300520shuriken4|||||||206000300520throwingaxe5||||426000300520orcseeker2||||||046000380101nw_wmgwn006|||||076000380101nw_wmgwn004|||||116000380101wandoftheinitate176000380101wandofmagicmissi216000380101nw_wmgwn002|||||216000380101nw_wmgwn007|||||&quot;;
+        case 12: return &quot;246000380101nw_wmgwn003|||||246000380101nw_wmgwn010|||||256000380101nw_wmgwn011|||||276000380101nw_wmgwn005|||||276000380101nw_wmgwn008|||||276000380101nw_wmgwn009|||||336000380101wandoflightningb&quot;;
+    }
+    return &quot;&quot;;
+}
+
+const int LOOTD_GEM_COUNT = 20;
+
+string LootD_GemResRef(int nI)
+{
+    switch (nI)
+    {
+        case 0: return &quot;nw_it_gem001&quot;;
+        case 1: return &quot;nw_it_gem007&quot;;
+        case 2: return &quot;nw_it_gem002&quot;;
+        case 3: return &quot;nw_it_gem014&quot;;
+        case 4: return &quot;nw_it_gem003&quot;;
+        case 5: return &quot;it_gem018&quot;;
+        case 6: return &quot;it_gem023&quot;;
+        case 7: return &quot;nw_it_gem011&quot;;
+        case 8: return &quot;nw_it_gem013&quot;;
+        case 9: return &quot;nw_it_gem010&quot;;
+        case 10: return &quot;nw_it_gem009&quot;;
+        case 11: return &quot;it_gem021&quot;;
+        case 12: return &quot;nw_it_gem006&quot;;
+        case 13: return &quot;it_gem006&quot;;
+        case 14: return &quot;it_gem008&quot;;
+        case 15: return &quot;nw_it_gem005&quot;;
+        case 16: return &quot;it_gem022&quot;;
+        case 17: return &quot;hambergite&quot;;
+        case 18: return &quot;it_gem005&quot;;
+        case 19: return &quot;kyanite&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int LootD_GemValue(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 14;
+        case 1: return 16;
+        case 2: return 20;
+        case 3: return 20;
+        case 4: return 80;
+        case 5: return 200;
+        case 6: return 200;
+        case 7: return 240;
+        case 8: return 290;
+        case 9: return 500;
+        case 10: return 1500;
+        case 11: return 2000;
+        case 12: return 3000;
+        case 13: return 4000;
+        case 14: return 4000;
+        case 15: return 4000;
+        case 16: return 20000;
+        case 17: return 60000;
+        case 18: return 65534;
+        case 19: return 65534;
     }
     return 0;
 }
@@ -4178,6 +4720,11 @@ string LootD_NamedResRef(int nI)
         case 29: return &quot;amuletofpower&quot;;
         case 30: return &quot;staffoftheorcsha&quot;;
         case 31: return &quot;item053&quot;;
+        case 32: return &quot;epicbelt&quot;;
+        case 33: return &quot;beltofpower002&quot;;
+        case 34: return &quot;it_mring042&quot;;
+        case 35: return &quot;epicshield&quot;;
+        case 36: return &quot;shieldofithilien&quot;;
     }
     return &quot;&quot;;
 }
@@ -4218,6 +4765,11 @@ int LootD_NamedMin(int nI)
         case 29: return 55;
         case 30: return 48;
         case 31: return 55;
+        case 32: return 55;
+        case 33: return 55;
+        case 34: return 55;
+        case 35: return 55;
+        case 36: return 55;
     }
     return 99;
 }
@@ -4258,6 +4810,11 @@ int LootD_NamedMax(int nI)
         case 29: return 60;
         case 30: return 60;
         case 31: return 60;
+        case 32: return 60;
+        case 33: return 60;
+        case 34: return 60;
+        case 35: return 60;
+        case 36: return 60;
     }
     return 0;
 }
@@ -4298,8 +4855,58 @@ int LootD_NamedWeight(int nI)
         case 29: return 1;
         case 30: return 1;
         case 31: return 1;
+        case 32: return 1;
+        case 33: return 1;
+        case 34: return 1;
+        case 35: return 1;
+        case 36: return 1;
     }
     return 0;
+}
+
+int LootD_NamedBase(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 55;
+        case 1: return 5;
+        case 2: return 3;
+        case 3: return 41;
+        case 4: return 1;
+        case 5: return 41;
+        case 6: return 42;
+        case 7: return 8;
+        case 8: return 8;
+        case 9: return 1;
+        case 10: return 13;
+        case 11: return 41;
+        case 12: return 3;
+        case 13: return 13;
+        case 14: return 53;
+        case 15: return 16;
+        case 16: return 16;
+        case 17: return 16;
+        case 18: return 16;
+        case 19: return 16;
+        case 20: return 56;
+        case 21: return 57;
+        case 22: return 80;
+        case 23: return 36;
+        case 24: return 26;
+        case 25: return 17;
+        case 26: return 78;
+        case 27: return 52;
+        case 28: return 19;
+        case 29: return 19;
+        case 30: return 45;
+        case 31: return 45;
+        case 32: return 21;
+        case 33: return 21;
+        case 34: return 52;
+        case 35: return 57;
+        case 36: return 56;
+    }
+    return -1;
 }
 
 // Build item property nType from a subtype row and a cost-table row.  One case per

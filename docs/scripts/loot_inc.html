@@ -210,18 +210,22 @@ int Loot_PickRarity(int nFloor)
 }
 
 // Index into the named pool for this loot level, or -1.
-int Loot_PickNamed(int nLvl)
+// A named-pool item inside its level window (and, for a profile with a
+// &quot;bases&quot; filter, of an allowed base item), or -1.
+int Loot_PickNamed(int nLvl, int nProfile)
 {
     int nTotal = 0;
     int i;
     for (i = 0; i &lt; LOOTD_NAMED_COUNT; i++)
-        if (nLvl &gt;= LootD_NamedMin(i) &amp;&amp; nLvl &lt;= LootD_NamedMax(i))
+        if (nLvl &gt;= LootD_NamedMin(i) &amp;&amp; nLvl &lt;= LootD_NamedMax(i)
+            &amp;&amp; LootD_ProfileBaseOk(nProfile, LootD_NamedBase(i)))
             nTotal += LootD_NamedWeight(i);
     if (nTotal &lt;= 0) return -1;
     int r = Random(nTotal);
     for (i = 0; i &lt; LOOTD_NAMED_COUNT; i++)
     {
         if (nLvl &lt; LootD_NamedMin(i) || nLvl &gt; LootD_NamedMax(i)) continue;
+        if (!LootD_ProfileBaseOk(nProfile, LootD_NamedBase(i))) continue;
         r -= LootD_NamedWeight(i);
         if (r &lt; 0) return i;
     }
@@ -244,19 +248,27 @@ int Loot_PickCategory(int nProfile)
     return -1;
 }
 
-// Base item row for a category, or -1.
-int Loot_PickBase(int nCat)
+// Weight of base nK of category nCat for profile nProfile (0 when the
+// profile&#x27;s &quot;bases&quot; filter excludes it).
+int Loot_BaseWeightFor(int nCat, int nK, int nProfile)
+{
+    if (!LootD_ProfileBaseOk(nProfile, LootD_BaseRow(nCat, nK))) return 0;
+    return LootD_BaseWeight(nCat, nK);
+}
+
+// Base item row for a category (inside the profile&#x27;s base filter), or -1.
+int Loot_PickBase(int nCat, int nProfile)
 {
     int n = LootD_BaseCount(nCat);
     int nTotal = 0;
     int k;
     for (k = 0; k &lt; n; k++)
-        nTotal += LootD_BaseWeight(nCat, k);
+        nTotal += Loot_BaseWeightFor(nCat, k, nProfile);
     if (nTotal &lt;= 0) return -1;
     int r = Random(nTotal);
     for (k = 0; k &lt; n; k++)
     {
-        r -= LootD_BaseWeight(nCat, k);
+        r -= Loot_BaseWeightFor(nCat, k, nProfile);
         if (r &lt; 0) return LootD_BaseRow(nCat, k);
     }
     return -1;
@@ -480,7 +492,7 @@ object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
     // 2. named pool
     if (Random(1000) &lt; LootD_RarityNamed(nRarity))
     {
-        int nNamed = Loot_PickNamed(nLvl);
+        int nNamed = Loot_PickNamed(nLvl, nProfile);
         if (nNamed &gt;= 0)
         {
             string sRes = LootD_NamedResRef(nNamed);
@@ -500,7 +512,7 @@ object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
 
     // 3. base
     int nCat = Loot_PickCategory(nProfile);
-    int nBase = nCat &lt; 0 ? -1 : Loot_PickBase(nCat);
+    int nBase = nCat &lt; 0 ? -1 : Loot_PickBase(nCat, nProfile);
     if (nBase &lt; 0)
     {
         Loot_Warn(&quot;profile &#x27;&quot; + sProfile + &quot;&#x27; has no base items&quot;);
@@ -668,6 +680,179 @@ int Loot_RollProfile(int nLevel, string sProfile, object oBeneficiary, object oD
     for (i = 0; i &lt; nRolls; i++)
         if (GetIsObjectValid(Loot_Roll(nLevel, nF, sProfile, oBeneficiary, oDest)))
             nMade++;
+    return nMade;
+}
+
+// ---------------------------------------------------------------------------
+// Containers (Phase 3) - each step mirrors loot_model.chest_contents
+// ---------------------------------------------------------------------------
+
+// Loot level of an area (loot/area_levels.json: median hostile CR, or an
+// override), cached on the area as LOOT_AREA_LVL.  0 = the area has none.
+int Loot_AreaLevel(object oArea)
+{
+    if (!GetIsObjectValid(oArea)) return 0;
+    int n = GetLocalInt(oArea, &quot;LOOT_AREA_LVL&quot;);
+    if (n &gt; 0) return n;
+    n = LootD_AreaLevel(GetResRef(oArea));
+    if (n &gt; 0) SetLocalInt(oArea, &quot;LOOT_AREA_LVL&quot;, n);
+    return n;
+}
+
+// The level a container rolls at: its own LOOT_LEVEL local (set in the
+// toolset to pin one chest), else its area&#x27;s level, else 1 with a warning -
+// the build gate makes every placed container&#x27;s area have a level, so the
+// warning means a container was created somewhere new.
+int Loot_ContainerLevel(object oBox)
+{
+    int n = GetLocalInt(oBox, &quot;LOOT_LEVEL&quot;);
+    if (n &gt; 0) return Loot_Clamp(n, 1, LOOTD_MAX_LEVEL);
+    n = Loot_AreaLevel(GetArea(oBox));
+    if (n &gt; 0) return n;
+    Loot_Warn(&quot;no loot level for area &#x27;&quot; + GetResRef(GetArea(oBox)) + &quot;&#x27; (container &#x27;&quot;
+              + GetTag(oBox) + &quot;&#x27;) - rolling at level 1&quot;);
+    return 1;
+}
+
+// Pay nValue gp into oDest: up to 3 treasure gems (each picked evenly among the
+// gems worth between a quarter of what is left and all of it, else the
+// dearest gem that still fits), and whatever is left as gold.
+void Loot_PayGems(int nValue, object oDest)
+{
+    int nLeft = nValue;
+    int g;
+    int i;
+    int nV;
+    for (g = 0; g &lt; 3; g++)
+    {
+        int nPick = -1;
+        int nN = 0;
+        for (i = 0; i &lt; LOOTD_GEM_COUNT; i++)
+        {
+            nV = LootD_GemValue(i);
+            if (nV &lt;= nLeft &amp;&amp; nV * 4 &gt;= nLeft) nN++;
+        }
+        if (nN &gt; 0)
+        {
+            int r = Random(nN);
+            for (i = 0; i &lt; LOOTD_GEM_COUNT; i++)
+            {
+                nV = LootD_GemValue(i);
+                if (nV &lt;= nLeft &amp;&amp; nV * 4 &gt;= nLeft)
+                {
+                    if (r == 0) { nPick = i; break; }
+                    r--;
+                }
+            }
+        }
+        else
+        {
+            int nBest = 0;
+            for (i = 0; i &lt; LOOTD_GEM_COUNT; i++)
+            {
+                nV = LootD_GemValue(i);
+                if (nV &lt;= nLeft &amp;&amp; nV &gt; nBest) { nBest = nV; nPick = i; }
+            }
+        }
+        if (nPick &lt; 0) break;
+        if (!GetIsObjectValid(CreateItemOnObject(LootD_GemResRef(nPick), oDest)))
+        {
+            Loot_Warn(&quot;treasure gem &#x27;&quot; + LootD_GemResRef(nPick) + &quot;&#x27; could not be created&quot;);
+            break;
+        }
+        nLeft -= LootD_GemValue(nPick);
+    }
+    if (nLeft &gt; 0)
+        CreateItemOnObject(&quot;nw_it_gold001&quot;, oDest, nLeft);
+}
+
+// One consumable (weighted among those whose level window holds nLvl) onto oDest.
+object Loot_RollConsumable(int nLvl, object oDest)
+{
+    int nTotal = 0;
+    int i;
+    int nChunk = -1;
+    string sChunk;
+    string sRow;
+    for (i = 0; i &lt; LOOTD_CONS_COUNT; i++)
+    {
+        if (i / LOOTD_CONS_CHUNK != nChunk)
+        {
+            nChunk = i / LOOTD_CONS_CHUNK;
+            sChunk = LootD_ConsChunk(nChunk);
+        }
+        sRow = GetSubString(sChunk, (i % LOOTD_CONS_CHUNK) * LOOTD_CONS_ROW, LOOTD_CONS_ROW);
+        if (StringToInt(GetStringLeft(sRow, 2)) &lt;= nLvl &amp;&amp; nLvl &lt;= StringToInt(GetSubString(sRow, 2, 2)))
+            nTotal += StringToInt(GetSubString(sRow, 4, 4));
+    }
+    if (nTotal &lt;= 0) return OBJECT_INVALID;
+    int r = Random(nTotal);
+    nChunk = -1;
+    for (i = 0; i &lt; LOOTD_CONS_COUNT; i++)
+    {
+        if (i / LOOTD_CONS_CHUNK != nChunk)
+        {
+            nChunk = i / LOOTD_CONS_CHUNK;
+            sChunk = LootD_ConsChunk(nChunk);
+        }
+        sRow = GetSubString(sChunk, (i % LOOTD_CONS_CHUNK) * LOOTD_CONS_ROW, LOOTD_CONS_ROW);
+        if (StringToInt(GetStringLeft(sRow, 2)) &gt; nLvl || nLvl &gt; StringToInt(GetSubString(sRow, 2, 2)))
+            continue;
+        r -= StringToInt(GetSubString(sRow, 4, 4));
+        if (r &lt; 0)
+        {
+            int nLo = StringToInt(GetSubString(sRow, 8, 2));
+            int nHi = StringToInt(GetSubString(sRow, 10, 2));
+            string sRes = GetSubString(sRow, 12, 16);
+            int nBar = FindSubString(sRes, &quot;|&quot;);
+            if (nBar &gt;= 0) sRes = GetStringLeft(sRes, nBar);
+            object oItem = CreateItemOnObject(sRes, oDest, nLo + Random(nHi - nLo + 1));
+            if (!GetIsObjectValid(oItem))
+                Loot_Warn(&quot;consumable &#x27;&quot; + sRes + &quot;&#x27; could not be created&quot;);
+            return oItem;
+        }
+    }
+    return OBJECT_INVALID;
+}
+
+// Fill a container with one draw of profile sProfile at loot level nLvl:
+// its gear rolls (each with the profile&#x27;s gear chance), then its gold - paid
+// as treasure gems at the profile&#x27;s gem chance - then its consumables.
+// Returns the number of rolled gear items made.
+int Loot_FillContainer(object oBox, string sProfile, int nLvl, object oBeneficiary)
+{
+    int nProfile = LootD_ProfileIndex(sProfile);
+    if (nProfile &lt; 0)
+    {
+        Loot_Warn(&quot;unknown container profile &#x27;&quot; + sProfile + &quot;&#x27;&quot;);
+        return 0;
+    }
+    nLvl = Loot_Clamp(nLvl, 1, LOOTD_MAX_LEVEL);
+    int nMade = 0;
+    int nRolls = LootD_ProfileRolls(nProfile);
+    int nFloor = LootD_ProfileFloor(nProfile);
+    int nGear = LootD_ProfileGearChance(nProfile);
+    int i;
+    for (i = 0; i &lt; nRolls; i++)
+        if (Random(1000) &lt; nGear)
+            if (GetIsObjectValid(Loot_Roll(nLvl, nFloor, sProfile, oBeneficiary, oBox)))
+                nMade++;
+
+    int nMean = LootD_RarityBudget(LOOT_RARITY_COMMON, nLvl) * LootD_ProfileGoldPct(nProfile) / 100;
+    if (nMean &gt; 0)
+    {
+        int nGold = nMean / 2 + Random(nMean + 1);
+        if (Random(1000) &lt; LootD_ProfileGemChance(nProfile))
+            Loot_PayGems(nGold, oBox);
+        else
+            CreateItemOnObject(&quot;nw_it_gold001&quot;, oBox, nGold);
+    }
+
+    int nLo = LootD_ProfileConsMin(nProfile);
+    int nHi = LootD_ProfileConsMax(nProfile);
+    int nCons = nHi &gt;= nLo ? nLo + Random(nHi - nLo + 1) : 0;
+    for (i = 0; i &lt; nCons; i++)
+        Loot_RollConsumable(nLvl, oBox);
     return nMade;
 }
 

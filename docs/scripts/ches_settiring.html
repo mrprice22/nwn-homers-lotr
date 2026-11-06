@@ -77,11 +77,14 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>ches_settiring</code></h1><pre class="nss-source"><code>// ches_settiring.nss -- OnOpen of SettiRingChest (Numenor: Noirinan).
-// Mint one end-game ring, at most once per cooldown per chest (see
-// setti_loot_inc.nss and the numenor-chests roadmap item).
+<h1>Script: <code>ches_settiring</code></h1><pre class="nss-source"><code>// ches_settiring.nss -- OnOpen of the Setti ring coffer (Numenor: Noirinan).
+// Rolls one Legendary ring (Loot Overhaul profile &quot;setti_ring&quot;: rarity floor Legendary,
+// at Noirinan&#x27;s loot level), at most once per cooldown per chest. Replaced the
+// fixed my_createring pool on 2026-11-05 (admin). The profile and its
+// &quot;custom&quot; entry live in loot/sources.json; see setti_loot_inc.nss and the
+// numenor-chests roadmap item for the cooldown and re-lock.
 #include &quot;setti_loot_inc&quot;
-#include &quot;my_createring&quot;
+#include &quot;loot_inc&quot;
 
 void main()
 {
@@ -91,7 +94,7 @@ void main()
     if(!GetIsPC(oPC)) return;
     if(!SettiReady(oChest)) return;   // still cooling down -&gt; opens empty
 
-    CreateRing(oChest, oPC, 60);
+    Loot_FillContainer(oChest, &quot;setti_ring&quot;, Loot_ContainerLevel(oChest), oPC);
     SettiMarkDrawn(oChest);
 }
 </code></pre>

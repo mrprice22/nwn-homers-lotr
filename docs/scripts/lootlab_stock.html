@@ -77,11 +77,15 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>lootlab_stock</code></h1><pre class="nss-source"><code>// lootlab_stock.nss - Loot Lab: put 5 rolled items (menu level and floor) into the
-// nearest placeable with an inventory within 20 m - a stand-in for the Phase 3
-// chest refill, to see rolled loot come out of a container the way players will.
-// Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
+<h1>Script: <code>lootlab_stock</code></h1><pre class="nss-source"><code>// lootlab_stock.nss - Loot Lab: restock the nearest placeable with an inventory
+// within 20 m.  A loot container (its OnOpen/OnUsed/OnDeath script is in
+// loot/sources.json &quot;scripts&quot;) gets exactly what a player would find: one fill
+// of ITS profile at ITS loot level (LOOT_LEVEL local, else the area&#x27;s), old
+// contents cleared, refill timer ignored.  Any other container gets 5 rolled
+// items at the menu level and floor, as before.
+// Roadmap: lo-loot-core, Phase 3 (rng-based-gear-diablo-world-of-warcraft-style). Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
 #include &quot;lootlab_inc&quot;
+#include &quot;loot_chest_inc&quot;
 
 void main()
 {
@@ -100,15 +104,45 @@ void main()
         SendMessageToPC(oPC, &quot;Loot Lab: no container within 20 m.&quot;);
         return;
     }
-    int nLvl = LL_Level(oPC);
-    int nFloor = LL_Floor(oPC);
+    string sProfile = &quot;&quot;;
+    string sScript = &quot;&quot;;
+    string sEvt;
+    int e;
+    for (e = 0; e &lt; 3 &amp;&amp; sProfile == &quot;&quot;; e++)
+    {
+        int nEvt = e == 0 ? EVENT_SCRIPT_PLACEABLE_ON_OPEN
+                 : (e == 1 ? EVENT_SCRIPT_PLACEABLE_ON_USED : EVENT_SCRIPT_PLACEABLE_ON_DEATH);
+        sEvt = GetStringLowerCase(GetEventScript(oBox, nEvt));
+        sProfile = LootD_ScriptProfile(sEvt);
+        if (sProfile != &quot;&quot;) sScript = sEvt;
+    }
     int nMade = 0;
     int i;
+    if (sProfile != &quot;&quot;)
+    {
+        object oOld = GetFirstItemInInventory(oBox);
+        while (GetIsObjectValid(oOld))
+        {
+            DestroyObject(oOld);
+            oOld = GetNextItemInInventory(oBox);
+        }
+        int nCLvl = Loot_ContainerLevel(oBox);
+        nMade = Loot_FillContainer(oBox, sProfile, nCLvl, oPC);
+        SendMessageToPC(oPC, &quot;Loot Lab: filled &quot; + GetName(oBox) + &quot; (&quot; + sScript + &quot;, profile &quot;
+                        + sProfile + &quot;) at loot level &quot; + IntToString(nCLvl) + &quot; - area &quot;
+                        + GetResRef(GetArea(oBox)) + &quot; is level &quot;
+                        + IntToString(Loot_AreaLevel(GetArea(oBox))) + &quot;; &quot; + IntToString(nMade)
+                        + &quot; gear roll(s) plus its gold and consumables.&quot;);
+        return;
+    }
+    int nLvl = LL_Level(oPC);
+    int nFloor = LL_Floor(oPC);
     for (i = 0; i &lt; 5; i++)
         if (GetIsObjectValid(Loot_Roll(nLvl, nFloor, &quot;lab&quot;, oPC, oBox)))
             nMade++;
     SendMessageToPC(oPC, &quot;Loot Lab: put &quot; + IntToString(nMade) + &quot; rolled item(s) into &quot;
-                    + GetName(oBox) + &quot; (level &quot; + IntToString(nLvl) + &quot;).&quot;);
+                    + GetName(oBox) + &quot; (level &quot; + IntToString(nLvl) + &quot;; not a loot container, &quot;
+                    + &quot;so the lab level and floor were used).&quot;);
 }
 </code></pre>
   </main>
