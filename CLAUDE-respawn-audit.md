@@ -124,9 +124,9 @@ The instance wins at runtime, so fixing only the blueprint changes nothing in ga
 | Area | Creature | ResRef | Reason |
 |---|---|---|---|
 | Carn Dum: Numerok's Den | Ranger of the North | `rangerofthe_2` | corpse prop - OnSpawn 'beatenrider' kills it instantly |
+| <cÿ}}>House of Homer | [SERVER] | `server_npc_2` | unkillable - Plot + Immortal [SERVER] NPC |
 | Appearance Changer and Character Modifying Area | Alignment Adjuster | `lvl_alig_trai002` | unkillable - Plot + Immortal Alignment Adjuster |
 | <cÿ}}>House of Homer | Alignment Adjuster | `lvl_alig_trai002` | unkillable - Plot + Immortal Alignment Adjuster |
-| <cÿ}}>House of Homer | [SERVER] | `server_npc_2` | unkillable - Plot + Immortal [SERVER] NPC |
 | Bree | Combat Dummy | `cbd_dummy` | Combat Dummy: cbd_death runs its own 6-second respawn (see cbd_inc.nss) |
 | Carn Dum: Numerok's Den | Dead Girl | `femalekid002_2` | corpse prop - OnSpawn 'beatenrider' kills it instantly |
 | Carn Dum: Numerok's Den | Dead Boy | `malekid002_2` | corpse prop - OnSpawn 'beatenrider' kills it instantly |
