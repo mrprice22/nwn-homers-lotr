@@ -30,6 +30,8 @@
 //                roll's CopyItem(..., TRUE); they are what lets a Fate token
 //                (Phase 7) re-roll exactly the random affixes and never a
 //                forged enchantment or a socketed gem.
+//   8. sockets - 0..n gem sockets by rarity (Phase 5; SOCKET_ROLLED /
+//                SOCKET_MAX, filled by gem_inc).
 //
 // No contraband by construction: a rolled item is bounded by its rarity's
 // value budget and by the gate-checked affix ladders - nothing judges gear
@@ -378,6 +380,42 @@ int Loot_IsRolled(object oItem)
     return GetLocalInt(oItem, "LOOT_VER") > 0;
 }
 
+// ---------------------------------------------------------------------------
+// Sockets (Phase 5).  The socket rules and gems live in gem_inc / the generated
+// socket_data_inc; loot_inc only rolls a new item's socket count and writes the
+// socket line, so the chest wrappers never carry the socket tables.
+// ---------------------------------------------------------------------------
+
+// Rebuild oItem's description as its original text + "Sockets (f/m): ...".
+// sFilled = the comma-joined names of its nFilled filled sockets.  The original
+// text is kept once in SOCKET_BASEDESC, so the line is replaced, never stacked.
+void Loot_SetSocketDesc(object oItem, string sFilled, int nFilled)
+{
+    int nMax = GetLocalInt(oItem, "SOCKET_MAX");
+    if (nMax <= 0) return;
+    if (!GetLocalInt(oItem, "SOCKET_DESC_SET"))
+    {
+        SetLocalString(oItem, "SOCKET_BASEDESC", GetDescription(oItem));
+        SetLocalInt(oItem, "SOCKET_DESC_SET", TRUE);
+    }
+    string s = sFilled;
+    int i;
+    for (i = nFilled; i < nMax; i++)
+        s += (s == "" ? "" : ", ") + "[empty]";
+    string sBase = GetLocalString(oItem, "SOCKET_BASEDESC");
+    SetDescription(oItem, (sBase == "" ? "" : sBase + "\n\n") + "Sockets ("
+                   + IntToString(nFilled) + "/" + IntToString(nMax) + "): " + s);
+}
+
+// One socket gem (loot/gems.json) onto oDest at loot level nLvl, tier floor
+// nFloor: gem_drop.nss does it, so the gem tables stay out of this include.
+void Loot_DropSocketGem(int nLvl, int nFloor, object oDest)
+{
+    SetLocalInt(oDest, "GEM_DROP_LVL", nLvl);
+    SetLocalInt(oDest, "GEM_DROP_FLOOR", nFloor);
+    ExecuteScript("gem_drop", oDest);
+}
+
 // A rolled item put on a non-PC creature (a corpse, Phase 4) must be droppable:
 // Jasperre's DeathCheck / DeleteAllThings destroys a dead creature's
 // non-droppable items, so it would never reach the party roll.
@@ -602,6 +640,16 @@ object Loot_Roll(int nLevel, int nRarityFloor, string sProfile,
 
     if (Random(1000) < LootD_RarityUnid(nRarity))
         SetIdentified(oItem, FALSE);
+
+    // Phase 5: gem sockets by rarity (SOCKET_ROLLED is what gem_inc reconciles to).
+    int nSock = LootD_RaritySockMin(nRarity)
+              + Random(LootD_RaritySockMax(nRarity) - LootD_RaritySockMin(nRarity) + 1);
+    if (nSock > 0)
+    {
+        SetLocalInt(oItem, "SOCKET_ROLLED", nSock);
+        SetLocalInt(oItem, "SOCKET_MAX", nSock);
+        Loot_SetSocketDesc(oItem, "", 0);
+    }
 
     Loot_LogRoll(sProfile == "lab" ? "lab" : "roll", sProfile, nLvl, nRarity, nBase,
                  sName, nValue, oBeneficiary);
@@ -828,6 +876,10 @@ int Loot_FillContainer(object oBox, string sProfile, int nLvl, object oBeneficia
     int nCons = nHi >= nLo ? nLo + Random(nHi - nLo + 1) : 0;
     for (i = 0; i < nCons; i++)
         Loot_RollConsumable(nLvl, oBox);
+
+    // Phase 5: one socket gem, last (loot_model.chest_contents order).
+    if (Random(1000) < LootD_ProfileSockGemChance(nProfile))
+        Loot_DropSocketGem(nLvl, 0, oBox);
     return nMade;
 }
 
@@ -848,6 +900,9 @@ string Loot_Describe(object oItem)
     int i;
     for (i = 0; i < n; i++)
         s += "\n   " + GetLocalString(oItem, "LOOT_AFX_" + IntToString(i));
+    if (GetLocalInt(oItem, "SOCKET_MAX") > 0)
+        s += "\n   sockets " + IntToString(GetLocalInt(oItem, "SOCKET_FILLED")) + "/"
+           + IntToString(GetLocalInt(oItem, "SOCKET_MAX"));
     if (!GetIdentified(oItem)) s += "\n   (unidentified)";
     return s;
 }

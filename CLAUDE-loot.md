@@ -10,6 +10,8 @@ container; phases 4–7 plug the remaining sources into it.
 
 ```
 loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py ─► unpacked/loot_data_inc.nss ─► loot_inc.nss (game)
+                                    │                           ├► unpacked/socket_data_inc.nss ─► gem_inc.nss (Phase 5)
+                                    │                           └► unpacked/sgem_*.uti.json (75 gem blueprints)
                                     ├─► tests/check_loot_tables.py   (repack gate, in tests/smoke-test)
                                     └─► bin/loot-sim.py               (balance tables)
 ```
@@ -25,6 +27,8 @@ loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py �
 | `loot/area_levels.json` | **generated** by `bin/gen-area-loot-levels.py`: every area's loot level |
 | `loot/consumables.json` | consumables a container may hold: resref, level window, weight, stack range (drafted by `bin/gen-loot-consumables.py --draft`, admin-reviewed) |
 | `loot/treasure.json` | plain valuable gems a container may pay its gold in |
+| `loot/gems.json` | **socket gems** (Phase 5): families (affixes they merge into, ladder, steps per tier, icon), the five cuts, level bands, boss floor |
+| `loot/sockets.json` | socket counts for **existing** (not rolled) items: default / two-socket cost / overrides / excludes, extra and ignored base rows, schema `version` |
 | `loot/_items.json` | **generated** stock-item snapshot for the two pools (`gen-loot-consumables.py --refresh-items`) |
 | `loot/_costs.json` | **generated** 2DA cost snapshot so the gate and sim need no NWN install |
 
@@ -140,8 +144,8 @@ loot/sources.json "scripts" ─► gen-loot-tables.py --apply ─► unpacked/<s
   Jasperre AI and stock treasure scripts are ignored), Rogue's Gem excluded on purpose. It
   refuses to overwrite a reviewed pool without `--force`. Stock items are snapshotted to
   `_items.json` so the gate needs no NWN install.
-- **Socketable gems** in chests (admin, 2026-11-05) arrive with Phase 5: add a
-  `socket_gem_chance` to the container profiles then.
+- **Socket gems** in chests (admin, 2026-11-05): each container profile's `socket_gem_chance`
+  (per mille) adds one gem after the consumables - see "Sockets and gems (Phase 5)".
 - `python3 bin/loot-sim.py --chests` prints gear, rarity mix, gold, gem share and consumables per
   fill for every container profile, plus chests by area level.
 
@@ -200,6 +204,61 @@ is stale).
   name (`LOOT_CHAMP_NAME`) and base CR (`LOOT_CHAMP_BASECR`). The book shows "Champions:N"; the wiki
   creature page adds a Champions column.
 
+## Sockets and gems (Phase 5)
+
+Roadmap `Socket-system-for-weapons` (Methonash). Runtime `gem_inc.nss`; Python mirror
+`loot_model.gem_merge` / `item_sockets` / `gem_drop` (**change one, change the other**);
+`python3 bin/loot-sim.py --gems` prints sockets by rarity, gems per source and level, and the
+full merge table.
+
+```
+loot/gems.json + sockets.json ─► gen-loot-tables.py --apply ─► socket_data_inc.nss + sgem_<fam>_<tier>.uti.json
+Loot_Roll ─► SOCKET_ROLLED / SOCKET_MAX by rarity            (loot_inc; rarity.json "sockets")
+Loot_FillContainer / loot_ondeath ─► Loot_DropSocketGem ─► gem_drop.nss ─► Gem_Drop
+dmfi_activate (tag sgem_*) ─► gem_activate.nss ─► Gem_Socket ─► Gem_Apply (the merge)
+mod_cliententer (10.5 s) ─► gem_login ─► Gem_BeginScan ─► gem_scan_step (8 items/step) ─► Gem_Reconcile
+```
+
+- **Separate include on purpose.** `socket_data_inc` is read only by `gem_inc`; loot_inc reaches
+  the gem tables through `ExecuteScript("gem_drop")`, so the 30 chest wrappers never carry them.
+  Both are includes: a change needs `repack-homers-lotr-clean`.
+- **Gem = blueprint `sgem_<family>_<tier>`**, Tag == ResRef, base 24 (miscsmall: non-equippable,
+  stack 1), `PaletteID` 57, Unique Power **iprp_spells 329** (targeted ACTIVATE_ITEM - 335 is Self
+  Only and cannot target an item). The blueprints are **generated**; the gate compares their
+  meaningful fields, not bytes, so a toolset save does not trip it. Names are coloured by tier at
+  creation (`Gem_Create`), so only gems made by script are coloured.
+- **The merge (admin 2026-11-06):** a gem raises its family's property by `steps[tier]` rungs of the
+  family ladder, or adds it at rung `steps-1`. The **last rung is the cap** - 2d10 damage
+  (`iprp_damagecost` row 13) and +16 enhancement/attack are hard gate invariants
+  (`GEM_CAP_DAMAGE_ROW`, `GEM_CAP_HIT`). The damage ladder skips flat +5 (`+1..+4, 1d6 .. 2d10`).
+  A value **off** the ladder (+5, 1d4, 2d4, 1d12, +6..) is placed at the highest rung no stronger by
+  **average damage** (`LootD_DmgPower`, from `hak_2da/iprp_damagecost.2da`), and the result must be
+  stronger - so +5 steps to 1d10. Refusals change nothing and keep the gem.
+- **Fit:** a family fits an item whose category (`LootD_SockBaseCat`: bases.json + `extra_bases`)
+  is in one of its affixes' `cats`; with no existing property, the first affix whose cats include the
+  category is created (Keenstone: enhancement on melee/caster, attack bonus on ranged).
+- **Item locals:** `SOCKET_MAX/FILLED/VER/ROLLED`, `SOCKET_<n>_GEM`, `SOCKET_BASEDESC`, and
+  `GEM_P_N` / `GEM_P_<i>` / `GEM_P_<i>_OWN` = `ForgePropSig` of every property a gem touched and
+  whether a gem created it. The description is always rebuilt from `SOCKET_BASEDESC` + the socket
+  line (`Loot_SetSocketDesc`), never appended.
+- **Forge interaction** (`forge_inc` `ForgePropInSet(ip, nSel, oItem)`): a gem-**created** property
+  is not COUNTED (sockets are separate from forge slots); no gem-touched property is REMOVABLE
+  (staged disenchant cannot strike it); PRICED is unchanged (gem value counts against a forge's value
+  ceiling). `modifyitem` refuses an enchant that would rework a gem-touched property
+  (`ForgeMatchesGemProp`). Every `ForgePropInSet` call that enumerates an item **must pass oItem**.
+- **Phase 7 note:** when a gem raises a rolled affix, `Gem_TrackProp` removes that property from
+  `LOOT_AFX_*`, so the reforge (which strips exactly `LOOT_AFX_*`) can never take a gem.
+- **Existing gear** (`Gem_SocketMax`): a rolled item keeps `SOCKET_ROLLED`; otherwise a socketable
+  base, not Plot / Cursed / stacked, gets `default` (1), or the `LootD_SockList` exception (the
+  two-socket tier = blueprint Cost >= `two_cost`, overrides, excludes - packed by first character).
+  Bump `sockets.json` `version` to make the login pass re-reconcile everything (it only ever adds).
+  The gate fails on a wearable single-stack base row a module item uses that is in neither
+  `bases.json`, `extra_bases` nor `ignored_bases`.
+- **Drops:** tier = a rarity roll at max(source floor, level band floor), capped at the band
+  ceiling; family by weight. Chests: `socket_gem_chance`. Creatures: class `gem_chance`, rolled
+  independently of the gear chance; a boss's gem has `boss_floor`. The Loot Lab force-drops switch
+  forces the gem too.
+
 ## Loot Lab
 
 Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
@@ -214,7 +273,10 @@ Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
   make drops at 100% and prints `LOOT: <name> class=.. cr=.. lvl=.. area=.. -> n item(s)`;
 - **make the nearest hostile creature a champion** (skips the chance roll, keeps every eligibility rule).
 
-Phases 5 and 7 add "grant a gem" and "grant a Shard of Fate" here.
+- **grant a random socket gem** / **one gem of every family**, at the rarity floor as the gem's tier
+  (`lootlab_gem1` / `lootlab_gemall`, Phase 5); the dump also prints sockets and gem-touched properties.
+
+Phase 7 adds "grant a Shard of Fate" here.
 
 ## Value budgets: why they exceed the forge caps
 

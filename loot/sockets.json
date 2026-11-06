@@ -1,0 +1,27 @@
+{
+ "_doc": "Sockets on items that were not rolled (Loot Overhaul Phase 5): hand-made blueprints, stock items, named-pool awards. A rolled item keeps the count its rarity rolled (rarity.json sockets). Eligible = its base item is a socketable base (bases.json, or extra_bases here), stack size 1, not Plot, not Cursed, not in exclude: it gets default sockets, two_sockets when its blueprint Cost (+AddCost) is at least two_cost (1.18M = p90 of obtainable gear, the anchor the rarity budgets use), or overrides[resref] (overrides apply to eligible items only; the runtime checks base, Plot, Cursed and stack first). version: bump it to make the login pass re-reconcile every item a player carries (it only ever ADDS sockets). max_sockets bounds every count, rolled ones included. extra_bases: socketable base rows outside bases.json (CEP weapons with no forge blank) -> category. ignored_bases: equippable base rows that are deliberately never socketable, with a reason; the gate fails on an equippable single-stack base used by a module item that is in neither list.",
+ "version": 1,
+ "max_sockets": 3,
+ "default": 1,
+ "two_sockets": 2,
+ "two_cost": 1180000,
+ "extra_bases": {
+  "309": "melee",
+  "312": "melee",
+  "313": "melee",
+  "320": "melee",
+  "321": "melee",
+  "323": "melee",
+  "324": "melee"
+ },
+ "ignored_bases": {
+  "15": "torch (off-hand light, not gear)",
+  "69": "creature weapon",
+  "70": "creature weapon",
+  "71": "creature weapon",
+  "72": "creature weapon",
+  "73": "creature hide"
+ },
+ "overrides": {},
+ "exclude": {}
+}

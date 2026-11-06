@@ -14,6 +14,15 @@ void main()
     //*with this property applied*, not the stale quote from a prior node.
     itemproperty ipNew = GetNewProperty(oItem);
 
+    //Socket gems are permanent (Loot Overhaul Phase 5): a forge enchant of the
+    //same type would replace the gem-touched property, so it is refused.
+    if (GetIsItemPropertyValid(ipNew) && ForgeMatchesGemProp(oItem, ipNew))
+        {
+        SpeakString("That power is bound to a gem set in this piece's socket - "
+            + "no forge may rework it. Choose another enchantment.");
+        return;
+        }
+
     //Per-forge value ceiling: refuse enchants that would raise the item's
     //assessed value past this forge's cap (0 = uncapped), plus a hard backstop
     //at the global legal ceiling so a missing/cleared area var can never let

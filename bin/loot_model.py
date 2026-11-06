@@ -33,6 +33,10 @@ ROOT = Path(__file__).resolve().parent.parent
 LOOT_DIR = ROOT / "loot"
 UNPACKED = ROOT / "unpacked"
 INCLUDE = UNPACKED / "loot_data_inc.nss"
+# Phase 5: socket gems + existing-item socket rules, a separate include so the
+# thirty container wrappers that pull in loot_inc never carry it.
+SOCKET_INCLUDE = UNPACKED / "socket_data_inc.nss"
+HAK_2DA = ROOT / "hak_2da"
 
 # The forge's global property ceiling (forge_inc.nss FORGE_LEGAL_MAX_PROPS).
 # A rolled item never carries more random properties than a forge may.
@@ -132,7 +136,10 @@ def load_data():
     d["costs"] = _load("_costs.json")
     # Phase 3 files; empty until their tools first write them.
     for stem, empty in (("consumables", {"items": []}), ("treasure", {"gems": []}),
-                        ("area_levels", {"areas": {}}), ("_items", {"items": {}})):
+                        ("area_levels", {"areas": {}}), ("_items", {"items": {}}),
+                        # Phase 5 (sockets and gems)
+                        ("gems", {"families": [], "tiers": [], "level_bands": []}),
+                        ("sockets", {})):
         d[stem.lstrip("_")] = _load(stem + ".json") if (LOOT_DIR / (stem + ".json")).exists() else empty
     return d
 
@@ -566,7 +573,9 @@ def roll(data, level, floor=0, profile="lab", rng=None, model=None):
         value = model.item_value(base["base"], props())
 
     unid = rng.randrange(1000) < tier.get("unidentified_chance", 0)
-    return {"named": None, "rarity": rar, "level": level, "category": cat,
+    slo, shi = tier.get("sockets", [0, 0])
+    sockets = slo + rng.randrange(shi - slo + 1)
+    return {"named": None, "sockets": sockets, "rarity": rar, "level": level, "category": cat,
             "base": base["base"], "base_name": base["name"],
             "affixes": [(affixes[i]["id"], affixes[i]["ladder"][k])
                         for i, k in chosen],
@@ -587,7 +596,7 @@ def give_named(data, level, rarity, allowed, rng):
         return None
     return {"named": n["resref"], "rarity": rarity, "level": level,
             "affixes": [], "value": None, "unidentified": False,
-            "downside": False}
+            "downside": False, "sockets": item_sockets(data, n["resref"])}
 
 
 def rarity_dist(data, floor):
@@ -629,7 +638,8 @@ def item_name(base_name, chosen_affixes):
 # --------------------------------------------------------------------------
 
 PROFILE_DEFAULTS = {"rolls": 1, "rarity_floor": 0, "gear_chance": 1000,
-                    "gold_pct": 0, "gem_chance": 0, "consumables": [0, 0]}
+                    "gold_pct": 0, "gem_chance": 0, "consumables": [0, 0],
+                    "socket_gem_chance": 0}
 
 
 def prof_get(prof, key):
@@ -678,7 +688,7 @@ def chest_contents(data, level, profile, rng=None, model=None):
     rng = rng or random.Random()
     level = max(1, min(MAX_LEVEL, int(level)))
     prof = data["sources"]["profiles"][profile]
-    out = {"gear": [], "gold": 0, "gems": [], "consumables": []}
+    out = {"gear": [], "gold": 0, "gems": [], "consumables": [], "socket_gems": []}
     for _ in range(int(prof_get(prof, "rolls"))):
         if rng.randrange(1000) < int(prof_get(prof, "gear_chance")):
             out["gear"].append(roll(data, level, int(prof_get(prof, "rarity_floor")),
@@ -695,6 +705,11 @@ def chest_contents(data, level, profile, rng=None, model=None):
         c = pick_consumable(data, level, rng)
         if c:
             out["consumables"].append(c)
+    # Phase 5: one socket gem, after everything else (Loot_FillContainer order).
+    if rng.randrange(1000) < int(prof_get(prof, "socket_gem_chance")):
+        g = gem_drop(data, level, 0, rng)
+        if g:
+            out["socket_gems"].append(g)
     return out
 
 
@@ -801,16 +816,21 @@ def creature_drop(data, cls, cr, level, rng=None, model=None):
     roll() dicts, empty when the drop chance misses).  Mirrors loot_ondeath."""
     rng = rng or random.Random()
     cfg = creatures_cfg(data)["classes"][cls]
-    if rng.randrange(1000) >= int(cfg["chance"]):
-        return []
-    prof = data["sources"]["profiles"][cfg["profile"]]
-    floor = int(prof_get(prof, "rarity_floor"))
-    out = [roll(data, level, floor, cfg["profile"], rng, model)
-           for _ in range(creature_rolls(data, cls, cr))]
-    if rng.randrange(1000) < int(cfg.get("named_chance", 0)):
-        n = give_named(data, level, len(data["rarity"]["tiers"]) - 1, prof.get("bases"), rng)
-        if n:
-            out.append(n)
+    out = []
+    if rng.randrange(1000) < int(cfg["chance"]):
+        prof = data["sources"]["profiles"][cfg["profile"]]
+        floor = int(prof_get(prof, "rarity_floor"))
+        out = [roll(data, level, floor, cfg["profile"], rng, model)
+               for _ in range(creature_rolls(data, cls, cr))]
+        if rng.randrange(1000) < int(cfg.get("named_chance", 0)):
+            n = give_named(data, level, len(data["rarity"]["tiers"]) - 1, prof.get("bases"), rng)
+            if n:
+                out.append(n)
+    # Phase 5: a socket gem, rolled independently of the gear chance.
+    if rng.randrange(1000) < int(cfg.get("gem_chance", 0)):
+        g = gem_drop(data, level, int(data["gems"].get("boss_floor", 0)) if cls == "boss" else 0, rng)
+        if g:
+            out.append({"gem": g})
     return out
 
 
@@ -831,7 +851,7 @@ def validate_creatures(data):
         tag = "sources.json creatures class %s" % name
         if cfg.get("profile") not in profiles:
             errs.append("%s: unknown profile %r" % (tag, cfg.get("profile")))
-        for k in ("chance", "named_chance"):
+        for k in ("chance", "named_chance", "gem_chance"):
             v = cfg.get(k, 0)
             if not isinstance(v, int) or not 0 <= v <= 1000:
                 errs.append("%s: %s must be an int 0..1000 (per mille)" % (tag, k))
@@ -840,7 +860,7 @@ def validate_creatures(data):
             errs.append("%s: extra_roll_cr must be a non-negative int" % tag)
         if name != "boss" and (cfg.get("named_chance") or cfg.get("extra_roll_cr")):
             errs.append("%s: named_chance and extra_roll_cr are boss-only" % tag)
-        extra = set(cfg) - {"chance", "profile", "named_chance", "extra_roll_cr"}
+        extra = set(cfg) - {"chance", "profile", "named_chance", "extra_roll_cr", "gem_chance"}
         if extra:
             errs.append("%s: unknown key(s) %s" % (tag, ", ".join(sorted(extra))))
     seen = {}
@@ -1102,9 +1122,9 @@ def validate(data, item_index=None):
                 errs.append("sources.json %s: bad category weight %r=%r" % (name, c, w))
         if not 0 <= p.get("rarity_floor", 0) < len(tiers):
             errs.append("sources.json %s: rarity_floor out of range" % name)
-        for k in ("rolls", "gear_chance", "gold_pct", "gem_chance"):
+        for k in ("rolls", "gear_chance", "gold_pct", "gem_chance", "socket_gem_chance"):
             v = prof_get(p, k)
-            if not isinstance(v, int) or v < 0 or (k in ("gear_chance", "gem_chance") and v > 1000):
+            if not isinstance(v, int) or v < 0 or (k.endswith("chance") and v > 1000):
                 errs.append("sources.json %s: %s must be a non-negative int%s"
                             % (name, k, " (per-mille)" if k.endswith("chance") else ""))
         allowed = p.get("bases")
@@ -1131,6 +1151,7 @@ def validate(data, item_index=None):
         errs.append("sources.json: the 'lab' profile (Loot Lab) is required")
     errs.extend(validate_containers(data))
     errs.extend(validate_creatures(data))
+    errs.extend(validate_gems(data))
 
     # -- sanity ceiling against the module's own obtainable gear
     if item_index is not None:
@@ -1226,4 +1247,420 @@ def validate_containers(data, area_doc=None):
             errs.append("%s: resref longer than 16 characters" % tag)
     if any(prof_get(p, "gem_chance") for p in profiles.values()) and not data["treasure"]["gems"]:
         errs.append("treasure.json: a profile has gem_chance but there are no gems")
+    return errs
+
+
+# --------------------------------------------------------------------------
+# Sockets and gems (Phase 5) -- mirrors gem_inc.nss
+# --------------------------------------------------------------------------
+
+GEM_PREFIX = "sgem_"
+GEM_BASE = 24            # miscsmall: 1x1, non-equippable, stack 1 (an activated item must not be wearable)
+GEM_PALETTE = 57         # itempalcus Misc > the treasure-gem category
+GEM_SPELL = 329          # iprp_spells ACTIVATE_ITEM = targeted Unique Power (335 is Self Only)
+# Methonash's caps (Socket-system-for-weapons): no gem may take a property past them.
+GEM_CAP_DAMAGE_ROW = 13  # iprp_damagecost 2d10
+GEM_CAP_HIT = 16         # Enhancement / Attack Bonus +16
+HIT_TYPES = (6, 56)
+PLAYER_SLOTS = 0x3FFF    # EquipableSlots bits a player can wear (above them: creature slots)
+
+
+def gem_resref(fid, tier):
+    return "%s%s_%d" % (GEM_PREFIX, fid, tier)
+
+
+def _baseitems_2da():
+    p = HAK_2DA / "baseitems.2da"
+    return read_2da_text(p.read_text(encoding="latin-1"))[1] if p.exists() else {}
+
+
+def damage_power():
+    """{iprp_damagecost row: 2 x average damage} from hak_2da/ (the module's own
+    table).  Gems place an off-ladder damage value by this, so +5 flat steps to
+    1d10, never down to 1d6."""
+    p = HAK_2DA / "iprp_damagecost.2da"
+    out = {}
+    if not p.exists():
+        return out
+    for row, r in read_2da_text(p.read_text(encoding="latin-1"))[1].items():
+        n, d = _num(r.get("NumDice")), _num(r.get("Die"))
+        if n is None or d is None:
+            continue
+        out[row] = int(2 * d) if n == 0 else int(n * (d + 1))
+    return out
+
+
+def damage_max():
+    p = HAK_2DA / "iprp_damagecost.2da"
+    out = {}
+    if p.exists():
+        for row, r in read_2da_text(p.read_text(encoding="latin-1"))[1].items():
+            n, d = _num(r.get("NumDice")), _num(r.get("Die"))
+            if n is not None and d is not None:
+                out[row] = int(d) if n == 0 else int(n * d)
+    return out
+
+
+def prop_power(ptype, row, dmgpow):
+    """Strength of cost row ``row`` of a property type: 2 x average damage for
+    Damage Bonus, the row itself (= the bonus) for everything gems touch."""
+    return dmgpow.get(row, 0) if ptype == 16 else row
+
+
+def socket_base_categories(data):
+    """{base row: category} of every socketable base item."""
+    out = {b["base"]: cat for cat, lst in data["bases"]["categories"].items() for b in lst}
+    for row, cat in data["sockets"].get("extra_bases", {}).items():
+        out[int(row)] = cat
+    return out
+
+
+def affix_by_id(data):
+    return {a["id"]: a for a in data["affixes"]["affixes"]}
+
+
+def gem_families(data):
+    return data["gems"].get("families", [])
+
+
+def gem_fits(data, fam, cat):
+    ab = affix_by_id(data)
+    return any(cat in ab[a]["cats"] for a in fam["affixes"] if a in ab)
+
+
+def gem_merge(data, fam, tier, props, cat, dmgpow=None):
+    """What gem (fam, tier) does to an item of category ``cat`` carrying the
+    permanent properties ``props`` ({(type, sub): cost row}).
+
+    Returns (type, sub, old_row_or_None, new_row) or a refusal string.  Mirrors
+    Gem_Plan in gem_inc.nss -- change one, change the other."""
+    dmgpow = dmgpow if dmgpow is not None else damage_power()
+    if not gem_fits(data, fam, cat):
+        return "does not fit a %s item" % cat
+    ab = affix_by_id(data)
+    lad = fam["ladder"]
+    steps = fam["steps"][tier]
+    for aid in fam["affixes"]:
+        a = ab[aid]
+        key = (a["type"], a.get("sub") or 0)
+        if key not in props:
+            continue
+        old = props[key]
+        pw = lambda r: prop_power(a["type"], r, dmgpow)  # noqa: E731
+        if old in lad:
+            pos = lad.index(old)
+        else:
+            below = [i for i, r in enumerate(lad) if pw(r) <= pw(old)]
+            pos = max(below) if below else -1
+        new = min(pos + steps, len(lad) - 1)
+        if new <= pos:
+            return "already at the socket cap"
+        if old not in lad and pw(lad[new]) <= pw(old):
+            return "would not make it stronger"
+        return (a["type"], key[1], old, lad[new])
+    for aid in fam["affixes"]:
+        a = ab[aid]
+        if cat in a["cats"]:
+            return (a["type"], a.get("sub") or 0, None, lad[min(steps, len(lad)) - 1])
+    return "does not fit a %s item" % cat
+
+
+def gem_band(data, level):
+    band = None
+    for b in data["gems"].get("level_bands", []):
+        if level >= b["min_level"]:
+            band = b
+    return band or {"floor": 0, "ceiling": 0}
+
+
+def gem_tier(data, level, floor, rng):
+    """A gem's tier: a rarity roll at max(floor, the band's floor), capped at
+    the band's ceiling.  Mirrors Gem_RollTier."""
+    b = gem_band(data, level)
+    return min(pick_rarity(data, rng, max(floor, b["floor"])), b["ceiling"])
+
+
+def gem_drop(data, level, floor, rng):
+    """(family id, tier) of one dropped gem, or None.  Mirrors Gem_Drop."""
+    fams = [f for f in gem_families(data) if f.get("weight", 0) > 0]
+    f = weighted(rng, fams, lambda x: x["weight"])
+    if f is None:
+        return None
+    return (f["id"], gem_tier(data, max(1, min(MAX_LEVEL, level)), floor, rng))
+
+
+def _uti_eligible(data, u, cats=None, bstack=None):
+    cats = cats if cats is not None else socket_base_categories(data)
+    return (gff(u, "BaseItem") in cats and not gff(u, "Plot", 0) and not gff(u, "Cursed", 0)
+            and int(gff(u, "StackSize", 1) or 1) == 1)
+
+
+def item_sockets(data, resref, u=None, cats=None):
+    """Sockets an existing (not rolled) item gets from loot/sockets.json."""
+    s = data["sockets"]
+    if not s:
+        return 0
+    u = u if u is not None else load_uti(resref)
+    if resref in s.get("exclude", {}):
+        return 0
+    if u is None or not _uti_eligible(data, u, cats):
+        return 0                       # the runtime checks base/Plot/Cursed/stack first too
+    if resref in s.get("overrides", {}):
+        return int(s["overrides"][resref])
+    cost = int(gff(u, "Cost", 0) or 0) + int(gff(u, "AddCost", 0) or 0)
+    return int(s["two_sockets"]) if cost >= int(s["two_cost"]) else int(s["default"])
+
+
+def socket_exceptions(data):
+    """{resref: count} for every module item whose count the runtime cannot
+    work out from the item itself (base, Plot, Cursed, stack): the two-socket
+    tier, overrides and excludes.  Everything else eligible gets ``default``."""
+    s = data["sockets"]
+    out = {}
+    cats = socket_base_categories(data)
+    for p in sorted(UNPACKED.glob("*.uti.json")):
+        rr = p.name[:-len(".uti.json")]
+        if rr.startswith(("forge_blank_", GEM_PREFIX)):
+            continue
+        u = json.loads(p.read_text())
+        n = item_sockets(data, rr, u, cats)
+        default = int(s["default"]) if _uti_eligible(data, u, cats) else 0
+        if rr in s.get("exclude", {}) or rr in s.get("overrides", {}) or n != default:
+            out[rr] = n
+    return out
+
+
+def gem_uti(data, fam, tier):
+    """The expected blueprint of gem (fam, tier) as nwn_gff JSON."""
+    t = data["gems"]["tiers"][tier]
+    rr = gem_resref(fam["id"], tier)
+    name = "%s %s" % (t["word"], fam["stone"])
+    steps = fam["steps"][tier]
+    desc = ("A %s socket gem (%s). Use it on an item with an open socket: it adds %s, or "
+            "raises the item's own by %d step%s, up to the socket cap. Socketing is permanent "
+            "and the gem is consumed." % (data["rarity"]["tiers"][tier]["name"], name,
+                                         fam["effect"], steps, "" if steps == 1 else "s"))
+
+    def v(typ, val):
+        return {"type": typ, "value": val}
+    return {
+        "__data_type": "UTI ",
+        "AddCost": v("dword", int(t["value"])),
+        "BaseItem": v("int", GEM_BASE),
+        "Charges": v("byte", 0),
+        "Comment": v("cexostring", "GENERATED by bin/gen-loot-tables.py from loot/gems.json. Do not edit."),
+        "Cost": v("dword", int(t["value"])),
+        "Cursed": v("byte", 0),
+        "DescIdentified": v("cexolocstring", {"0": desc}),
+        "Description": v("cexolocstring", {"0": desc}),
+        "Identified": v("byte", 1),
+        "LocalizedName": v("cexolocstring", {"0": name}),
+        "ModelPart1": v("byte", int(fam.get("model", 0))),
+        "PaletteID": v("byte", GEM_PALETTE),
+        "Plot": v("byte", 0),
+        "PropertiesList": v("list", [{
+            "__struct_id": 0,
+            "ChanceAppear": v("byte", 100),
+            "CostTable": v("byte", 3),
+            "CostValue": v("word", 13),
+            "Param1": v("byte", 255),
+            "Param1Value": v("byte", 0),
+            "PropertyName": v("word", 15),
+            "Subtype": v("word", GEM_SPELL)}]),
+        "StackSize": v("word", 1),
+        "Stolen": v("byte", 0),
+        "Tag": v("cexostring", rr),
+        "TemplateResRef": v("resref", rr),
+    }
+
+
+GEM_UTI_KEYS = ("AddCost", "BaseItem", "Cursed", "Description", "LocalizedName", "ModelPart1",
+                "PaletteID", "Plot", "PropertiesList", "StackSize", "Tag", "TemplateResRef")
+
+
+def gem_blueprint_problems(data):
+    """(stale-or-missing resrefs, orphaned sgem_* blueprints).  Compares the
+    fields that matter, not bytes, so a toolset round-trip does not trip it."""
+    stale, want = [], set()
+    for fam in gem_families(data):
+        for tier in range(len(data["gems"].get("tiers", []))):
+            rr = gem_resref(fam["id"], tier)
+            want.add(rr)
+            exp = gem_uti(data, fam, tier)
+            cur = load_uti(rr)
+            if cur is None or any(_strip_sid(cur.get(k)) != _strip_sid(exp[k]) for k in GEM_UTI_KEYS):
+                stale.append(rr)
+    orphans = sorted(p.name[:-len(".uti.json")] for p in UNPACKED.glob(GEM_PREFIX + "*.uti.json")
+                     if p.name[:-len(".uti.json")] not in want)
+    return stale, orphans
+
+
+def _strip_sid(v):
+    if isinstance(v, dict):
+        return {k: _strip_sid(x) for k, x in v.items() if k not in ("__struct_id", "id")}
+    if isinstance(v, list):
+        return [_strip_sid(x) for x in v]
+    return v
+
+
+def validate_gems(data):
+    """Phase 5 rules for loot/gems.json, loot/sockets.json and rarity sockets."""
+    errs = []
+    g = data["gems"]
+    s = data["sockets"]
+    if not g.get("families"):
+        return ["loot/gems.json: no gem families"]
+    if not s:
+        return ["loot/sockets.json is missing"]
+    rtiers = data["rarity"]["tiers"]
+    ab = affix_by_id(data)
+    costs = data["costs"]
+    dmgpow, dmgmax = damage_power(), damage_max()
+    if not dmgpow:
+        errs.append("hak_2da/iprp_damagecost.2da is missing (gem damage ladders read it)")
+
+    # -- sockets.json + rarity sockets
+    mx = s.get("max_sockets")
+    if not isinstance(mx, int) or not 1 <= mx <= 6:
+        errs.append("sockets.json: max_sockets must be an int 1..6")
+        mx = 6
+    for k in ("version", "default", "two_sockets", "two_cost"):
+        if not isinstance(s.get(k), int) or isinstance(s.get(k), bool) or s[k] < 0:
+            errs.append("sockets.json: %s must be a non-negative int" % k)
+    if isinstance(s.get("version"), int) and s["version"] < 1:
+        errs.append("sockets.json: version starts at 1")
+    for k in ("default", "two_sockets"):
+        if isinstance(s.get(k), int) and s[k] > mx:
+            errs.append("sockets.json: %s exceeds max_sockets" % k)
+    for i, t in enumerate(rtiers):
+        so = t.get("sockets")
+        if not (isinstance(so, list) and len(so) == 2 and all(isinstance(x, int) for x in so)
+                and 0 <= so[0] <= so[1] <= mx):
+            errs.append("rarity %s: sockets must be [min, max] ints within 0..max_sockets (%d)"
+                        % (t.get("id", i), mx))
+    bi = _baseitems_2da()
+    bases_json = {b["base"] for lst in data["bases"]["categories"].values() for b in lst}
+    for row, cat in s.get("extra_bases", {}).items():
+        tag = "sockets.json extra_bases %s" % row
+        if cat not in CATEGORIES:
+            errs.append("%s: unknown category %r" % (tag, cat))
+        if not row.isdigit() or int(row) in bases_json:
+            errs.append("%s: must be a base row not already in bases.json" % tag)
+            continue
+        r = bi.get(int(row))
+        if not r:
+            errs.append("%s: no such row in hak_2da/baseitems.2da" % tag)
+        elif not int(r.get("EquipableSlots", "0x0"), 16) & PLAYER_SLOTS or int(_num(r.get("Stacking"), 1)) > 1:
+            errs.append("%s: not a wearable single-stack base" % tag)
+    for row, why in s.get("ignored_bases", {}).items():
+        if not row.isdigit() or not why:
+            errs.append("sockets.json ignored_bases %s: a base row with a reason" % row)
+    for key in ("overrides", "exclude"):
+        for rr, val in s.get(key, {}).items():
+            tag = "sockets.json %s %s" % (key, rr)
+            if not (UNPACKED / (rr + ".uti.json")).exists():
+                errs.append("%s: no unpacked/%s.uti.json" % (tag, rr))
+            if key == "overrides" and (not isinstance(val, int) or not 0 <= val <= mx):
+                errs.append("%s: count must be an int 0..max_sockets" % tag)
+            if key == "exclude" and not (isinstance(val, str) and val.strip()):
+                errs.append("%s: give a reason" % tag)
+    cats = socket_base_categories(data)
+    ign = {int(r) for r in s.get("ignored_bases", {}) if r.isdigit()}
+    untriaged = {}
+    for p in sorted(UNPACKED.glob("*.uti.json")):
+        u = json.loads(p.read_text())
+        row = gff(u, "BaseItem")
+        if row in cats or row in ign:
+            continue
+        r = bi.get(row)
+        if not r:
+            continue
+        if int(r.get("EquipableSlots", "0x0"), 16) & PLAYER_SLOTS and int(_num(r.get("Stacking"), 1)) == 1:
+            untriaged.setdefault(row, p.name[:-len(".uti.json")])
+    for row, ex in sorted(untriaged.items()):
+        errs.append("base item %d (%s, e.g. %s) is wearable but in neither bases.json, sockets.json "
+                    "extra_bases nor ignored_bases - decide whether it takes sockets"
+                    % (row, bi[row].get("label"), ex))
+
+    # -- gems.json
+    tiers = g.get("tiers", [])
+    if len(tiers) != len(rtiers):
+        errs.append("gems.json: tiers must match rarity.json (%d)" % len(rtiers))
+    for i, t in enumerate(tiers):
+        w = t.get("word", "")
+        if not w or '"' in w or "\\" in w or not w.isascii():
+            errs.append("gems.json tier %d: word must be plain ASCII" % i)
+        if not isinstance(t.get("value"), int) or t["value"] < 1:
+            errs.append("gems.json tier %d: value must be a positive int" % i)
+    bands = g.get("level_bands", [])
+    if not bands or bands[0].get("min_level") != 1:
+        errs.append("gems.json: level_bands must start at min_level 1")
+    for a, b in zip(bands, bands[1:]):
+        if b["min_level"] <= a["min_level"]:
+            errs.append("gems.json: level_bands must rise in min_level")
+    for b in bands:
+        if not (0 <= b.get("floor", -1) <= b.get("ceiling", -1) < len(rtiers)):
+            errs.append("gems.json band %r: need 0 <= floor <= ceiling < %d" % (b, len(rtiers)))
+    if not 0 <= g.get("boss_floor", 0) < len(rtiers):
+        errs.append("gems.json: boss_floor out of range")
+    seen = set()
+    for fam in g["families"]:
+        fid = fam.get("id", "")
+        tag = "gems.json family %s" % fid
+        if fid in seen:
+            errs.append("%s: duplicate id" % tag)
+        seen.add(fid)
+        if not fid.isalpha() or fid != fid.lower() or len(gem_resref(fid, 0)) > 16:
+            errs.append("%s: id must be lowercase letters, short enough for a 16-char resref" % tag)
+        for k in ("stone", "effect"):
+            v = fam.get(k, "")
+            if not v or '"' in v or "\\" in v or not v.isascii():
+                errs.append("%s: %s must be plain ASCII" % (tag, k))
+        affs = fam.get("affixes", [])
+        if not affs or any(a not in ab for a in affs):
+            errs.append("%s: affixes must be loot/affixes.json ids" % tag)
+            continue
+        if any(ab[a]["role"] != "upside" for a in affs):
+            errs.append("%s: a gem only raises upsides" % tag)
+        ctabs = {costs["itempropdef"].get(str(ab[a]["type"]), {}).get("cost_table") for a in affs}
+        if len(ctabs) != 1 or None in ctabs:
+            errs.append("%s: its affixes must share one cost table" % tag)
+            continue
+        ct = ctabs.pop()
+        types = {ab[a]["type"] for a in affs}
+        lad = fam.get("ladder", [])
+        if not lad or len(set(lad)) != len(lad):
+            errs.append("%s: ladder must be non-empty with no repeated row" % tag)
+            continue
+        rows = costs["cost_tables"].get(ct, {})
+        for r in lad:
+            if str(r) not in rows:
+                errs.append("%s: ladder row %r is not a row of %s" % (tag, r, ct))
+        if types == {16}:
+            mxs = [dmgmax.get(r, 0) for r in lad]
+            if any(b <= a for a, b in zip(mxs, mxs[1:])):
+                errs.append("%s: damage ladder must rise in maximum damage" % tag)
+            cap = dmgpow.get(GEM_CAP_DAMAGE_ROW, 22)
+            if any(dmgpow.get(r, 99) > cap or dmgmax.get(r, 99) > 20 for r in lad):
+                errs.append("%s: damage ladder goes past the 2d10 socket cap" % tag)
+        else:
+            if lad != sorted(lad):
+                errs.append("%s: ladder must rise" % tag)
+            if types & set(HIT_TYPES) and max(lad) > GEM_CAP_HIT:
+                errs.append("%s: ladder goes past the +%d socket cap" % (tag, GEM_CAP_HIT))
+        st = fam.get("steps", [])
+        if (len(st) != len(rtiers) or any(not isinstance(x, int) or x < 1 for x in st)
+                or st != sorted(st) or (st and max(st) > len(lad))):
+            errs.append("%s: steps must be %d non-decreasing ints 1..len(ladder)" % (tag, len(rtiers)))
+        if not isinstance(fam.get("weight"), int) or fam["weight"] < 0:
+            errs.append("%s: weight must be a non-negative int" % tag)
+        m = fam.get("model")
+        if not isinstance(m, int) or not 1 <= m <= 255:
+            errs.append("%s: model must be a miscsmall ModelPart1 1..255 (pick it from the icon sheet)" % tag)
+        if not any(gem_fits(data, fam, c) for c in CATEGORIES):
+            errs.append("%s: fits no item category" % tag)
+    if not any(f.get("weight", 0) > 0 for f in g["families"]):
+        errs.append("gems.json: no family has a weight")
+    # Blueprint freshness is checked by gen-loot-tables.py / the gate, like the
+    # container wrappers (gem_blueprint_problems), so --apply can fix it.
     return errs

@@ -27,6 +27,10 @@ loot_model.py).  In game, Loot Lab's "dump" prints the engine's own value.
                                                   #   are elite, margin sweep, drops per clear
     python3 bin/loot-sim.py --creatures --margin 7   # ...as if elite_margin were 7
     python3 bin/loot-sim.py --creatures --write   # regenerate CLAUDE-loot-creature-audit.md
+    python3 bin/loot-sim.py --gems                # sockets and gems (Phase 5): sockets by rarity,
+                                                  #   gems per chest open / per kill, gem tier mix
+                                                  #   by level, and the merge table (what each gem
+                                                  #   does to each existing value)
 """
 
 from __future__ import annotations
@@ -143,6 +147,65 @@ def chests(data, levels, n, seed):
     print("== treasure containers by area loot level (loot/area_levels.json)")
     for b in sorted(band):
         print("   %s  %d" % ("no level" if b < 0 else "%2d-%2d" % (b * 10 + 1, b * 10 + 10), band[b]))
+
+
+def gems(data, levels, n, seed):
+    """Phase 5: sockets on rolled items, socket gems from chests and kills, and
+    what each gem does to each value it can meet (loot_model.gem_merge)."""
+    tiers = data["rarity"]["tiers"]
+    T = len(tiers)
+    print("== sockets on rolled items (rarity.json sockets; existing gear: loot/sockets.json)")
+    for i, t in enumerate(tiers):
+        lo, hi = t.get("sockets", [0, 0])
+        print("   %-10s %d-%d  (mean %.1f)" % (t["name"], lo, hi, (lo + hi) / 2.0))
+    exc = lm.socket_exceptions(data)
+    print("   existing module items listed off the default: %d (%s)" % (
+        len(exc), ", ".join("%d socket(s): %d" % (k, v) for k, v in
+                            sorted(collections.Counter(exc.values()).items()))))
+    rng = random.Random(seed)
+    print("== socket gems per source (%d trials per level)" % n)
+    print("   %-14s %s" % ("source", "  ".join("lvl %-2d gems  tier mix C/U/R/E/L %%" % l for l in levels)))
+    srcs = [("chest " + p, p, None) for p, v in data["sources"]["profiles"].items()
+            if lm.prof_get(v, "socket_gem_chance")]
+    srcs += [("kill " + c, None, c) for c in lm.CREATURE_CLASSES]
+    for label, prof, cls in srcs:
+        cells = []
+        for lvl in levels:
+            got = collections.Counter()
+            k = 0
+            for _ in range(n):
+                if prof:
+                    gs = lm.chest_contents(data, lvl, prof, rng)["socket_gems"]
+                else:
+                    gs = [x["gem"] for x in lm.creature_drop(data, cls, 0, lvl, rng) if "gem" in x]
+                for _f, tier in gs:
+                    got[tier] += 1
+                    k += 1
+            mix = "/".join("%.0f" % (100.0 * got[i] / max(1, k)) for i in range(T))
+            cells.append("%5.3f  %-18s" % (k / n, mix))
+        print("   %-14s %s" % (label, "  ".join("      " + c for c in cells)))
+    print("== merge table: existing value -> after one gem of each tier (C/U/R/E/L)")
+    dmgpow = lm.damage_power()
+    rows = {16: [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]}
+    lab = {1: "+1", 2: "+2", 3: "+3", 4: "+4", 5: "+5", 6: "1d4", 7: "1d6", 8: "1d8", 9: "1d10",
+           10: "2d6", 11: "2d8", 12: "2d4", 13: "2d10", 14: "1d12", 15: "2d12", 16: "+6"}
+    ab = lm.affix_by_id(data)
+    for fam in lm.gem_families(data):
+        a = ab[fam["affixes"][0]]
+        cat = next(c for c in lm.CATEGORIES if lm.gem_fits(data, fam, c))
+        key = (a["type"], a.get("sub") or 0)
+        vals = rows.get(a["type"], [None] + list(range(1, max(fam["ladder"]) + 3)))
+        name = (lambda r: lab.get(r, str(r))) if a["type"] == 16 else (lambda r: "+%d" % r)
+        if fam["id"] not in ("fire", "hit", "ac", "str", "saves"):
+            continue            # the other damage / ability families share these ladders
+        print("   %s (%s; %s):" % (fam["stone"], fam["effect"], "/".join(map(str, fam["steps"]))))
+        for v in vals:
+            props = {} if v is None else {key: v}
+            out = []
+            for tier in range(T):
+                r = lm.gem_merge(data, fam, tier, props, cat, dmgpow)
+                out.append(name(r[3]) if isinstance(r, tuple) else "-")
+            print("      %-6s -> %s" % ("none" if v is None else name(v), "  ".join("%-5s" % x for x in out)))
 
 
 def _chest_gear_by_area(data):
@@ -455,6 +518,7 @@ def main():
     ap.add_argument("--cr", action="store_true")
     ap.add_argument("--chests", action="store_true")
     ap.add_argument("--creatures", action="store_true")
+    ap.add_argument("--gems", action="store_true")
     ap.add_argument("--margin", type=int, default=None,
                     help="with --creatures: preview another elite_margin")
     ap.add_argument("--write", action="store_true",
@@ -473,6 +537,9 @@ def main():
         return 1
     if a.chests:
         chests(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)
+        return 0
+    if a.gems:
+        gems(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)
         return 0
     if a.creatures:
         if a.write and a.margin is not None:

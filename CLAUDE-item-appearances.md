@@ -110,6 +110,21 @@ whenever you identify another one — that is the point of the file.
 | 75 | lollipop |
 | 78 | **stamped gold coin** |
 | 82 | metal bars |
+| 9 | blue crystal cluster |
+| 10 | pale crystal shards |
+| 24 | red-orange stone fragment |
+| 33 | golden egg / pearl |
+| 34 | dark red heart-shaped stone |
+| 36 | black stone |
+| 44 | polished blue oval stone |
+| 49 | **blue faceted gem** |
+| 56 | white / ice crystal |
+| 65 | blue-purple swirled orb |
+| 68 | pale faceted gem |
+| 73 | **red faceted gem** |
+| 79 | blue crystal prism |
+| 80 | green crystal prism |
+| 85 | grey pearl |
 | 99-101 | birds (dove, pigeon, raven) |
 
 ### `it_thnmisc` (base 79, miscthin)
@@ -157,6 +172,13 @@ whenever you identify another one — that is the point of the file.
 Icons 1-14 are all cloaks and differ only in colour and clasp; 8 is a pale
 grey-blue, 14 a shaggy orange. The CEP models above 50 that the module uses widely
 (51-58) have **no** icons of their own in the resman.
+
+## What the socket gems landed on (Loot Overhaul Phase 5, `loot/gems.json` `model`)
+
+All base 24. Emberstone (fire) 73, Frostglass (cold) 56, Bilestone (acid) 80, Stormshard
+(electrical) 79, Echo Crystal (sonic) 10, Shadowpearl (negative) 36, Keenstone (hit) 68,
+Wardstone (AC) 44, Bloodstone (Str) 24, Windstone (Dex) 9, Heartstone (Con) 34, Lorestone (Int)
+65, Moonstone (Wis) 85, Starstone (Cha) 49, Oathstone (saves) 33.
 
 ## What the Crash Party set landed on
 

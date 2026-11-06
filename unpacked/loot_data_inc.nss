@@ -166,6 +166,32 @@ int LootD_RarityRollBias(int nI)
     return 0;
 }
 
+int LootD_RaritySockMin(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 1;
+        case 3: return 1;
+        case 4: return 2;
+    }
+    return 0;
+}
+
+int LootD_RaritySockMax(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 1;
+        case 3: return 2;
+        case 4: return 3;
+    }
+    return 0;
+}
+
 // Value budget (gp) for rarity nI at loot level nLvl, before the downside bonus.
 int LootD_RarityBudget(int nI, int nLvl)
 {
@@ -408,6 +434,25 @@ int LootD_ProfileGemChance(int nI)
         case 3: return 300;
         case 4: return 300;
         case 5: return 300;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
+int LootD_ProfileSockGemChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 50;
+        case 2: return 100;
+        case 3: return 200;
+        case 4: return 100;
+        case 5: return 100;
         case 6: return 0;
         case 7: return 0;
         case 8: return 0;
@@ -737,6 +782,8 @@ const int LOOTD_CLASS_BOSS = 2;
 const int LOOTD_ELITE_MARGIN = 5;
 const int LOOTD_BOSS_EXTRA_CR = 1000;
 const int LOOTD_BOSS_NAMED = 100;
+// A boss's socket gem has this tier floor (loot/gems.json boss_floor, Phase 5).
+const int LOOTD_GEM_BOSS_FLOOR = 2;
 const int LOOTD_LIST_NONE = 0;
 const int LOOTD_LIST_ELITE = 1;
 const int LOOTD_LIST_NOT_ELITE = 2;
@@ -748,6 +795,17 @@ int LootD_CreatureChance(int nI)
     {
         case 0: return 40;
         case 1: return 250;
+        case 2: return 1000;
+    }
+    return 0;
+}
+
+int LootD_CreatureGemChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 20;
+        case 1: return 150;
         case 2: return 1000;
     }
     return 0;

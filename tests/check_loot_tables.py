@@ -93,6 +93,16 @@ def main() -> int:
                   "changed) - refresh with python3 bin/loot-sim.py --creatures --write")
     if not lm.INCLUDE.exists() or lm.INCLUDE.read_text() != gen.nss_include(data):
         errs.append("unpacked/loot_data_inc.nss is stale. Re-run: python3 bin/gen-loot-tables.py --apply")
+    if not lm.SOCKET_INCLUDE.exists() or lm.SOCKET_INCLUDE.read_text() != gen.socket_include(data):
+        errs.append("unpacked/socket_data_inc.nss is stale. Re-run: python3 bin/gen-loot-tables.py --apply")
+    gstale, gorphans = lm.gem_blueprint_problems(data)
+    if gstale:
+        errs.append("gem blueprint(s) stale or missing (generated from loot/gems.json; never "
+                    "hand-edit them): %s. Re-run: python3 bin/gen-loot-tables.py --apply"
+                    % ", ".join(gstale[:8] + (["..."] if len(gstale) > 8 else [])))
+    if gorphans:
+        errs.append("gem blueprint(s) no longer in loot/gems.json: %s"
+                    % ", ".join(o + ".uti.json" for o in gorphans))
     stale, orphans = gen.wrapper_problems(data)
     if stale:
         errs.append("container script(s) stale or missing (generated from sources.json "
@@ -107,11 +117,14 @@ def main() -> int:
             print("  - " + e)
         return 1
     print("ok loot tables: %d rarities, %d affixes, %d named, %d profiles, %d container "
-          "scripts, %d consumables, %d treasure gems"
+          "scripts, %d consumables, %d treasure gems, %d socket-gem families (%d blueprints), "
+          "%d socket exceptions"
           % (len(data["rarity"]["tiers"]), len(data["affixes"]["affixes"]),
              len(data["named"]["items"]), len(data["sources"]["profiles"]),
              len(data["sources"].get("scripts", {})), len(data["consumables"]["items"]),
-             len(data["treasure"]["gems"])))
+             len(data["treasure"]["gems"]), len(lm.gem_families(data)),
+             len(lm.gem_families(data)) * len(data["gems"]["tiers"]),
+             len(lm.socket_exceptions(data))))
     return 0
 
 

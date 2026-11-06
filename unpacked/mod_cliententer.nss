@@ -273,6 +273,12 @@ void main()
     // See fb_horn_fix.nss.
     DelayCommand(10.0, ExecuteScript("fb_horn_fix", oPC));
 
+    // Socket gems (Loot Overhaul Phase 5): give the gear this character carries
+    // the sockets loot/sockets.json defines for it (only ever adds; skipped per
+    // item until the schema version is bumped). Chunked, no database work.
+    // See gem_login.nss / gem_scan_step.nss.
+    DelayCommand(10.5, ExecuteScript("gem_login", oPC));
+
     // Crash Party: per-login hygiene. Un-sticks anyone who logged out wearing
     // the Mask of a Thousand Faces (Appearance_Type is saved in the .bic, but
     // the mask's revert is a DelayCommand that dies on logout - without this a

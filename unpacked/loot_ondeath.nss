@@ -102,6 +102,15 @@ void main()
         nMade = nRolls + bNamed;
     }
 
+    // Phase 5: a socket gem, rolled independently of the gear chance (a forced
+    // drop forces it too), delivered after the gear; a boss's has a tier floor.
+    if (GetIsObjectValid(oForcer) || Random(1000) < LootD_CreatureGemChance(nClass))
+    {
+        AssignCommand(GetModule(), DelayCommand(0.1 * IntToFloat(nMade),
+            Loot_DropSocketGem(nLvl, bBoss ? LOOTD_GEM_BOSS_FLOOR : 0, oCre)));
+        nMade++;
+    }
+
     if (GetIsObjectValid(oForcer))
         SendMessageToPC(oForcer, "LOOT: " + GetName(oCre) + " class=" + LootO_ClassName(nClass)
             + (bChamp ? " (champion)" : "") + " cr=" + IntToString(FloatToInt(fCR))

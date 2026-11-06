@@ -342,24 +342,74 @@ int ForgeIsDetrimentalProp(itemproperty ip)
 //             permanent && !cosmetic rule - pricing and fingerprints must not
 //             move when the counting rules change, so restrictions AND
 //             drawbacks stay in this set.
+//
+// Socket gems (Loot Overhaul Phase 5, gem_inc.nss) - pass oItem so these apply:
+//   a property a gem CREATED fills no slot (sockets are separate from forge
+//   slots), and no property a gem has touched is REMOVABLE (socketing is
+//   permanent).  Gem value stays PRICED, so it still counts against a forge's
+//   value ceiling like any other worth in the piece.
 const int FORGE_SEL_COUNTED   = 0;
 const int FORGE_SEL_REMOVABLE = 1;
 const int FORGE_SEL_PRICED    = 2;
 
-int ForgePropInSet(itemproperty ip, int nSel)
+string ForgePropSig(itemproperty ip);
+
+// 0 = no gem has touched ip; 1 = a gem raised it; 2 = a gem created it.  Read
+// from the GEM_P_* item locals gem_inc keeps (ForgePropSig of each property).
+int ForgeGemPropKind(object oItem, itemproperty ip)
+{
+    int n = GetLocalInt(oItem, "GEM_P_N");
+    if (n <= 0)
+        return 0;
+    string sSig = ForgePropSig(ip);
+    int i;
+    for (i = 0; i < n; i++)
+        if (GetLocalString(oItem, "GEM_P_" + IntToString(i)) == sSig)
+            return GetLocalInt(oItem, "GEM_P_" + IntToString(i) + "_OWN") ? 2 : 1;
+    return 0;
+}
+
+int ForgeIsGemProp(object oItem, itemproperty ip)
+{
+    return ForgeGemPropKind(oItem, ip) > 0;
+}
+
+int ForgePropInSet(itemproperty ip, int nSel, object oItem = OBJECT_INVALID)
 {
     if (GetItemPropertyDurationType(ip) != DURATION_TYPE_PERMANENT)
         return FALSE;
     if (nSel == FORGE_SEL_REMOVABLE)
         return GetItemPropertyType(ip) != ITEM_PROPERTY_VISUALEFFECT
             && !ForgeIsRestrictionProp(ip)
-            && !ForgeIsDetrimentalProp(ip);
+            && !ForgeIsDetrimentalProp(ip)
+            && !ForgeIsGemProp(oItem, ip);
     if (ForgeIsCosmeticProp(ip))
         return FALSE;
     if (nSel == FORGE_SEL_PRICED)
         return TRUE;
     return !ForgeIsRestrictionProp(ip)
-        && !ForgeIsDetrimentalProp(ip);  // FORGE_SEL_COUNTED
+        && !ForgeIsDetrimentalProp(ip)
+        && ForgeGemPropKind(oItem, ip) != 2;  // FORGE_SEL_COUNTED
+}
+
+// TRUE when a forge enchant ipNew would rework (CustomAddProperty replaces the
+// first property of the same type and subtype) a property a socket gem has
+// touched - modifyitem refuses that, so a forge never overwrites a gem.
+int ForgeMatchesGemProp(object oItem, itemproperty ipNew)
+{
+    if (GetLocalInt(oItem, "GEM_P_N") <= 0)
+        return FALSE;
+    int iTyp = GetItemPropertyType(ipNew);
+    int iSub = GetItemPropertySubType(ipNew);
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (GetItemPropertyType(ip) == iTyp
+            && (iSub == -1 || GetItemPropertySubType(ip) == iSub))
+            return ForgeIsGemProp(oItem, ip);
+        ip = GetNextItemProperty(oItem);
+    }
+    return FALSE;
 }
 
 int ForgeCountPropsSel(object oItem, int nSel)
@@ -368,7 +418,7 @@ int ForgeCountPropsSel(object oItem, int nSel)
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
-        if (ForgePropInSet(ip, nSel))
+        if (ForgePropInSet(ip, nSel, oItem))
             nCount++;
         ip = GetNextItemProperty(oItem);
     }
@@ -382,7 +432,7 @@ itemproperty ForgeGetPropByIndexSel(object oItem, int nIndex, int nSel)
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
-        if (ForgePropInSet(ip, nSel))
+        if (ForgePropInSet(ip, nSel, oItem))
         {
             if (nCount == nIndex)
                 return ip;
@@ -878,11 +928,14 @@ string ForgeUnlistedNote(object oItem)
     int bRestrict = FALSE;
     int bLight = FALSE;
     int bBane = FALSE;
+    int bGem = FALSE;
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
         if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT)
         {
+            if (ForgeIsGemProp(oItem, ip))
+                bGem = TRUE;
             if (ForgeIsRestrictionProp(ip))
                 bRestrict = TRUE;
             else if (ForgeIsDetrimentalProp(ip))
@@ -904,6 +957,9 @@ string ForgeUnlistedNote(object oItem)
     if (bLight)
         s += " Its light is a free gift - it fills no slot, and unmaking it"
             + " frees none.";
+    if (bGem)
+        s += " What its socketed gems gave it is set for good: no forge will"
+            + " strike or rework it, and a gem's own enchantment fills no slot.";
     return s;
 }
 
@@ -998,14 +1054,14 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
         // a restriction is always kept and never advances n; Light advances n
         // but never reaches the blank, so planning it costs zero gold.
         int bDrop = FALSE;
-        if (ForgePropInSet(ip, FORGE_SEL_REMOVABLE))
+        if (ForgePropInSet(ip, FORGE_SEL_REMOVABLE, oItem))
         {
             bDrop = ForgeStageGetBit(oPC, n);
             if (n == nToggleIdx)
                 bDrop = !bDrop;
             n++;
         }
-        if (!bDrop && ForgePropInSet(ip, FORGE_SEL_PRICED))
+        if (!bDrop && ForgePropInSet(ip, FORGE_SEL_PRICED, oItem))
             AddItemProperty(DURATION_TYPE_PERMANENT, ip, oBlank);
         ip = GetNextItemProperty(oItem);
     }
@@ -1024,8 +1080,8 @@ int ForgeProjectedPropCount(object oPC, object oItem)
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
-        int bCounted = ForgePropInSet(ip, FORGE_SEL_COUNTED);
-        if (ForgePropInSet(ip, FORGE_SEL_REMOVABLE))
+        int bCounted = ForgePropInSet(ip, FORGE_SEL_COUNTED, oItem);
+        if (ForgePropInSet(ip, FORGE_SEL_REMOVABLE, oItem))
         {
             if (bCounted && !ForgeStageGetBit(oPC, n))
                 nRemain++;
