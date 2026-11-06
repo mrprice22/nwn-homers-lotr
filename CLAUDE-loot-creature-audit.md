@@ -36,8 +36,8 @@ in the area once.
 
 | elite_margin | elite slots | % of non-boss | distinct creatures | areas |
 |---|---|---|---|---|
-| 3 | 750 | 18.1% | 134 | 88 |
-| **5** | 489 | 11.8% | 95 | 68 |
+| 3 | 755 | 18.2% | 135 | 89 |
+| **5** | 494 | 11.9% | 96 | 69 |
 | 7 | 367 | 8.9% | 67 | 56 |
 | 10 | 198 | 4.8% | 46 | 37 |
 | 15 | 93 | 2.2% | 27 | 21 |
@@ -46,8 +46,8 @@ in the area once.
 
 | class | slots | distinct creatures | drops per full clear |
 |---|---|---|---|
-| normal | 3645 | 400 | 145.8 |
-| elite | 489 | 95 | 122.2 |
+| normal | 3650 | 400 | 146.0 |
+| elite | 494 | 96 | 123.5 |
 | boss | 80 | 80 | 184.0 |
 | excluded | 0 | 0 | 0 |
 
@@ -65,6 +65,7 @@ Grouped by area. *over* = how far the creature's loot level is above the area's.
 | Carrok (`carrok`) | 16 | 12 | Carrok Elite Guard | `gntfrost003` | 24 | 18 | +6 | 5 | auto |
 | Carrok: Greater (`carrokgreater`) | 13 | 10 | Carrok Elite Guard | `gntfrost003` | 24 | 18 | +8 | 5 | auto |
 | Carrok: Lesser (`carroklesser`) | 16 | 12 | Carrok Elite Guard | `gntfrost003` | 24 | 18 | +6 | 4 | auto |
+| Dol Guldur City (`dolguldurcity`) | 245 | 45 | Dol - Guldur  Elite Bow Man | `mordororcbowm005` | 658 | 50 | +5 | 5 | auto |
 | Dunland (`dunland`) | 8 | 6 | Dunland Shaman | `uthgard006` | 80 | 33 | +27 | 1 | auto |
 | Dwarrow Delf (east) (`dwarrowdelfea001`) | 11 | 8 | Wilder Chieftain | `bugbearboss006` | 30 | 22 | +14 | 1 | auto |
 | Dwarrow Delf (east) (`dwarrowdelfea001`) | 11 | 8 | Trollog Devestator | `ogremageboss001` | 21 | 16 | +8 | 3 | auto |
@@ -248,6 +249,7 @@ Areas with hostile creatures, by drops per clear (highest first).
 | Wold South (`woldsouth`) | 14 | 11 | 90 | 18 | 0 | 7.38 | 8.10 |
 | Morannon - The Black Gate (`blackgatge`) | 136 | 39 | 34 | 6 | 2 | 6.74 | 0.00 |
 | The Barrow Downs (`thebarrowdowns`) | 4 | 3 | 117 | 9 | 0 | 6.57 | 0.00 |
+| Dol Guldur City (`dolguldurcity`) | 245 | 45 | 31 | 5 | 2 | 6.41 | 0.00 |
 | Weather Top's Hidden Court (`area028`) | 3250 | 56 | 2 | 0 | 2 | 6.20 | 0.00 |
 | Wold North (`thewold`) | 14 | 11 | 75 | 15 | 0 | 6.15 | 13.80 |
 | Ettenmoors (`ettenmoors`) | 23 | 17 | 44 | 20 | 0 | 5.96 | 0.00 |
@@ -257,7 +259,6 @@ Areas with hostile creatures, by drops per clear (highest first).
 | Dwarrow Delf (west) (`dwarrowdelfeast`) | 8 | 6 | 107 | 5 | 0 | 5.33 | 31.50 |
 | Edoras (`edoras`) | 55 | 31 | 16 | 2 | 2 | 5.18 | 3.00 |
 | Kallrist Crypt (`kallristcryptlow`) | 12 | 9 | 53 | 4 | 1 | 5.02 | 18.90 |
-| Dol Guldur City (`dolguldurcity`) | 245 | 45 | 21 | 0 | 2 | 4.96 | 0.00 |
 | Mirkwood: West (`mirkwoodwest`) | 5 | 4 | 45 | 15 | 0 | 4.95 | 0.00 |
 | Orc Armory (`orcarmory`) | 200 | 45 | 15 | 0 | 2 | 4.72 | 1.20 |
 | Helm's Deep: Keep (`area008`) | 296 | 46 | 14 | 0 | 2 | 4.68 | 9.80 |

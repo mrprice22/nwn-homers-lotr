@@ -4,8 +4,8 @@
 
 Every placed creature instance in `unpacked/*.git.json`, classified by whether its *effective* OnDeath script (the instance's `ScriptDeath` where it overrides the blueprint's) reaches `SE_DoCreatureRespawn()`.
 
-- placed instances: **1004**
-- respawn on the standard 900 s timer: **991**
+- placed instances: **1009**
+- respawn on the standard 900 s timer: **996**
 - allowlisted in `tests/respawn_ignore.json`: **13**
 - **not respawning and not allowlisted: 0** (`tests/check_creature_respawn.py` fails the repack on these)
 

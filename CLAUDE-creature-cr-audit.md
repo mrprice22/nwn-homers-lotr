@@ -13,9 +13,9 @@ levels, the elite rule and the boss board.
 
 | set | blueprints | exact | within 2% | within 10% | within 25% |
 |---|---|---|---|---|---|
-| all with every item resolved | 828 | 390 (47%) | 562 | 712 (86%) | 767 |
+| all with every item resolved | 829 | 393 (47%) | 564 | 713 (86%) | 768 |
 | CRAdjust = 0 | 477 | 278 (58%) | 342 | 407 (85%) | 443 |
-| CRAdjust != 0 | 351 | 112 (32%) | 220 | 305 (87%) | 324 |
+| CRAdjust != 0 | 352 | 115 (33%) | 222 | 306 (87%) | 325 |
 
 2 blueprints have an item the formula cannot price (a hak-only item); they are left out.
 

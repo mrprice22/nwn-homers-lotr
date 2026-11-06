@@ -125,9 +125,11 @@ void BRD_InitDb()
     BRD_SeedBoss("creature023_2", "The Rancid Skinner Green Mortal of Khamul", "Skinner", "dolguldurcast001", "Dol Guldur: Tower Of Black Magic Depths", 810.0, 1200, "placed");
     BRD_SeedBoss("adwarfguardia001", "Gloin King Under the Mountain", "GloinKingUndertheMountain", "lonelymountainma", "Lonely Mountain: Main Hall", 799.0, 1200, "placed");
     BRD_SeedBoss("creature005", "Arwen, The Evenstar", "ArwenTheEvenstar", "rivendellupperha", "Rivendell Upper Halls", 767.0, 1200, "placed");
+    BRD_SeedBoss("akhorahil006_2", "Morgrond Captian of Dol Guldur", "MorgrondCaptian", "dolguldurcity", "Dol Guldur City", 756.0, 1200, "placed");
     BRD_SeedBoss("aragornsonofarat", "Aragorn Son of Arathorn", "AragornSonofArathorn", "minastirithgates", "Minas Tirith: Gates", 712.0, 1200, "placed");
     BRD_SeedBoss("eowyntheshieldma", "Eowyn the Shieldmaiden", "EowyntheShieldmaiden", "area008", "Helm's Deep: Keep", 693.0, 1200, "placed");
     BRD_SeedBoss("shadowlordof_2", "Shadow Lord of Dol Guldur", "ShadowLordof", "dolguldur", "Mirkwood: Dol Guldur", 660.0, 1200, "placed");
+    BRD_SeedBoss("akhorahil004", "Dol Guldur Orc General", "DolGuldurOrcGeneral", "dolguldurcity", "Dol Guldur City", 652.0, 1200, "placed");
     BRD_SeedBoss("ulmothevalar_2", "Ulmo the Valar", "UlmotheValar", "area022", "Valinor: Realm of the spirits", 650.0, 1200, "placed");
     BRD_SeedBoss("angmar", "Angmar", "ms_Angmar", "area009", "Angmar's Lair", 637.0, 1200, "placed");
     BRD_SeedBoss("sarumanthewhi001", "Saruman the White", "ms_orth17", "towerofothancsar", "Tower of Orthanc: Saruman's Chambers", 627.0, 1200, "placed");
@@ -142,7 +144,6 @@ void BRD_InitDb()
     BRD_SeedBoss("shopkeep002_2", "High Priest of Gondor", "NW_PriestofGondor", "minastirithtemp", "Minas Tirith: Temple", 447.0, 1200, "placed");
     BRD_SeedBoss("creature017_2", "Eothain Captian of Helm's Deep", "othain", "helmsdeep001", "Helm's Deep", 440.0, 1200, "placed");
     BRD_SeedBoss("maggotfarmer", "Maggot Farmer", "MaggotFarmer", "bywater", "Bywater", 436.0, 1200, "placed");
-    BRD_SeedBoss("akhorahil006_2", "Morgrond Captian of Dol Guldur", "MorgrondCaptian", "dolguldurcity", "Dol Guldur City", 433.0, 1200, "placed");
     BRD_SeedBoss("gimli_2", "Gimli", "Gimli", "halloftruth", "The Halls of Truth", 418.0, 1200, "placed");
     BRD_SeedBoss("kerufall003", "Kerufall", "ms_keru1", "kerufallslair", "Kerufall's Lair", 418.0, 1200, "encounter");
     BRD_SeedBoss("urukai010", "The White Hand Destroyer", "ms_iseno10", "isengardouterrim", "Isengard (Outerrim)", 374.0, 1200, "placed");
@@ -154,7 +155,6 @@ void BRD_InitDb()
     BRD_SeedBoss("glorfindel002", "Glorfindel", "Glorfindel", "thevalleyofriven", "The Valley of Rivendell", 323.0, 1200, "placed");
     BRD_SeedBoss("creature013", "Sarumon's Master Experiment", "SarumonsMasterExperiment", "towerofothancsar", "Tower of Orthanc: Saruman's Chambers", 316.0, 1200, "placed");
     BRD_SeedBoss("strongminitao002", "Gwathdor Minitaour", "StrongMinitaour", "gwathtomb", "Gwathdor: Tomb", 280.0, 1200, "placed");
-    BRD_SeedBoss("akhorahil004", "Dol Guldur Orc General", "DolGuldurOrcGeneral", "dolguldurcity", "Dol Guldur City", 277.0, 1200, "placed");
     BRD_SeedBoss("creature012_2", "Thragg, Gate Commander", "ThraggGateCommander", "blackgatge", "Morannon - The Black Gate", 267.0, 1200, "placed");
     BRD_SeedBoss("rangerofthe002", "Tren Notteel", "Rangerofthe", "rivendell", "Rivendell", 267.0, 1200, "placed");
     BRD_SeedBoss("frost001", "Frost", "Frost", "emynarnen", "Emyn Arnen: Peak", 256.0, 1200, "encounter");
