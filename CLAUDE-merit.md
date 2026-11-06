@@ -89,7 +89,9 @@ writes that onto `redemptions.note`. The DM still places the real placeable by
 hand. Full map: [CLAUDE-graffiti.md](CLAUDE-graffiti.md).
 
 Current `needs_dm = 0` (instant): teleports 101–107, all premium 201–204,
-tournament gear 302. `needs_dm = 1` (DM): graffiti 301, wallet 303, **Become a
+tournament gear 302, **Shard of Fate 305 (3 merit, Loot Overhaul Phase 7: created first,
+charged only once it exists; the resref is `MERIT_FATE_SHARD`, which the loot gate keeps equal to
+`loot/tokens.json` `fate.resref`)**. `needs_dm = 1` (DM): graffiti 301, wallet 303, **Become a
 DM 304 (100 merit)**, housing size 401–408, housing add-ons 501–505.
 
 Helpers live in `merit_db.nss` (schema, balance, spend/refund, award, NPC stat
@@ -106,7 +108,7 @@ id. Ids are grouped by category, and `Merit_CatReward(cat, idx)` /
 |---|---|---|
 | `TELE` (0)      | 101–107 | teleport & travel |
 | `PREM` (1)      | 201–204 | premium (3x gold & XP) |
-| `VANITY` (2)    | 301–304 | vanity & swag (incl. tournament gear 302, Become a DM 304) |
+| `VANITY` (2)    | 301–305 | vanity & swag (incl. tournament gear 302, Become a DM 304, Shard of Fate 305) |
 | `HOUSESIZE` (3) | 401–408 | player home, by area size |
 | `HOUSEFEAT` (4) | 501–505 | player home add-ons |
 

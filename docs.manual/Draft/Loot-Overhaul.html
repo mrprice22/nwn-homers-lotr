@@ -51,9 +51,8 @@
 <h1>Loot Overhaul — Design Notes</h1>
 
 <p><strong>Status:</strong> targeted at the <strong>Season 3 launch</strong>, built and tested
-phase by phase on the dev realm. Phases 1–3 are on the dev realm. Phases 4–6 are built and
-committed, and reach it together in one clean rebuild at the end of Phase 7. Phases 7 (Fate token)
-and 8 (wiki) remain. The working reference for the code as built is <code>CLAUDE-loot.md</code>.
+phase by phase on the dev realm. Phases 1–7 are on the dev realm: phases 4–7 reached it
+together in one clean rebuild on 2026-11-06. Phase 8 (wiki) remains. The working reference for the code as built is <code>CLAUDE-loot.md</code>.
 The roadmap epic is
 <code>loot-overhaul</code>. This page supersedes the contraband/legality section of
 <a href="Gem-Socketing.html">Slotted Items (Gem Socketing)</a>. The rest of that draft is
@@ -356,7 +355,7 @@ sets drop chance and roll count by creature class:</p>
 </ul>
 <p>Everything lands on the corpse, where the Need/Greed roll handles it unchanged.</p>
 <ul>
-  <li><strong>As built (2026-11-06, not yet rebuilt).</strong> Normal creatures drop 4% of the time,
+  <li><strong>As built (2026-11-06).</strong> Normal creatures drop 4% of the time,
     elites 25% and bosses always: 2 Epic-floor rolls (3 at CR 1,000+), plus a 10% named-pool roll. An
     elite is a champion, an <code>elite_include</code> entry, or a creature whose CR loot level is at
     least 5 above its area's. The drop rolls at the creature's own CR level and is delivered
@@ -384,7 +383,7 @@ sets drop chance and roll count by creature class:</p>
   <li>A gem merges with a same-type property and never overwrites a forged one. It is clamped
     to Methonash's caps (2d10 damage, AB +16).</li>
   <li>Sockets are separate from forge property slots.</li>
-  <li><strong>As built (2026-11-06, not yet rebuilt).</strong> 15 gem families in 5 cuts, as 75
+  <li><strong>As built (2026-11-06).</strong> 15 gem families in 5 cuts, as 75
     generated <code>sgem_*</code> blueprints; the catalogue is a draft awaiting admin review. Rolled
     items take 0 sockets at Common up to 2–3 at Legendary. Existing gear gets 1 socket, or 2 at a
     blueprint cost of 1.18M or more, from a version-stamped login pass. A gem raises its family's
@@ -408,7 +407,7 @@ sets drop chance and roll count by creature class:</p>
     is present; for a chest, the opener.</li>
   <li><strong>Known gap.</strong> Wishlists reset on dev, because the vault sync copies
     <code>.bic</code> files but not the realm DBs.</li>
-  <li><strong>As built (2026-11-06, not yet rebuilt).</strong> The table is
+  <li><strong>As built (2026-11-06).</strong> The table is
     <code>loot_wishlist(uuid, base)</code>; the row <code>base = -1</code> means Auto is off. The list
     is cached on the character, so a roll never queries SQLite. The rest menu's "Loot wishlist..."
     opens a window with one tab per category, Add/Remove per item type, a summary pane, and Clear and
@@ -432,6 +431,15 @@ sets drop chance and roll count by creature class:</p>
     straight into their pack. The limit is one bonus roll per character per boss per real
     day, so a boss killed twice in a day gives no second roll. The lockout is in
     <code>lootdb</code>, keyed by character UUID, boss and date.</li>
+  <li><strong>As built (2026-11-06).</strong> The token is the <strong>Shard of Fate</strong>
+    (<code>lo_fate_shard</code>, base 29, Plot so no store buys it). It drops from 10% of boss kills
+    and always goes to the Need / Greed roll, and the merit shop sells it as reward 305 for 3 merit.
+    The day is a <strong>rolling 24 hours</strong> per character per boss. The reforge is bounded
+    three ways: the rarity budget the original roll had, the whole item within the larger of its
+    current value and the forge's cap, and its enchantment count within the larger of its current
+    count and the forge's. If nothing fits, the Shard is kept. A reforge asks for confirmation
+    first. Config is <code>loot/tokens.json</code>; the reference is <code>CLAUDE-loot.md</code>,
+    "Shard of Fate (Phase 7)".</li>
 </ul>
 
 <h3 id="p8">8. Wiki + player docs (<code>lo-wiki</code>)</h3>

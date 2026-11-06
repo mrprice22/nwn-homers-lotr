@@ -4,9 +4,9 @@ Roadmap epic `loot-overhaul`; the design and phase plan are in
 [docs.manual/Draft/Loot-Overhaul.html](docs.manual/Draft/Loot-Overhaul.html). This file
 is the working reference for the code as built. Phase 2 (`lo-loot-core`) built the
 engine; phase 3 (`rng-based-gear-diablo-world-of-warcraft-style`) put it in every chest and
-container. Phases 4 (creature and boss drops), 5 (sockets and gems) and 6 (the wishlist) are
-built and committed but not yet rebuilt: they reach dev together in the one
-`repack-homers-lotr-clean` at the end of Phase 7 (the Shard of Fate), which is still to do.
+container. Phases 4 (creature and boss drops), 5 (sockets and gems), 6 (the wishlist) and 7 (the
+Shard of Fate) reached dev together in one `repack-homers-lotr-clean` (2026-11-06). Phase 8 (the
+wiki pages) is all that is left of the epic.
 
 ## One data source, three readers
 
@@ -31,6 +31,7 @@ loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py �
 | `loot/treasure.json` | plain valuable gems a container may pay its gold in |
 | `loot/gems.json` | **socket gems** (Phase 5): families (affixes they merge into, ladder, steps per tier, icon), the five cuts, level bands, boss floor |
 | `loot/sockets.json` | socket counts for **existing** (not rolled) items: default / two-socket cost / overrides / excludes, extra and ignored base rows, schema `version` |
+| `loot/tokens.json` | the **Shard of Fate** (Phase 7): blueprint, boss drop chance, bonus-roll prompt timeout, lockout, profile |
 | `loot/_items.json` | **generated** stock-item snapshot for the two pools (`gen-loot-consumables.py --refresh-items`) |
 | `loot/_costs.json` | **generated** 2DA cost snapshot so the gate and sim need no NWN install |
 
@@ -70,6 +71,11 @@ These are in `loot_model.validate()`, and every one fails the repack:
 `Loot_Roll(nLevel, nRarityFloor, sProfile, oBeneficiary, oDest)` returns the item.
 `Loot_RollProfile(...)` makes a profile's full drop. `bin/loot_model.py roll()` is its
 Python mirror: **change one, change the other.**
+
+The affix steps are shared with the Phase 7 reforge: `Loot_RollAffixes` (pick + budget, into the
+`LW_*` work list; mirror `roll_affixes`) and `Loot_ApplyWork` (apply with the self-check, name it).
+Their extra parameters (`sBlock`, `nMaxNew`, `oTemplate`/`nTotalCap`) default to "a fresh roll",
+and the split was checked byte-identical against a seeded `roll()` before and after.
 
 - **Built in the forge vault, not on the destination.** The item is created in
   `ForgeHolder()` from `forge_blank_<base>`, priced there, and only then copied to `oDest`.
@@ -294,6 +300,55 @@ Loot_Roll step 3 ─► Loot_WishPick(oBeneficiary, profile) ─► base row, el
   unbiased). Loot Lab rolls are for the admin, so lab "Roll 10" shows the bias.
 - **Known gap:** the prod -> dev vault sync copies `.bic` files, not `lootdb`, so wishlists reset on dev.
 
+## Shard of Fate (Phase 7)
+
+Roadmap `lo-fate-token`. Config: `loot/tokens.json` `"fate"` -> `LOOTD_FATE_*`. Blueprint
+`lo_fate_shard` (Tag == ResRef, base 29 miscmedium, **Plot** so no store buys it, no properties,
+icon 093). Python mirror: `loot_model.reforge` / `creature_drop` (**change one, change the other**);
+`python3 bin/loot-sim.py --reforge 40,3` prints the boss Shard rate and N reforges of a real roll.
+The gate (`validate_tokens`) checks the blueprint, the ranges, and that `merit_redeem.nss`
+`MERIT_FATE_SHARD` names the same resref.
+
+```
+anvil: forge_fate_can (gate) ─► confirm entry D5 ─► forge_fate_go ─► Loot_Reforge (loot_inc)
+boss death: loot_ondeath ─► Loot_DropShard (10%, PL_ALWAYS)    ─► corpse ─► Need/Greed
+                        └─► LootO_FateOffers ─► fate_open ─► fate_inc NUI ─► fate_evt ─► Fate_Spend
+merit shop: reward 305 ─► Merit_GrantInstant (deliver, then charge)
+```
+
+- **Reforge** (`Loot_Reforge`, transactional like the staged disenchant). It refuses a non-rolled
+  item, a `LOOT_NAMED` one, or a base that is no longer a loot base. The new set is chosen on a
+  scratch forge blank carrying only the **kept** properties (anything whose `ForgePropSig` is not in
+  `LOOT_AFX_*`: forged enchantments, gem properties). Kept properties go into `sBlock`
+  (`Loot_TypeSubKey`, with sub 65535 normalised to 0), so no affix duplicates one. The real item is
+  touched only once a set with at least one upside fits. Then `Loot_StripAfx` removes each
+  `LOOT_AFX_*` signature once, `Loot_ApplyWork(..., bStamp=TRUE)` adds the new set and re-stamps
+  `LOOT_AFX_*` **from the properties it built**, and `LOOT_FATE_N` counts reforges. Nothing is read
+  back after a `RemoveItemProperty`. Level, rarity, base, look, sockets, gems and description are
+  unchanged.
+- **Reforge bounds** (every item-changing path bounds itself):
+  - the affix-only value fits the rarity budget at `LOOT_LVL`, the same budget the original roll had;
+  - the whole item stays at or under max(its value now, the forge's `MODIFY_MAX`);
+  - counted enchantments stay at or under max(its count now, `MODIFY_MAX_PROPS`).
+
+  The Shard is spent **only after** a committed reforge. `forge_fate_go` also clears the staged
+  disenchant plan, because its indices point at the old properties.
+- **Dialogs:** the reply, the D5 confirm and its two answers come from
+  `bin/inject_forge_disenchant.py`, appended in the injected tail. Never hand-add them, because
+  `migrate()` truncates that tail on every re-injection.
+- **Boss bonus roll:** after the boss's drops, every PC contributor (`bst_ctrb_*`) in the corpse's
+  area who holds a Shard and is not locked out gets the `fate_inc` window (`LOOTD_FATE_TIMEOUT`
+  seconds, a nonce per offer, so a newer boss replaces an open prompt and a stale tick does
+  nothing). **Spend** re-checks the nonce, the lockout and that the Shard is still carried. It rolls
+  ONE `Loot_Roll` from `LOOTD_FATE_PROFILE` at the boss's loot level and profile floor into the
+  pack, and only then spends the Shard and writes the lockout, so a failed roll keeps the Shard.
+- **Lockout:** `lootdb` `loot_fate_lockout(uuid, boss, at)`, one row per character per boss resref,
+  unix time. Free again `LOOTD_FATE_LOCKOUT` seconds later (rolling 24 h, admin 2026-11-06). Same
+  vault-sync gap as the wishlist: the table does not come across to dev.
+- **Drop:** `Loot_DropShard` sets `PL_ALWAYS`. `inc_partyloot` `PL_OnItemAcquired` rolls such an
+  item below the party's gp threshold (admin 2026-11-06: a Shard always goes to Need/Greed).
+- **Telemetry:** every reforge is logged to `loot_roll_log` with source `fate`, at any rarity.
+
 ## Loot Lab
 
 Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
@@ -312,7 +367,9 @@ Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
 - **show my loot wishlist and Auto weights** (`lootlab_wish`, Phase 6): the stored picks, the Auto
   tier and list, and the candidates a roll for you draws from.
 
-Phase 7 adds "grant a Shard of Fate" here.
+- **grant me a Shard of Fate** (`lootlab_fate`) and **clear my Shard of Fate lockouts**
+  (`lootlab_fateclr`, Phase 7), so the boss bonus roll can be tested more than once a day. The
+  force-drops switch forces a boss's Shard too, and the dump shows how often an item was reforged.
 
 ## Value budgets: why they exceed the forge caps
 

@@ -80,9 +80,11 @@ whenever you identify another one — that is the point of the file.
 |---|---|
 | 2 | banded wooden tub — the closest thing to a **drum** |
 | 4 | harp |
+| 8 | crystal ball on a gold stand |
 | 11 | engraved stein / tankard |
 | 12 | round bomb with a lit fuse |
 | 13 | grenade |
+| 14 | glowing white orb |
 | 15 | rolled letter |
 | 27 | goblet |
 | 32 | letter |
@@ -90,16 +92,25 @@ whenever you identify another one — that is the point of the file.
 | 39 | painted tiki mask |
 | 42 | sealed writ |
 | 51 | bulletin-board flyer |
+| 55 | blue scrying orb |
 | 57 | gold nuggets |
 | 59 | severed dragon head |
 | 68 | torn-out heart |
+| 74 | green-rune standing stone (74-79 are variants) |
+| 80 | pair of green-rune stones with gold bands |
 | 90 | gilded sceptre |
+| 93 | **glowing pale-blue faceted crystal, sparkling** (the Shard of Fate) |
 | 94 | **two-faced comedy/tragedy theatre mask** |
 | 95 | artist's palette |
 | 98 | playing cards |
+| 102 | green emerald with a rune |
 | 103 | coiled rope |
 | 122 | bracers |
+| 124 | swirled blue-green glowing orb |
 | 125 | barrel |
+| 126 | heap of coloured gems |
+| 151 | white faceted diamond (151-154: white, pink, pale blue, green gems) |
+| 155 | folded cloth (155-165 are colours and patterns) |
 
 ### `it_smlmisc` (base 24, miscsmall)
 
