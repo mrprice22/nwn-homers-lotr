@@ -114,12 +114,13 @@ loot/sources.json "scripts" ─► gen-loot-tables.py --apply ─► unpacked/<s
 - **A container rolls at its area's level** (`Loot_ContainerLevel`): its own `LOOT_LEVEL` local
   if set, else `LootD_AreaLevel(area resref)` cached on the area as `LOOT_AREA_LVL`, else level 1
   with a `LOOT:` warning. `LOOT_NONE` on a placeable skips the fill.
-- **Area levels:** `bin/gen-area-loot-levels.py` takes the **75th-percentile CR**
-  (`levels.json` `area_percentile`, linearly interpolated; stored as `area_cr`) of the area's
-  hostile creatures (placed instances + placed encounter pools; hostile = reputation toward
-  players ≤ 10 in `repute.fac.json`), through `levels.json`. It was the median until
-  2026-11-06: Edoras (8 CR-55 guards, a few veterans, a CR-811 captain) read 31. Area levels
-  are **loot levels**, not CRs: CR 55 = 31, CR 250 = 45, CR 1000 = 55. An area with chests but no hostiles needs
+- **Area levels:** `bin/gen-area-loot-levels.py` takes the **median CR** (`levels.json`
+  `area_percentile` 50; stored as `area_cr`) of the area's hostile creatures (placed instances +
+  placed encounter pools; hostile = reputation toward players ≤ 10 in `repute.fac.json`),
+  through `levels.json`. Area levels are **loot levels**, not CRs: CR 55 = 31, CR 250 = 45,
+  CR 1000 = 55. The 75th percentile was tried and reverted (2026-11-06): it moved Edoras only
+  31 → 33, and any creature that is a quarter of its area's hostiles then sets the area's
+  level itself, so no buff can ever make it elite there. An area with chests but no hostiles needs
   a `sources.json` `area_overrides` entry with a `reason`; `--suggest` proposes one from the
   nearest levelled areas (`module-index/area_graph.json`), `--table` lists every chest area.
   The gate **fails** only when a chest area has no level; level drift after a toolset edit is

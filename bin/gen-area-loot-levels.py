@@ -4,11 +4,11 @@
 Loot Overhaul Phase 3 (roadmap rng-based-gear-diablo-world-of-warcraft-style).
 A chest rolls at its AREA's loot level, not the opener's, so a level-60 player
 gets nothing special out of a level-5 dungeon's chests.  The level is the
-75th-percentile CR (loot/levels.json ``area_percentile``) of the area's hostile
+median CR (loot/levels.json ``area_percentile``, 50) of the area's hostile
 creatures (placed instances and placed encounter pools; "hostile" = reputation
 toward players <= 10 in repute.fac.json) run through loot/levels.json, unless
-loot/sources.json ``area_overrides`` pins it.  It was the median until
-2026-11-06; a town full of low-CR guards with a few veterans read too low.
+loot/sources.json ``area_overrides`` pins it.  (The 75th percentile was tried
+and reverted on 2026-11-06.)
 
 An area that holds a treasure container but has no hostile creatures - a town,
 an inn - has nothing to take a percentile of.  The build gate fails until such an

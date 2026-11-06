@@ -251,13 +251,14 @@ def _percentile(xs, p):
     return xs[i] + (xs[j] - xs[i]) * (k - i)
 
 
-DEFAULT_AREA_PERCENTILE = 75
+DEFAULT_AREA_PERCENTILE = 50
 
 
 def area_percentile(data):
     """levels.json "area_percentile": which CR percentile of an area's hostiles
-    sets its loot level (admin 2026-11-06: 75, so a town of many guards and a
-    few veterans is levelled by the veterans, not the guards)."""
+    sets its loot level.  50 = the median.  75 was tried and reverted on
+    2026-11-06: any creature that is a quarter or more of an area's hostiles
+    then sets the area's level itself, so buffing it can never make it elite."""
     return data["levels"].get("area_percentile", DEFAULT_AREA_PERCENTILE)
 
 
