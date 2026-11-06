@@ -11435,13 +11435,15 @@ ideas:
     title: "Loot wishlist: pick the item types you want to see more of"
     group: items-gear
     epic: loot-overhaul
-    status: planned
+    status: wip
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-11-05"
-    notes: "<div>Choose up to five item types (longswords, tower shields, rings…) from the rest menu, and random loot rolled for you leans toward them. With no wishlist, loot leans toward the weapons your feats favour.</div>"
-    impl_notes: "<div>Phase 6 of Draft/Loot-Overhaul.html#p6. lootdb wishlist(uuid, base_item) keyed by GetObjectUUID; NUI picker from the rest menu grouped by loot/bases.json category (inc_partyloot.nss NUI patterns, mind the text-widget limits). Beneficiary: random present damage-contributing party member for corpses, the opener for chests. Auto fallback weights by weapon-focus/proficiency feats (Rajmund). Known gap: vault sync copies .bic not lootdb, so wishlists reset on dev.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div>"
+    date: "2026-11-06"
+    commit: 7ae404d62bd
+    docs: Customizations.html#loot-wishlist
+    notes: "<div>You can now choose the kinds of gear you want to see more of. Open the rest menu and pick <b>Loot wishlist...</b>, then add up to <b>five</b> item types - longswords, tower shields, rings and so on. <b>40%</b> of the gear rolled for you is then one of those types, whenever the chest or monster can drop that kind of item; its rarity and enchantments are rolled exactly as before. Chests roll for whoever opens them; a creature's drop rolls for one of the players who helped kill it and are still in the area. Change it any time out of combat, free.</div><div><br></div><div>With an empty wishlist, <b>Auto</b> leans your loot toward the weapons your feats favour (Weapon Focus, Specialization, Improved Critical and their epic versions, Weapon of Choice), or with none of those, toward the weapons you are proficient with - a spellcaster also toward magic staves. The <b>Auto</b> button switches it off for plain random loot. See <a href=\"Customizations.html#loot-wishlist\">Loot wishlist</a>.</div>"
+    impl_notes: "<div>Phase 6 of Draft/Loot-Overhaul.html#p6. lootdb wishlist(uuid, base_item) keyed by GetObjectUUID; NUI picker from the rest menu grouped by loot/bases.json category (inc_partyloot.nss NUI patterns, mind the text-widget limits). Beneficiary: random present damage-contributing party member for corpses, the opener for chests. Auto fallback weights by weapon-focus/proficiency feats (Rajmund). Known gap: vault sync copies .bic not lootdb, so wishlists reset on dev.</div><div><b>Season 3 launch scope (admin 2026-11-05):</b> phases 1-7 of the Loot Overhaul must all be on Season 3 before it goes live (Phase 2 of the cutover); phase 8 docs ship alongside each phase.</div><div><b>Built 2026-11-06 (commit 7ae404d62bd, not rebuilt).</b> Data: loot/sources.json \"wishlist\" (picks 5, chance 400, focus_weight 1). gen-loot-tables --refresh-costs now snapshots baseitems.2da WeaponFocusFeat..WeaponOfChoiceFeat (focus_feats) and ReqFeat0-4 (req_feats) per loot base plus classes.2da SpellCaster (caster_classes) into _costs.json; --apply emits LOOTD_WISH_MAX/CHANCE/FOCUS_W, LootD_BaseCat, LootD_BaseFocusFeats, LootD_BaseReqFeats, LootD_ClassCaster. Gate: validate_wishlist (ranges + snapshot present).</div><div>Storage: lootdb loot_wishlist(uuid, base) keyed by GetObjectUUID, row base=-1 = Auto off; PC-local cache LOOT_WISH loaded on first use, rewritten on every change (no SQLite per roll). Runtime: loot_inc Loot_WishPick in Loot_Roll step 3 (PC beneficiary only, chance roll, candidates filtered by profile category weight + base filter; else the normal pick; named branch untouched). Loot_AutoList cached per GetHitDice: tier 1 focus feats x focus_weight over melee/ranged; tier 2 proficiency over melee/ranged/caster at base weight, magic staff only when SpellCaster classes hold &gt;= half the levels. bst_ondeath: LOOT_BENEF now only a contributor in the corpse's area (unset = unbiased).</div><div>UI: rest menu emotewand R176 'Loot wishlist...' -&gt; lw_open -&gt; lw_nui window (category tabs, Add/Remove rows with a 'your feats favour this' note, summary text pane, Clear / Auto / Close), lw_evt (changes refused in combat, 6th pick refused, base row re-validated). Loot Lab R177 'Show my loot wishlist and Auto weights' (lootlab_wish). Mirror: loot_model.wish_candidates / wish_pick / roll(wish=); loot-sim --wishlist 1,13 shows ~44% vs ~3% unbiased; --auto-feats 51 --caster = dagger, club, quarterstaff, crossbows, magic staff.</div><div><b>Not rebuilt:</b> loot_inc, loot_data_inc and loot_db are includes - ships with the single repack-homers-lotr-clean at the end of Phase 7 (status wip until that build reaches dev). Known gap: vault sync copies .bic not lootdb, so wishlists reset on dev.</div>"
     design_questions:
       - question: "Wishlist size and bias? Proposal: 5 picks; 40% of rolls for you draw their base item from your wishlist."
         status: answered
@@ -11449,6 +11451,33 @@ ideas:
       - question: "Can a wishlist be changed freely? Proposal: yes, any time out of combat; no cost."
         status: answered
         answer: "Decided by admin 2026-11-05. Accepted: changeable any time out of combat, no cost."
+      - question: "With an empty wishlist, how should Auto bias loot?"
+        status: answered
+        answer: "Decided by admin 2026-11-06. Focus feats first (weapon focus family, weighted by how many are held); with none, the weapons the character is proficient with. A spellcaster's proficiency lean includes the magic staff (and the quarterstaff), so a wizard leans to dagger, club, crossbows, quarterstaff and magic staff."
+      - question: "Can a player switch Auto off?"
+        status: answered
+        answer: "Decided by admin 2026-11-06. Yes - an Auto on/off toggle in the wishlist window; Auto off with an empty wishlist = plain random loot."
+    manual_steps:
+      - step: "Rest menu > Loot wishlist...: the window opens on Melee; add 5 item types across categories (the header counts them, the summary lists them). A 6th Add is greyed/refused; Remove and Clear wishlist work. Start a fight and try to change it: refused."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Log out and back in: the wishlist and the Auto setting are still there."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Loot Lab: pick Longsword + Greatsword, then Roll 10 items five times: roughly 40% or more of the 50 items are longswords or greatswords. 'Show my loot wishlist and Auto weights' reports the picks and chance 400/1000."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Clear the wishlist on a fighter with Weapon Focus (Longsword): the window says Auto leans to Longsword, Melee shows 'your feats favour this' on it, and lab rolls lean to longswords. On a wizard with no focus feats, Loot Lab's report shows tier 2 with Dagger, Club, Quarterstaff, the crossbows and Staff. Turn Auto off: the report's candidates are empty."
+        status: open
+        kind: uat
+        tester: "admin + a wizard"
+      - step: "Party of two, one waiting in another area: forced-drop kills (Loot Lab force drops) only ever roll for the member present; an Epic+ roll's lootdb loot_roll_log beneficiary is that member's UUID. Afterwards the server log has no 'LOOT:' lines."
+        status: open
+        kind: uat
+        tester: "admin + one player"
   - id: lo-fate-token
     title: "Fate token: re-roll an item's random enchantments, or a bonus roll on a boss"
     group: items-gear
