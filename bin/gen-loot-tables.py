@@ -697,9 +697,46 @@ def nss_include(data=None):
                         [(i, lm.named_base(n["resref"]) if lm.named_base(n["resref"]) is not None else -1)
                          for i, n in N], "-1", str))
 
+    # -- property donor (loot_model.DONOR_TYPES)
+    w("// The donor item: a generated blueprint (%s) carrying every property whose" % lm.DONOR_RESREF)
+    w("// NWScript constructor rejects this module's extended cost rows (loot_model.DONOR_TYPES:")
+    for t in sorted(lm.DONOR_TYPES):
+        w("//   type %d - %s)." % (t, lm.DONOR_TYPES[t]))
+    w("// Created once in FORGE_VAULT and cached on the module.")
+    w("object Loot_IPDonor()")
+    w("{")
+    w("    object oMod = GetModule();")
+    w("    object oDonor = GetLocalObject(oMod, \"LOOT_IPDONOR\");")
+    w("    if (GetIsObjectValid(oDonor)) return oDonor;")
+    w("    object oVault = GetObjectByTag(\"FORGE_VAULT\");")
+    w("    if (!GetIsObjectValid(oVault)) return OBJECT_INVALID;")
+    w("    oDonor = CreateItemOnObject(\"%s\", oVault);" % lm.DONOR_RESREF)
+    w("    SetLocalObject(oMod, \"LOOT_IPDONOR\", oDonor);")
+    w("    return oDonor;")
+    w("}")
+    w("")
+    w("// The donor's property (nType, nSub, nCost), or an invalid property.")
+    w("itemproperty Loot_DonorIP(int nType, int nSub, int nCost)")
+    w("{")
+    w("    itemproperty ip;")
+    w("    object oDonor = Loot_IPDonor();")
+    w("    if (!GetIsObjectValid(oDonor)) return ip;")
+    w("    ip = GetFirstItemProperty(oDonor);")
+    w("    while (GetIsItemPropertyValid(ip))")
+    w("    {")
+    w("        if (GetItemPropertyType(ip) == nType && GetItemPropertySubType(ip) == nSub")
+    w("            && GetItemPropertyCostTableValue(ip) == nCost)")
+    w("            return ip;")
+    w("        ip = GetNextItemProperty(oDonor);")
+    w("    }")
+    w("    return ip;")
+    w("}")
+    w("")
     # -- property constructor
     w("// Build item property nType from a subtype row and a cost-table row.  One case per")
-    w("// loot_model.SUPPORTED_IP entry; anything else returns an invalid property.")
+    w("// loot_model.SUPPORTED_IP entry; anything else returns an invalid property.  A")
+    w("// DONOR_TYPES type is copied from the donor item (Loot_DonorIP), falling back to")
+    w("// its constructor only when the donor lacks that exact property.")
     w("itemproperty Loot_MakeIP(int nType, int nSub, int nCost)")
     w("{")
     w("    itemproperty ip;")
@@ -707,7 +744,14 @@ def nss_include(data=None):
     w("    {")
     for t in sorted(lm.SUPPORTED_IP):
         label, tmpl = lm.SUPPORTED_IP[t]
-        w("        case %d: ip = %s; break; // %s" % (t, tmpl.format(sub="nSub", cost="nCost"), label))
+        ctor = tmpl.format(sub="nSub", cost="nCost")
+        if t in lm.DONOR_TYPES:
+            w("        case %d: // %s (donor)" % (t, label))
+            w("            ip = Loot_DonorIP(nType, nSub, nCost);")
+            w("            if (!GetIsItemPropertyValid(ip)) ip = %s;" % ctor)
+            w("            break;")
+        else:
+            w("        case %d: ip = %s; break; // %s" % (t, ctor, label))
     w("    }")
     w("    return ip;")
     w("}")
@@ -838,6 +882,18 @@ def write_gem_blueprints(data):
     return stale, orphans
 
 
+def write_donor_blueprint(data):
+    """Write unpacked/loot_ipdonor.uti.json, keeping any toolset-only fields."""
+    exp = lm.donor_uti(data)
+    p = lm.UNPACKED / (lm.DONOR_RESREF + ".uti.json")
+    if p.exists():
+        cur = json.loads(p.read_text())
+        cur.update({k: exp[k] for k in lm.DONOR_UTI_KEYS + ("Comment", "Description",
+                                                              "DescIdentified", "LocalizedName")})
+        exp = dict(sorted(cur.items()))
+    p.write_text(json.dumps(exp, indent=2) + "\n")
+
+
 def cons_row(c):
     lo, hi = c.get("stack", [1, 1])
     row = "%02d%02d%04d%02d%02d%s" % (c["min_level"], c["max_level"], c.get("weight", 1), lo, hi,
@@ -937,7 +993,8 @@ def main():
               + ", ".join(o + ".uti.json" for o in gorphans))
     bad = 1 if (orphans or gorphans) else 0
     dprobs = lootdoc.problems(data)
-    if cur == text and scur == stext and not stale and not gstale and not dprobs:
+    dstale = lm.donor_stale(data)
+    if cur == text and scur == stext and not stale and not gstale and not dprobs and not dstale:
         print("ok: %s, %s, %d container scripts and %d gem blueprints are up to date"
               % (lm.INCLUDE.relative_to(ROOT), lm.SOCKET_INCLUDE.relative_to(ROOT),
                  len(data["sources"].get("scripts", {})),
@@ -956,6 +1013,11 @@ def main():
             write_gem_blueprints(data)
             print("wrote %d gem blueprint(s) - file new ones into the palette with "
                   "python3 bin/file-palette-orphans.py --apply" % len(gstale))
+        if dstale:
+            write_donor_blueprint(data)
+            print("wrote unpacked/%s.uti.json (%d properties) - file it into the palette with "
+                  "python3 bin/file-palette-orphans.py --apply"
+                  % (lm.DONOR_RESREF, len(lm.donor_props(data))))
         if dprobs:
             try:
                 lootdoc.apply(data)
@@ -974,6 +1036,8 @@ def main():
     if gstale:
         print("gem blueprint(s) stale or missing - re-run with --apply: " + ", ".join(gstale[:8])
               + (" ..." if len(gstale) > 8 else ""))
+    if dstale:
+        print("unpacked/%s.uti.json stale or missing - re-run with --apply" % lm.DONOR_RESREF)
     for d in dprobs:
         print(d)
     return 1

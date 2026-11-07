@@ -35,6 +35,10 @@ fails the repack when:
         out of range, min_chance above chance, or an empty name_prefix.
     A stale CLAUDE-loot-creature-audit.md is only a note (re-run
     bin/loot-sim.py --creatures --write).
+  * The item-property donor (unpacked/loot_ipdonor.uti.json) does not carry
+    exactly the properties loot_model.donor_props() needs (lo-imm-affix-dropped:
+    damage immunity is copied from it, because ItemPropertyDamageImmunity rejects
+    the module's extended iprp_immuncost rows).
   * The wiki: the generated rarity and enchantment tables in
     docs.manual/Customizations/Loot.html (bin/gen-loot-doc.py) are stale or
     missing their markers, or an affix has no player-facing "name".
@@ -114,6 +118,10 @@ def main() -> int:
     if orphans:
         errs.append("generated container script(s) no longer in sources.json \"scripts\": %s"
                     % ", ".join(o + ".nss" for o in orphans))
+    if lm.donor_stale(data):
+        errs.append("unpacked/%s.uti.json (the item-property donor) is stale or missing - it must "
+                    "carry every ladder row of every loot_model.DONOR_TYPES affix. Never hand-edit "
+                    "it. Re-run: python3 bin/gen-loot-tables.py --apply" % lm.DONOR_RESREF)
     errs += gen.lootdoc.problems(data)
     if errs:
         print("FAIL loot tables:")

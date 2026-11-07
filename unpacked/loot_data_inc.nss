@@ -5261,8 +5261,43 @@ int LootD_NamedBase(int nI)
     return -1;
 }
 
+// The donor item: a generated blueprint (loot_ipdonor) carrying every property whose
+// NWScript constructor rejects this module's extended cost rows (loot_model.DONOR_TYPES:
+//   type 20 - ItemPropertyDamageImmunity rejects cost rows above 7).
+// Created once in FORGE_VAULT and cached on the module.
+object Loot_IPDonor()
+{
+    object oMod = GetModule();
+    object oDonor = GetLocalObject(oMod, "LOOT_IPDONOR");
+    if (GetIsObjectValid(oDonor)) return oDonor;
+    object oVault = GetObjectByTag("FORGE_VAULT");
+    if (!GetIsObjectValid(oVault)) return OBJECT_INVALID;
+    oDonor = CreateItemOnObject("loot_ipdonor", oVault);
+    SetLocalObject(oMod, "LOOT_IPDONOR", oDonor);
+    return oDonor;
+}
+
+// The donor's property (nType, nSub, nCost), or an invalid property.
+itemproperty Loot_DonorIP(int nType, int nSub, int nCost)
+{
+    itemproperty ip;
+    object oDonor = Loot_IPDonor();
+    if (!GetIsObjectValid(oDonor)) return ip;
+    ip = GetFirstItemProperty(oDonor);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (GetItemPropertyType(ip) == nType && GetItemPropertySubType(ip) == nSub
+            && GetItemPropertyCostTableValue(ip) == nCost)
+            return ip;
+        ip = GetNextItemProperty(oDonor);
+    }
+    return ip;
+}
+
 // Build item property nType from a subtype row and a cost-table row.  One case per
-// loot_model.SUPPORTED_IP entry; anything else returns an invalid property.
+// loot_model.SUPPORTED_IP entry; anything else returns an invalid property.  A
+// DONOR_TYPES type is copied from the donor item (Loot_DonorIP), falling back to
+// its constructor only when the donor lacks that exact property.
 itemproperty Loot_MakeIP(int nType, int nSub, int nCost)
 {
     itemproperty ip;
@@ -5273,7 +5308,10 @@ itemproperty Loot_MakeIP(int nType, int nSub, int nCost)
         case 6: ip = ItemPropertyEnhancementBonus(nCost); break; // Enhancement Bonus
         case 13: ip = ItemPropertyBonusLevelSpell(nSub, nCost); break; // Bonus Spell Slot
         case 16: ip = ItemPropertyDamageBonus(nSub, nCost); break; // Damage Bonus
-        case 20: ip = ItemPropertyDamageImmunity(nSub, nCost); break; // Damage Immunity
+        case 20: // Damage Immunity (donor)
+            ip = Loot_DonorIP(nType, nSub, nCost);
+            if (!GetIsItemPropertyValid(ip)) ip = ItemPropertyDamageImmunity(nSub, nCost);
+            break;
         case 22: ip = ItemPropertyDamageReduction(nSub, nCost); break; // Damage Reduction
         case 23: ip = ItemPropertyDamageResistance(nSub, nCost); break; // Damage Resistance
         case 24: ip = ItemPropertyDamageVulnerability(nSub, nCost); break; // Damage Vulnerability

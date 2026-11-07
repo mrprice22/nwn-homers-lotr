@@ -14,6 +14,7 @@ wiki pages) is all that is left of the epic.
 loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py ─► unpacked/loot_data_inc.nss ─► loot_inc.nss (game)
                                     │                           ├► unpacked/socket_data_inc.nss ─► gem_inc.nss (Phase 5)
                                     │                           ├► unpacked/sgem_*.uti.json (75 gem blueprints)
+                                    │                           ├► unpacked/loot_ipdonor.uti.json (property donor, DONOR_TYPES)
                                     │                           └► bin/gen-loot-doc.py ─► docs.manual/Customizations/Loot.html
                                     │                                (loot:rarity + loot:affixes blocks: the wiki tables)
                                     ├─► tests/check_loot_tables.py   (repack gate, in tests/smoke-test)
@@ -94,12 +95,19 @@ and the split was checked byte-identical against a seeded `roll()` before and af
 - **Self-check.** After construction, each property's type and cost row are compared with
   the request. A mismatch logs `LOOT: affix '<id>' built the wrong property` and the affix
   is skipped. Grep the server log for `LOOT:` after any data change.
-  **Known live failure (2026-11-07, roadmap `lo-imm-affix-dropped`): every `imm_*` damage-immunity
-  affix trips this.** Its ladder uses the module's 1%-step `iprp_immuncost` rows 51-150, and the
-  engine's `ItemPropertyDamageImmunity()` returns an invalid property for them
+  **Property donor (2026-11-07, roadmap `lo-imm-affix-dropped`).** `ItemPropertyDamageImmunity()`
+  returns an invalid property for any `iprp_immuncost` row above the stock 7, and the `imm_*` ladders
+  use the module's 1%-step rows 51-150. Every immunity roll was therefore dropped here
   (`LOOT: affix 'imm_sonic' built the wrong property (type -1 cost -1, wanted type 20 cost 70)`),
-  so the item silently arrives one affix short. The Python mirror, the sim and the gate cannot see
-  it, since none of them run the engine constructor.
+  and the item arrived one affix short. The Python mirror, the sim and the gate could not see it.
+  The fix: types in `loot_model.DONOR_TYPES` (only 20 so far) are **copied from a generated donor
+  item**, `unpacked/loot_ipdonor.uti.json`. That item carries every ladder row of every such affix;
+  a property loaded from GFF is not range-checked. `Loot_IPDonor()` creates it once in
+  `FORGE_VAULT` and caches it on the module (`LOOT_IPDONOR`), and `Loot_DonorIP()` finds the exact
+  property, falling back to the constructor when it is missing. The gate fails when the donor
+  does not carry exactly `donor_props()`. If a `LOOT:` "built the wrong property" line ever names
+  another type, add that type to `DONOR_TYPES` with its `iprp_costtable` row in
+  `DONOR_COST_TABLE`.
 - **Stamps** (`.bic`-persistent, they survive the party roll's `CopyItem(..., TRUE)`):
   `LOOT_VER`, `LOOT_LVL`, `LOOT_RARITY`, `LOOT_PROFILE`, `LOOT_AFX_N`,
   `LOOT_AFX_<i>` = `ForgePropSig` of each random property, and `LOOT_NAMED` for
@@ -406,7 +414,7 @@ Three things decide that, and only one of them is rarity:
   `Loot_Budget`, and never adds power when it is under. The Epic budget at 50 is 850k, and the median
   simulated Epic shield is about 300k, so the budget rarely binds at Epic.
 
-That shield also rolled `imm_sonic` (20%), which the bug above dropped. The design question
+That shield also rolled `imm_sonic` (20%), which the bug above dropped (fixed the same day by the donor). The design question
 (how far rarity should move the numbers) is roadmap `lo-power-curve`. The player-facing version of
 this section is `Customizations/Loot.html#loot-how-rolled`.
 
