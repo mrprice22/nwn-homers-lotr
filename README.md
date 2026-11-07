@@ -2134,7 +2134,7 @@ Every season-scoped value in this repo derives from one block at the bottom of
 | Script | Owns | Gate |
 |---|---|---|
 | `bin/season-brand.py --apply` | **strings and URLs** — module name, server name, worker name, every in-game URL, the apex redirect, both season signs | `tests/check_season_brand.py` |
-| `bin/season-profile.py --apply` | **behaviour flags** — `unpacked/season_prof_inc.nss`: cheat chest, dev NPCs, early-access wipe notice | `tests/check_season_profile.py` |
+| `bin/season-profile.py --apply` | **behaviour flags** — `unpacked/season_prof_inc.nss`: cheat chest, dev NPCs, early-access wipe notice, merit shop, and the tester shortcuts (`SP_TESTER_KIT`: the Well of Eru tester kit, the Homeless teleports, and the rest menu's **[MW Teleports]** and **[Loot Lab]** for every player) | `tests/check_season_profile.py` |
 
 Edit the block, re-run both, repack. Both gates run on every repack, so a tree
 that has drifted from its season block cannot be packed.

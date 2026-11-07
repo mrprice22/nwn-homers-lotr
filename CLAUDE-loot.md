@@ -355,7 +355,11 @@ merit shop: reward 305 ─► Merit_GrantInstant (deliver, then charge)
 ## Loot Lab
 
 Rest menu → Admin Options → **[Admin] Loot Lab** (`emotewand.dlg` Entry 19,
-`lootlab_*.nss`). It can:
+`lootlab_*.nss`). **On a tester realm (dev, early access) it is open to every player** (admin
+2026-11-06): a root **[Loot Lab]** rest-menu row, gated by `sp_lootlab` (`SP_TESTER_KIT`, no admin
+fallback, like [MW Teleports]), child-links to the same Entry 19, and `LL_Authorised` admits anyone
+there. On a live season both read FALSE, so it stays the admin's tool. Both are registered consumers
+in `bin/season-profile.py`'s wiring check. It can:
 
 - set the loot level (±1 / ±10) and cycle the rarity floor (tokens 6450 / 6451);
 - roll 1 or 10 items into your pack;

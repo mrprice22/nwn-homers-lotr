@@ -8,6 +8,11 @@
 // defence in depth.  NOT a DM console command - the admin has no DM client
 // (CLAUDE.md, "The admin has no DM console").
 //
+// ON A TESTER REALM (SP_TESTER_KIT - dev and early access, never live) the Lab
+// is open to EVERY player: a root "[Loot Lab]" rest-menu entry (gated by
+// sp_lootlab) links to the same Entry 19, and LL_Authorised admits anyone.
+// Admin 2026-11-06, so testers can exercise Season 3 loot without an admin.
+//
 // State lives on the admin's PC as locals: LOOTLAB_LVL (loot level 1..60,
 // defaults to the PC's hit dice) and LOOTLAB_FLOOR (rarity floor index).
 // Custom tokens: 6450 = loot level, 6451 = rarity floor label.
@@ -17,6 +22,7 @@
 
 #include "admin_db"
 #include "loot_inc"
+#include "sp_testkit_inc"
 
 const int LOOTLAB_TOK_LEVEL = 6450;
 const int LOOTLAB_TOK_FLOOR = 6451;
@@ -33,6 +39,9 @@ object LL_Speaker()
 
 int LL_Authorised(object oPC)
 {
+    // A tester realm opens the Lab to everyone (SP_TESTER_KIT, never live);
+    // anywhere else it is the admin's tool.
+    if (SP_TesterKit()) return TRUE;
     if (GetIsPC(oPC) && !GetIsDM(oPC) && !Admin_CanAdmin(oPC))
     {
         SendMessageToPC(oPC, "You are not authorised to use that.");

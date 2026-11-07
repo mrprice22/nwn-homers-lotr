@@ -6,6 +6,8 @@
 //::                       Runes of Expansion, on every entry
 //::   _cdkeyhome.nss      the "Options of the Homeless" rest-menu conditional
 //::   sp_testkit.nss      the [MW Teleports] root rest-menu conditional
+//::   sp_lootlab.nss      the [Loot Lab] root rest-menu conditional
+//::   lootlab_inc.nss     LL_Authorised: the Loot Lab open to every player
 //::
 //:: WHY THIS IS A PURE REALM PREDICATE, with no Admin_Can* fallback baked in.
 //:: sp_devgate_inc.nss folds the admin check into its helper because both of

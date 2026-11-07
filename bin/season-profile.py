@@ -170,6 +170,14 @@ WIRING: list[tuple[str, str | tuple[str, ...], str]] = [
      "the [MW Teleports] root rest-menu entry exists ONLY on a tester realm - "
      "it is a second parent link onto the Admin Options MW destinations node, "
      "so a literal TRUE here would publish an admin subtree to every player"),
+    ("sp_lootlab.nss", ("SP_TESTER_KIT", "SP_TesterKit"),
+     "the [Loot Lab] root rest-menu entry exists ONLY on a tester realm - it is "
+     "a second parent link onto the Admin Options Loot Lab node, so a literal "
+     "TRUE here hands every live player a loot generator"),
+    ("lootlab_inc.nss", ("SP_TESTER_KIT", "SP_TesterKit"),
+     "LL_Authorised opens every Loot Lab action to non-admins only through the "
+     "flag; its Admin_CanAdmin check must survive, because that is what still "
+     "gates the Lab on live"),
 ]
 
 
