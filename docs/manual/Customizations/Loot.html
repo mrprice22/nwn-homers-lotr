@@ -201,6 +201,8 @@
         <ol>
           <li><a href="#loot-rarity">Rarity tiers</a></li>
           <li><a href="#loot-levels">Loot levels</a></li>
+          <li><a href="#loot-how-rolled">How an item is rolled</a></li>
+          <li><a href="#loot-affixes">Every enchantment and its range</a></li>
           <li><a href="#loot-chests">Chests and containers</a></li>
           <li><a href="#loot-creatures">Creature and boss drops</a></li>
           <li><a href="#loot-wishlist">Loot wishlist</a></li>
@@ -238,17 +240,33 @@ stage has its own section on this page.
 
 <h3 id="loot-rarity">Rarity tiers</h3>
 <p>Every rolled item has one of five rarities. The rarity sets the item's name colour, how many random
-enchantments it gets and how strong they can be.</p>
+enchantments it gets, how hard each one tries for the top of its range, its sockets and its gold ceiling.
+It does <strong>not</strong> make any single enchantment stronger than the loot level allows: see
+<a href="#loot-how-rolled">How an item is rolled</a>.</p>
+<!-- loot:rarity -->
 <table class="data change-table">
-  <thead><tr><th>Rarity</th><th>Name colour</th><th>Enchantments</th><th>Roughly how often</th><th>Value ceiling at loot level 60</th></tr></thead>
+  <thead><tr><th>Rarity</th><th>Name colour</th><th>Enchantments</th><th>Strength roll</th><th>Sockets</th><th>Drawback chance</th><th>How often (any drop)</th><th>How often (boss drop)</th></tr></thead>
   <tbody>
-    <tr><td>Common</td><td>white</td><td>1</td><td>56%</td><td>15,000 gp</td></tr>
-    <tr><td>Uncommon</td><td>green</td><td>1&ndash;2</td><td>29%</td><td>25,000 gp</td></tr>
-    <tr><td>Rare</td><td>blue</td><td>2&ndash;3</td><td>11%</td><td>130,000 gp</td></tr>
-    <tr><td>Epic</td><td>purple</td><td>3&ndash;4</td><td>3%</td><td>1,200,000 gp</td></tr>
-    <tr><td>Legendary</td><td>orange</td><td>4</td><td>0.6%</td><td>3,200,000 gp</td></tr>
+    <tr><td>Common</td><td>white</td><td>1</td><td>1 roll</td><td>0</td><td>6.0%</td><td>56%</td><td>&mdash;</td></tr>
+    <tr><td>Uncommon</td><td>green</td><td>1&ndash;2</td><td>1 roll</td><td>0&ndash;1</td><td>10%</td><td>29%</td><td>&mdash;</td></tr>
+    <tr><td>Rare</td><td>blue</td><td>2&ndash;3</td><td>best of 2</td><td>1</td><td>12%</td><td>11%</td><td>&mdash;</td></tr>
+    <tr><td>Epic</td><td>purple</td><td>3&ndash;4</td><td>best of 2</td><td>1&ndash;2</td><td>14%</td><td>3.0%</td><td>98%</td></tr>
+    <tr><td>Legendary</td><td>orange</td><td>4</td><td>best of 3</td><td>2&ndash;3</td><td>16%</td><td>0.60%</td><td>2.5%</td></tr>
   </tbody>
 </table>
+
+<p>The gold ceiling (the most an item's random enchantments may be worth, in gold) by loot level. A roll with a drawback gets 25% more.</p>
+<table class="data change-table">
+  <thead><tr><th>Rarity</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Common</td><td>1,500 gp</td><td>5,000 gp</td><td>10,000 gp</td><td>12,500 gp</td><td>15,000 gp</td></tr>
+    <tr><td>Uncommon</td><td>4,000 gp</td><td>12,000 gp</td><td>20,000 gp</td><td>22,500 gp</td><td>25,000 gp</td></tr>
+    <tr><td>Rare</td><td>10,000 gp</td><td>35,000 gp</td><td>80,000 gp</td><td>105,000 gp</td><td>130,000 gp</td></tr>
+    <tr><td>Epic</td><td>30,000 gp</td><td>150,000 gp</td><td>500,000 gp</td><td>850,000 gp</td><td>1,200,000 gp</td></tr>
+    <tr><td>Legendary</td><td>60,000 gp</td><td>400,000 gp</td><td>1,400,000 gp</td><td>2,300,000 gp</td><td>3,200,000 gp</td></tr>
+  </tbody>
+</table>
+<!-- /loot:rarity -->
 <ul>
   <li><strong>Names.</strong> A rolled item is named after its first two enchantments, for example
   <em>Burning Longsword of Warding</em>.</li>
@@ -286,6 +304,331 @@ challenge rating:</p>
 <p>So easy places stay easy: farming low-level monsters or chests will not turn up high-level loot.
 A chest uses the loot level of the <a href="#loot-chests">area it stands in</a>, not the level of the
 player who opens it.</p>
+
+<h3 id="loot-how-rolled">How an item is rolled</h3>
+<p>Every rolled item goes through the same steps, in this order. Apart from the item type (see the
+<a href="#loot-wishlist">wishlist</a>), nothing about your character changes the result.</p>
+<ol>
+  <li><strong>Rarity.</strong> The game draws a rarity by the odds in the <a href="#loot-rarity">rarity
+  table</a>. A source with a minimum rarity raises a lower draw to that minimum: a large chest is at least
+  Uncommon, a boss at least Epic. Then a small chance bumps the result up one tier, or rarely two. The
+  odds in the table already include those bumps.</li>
+  <li><strong>Named item.</strong> A Legendary roll sometimes awards one of the module's own named items
+  instead. When it does, the steps below are skipped.</li>
+  <li><strong>Item type.</strong> The source picks a kind of gear (melee weapon, armour, ring and so on) by
+  its own odds, then a base item of that kind. Your wishlist steers this step, and only this step.</li>
+  <li><strong>How many enchantments.</strong> The rarity sets the count, with every count in its range
+  equally likely: an Epic item gets 3 or 4.</li>
+  <li><strong>A drawback?</strong> Each rarity has a small chance of one drawback (a penalty or a
+  weakness, see the last table below). An item that gets a drawback also gets one extra enchantment, and
+  its gold ceiling rises.</li>
+  <li><strong>Which enchantments.</strong> Each enchantment is drawn one at a time from the list for that
+  kind of item, by the <strong>Share</strong> column in the <a href="#loot-affixes">tables below</a>. An
+  item never gets two enchantments of the same family: never both an enhancement and an attack bonus,
+  never two saving-throw bonuses, never the same element twice. Some enchantments only appear from a
+  minimum loot level.</li>
+  <li><strong>How strong each one is.</strong> Each enchantment's strength is rolled inside the range the
+  tables show for the item's loot level, with every value in the range equally likely. Rare and Epic items
+  roll twice and keep the better result, and Legendary items roll three times. The rarity never widens the
+  range or lifts its top.</li>
+  <li><strong>The gold ceiling.</strong> The game prices the enchantments it picked. If they are worth more
+  than the rarity's gold ceiling at that loot level, the last enchantment is weakened one step at a time,
+  then the one before it, and so on. If that is still not enough, the last enchantment is removed. The
+  first enchantment, which gives the item its name, gives ground last. The ceiling only ever takes power
+  away: an item that comes in under it is not topped up.</li>
+  <li><strong>Sockets and identification.</strong> Last, the item gets its sockets (by rarity) and may drop
+  unidentified.</li>
+</ol>
+<div class="tip-box">
+<strong>Rarity adds enchantments. The loot level sets how strong they are.</strong> An Epic item and a
+Common item from the same loot level roll each enchantment from the same range. The Epic one gets three or
+four enchantments instead of one, and keeps the better of two rolls for each, but neither can go past the
+top of the range. For example, an Epic tower shield from a loot level 50 boss rolled universal saving
+throws (range +3 to +5, it got +4), arcane spell failure (range &minus;20% to &minus;40%, it got
+&minus;30%) and 20% sonic immunity. Those enchantments were worth about 108,000 gp against an Epic ceiling
+of 850,000 gp, so the ceiling never came into it.
+</div>
+<div class="warning-box">
+<strong>Known problem: damage immunities are lost.</strong> When a roll picks an acid, cold, electrical,
+fire, sonic or negative energy <em>immunity</em>, the immunity is currently dropped when the item is made,
+so the item arrives one enchantment short. The example shield lost its sonic immunity this way and arrived
+with only two enchantments. A fix is in hand. Until it lands, armour, shields, jewellery and other
+wearables will sometimes come up short. Elemental <em>resistances</em> are not affected.
+</div>
+
+<h3 id="loot-affixes">Every enchantment and its range</h3>
+<p>Every enchantment rolled loot can carry, by kind of item. Click a kind of item to open its table.</p>
+<ul>
+  <li><strong>Share</strong> is how likely each draw is to land on that enchantment when every enchantment
+  in the table is available (at loot level 60), before the one-per-family rule removes any. At lower loot
+  levels, enchantments that are not available yet drop out and the rest share their odds.</li>
+  <li><strong>From level</strong> is the lowest loot level that can roll it.</li>
+  <li>The <strong>level columns</strong> give the range a roll can land in at that loot level. Levels in
+  between scale evenly. &ldquo;&mdash;&rdquo; means it cannot roll at that level yet, and
+  &ldquo;yes&rdquo; marks an enchantment that has no strength.</li>
+  <li>Ranges are before the gold ceiling, which can only lower them.</li>
+</ul>
+<!-- loot:affixes -->
+<details>
+<summary><strong>Melee weapons</strong> &middot; 10 enchantments</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Enhancement bonus</td><td>34%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+4 to +7</td><td>+5 to +8</td><td>+7 to +10</td></tr>
+    <tr><td>Acid damage</td><td>7.9%</td><td>1</td><td>+1 to +2</td><td>+3 to +5</td><td>+5 to 1d10</td><td>1d6 to 2d8</td><td>1d10 to 2d12</td></tr>
+    <tr><td>Cold damage</td><td>7.9%</td><td>1</td><td>+1 to +2</td><td>+3 to +5</td><td>+5 to 1d10</td><td>1d6 to 2d8</td><td>1d10 to 2d12</td></tr>
+    <tr><td>Electrical damage</td><td>7.9%</td><td>1</td><td>+1 to +2</td><td>+3 to +5</td><td>+5 to 1d10</td><td>1d6 to 2d8</td><td>1d10 to 2d12</td></tr>
+    <tr><td>Fire damage</td><td>7.9%</td><td>1</td><td>+1 to +2</td><td>+3 to +5</td><td>+5 to 1d10</td><td>1d6 to 2d8</td><td>1d10 to 2d12</td></tr>
+    <tr><td>Negative energy damage</td><td>7.9%</td><td>1</td><td>+1 to +2</td><td>+3 to +5</td><td>+5 to 1d10</td><td>1d6 to 2d8</td><td>1d10 to 2d12</td></tr>
+    <tr><td>Sonic damage</td><td>7.9%</td><td>1</td><td>+1 to +2</td><td>+3 to +5</td><td>+5 to 1d10</td><td>1d6 to 2d8</td><td>1d10 to 2d12</td></tr>
+    <tr><td>Keen</td><td>6.7%</td><td>10</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Massive criticals</td><td>6.7%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+4 to 1d8</td><td>+5 to 2d6</td><td>1d8 to 2d10</td></tr>
+    <tr><td>Vampiric regeneration</td><td>5.6%</td><td>5</td><td>&mdash;</td><td>+1 to +2</td><td>+2 to +4</td><td>+2 to +5</td><td>+3 to +6</td></tr>
+  </tbody>
+</table>
+</details>
+<details>
+<summary><strong>Ranged weapons</strong> &middot; 9 enchantments</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Attack bonus</td><td>33%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+4 to +7</td><td>+5 to +8</td><td>+7 to +10</td></tr>
+    <tr><td>Mighty</td><td>22%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+4 to +7</td><td>+5 to +8</td><td>+6 to +10</td></tr>
+    <tr><td>Saving throws: universal</td><td>11%</td><td>1</td><td>+1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +5</td><td>+4 to +7</td></tr>
+    <tr><td>Dexterity</td><td>6.5%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Massive criticals</td><td>6.5%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+4 to 1d8</td><td>+5 to 2d6</td><td>1d8 to 2d10</td></tr>
+    <tr><td>Regeneration</td><td>5.4%</td><td>5</td><td>&mdash;</td><td>+1 to +2</td><td>+2 to +4</td><td>+2 to +5</td><td>+3 to +6</td></tr>
+    <tr><td>Saving throw: Fortitude</td><td>5.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Reflex</td><td>5.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Will</td><td>5.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+  </tbody>
+</table>
+</details>
+<details>
+<summary><strong>Armour</strong> &middot; 38 enchantments</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Armour Class</td><td>9.5%</td><td>1</td><td>+1 to +2</td><td>+2 to +3</td><td>+3 to +5</td><td>+4 to +6</td><td>+5 to +8</td></tr>
+    <tr><td>Spell Resistance</td><td>5.9%</td><td>1</td><td>SR 10 to SR 12</td><td>SR 14 to SR 20</td><td>SR 20 to SR 30</td><td>SR 22 to SR 36</td><td>SR 26 to SR 42</td></tr>
+    <tr><td>Saving throws: universal</td><td>4.7%</td><td>1</td><td>+1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +5</td><td>+4 to +7</td></tr>
+    <tr><td>Acid immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Acid resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Arcane spell failure</td><td>2.8%</td><td>1</td><td>-5% to -10%</td><td>-10% to -20%</td><td>-15% to -35%</td><td>-20% to -40%</td><td>-25% to -50%</td></tr>
+    <tr><td>Charisma</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Cold immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Cold resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Constitution</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Dexterity</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Electrical immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Electrical resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Fire immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Fire resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Intelligence</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Negative energy immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Negative energy resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Sonic immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Sonic resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Strength</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Wisdom</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Regeneration</td><td>2.4%</td><td>5</td><td>&mdash;</td><td>+1 to +2</td><td>+2 to +4</td><td>+2 to +5</td><td>+3 to +6</td></tr>
+    <tr><td>Saving throw: Fortitude</td><td>2.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Reflex</td><td>2.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Will</td><td>2.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Damage reduction (vs +5)</td><td>1.9%</td><td>1</td><td>5/+5</td><td>5/+5 to 10/+5</td><td>5/+5 to 15/+5</td><td>5/+5 to 20/+5</td><td>10/+5 to 25/+5</td></tr>
+    <tr><td>Discipline</td><td>1.4%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+    <tr><td>Immunity: death magic</td><td>1.4%</td><td>40</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: disease</td><td>1.4%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: fear</td><td>1.4%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: knockdown</td><td>1.4%</td><td>35</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: level drain</td><td>1.4%</td><td>25</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: mind spells</td><td>1.4%</td><td>30</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: paralysis</td><td>1.4%</td><td>20</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: poison</td><td>1.4%</td><td>10</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Freedom of movement</td><td>1.2%</td><td>20</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Improved evasion</td><td>0.71%</td><td>30</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+  </tbody>
+</table>
+</details>
+<details>
+<summary><strong>Shields</strong> &middot; 28 enchantments</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Armour Class</td><td>11%</td><td>1</td><td>+1 to +2</td><td>+2 to +3</td><td>+3 to +5</td><td>+4 to +6</td><td>+5 to +8</td></tr>
+    <tr><td>Spell Resistance</td><td>6.8%</td><td>1</td><td>SR 10 to SR 12</td><td>SR 14 to SR 20</td><td>SR 20 to SR 30</td><td>SR 22 to SR 36</td><td>SR 26 to SR 42</td></tr>
+    <tr><td>Saving throws: universal</td><td>5.4%</td><td>1</td><td>+1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +5</td><td>+4 to +7</td></tr>
+    <tr><td>Acid immunity</td><td>3.3%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Acid resistance</td><td>3.3%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Arcane spell failure</td><td>3.3%</td><td>1</td><td>-5% to -10%</td><td>-10% to -20%</td><td>-15% to -35%</td><td>-20% to -40%</td><td>-25% to -50%</td></tr>
+    <tr><td>Charisma</td><td>3.3%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Cold immunity</td><td>3.3%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Cold resistance</td><td>3.3%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Constitution</td><td>3.3%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Dexterity</td><td>3.3%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Electrical immunity</td><td>3.3%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Electrical resistance</td><td>3.3%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Fire immunity</td><td>3.3%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Fire resistance</td><td>3.3%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Intelligence</td><td>3.3%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Negative energy immunity</td><td>3.3%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Negative energy resistance</td><td>3.3%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Sonic immunity</td><td>3.3%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Sonic resistance</td><td>3.3%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Strength</td><td>3.3%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Wisdom</td><td>3.3%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Regeneration</td><td>2.7%</td><td>5</td><td>&mdash;</td><td>+1 to +2</td><td>+2 to +4</td><td>+2 to +5</td><td>+3 to +6</td></tr>
+    <tr><td>Saving throw: Fortitude</td><td>2.7%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Reflex</td><td>2.7%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Will</td><td>2.7%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Damage reduction (vs +5)</td><td>2.2%</td><td>1</td><td>5/+5</td><td>5/+5 to 10/+5</td><td>5/+5 to 15/+5</td><td>5/+5 to 20/+5</td><td>10/+5 to 25/+5</td></tr>
+    <tr><td>Discipline</td><td>1.6%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+  </tbody>
+</table>
+</details>
+<details>
+<summary><strong>Jewellery (rings and amulets)</strong> &middot; 43 enchantments</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Armour Class</td><td>8.8%</td><td>1</td><td>+1 to +2</td><td>+2 to +3</td><td>+3 to +5</td><td>+4 to +6</td><td>+5 to +8</td></tr>
+    <tr><td>Spell Resistance</td><td>5.5%</td><td>1</td><td>SR 10 to SR 12</td><td>SR 14 to SR 20</td><td>SR 20 to SR 30</td><td>SR 22 to SR 36</td><td>SR 26 to SR 42</td></tr>
+    <tr><td>Saving throws: universal</td><td>4.4%</td><td>1</td><td>+1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +5</td><td>+4 to +7</td></tr>
+    <tr><td>Acid immunity</td><td>2.6%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Acid resistance</td><td>2.6%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Charisma</td><td>2.6%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Cold immunity</td><td>2.6%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Cold resistance</td><td>2.6%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Constitution</td><td>2.6%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Dexterity</td><td>2.6%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Electrical immunity</td><td>2.6%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Electrical resistance</td><td>2.6%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Fire immunity</td><td>2.6%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Fire resistance</td><td>2.6%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Intelligence</td><td>2.6%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Negative energy immunity</td><td>2.6%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Negative energy resistance</td><td>2.6%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Sonic immunity</td><td>2.6%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Sonic resistance</td><td>2.6%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Strength</td><td>2.6%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Wisdom</td><td>2.6%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Regeneration</td><td>2.2%</td><td>5</td><td>&mdash;</td><td>+1 to +2</td><td>+2 to +4</td><td>+2 to +5</td><td>+3 to +6</td></tr>
+    <tr><td>Saving throw: Fortitude</td><td>2.2%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Reflex</td><td>2.2%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Will</td><td>2.2%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Bonus spell slot: cleric</td><td>1.8%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Bonus spell slot: druid</td><td>1.8%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Bonus spell slot: sorcerer</td><td>1.8%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Bonus spell slot: wizard</td><td>1.8%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Concentration</td><td>1.8%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+    <tr><td>Spellcraft</td><td>1.8%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+    <tr><td>Darkvision</td><td>1.3%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: death magic</td><td>1.3%</td><td>40</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: disease</td><td>1.3%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: fear</td><td>1.3%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: knockdown</td><td>1.3%</td><td>35</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: level drain</td><td>1.3%</td><td>25</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: mind spells</td><td>1.3%</td><td>30</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: paralysis</td><td>1.3%</td><td>20</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: poison</td><td>1.3%</td><td>10</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Freedom of movement</td><td>1.1%</td><td>20</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Improved evasion</td><td>0.66%</td><td>30</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>True seeing</td><td>0.44%</td><td>45</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td></tr>
+  </tbody>
+</table>
+</details>
+<details>
+<summary><strong>Other wearables (belts, boots, cloaks, gloves, helmets, bracers)</strong> &middot; 40 enchantments</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Armour Class</td><td>9.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +3</td><td>+3 to +5</td><td>+4 to +6</td><td>+5 to +8</td></tr>
+    <tr><td>Spell Resistance</td><td>5.9%</td><td>1</td><td>SR 10 to SR 12</td><td>SR 14 to SR 20</td><td>SR 20 to SR 30</td><td>SR 22 to SR 36</td><td>SR 26 to SR 42</td></tr>
+    <tr><td>Saving throws: universal</td><td>4.7%</td><td>1</td><td>+1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +5</td><td>+4 to +7</td></tr>
+    <tr><td>Acid immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Acid resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Charisma</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Cold immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Cold resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Constitution</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Dexterity</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Electrical immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Electrical resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Fire immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Fire resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Intelligence</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Negative energy immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Negative energy resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Sonic immunity</td><td>2.8%</td><td>1</td><td>5%</td><td>5% to 15%</td><td>10% to 25%</td><td>15% to 30%</td><td>20% to 40%</td></tr>
+    <tr><td>Sonic resistance</td><td>2.8%</td><td>1</td><td>5/-</td><td>5/- to 10/-</td><td>10/- to 20/-</td><td>10/- to 25/-</td><td>15/- to 35/-</td></tr>
+    <tr><td>Strength</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Wisdom</td><td>2.8%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Regeneration</td><td>2.3%</td><td>5</td><td>&mdash;</td><td>+1 to +2</td><td>+2 to +4</td><td>+2 to +5</td><td>+3 to +6</td></tr>
+    <tr><td>Saving throw: Fortitude</td><td>2.3%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Reflex</td><td>2.3%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Will</td><td>2.3%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Concentration</td><td>1.9%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+    <tr><td>Spellcraft</td><td>1.9%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+    <tr><td>Darkvision</td><td>1.4%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Discipline</td><td>1.4%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+    <tr><td>Immunity: death magic</td><td>1.4%</td><td>40</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: disease</td><td>1.4%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: fear</td><td>1.4%</td><td>1</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: knockdown</td><td>1.4%</td><td>35</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: level drain</td><td>1.4%</td><td>25</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: mind spells</td><td>1.4%</td><td>30</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: paralysis</td><td>1.4%</td><td>20</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Immunity: poison</td><td>1.4%</td><td>10</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Freedom of movement</td><td>1.2%</td><td>20</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Improved evasion</td><td>0.70%</td><td>30</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>True seeing</td><td>0.47%</td><td>45</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>yes</td><td>yes</td></tr>
+  </tbody>
+</table>
+</details>
+<details>
+<summary><strong>Magic staves</strong> &middot; 17 enchantments</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Attack bonus</td><td>21%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+4 to +7</td><td>+5 to +8</td><td>+7 to +10</td></tr>
+    <tr><td>Enhancement bonus</td><td>21%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+4 to +7</td><td>+5 to +8</td><td>+7 to +10</td></tr>
+    <tr><td>Spell Resistance</td><td>8.6%</td><td>1</td><td>SR 10 to SR 12</td><td>SR 14 to SR 20</td><td>SR 20 to SR 30</td><td>SR 22 to SR 36</td><td>SR 26 to SR 42</td></tr>
+    <tr><td>Saving throws: universal</td><td>6.9%</td><td>1</td><td>+1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +5</td><td>+4 to +7</td></tr>
+    <tr><td>Arcane spell failure</td><td>4.1%</td><td>1</td><td>-5% to -10%</td><td>-10% to -20%</td><td>-15% to -35%</td><td>-20% to -40%</td><td>-25% to -50%</td></tr>
+    <tr><td>Charisma</td><td>4.1%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Intelligence</td><td>4.1%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Wisdom</td><td>4.1%</td><td>1</td><td>+1</td><td>+1 to +3</td><td>+2 to +5</td><td>+3 to +6</td><td>+4 to +8</td></tr>
+    <tr><td>Saving throw: Fortitude</td><td>3.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Reflex</td><td>3.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Saving throw: Will</td><td>3.4%</td><td>1</td><td>+1 to +2</td><td>+2 to +4</td><td>+3 to +6</td><td>+4 to +7</td><td>+5 to +9</td></tr>
+    <tr><td>Bonus spell slot: cleric</td><td>2.7%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Bonus spell slot: druid</td><td>2.7%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Bonus spell slot: sorcerer</td><td>2.7%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Bonus spell slot: wizard</td><td>2.7%</td><td>1</td><td>level 0 to level 1</td><td>level 1 to level 3</td><td>level 3 to level 6</td><td>level 4 to level 7</td><td>level 5 to level 9</td></tr>
+    <tr><td>Concentration</td><td>2.7%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+    <tr><td>Spellcraft</td><td>2.7%</td><td>1</td><td>+1 to +3</td><td>+3 to +8</td><td>+6 to +14</td><td>+7 to +17</td><td>+9 to +20</td></tr>
+  </tbody>
+</table>
+</details>
+<details>
+<summary><strong>Drawbacks</strong> &middot; 10, on any kind of item (attack penalty on weapons only)</summary>
+<table class="data change-table">
+  <thead><tr><th>Enchantment</th><th>Share</th><th>From level</th><th>Level 1</th><th>Level 20</th><th>Level 40</th><th>Level 50</th><th>Level 60</th></tr></thead>
+  <tbody>
+    <tr><td>Armour Class penalty</td><td>21%</td><td>1</td><td>-1 to -2</td><td>-1 to -2</td><td>-1 to -3</td><td>-1 to -4</td><td>-2 to -5</td></tr>
+    <tr><td>Saving throw penalty (all)</td><td>11%</td><td>1</td><td>-1 to -2</td><td>-1 to -2</td><td>-1 to -3</td><td>-1 to -4</td><td>-2 to -5</td></tr>
+    <tr><td>Attack penalty</td><td>8.5%</td><td>1</td><td>-1 to -2</td><td>-1 to -2</td><td>-1 to -3</td><td>-1 to -4</td><td>-2 to -5</td></tr>
+    <tr><td>Cold vulnerability</td><td>8.5%</td><td>1</td><td>5%</td><td>5%</td><td>5% to 10%</td><td>5% to 10%</td><td>10% to 25%</td></tr>
+    <tr><td>Constitution penalty</td><td>8.5%</td><td>1</td><td>-1 to -2</td><td>-1 to -2</td><td>-1 to -3</td><td>-1 to -4</td><td>-2 to -5</td></tr>
+    <tr><td>Dexterity penalty</td><td>8.5%</td><td>1</td><td>-1 to -2</td><td>-1 to -2</td><td>-1 to -3</td><td>-1 to -4</td><td>-2 to -5</td></tr>
+    <tr><td>Electrical vulnerability</td><td>8.5%</td><td>1</td><td>5%</td><td>5%</td><td>5% to 10%</td><td>5% to 10%</td><td>10% to 25%</td></tr>
+    <tr><td>Fire vulnerability</td><td>8.5%</td><td>1</td><td>5%</td><td>5%</td><td>5% to 10%</td><td>5% to 10%</td><td>10% to 25%</td></tr>
+    <tr><td>Negative energy vulnerability</td><td>8.5%</td><td>1</td><td>5%</td><td>5%</td><td>5% to 10%</td><td>5% to 10%</td><td>10% to 25%</td></tr>
+    <tr><td>Strength penalty</td><td>8.5%</td><td>1</td><td>-1 to -2</td><td>-1 to -2</td><td>-1 to -3</td><td>-1 to -4</td><td>-2 to -5</td></tr>
+  </tbody>
+</table>
+</details>
+<!-- /loot:affixes -->
 
 <h3 id="loot-chests">Chests and containers</h3>
 <p>Every ordinary chest, barrel, crate and sack in the world now holds rolled loot instead of BioWare's
