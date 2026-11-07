@@ -35,6 +35,9 @@ fails the repack when:
         out of range, min_chance above chance, or an empty name_prefix.
     A stale CLAUDE-loot-creature-audit.md is only a note (re-run
     bin/loot-sim.py --creatures --write).
+  * The wiki: the generated rarity and enchantment tables in
+    docs.manual/Customizations/Loot.html (bin/gen-loot-doc.py) are stale or
+    missing their markers, or an affix has no player-facing "name".
 
 Exit 0 = good, 1 = fix the data (or re-run the generator).
 """
@@ -111,6 +114,7 @@ def main() -> int:
     if orphans:
         errs.append("generated container script(s) no longer in sources.json \"scripts\": %s"
                     % ", ".join(o + ".nss" for o in orphans))
+    errs += gen.lootdoc.problems(data)
     if errs:
         print("FAIL loot tables:")
         for e in errs:

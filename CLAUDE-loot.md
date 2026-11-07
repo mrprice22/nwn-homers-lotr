@@ -13,7 +13,9 @@ wiki pages) is all that is left of the epic.
 ```
 loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py ─► unpacked/loot_data_inc.nss ─► loot_inc.nss (game)
                                     │                           ├► unpacked/socket_data_inc.nss ─► gem_inc.nss (Phase 5)
-                                    │                           └► unpacked/sgem_*.uti.json (75 gem blueprints)
+                                    │                           ├► unpacked/sgem_*.uti.json (75 gem blueprints)
+                                    │                           └► bin/gen-loot-doc.py ─► docs.manual/Customizations/Loot.html
+                                    │                                (loot:rarity + loot:affixes blocks: the wiki tables)
                                     ├─► tests/check_loot_tables.py   (repack gate, in tests/smoke-test)
                                     └─► bin/loot-sim.py               (balance tables)
 ```
@@ -33,11 +35,15 @@ loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py �
 | `loot/sockets.json` | socket counts for **existing** (not rolled) items: default / two-socket cost / overrides / excludes, extra and ignored base rows, schema `version` |
 | `loot/tokens.json` | the **Shard of Fate** (Phase 7): blueprint, boss drop chance, bonus-roll prompt timeout, lockout, profile |
 | `loot/_items.json` | **generated** stock-item snapshot for the two pools (`gen-loot-consumables.py --refresh-items`) |
-| `loot/_costs.json` | **generated** 2DA cost snapshot so the gate and sim need no NWN install |
+| `loot/_costs.json` | **generated** 2DA cost snapshot so the gate and sim need no NWN install; `cost_labels` (Label/Value/Amount/NumDice/Die per cost row) is what lets the wiki say "1d6" or "-30%" |
 
 **After any change to `loot/*.json`:** `python3 bin/gen-loot-tables.py --apply` (it also
 regenerates the container wrapper scripts), then
-`python3 bin/loot-sim.py`, and commit the JSON and the include together. Then build with
+`python3 bin/loot-sim.py`, and commit the JSON and the include together. `--apply` also rewrites
+the wiki's generated rarity and enchantment tables in `docs.manual/Customizations/Loot.html`
+(`bin/gen-loot-doc.py`); when it does, run `python3 bin/gen-customizations-hub.py` and commit
+the page and the hub too. A new affix needs a `"name"` (the player-facing label in those
+tables) or the gate fails. Then build with
 **`repack-homers-lotr-clean`**: `loot_data_inc` is an include, and nasher's incremental
 compile does not reliably rebuild the scripts that include it (CLAUDE.md, "Editing a .nss
 include").
@@ -88,6 +94,12 @@ and the split was checked byte-identical against a seeded `roll()` before and af
 - **Self-check.** After construction, each property's type and cost row are compared with
   the request. A mismatch logs `LOOT: affix '<id>' built the wrong property` and the affix
   is skipped. Grep the server log for `LOOT:` after any data change.
+  **Known live failure (2026-11-07, roadmap `lo-imm-affix-dropped`): every `imm_*` damage-immunity
+  affix trips this.** Its ladder uses the module's 1%-step `iprp_immuncost` rows 51-150, and the
+  engine's `ItemPropertyDamageImmunity()` returns an invalid property for them
+  (`LOOT: affix 'imm_sonic' built the wrong property (type -1 cost -1, wanted type 20 cost 70)`),
+  so the item silently arrives one affix short. The Python mirror, the sim and the gate cannot see
+  it, since none of them run the engine constructor.
 - **Stamps** (`.bic`-persistent, they survive the party roll's `CopyItem(..., TRUE)`):
   `LOOT_VER`, `LOOT_LVL`, `LOOT_RARITY`, `LOOT_PROFILE`, `LOOT_AFX_N`,
   `LOOT_AFX_<i>` = `ForgePropSig` of each random property, and `LOOT_NAMED` for
@@ -377,6 +389,26 @@ in `bin/season-profile.py`'s wiring check. It can:
 - **grant me a Shard of Fate** (`lootlab_fate`) and **clear my Shard of Fate lockouts**
   (`lootlab_fateclr`, Phase 7), so the boss bonus roll can be tested more than once a day. The
   force-drops switch forces a boss's Shard too, and the dump shows how often an item was reforged.
+
+## Why an Epic can look weak: windows, bias, budget
+
+Admin report 2026-11-07: an Angmar boss Epic at loot level 50 was a tower shield with +4 universal
+saves and -30% ASF (`loot_roll_log` row: `Steadfast Tower Shield of Ease`, engine value 107,740 gp).
+Three things decide that, and only one of them is rarity:
+
+- **The window is set by loot level alone.** An affix's strength is drawn from
+  `affix_window(aff, level)`, linear from the `"1"` to the `"60"` entry of its `window`. At 50, for
+  example, AC +4..+6, universal saves +3..+5, abilities +3..+6, enhancement +5..+8, ASF -20..-40%.
+  The rarity cannot widen or lift it.
+- **Rarity adds affixes and bias.** Count (`affixes` [min, max]) and `roll_bias`: the best of
+  1 + bias draws inside the same window (Rare/Epic 1, Legendary 2).
+- **The budget only removes power.** `Loot_RollAffixes` steps down while the engine value exceeds
+  `Loot_Budget`, and never adds power when it is under. The Epic budget at 50 is 850k, and the median
+  simulated Epic shield is about 300k, so the budget rarely binds at Epic.
+
+That shield also rolled `imm_sonic` (20%), which the bug above dropped. The design question
+(how far rarity should move the numbers) is roadmap `lo-power-curve`. The player-facing version of
+this section is `Customizations/Loot.html#loot-how-rolled`.
 
 ## Value budgets: why they exceed the forge caps
 

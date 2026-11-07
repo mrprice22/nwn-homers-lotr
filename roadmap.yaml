@@ -11571,3 +11571,37 @@ ideas:
     date: "2026-11-05"
     notes: "<div>Items you can only get by pickpocketing are missing from the wiki's Browse-by-Property pages, although every other page counts them as obtainable.</div>"
     impl_notes: "<div>nwn_manager render/itemprops_pages.py _collect_item_properties calls item_accessible(db, rr, pickpocket=False) - kept that way in 5bd9cce so the lo-loot-core refactor was zero-diff. Fix: drop pickpocket=False, then run wiki-golden check with an --expect file declaring the itemprops/ page and item-page property-link diffs (ask the admin before running the golden gate).</div>"
+  - id: lo-imm-affix-dropped
+    title: "Rolled loot: damage-immunity enchantments are silently dropped when the item is made"
+    group: items-gear
+    epic: loot-overhaul
+    status: planned
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-07"
+    notes: "<div>Rolled armour, shields, jewellery and wearables that should carry an elemental damage immunity (acid, cold, electrical, fire, sonic or negative energy) lose it when the item is made, and arrive one enchantment short.</div>"
+    impl_notes: "<div><b>Found 2026-11-07</b> from an admin report on an Angmar boss Epic (loot level 50). Dev <code>lootdb.loot_roll_log</code> row 8: <code>14:38:28 | roll | boss | lvl 50 | rarity 3 | base 57 | Steadfast Tower Shield of Ease | 107740</code>. Same second in <code>logs.0/anvil.log</code>: <code>LOOT: affix 'imm_sonic' built the wrong property (type -1 cost -1, wanted type 20 cost 70) - skipped</code>.</div><div><br></div><div><b>Cause:</b> the six <code>imm_*</code> affixes (loot/affixes.json) use ladder <code>[55..100]</code>, the module's 1%-step <code>iprp_immuncost</code> rows 51-150 (hak_2da; row 55 = 5%, row 100 = 50%). <code>Loot_MakeIP</code> case 20 calls <code>ItemPropertyDamageImmunity(nSub, nCost)</code>, and the engine returns an invalid property for any cost row outside the stock 1-7, so the self-check in <code>Loot_ApplyWork</code> (loot_inc.nss) logs and skips it. This hits every immunity roll, not this one item. The Python mirror, loot-sim and check_loot_tables cannot see it, because none of them runs the engine constructor. The budget step-down priced the work list on a blank that also lacked the property (Loot_PriceWork skips invalid IPs), so the value and budget were not affected.</div><div><br></div><div><b>Fix direction:</b> (a) build type 20 through NWNX (<code>NWNX_ItemProperty_PackIP</code> with the wanted cost table/value) in the generated <code>Loot_MakeIP</code>, which keeps the 1% ladder; or (b) remap the ladder to stock rows 1-7 (5/10/25/50/75/90/100%), which is far coarser. Either way, add a gate rule that every ladder row of every affix is a row its NWScript constructor accepts (a static allowlist per constructor in loot_model.SUPPORTED_IP), so a 2DA-extended row can never ship silently again. A loot_data_inc change needs repack-homers-lotr-clean. Documented for players in Customizations/Loot.html#loot-how-rolled (warning box, remove it with the fix) and in CLAUDE-loot.md (Runtime, Self-check).</div>"
+    manual_steps:
+      - step: "UAT: Loot Lab, loot level 50, rarity floor Legendary, roll 10 several times until a ring or amulet shows an elemental immunity; confirm the dump lists it and no LOOT: 'built the wrong property' line appears in the server log."
+        status: open
+        kind: uat
+        tester: "admin or any tester (Loot Lab is open on test realms)"
+  - id: lo-power-curve
+    title: "Rolled loot: should rarity make each enchantment stronger, not just add more of them?"
+    group: items-gear
+    epic: loot-overhaul
+    status: design
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-07"
+    notes: "<div>Admin feedback 2026-11-07: Epic boss drops at loot level 50 feel like level-10 gear. Decide how much an item's rarity should raise the strength of its enchantments.</div>"
+    impl_notes: "<div><b>How it works today</b> (Customizations/Loot.html#loot-how-rolled, CLAUDE-loot.md 'Why an Epic can look weak'): each affix's strength is drawn from a window set ONLY by loot level (affix_window, linear from window['1'] to window['60']). Rarity adds affix count (Epic 3-4, Legendary 4) and roll_bias (best of 1+bias inside the same window), never a higher window. The value budget is only a ceiling: Loot_RollAffixes steps down when over and never tops up when under. At loot level 50 the windows are, e.g., AC +4..+6, universal saves +3..+5, abilities +3..+6, enhancement +5..+8, ASF -20..-40%.</div><div><br></div><div><b>Sim, 4000 boss rolls per cell, value / budget (bin/loot_model.roll, 2026-11-07):</b> L40 Epic median 43% (p90 94%), Legendary median 24% (p90 49%); L50 Epic 42% (p90 95%), Legendary 26% (p90 50%); L60 Epic 60% (p90 97%), Legendary 41% (p90 93%). So Legendary uses about a quarter of its ceiling at L40-50: the budgets were anchored to the obtainable-gear percentiles (p90 1.18M, p95 3.24M), but the windows cannot reach them. The observed shield came in at 107,740 gp against an 850,000 gp Epic ceiling (13%), partly because lo-imm-affix-dropped removed its third affix.</div><div><br></div><div>Every option is loot/*.json (+ the Loot_RollAffixes/roll_affixes mirror for B) and needs a re-run of bin/loot-sim.py, gen-loot-tables.py --apply (rewrites the wiki tables too) and repack-homers-lotr-clean.</div>"
+    design_questions:
+      - question: "HOW SHOULD RARITY MOVE THE NUMBERS? Today rarity only adds lines; the strength range per enchantment is the same for Common and Legendary at the same loot level. Options: (A) RARITY WINDOW SHIFT - add a per-tier 'window_shift' in rarity.json (proposal: Common 0, Uncommon 0, Rare +1, Epic +2, Legendary +3 ladder steps, clamped to the ladder top), so an Epic at L50 rolls AC +6..+8 and universal saves +5..+7 instead of +4..+6 / +3..+5. Small code change in both mirrors; the budget step-down still guards value. (B) BUDGET TARGET - after picking, step affixes UP (first-rolled first) until the item reaches e.g. 60-80% of its rarity budget, so Epic/Legendary actually approach their ceilings. Biggest effect, but makes value the design lever and pushes many items past every forge cap. (C) RAISE THE LEVEL-60 TOPS - widen window['60'] toward the module's p75-p90 gear (e.g. AC to +10, saves to +8, abilities to +10), which lifts every rarity alike and keeps rarity = count. Recommendation: A (predictable, rarity-legible, cheap), optionally with a smaller C for the stats where L60 is visibly below existing endgame gear. Pick A / B / C or a mix, and the shift sizes if A."
+        status: open
+        answer: null
+      - question: "SHOULD THE EPIC/LEGENDARY MINIMUM AFFIX COUNT RISE? Epic is 3-4 upsides (+1 with a drawback), Legendary exactly 4. The forge ceiling is 6 properties (FORGE_LEGAL_MAX_PROPS), so Legendary could go to 4-5 and still fit with a drawback. Proposal: leave Epic at 3-4, make Legendary 4-5. Approve, or keep counts as they are."
+        status: open
+        answer: null
