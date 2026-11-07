@@ -5277,21 +5277,44 @@ object Loot_IPDonor()
     return oDonor;
 }
 
-// The donor's property (nType, nSub, nCost), or an invalid property.
+// The donor's property (nType, nSub, nCost), or an invalid property.  The first
+// miss per server run logs what the donor actually holds ("LOOT: donor miss ..."):
+// whether the vault and donor exist, its property count, and each nType property
+// as sub:cost - which tells a missing donor from an engine that rewrote its rows.
 itemproperty Loot_DonorIP(int nType, int nSub, int nCost)
 {
     itemproperty ip;
     object oDonor = Loot_IPDonor();
-    if (!GetIsObjectValid(oDonor)) return ip;
-    ip = GetFirstItemProperty(oDonor);
-    while (GetIsItemPropertyValid(ip))
+    int nAll = 0;
+    string sSeen = "";
+    if (GetIsObjectValid(oDonor))
     {
-        if (GetItemPropertyType(ip) == nType && GetItemPropertySubType(ip) == nSub
-            && GetItemPropertyCostTableValue(ip) == nCost)
-            return ip;
-        ip = GetNextItemProperty(oDonor);
+        ip = GetFirstItemProperty(oDonor);
+        while (GetIsItemPropertyValid(ip))
+        {
+            if (GetItemPropertyType(ip) == nType && GetItemPropertySubType(ip) == nSub
+                && GetItemPropertyCostTableValue(ip) == nCost)
+                return ip;
+            nAll++;
+            if (GetItemPropertyType(ip) == nType && GetStringLength(sSeen) < 400)
+                sSeen += " " + IntToString(GetItemPropertySubType(ip)) + ":"
+                       + IntToString(GetItemPropertyCostTableValue(ip));
+            ip = GetNextItemProperty(oDonor);
+        }
     }
-    return ip;
+    object oMod = GetModule();
+    if (!GetLocalInt(oMod, "LOOT_IPDONOR_WARNED"))
+    {
+        SetLocalInt(oMod, "LOOT_IPDONOR_WARNED", TRUE);
+        WriteTimestampedLogEntry("LOOT: donor miss for type " + IntToString(nType)
+            + " sub " + IntToString(nSub) + " cost " + IntToString(nCost)
+            + ": vault " + (GetIsObjectValid(GetObjectByTag("FORGE_VAULT")) ? "ok" : "MISSING")
+            + ", donor " + (GetIsObjectValid(oDonor) ? "ok" : "MISSING")
+            + ", " + IntToString(nAll) + " properties; type " + IntToString(nType)
+            + " sub:cost =" + (sSeen == "" ? " none" : sSeen));
+    }
+    itemproperty ipNone;
+    return ipNone;
 }
 
 // Build item property nType from a subtype row and a cost-table row.  One case per
