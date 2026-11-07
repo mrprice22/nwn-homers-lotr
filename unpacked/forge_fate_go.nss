@@ -3,12 +3,14 @@
 // A Shard of Fate re-rolls the random affixes (LOOT_AFX_*) of the rolled item on
 // the anvil: same loot level, rarity, base and look; forged enchantments, gem
 // properties and sockets are kept.  Loot_Reforge (loot_inc) is transactional and
-// bounded - the affixes fit the rarity's budget, the whole item stays within
-// max(its value now, this forge's MODIFY_MAX) and the counted enchantments
-// within max(its count now, MODIFY_MAX_PROPS).  The Shard is consumed ONLY after
-// a committed reforge; every refusal keeps it.  Modelled on ForgeExpandDo
-// (forge_inc).  The smith (OBJECT_SELF) speaks the outcome; the reply loops
-// back to the forge menu.
+// bounded by the plan Loot_FatePlan draws up: the affixes fit the rarity's
+// budget, the whole item stays within max(its high-water value, this forge's
+// MODIFY_MAX) and the counted enchantments within max(its high-water count,
+// MODIFY_MAX_PROPS) - the high-water so one unlucky reforge can never shrink
+// the next (lo-fate-ratchet).  The Shard is consumed ONLY after a committed
+// reforge; every refusal keeps it and says which bound refused.  Every attempt
+// is logged (server log + lootdb.loot_fate_log) by Loot_FateRecord.  The smith
+// (OBJECT_SELF) speaks the outcome; the reply loops back to the forge menu.
 #include "loot_inc"
 
 void main()
@@ -30,39 +32,24 @@ void main()
     string sOld = GetName(oItem);
     int nRes = Loot_Reforge(oItem, GetLocalInt(oPC, "MODIFY_MAX"),
                             GetLocalInt(oPC, "MODIFY_MAX_PROPS"), oPC);
-    if (nRes == LOOT_FATE_NOT_ROLLED)
-    {
-        SpeakString("The " + sOld + " was made by a smith's hand, not drawn from fate. "
-            + "There is nothing random in it for a Shard to change. Keep your Shard.");
-        return;
-    }
-    if (nRes == LOOT_FATE_NAMED)
-    {
-        SpeakString("The " + sOld + " is a storied piece; its fate was written long ago "
-            + "and a Shard cannot unwrite it. Keep your Shard.");
-        return;
-    }
-    if (nRes == LOOT_FATE_NO_ROOM)
-    {
-        SpeakString("I have tried, but there is no room left in the " + sOld + " for "
-            + "fate to work: what you have forged into it fills its weave. Keep your Shard.");
-        return;
-    }
+    Loot_FateRecord(oPC, oItem, sOld, nRes);
     if (nRes != LOOT_FATE_OK)
     {
-        SpeakString("Something in the " + sOld + " resists the Shard. I will not risk it. "
-            + "Keep your Shard.");
-        ForgeLog("fate: PC=" + GetName(oPC) + " item='" + sOld + "' refused, code "
-            + IntToString(nRes));
+        SpeakString(Loot_FateRefusal(nRes, sOld, oPC));
         return;
     }
     Loot_SpendShard(oPC);
     // The staged-disenchant plan indexes the item's properties; they changed.
     ForgeStageClear(oPC);
     DeleteLocalInt(oPC, "FORGE_STG_PAGE");
-    ForgeLog("fate: PC=" + GetName(oPC) + " item='" + sOld + "' -> '" + GetName(oItem) + "'");
     ForgeRefreshAnvilContext(oPC);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_MAGBLUE), oPC);
-    SpeakString("The Shard breaks across the anvil and its light runs into the metal. "
-        + "What was the " + sOld + " is now the " + GetName(oItem) + ".");
+    int nNow = GetLocalInt(oItem, "LOOT_AFX_N");
+    int nKept = GetLocalInt(oPC, "LF_KEPTN");
+    string s = "The Shard breaks across the anvil and its light runs into the metal. "
+        + "What was the " + sOld + " is now the " + GetName(oItem) + ": fate gave it "
+        + Loot_Count(nNow, "new enchantment");
+    if (nKept > 0)
+        s += ", and the other " + IntToString(nKept) + " are as they were";
+    SpeakString(s + ".");
 }

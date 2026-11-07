@@ -73,11 +73,12 @@ EXPAND_TEXT = ("Expand a property slot on the <CUSTOM100> with a Rune of "
 # the anvil AND a Shard carried), it opens a confirm entry D5 - a reforge cannot
 # be undone - whose "Aye" runs forge_fate_go and loops back to the anchor menu.
 FATE_TEXT = "Reforge the fate of the <CUSTOM100> with a Shard of Fate."
-FATE_CONFIRM_TEXT = ("A Shard of Fate will unmake every enchantment fate gave the "
-                     "<CUSTOM100> and draw new ones, at the same strength of fate. "
-                     "What you forged into it yourself, and any gems in its sockets, "
-                     "I leave alone. There is no undoing it, and the Shard is spent. "
-                     "Shall I?")
+# The confirm text is all one token (loot_inc LOOT_FATE_TOK), primed by
+# FATE_CTX_SCRIPT on the reply that opens D5: what a reforge would change, what
+# stays and the room fate has, or the refusal before any Shard is broken
+# (lo-fate-ratchet). It ends with its own "Shall I?".
+FATE_CONFIRM_TEXT = "<CUSTOM6121>"
+FATE_CTX_SCRIPT = "forge_fate_ctx"
 FATE_YES_TEXT = "Aye, reforge it."
 FATE_NO_TEXT = "No, leave it as it is."
 FATE_GATE = "forge_fate_can"
@@ -357,10 +358,10 @@ def inject(path: Path):
     r["EntriesList"]["value"].append(link(0, anchors[0][0], child=True))
     new_replies.append(r)
 
-    # Shard of Fate: the hook owns D5 and re-primes the item tokens before D5's
-    # text renders; "Aye" reforges (forge_fate_go speaks the outcome, spends the
+    # Shard of Fate: the hook owns D5 and re-primes the item tokens and the
+    # outlook token 6121 (forge_fate_ctx) before D5's text renders; "Aye" reforges (forge_fate_go speaks the outcome, spends the
     # Shard only on a committed reforge) and loops back to the anchor menu.
-    r = node(r_fate, FATE_TEXT, script=CTX_SCRIPT)
+    r = node(r_fate, FATE_TEXT, script=FATE_CTX_SCRIPT)
     r["EntriesList"]["value"].append(link(0, d5))
     new_replies.append(r)
     r = node(r_fyes, FATE_YES_TEXT, script=FATE_SCRIPT)

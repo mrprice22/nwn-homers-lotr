@@ -108,6 +108,15 @@ and the split was checked byte-identical against a seeded `roll()` before and af
   does not carry exactly `donor_props()`. If a `LOOT:` "built the wrong property" line ever names
   another type, add that type to `DONOR_TYPES` with its `iprp_costtable` row in
   `DONOR_COST_TABLE`.
+
+  **The donor did NOT fix it in game (found 2026-11-07, same day).** The dev realm ran the donor
+  build from 09:53, and every immunity rolled at 10:41-10:46 was still skipped with the same
+  `type -1 cost -1` line, so neither the donor lookup nor the constructor fallback produced a
+  property. "A property loaded from GFF is not range-checked" was an untested assumption. Why it
+  failed is not yet known: the first miss per server run now logs `LOOT: donor miss for type 20 ...`
+  with whether the vault and donor exist and every type-20 `sub:cost` the donor actually holds.
+  That tells a missing donor apart from an engine that rewrote or dropped its rows on load. Read
+  that line before choosing the next fix (NWNX ItemProperty, or remap the ladder to stock rows 1-7).
 - **Stamps** (`.bic`-persistent, they survive the party roll's `CopyItem(..., TRUE)`):
   `LOOT_VER`, `LOOT_LVL`, `LOOT_RARITY`, `LOOT_PROFILE`, `LOOT_AFX_N`,
   `LOOT_AFX_<i>` = `ForgePropSig` of each random property, and `LOOT_NAMED` for
@@ -330,7 +339,8 @@ The gate (`validate_tokens`) checks the blueprint, the ranges, and that `merit_r
 `MERIT_FATE_SHARD` names the same resref.
 
 ```
-anvil: forge_fate_can (gate) ─► confirm entry D5 ─► forge_fate_go ─► Loot_Reforge (loot_inc)
+anvil: forge_fate_can (gate) ─► forge_fate_ctx (token 6121) ─► confirm entry D5
+       ─► forge_fate_go ─► Loot_Reforge ─► Loot_FatePlan (loot_inc) ─► Loot_FateRecord
 boss death: loot_ondeath ─► Loot_DropShard (10%, PL_ALWAYS)    ─► corpse ─► Need/Greed
                         └─► LootO_FateOffers ─► fate_open ─► fate_inc NUI ─► fate_evt ─► Fate_Spend
 merit shop: reward 305 ─► Merit_GrantInstant (deliver, then charge)
@@ -346,13 +356,30 @@ merit shop: reward 305 ─► Merit_GrantInstant (deliver, then charge)
   `LOOT_AFX_*` **from the properties it built**, and `LOOT_FATE_N` counts reforges. Nothing is read
   back after a `RemoveItemProperty`. Level, rarity, base, look, sockets, gems and description are
   unchanged.
-- **Reforge bounds** (every item-changing path bounds itself):
-  - the affix-only value fits the rarity budget at `LOOT_LVL`, the same budget the original roll had;
-  - the whole item stays at or under max(its value now, the forge's `MODIFY_MAX`);
-  - counted enchantments stay at or under max(its count now, `MODIFY_MAX_PROPS`).
+- **The plan** (`Loot_FatePlan`, lo-fate-ratchet). One function works out what a reforge may do,
+  before anything is rolled, and leaves it as `LF_*` locals on the PC. The confirm line
+  (`Loot_FateOutlook`, token **6121**, primed by `forge_fate_ctx` on the reply that opens D5), the
+  refusal (`Loot_FateRefusal`) and the log (`Loot_FateRecord`) all read that one plan, so the smith
+  never promises what the reforge then refuses. Its bounds (every item-changing path bounds itself):
+  - the new affixes' own value fits the rarity budget at `LOOT_LVL`, the budget the original roll had;
+  - the whole item stays at or under max(**high-water value**, the forge's `MODIFY_MAX`);
+  - counted enchantments stay at or under max(**high-water count**, `MODIFY_MAX_PROPS`); new affixes
+    get that minus the kept counted ones (a drawback takes a slot of its own here).
 
-  The Shard is spent **only after** a committed reforge. `forge_fate_go` also clears the staged
-  disenchant plan, because its indices point at the old properties.
+  The **high-water** (`LOOT_FATE_HW_VALUE` / `LOOT_FATE_HW_PROPS` item locals) is the largest the
+  item has been when a Shard worked it, or its state now when larger or unstamped. It is stamped on
+  every committed reforge with the state just *before* it and never lowered. **Never bound by the
+  item's state now instead.** That was the lo-fate-ratchet defect: a cheap or short roll lowered the
+  next reforge's bound, so an item over its forge's caps could only shrink, until the smith said
+  "no room left". `python3 bin/loot-sim.py --ratchet 46,3` shows it: under the old rule every chain
+  of reforges at Tagget's was refused within 30; under the high-water rule, none. The high-water
+  never exceeds what the item lawfully held, so it cannot mint contraband.
+
+  Refusals: `LOOT_FATE_NO_SLOT` (kept enchantments fill every slot; decided in the plan) and
+  `LOOT_FATE_NO_ROOM` (nothing fits the worth bound; decided in the plan when what stays already
+  fills it, otherwise after a roll). The Shard is spent **only after** a committed reforge.
+  `forge_fate_go` also clears the staged disenchant plan, because its indices point at the old
+  properties.
 - **Dialogs:** the reply, the D5 confirm and its two answers come from
   `bin/inject_forge_disenchant.py`, appended in the injected tail. Never hand-add them, because
   `migrate()` truncates that tail on every re-injection.
@@ -367,7 +394,15 @@ merit shop: reward 305 ─► Merit_GrantInstant (deliver, then charge)
   vault-sync gap as the wishlist: the table does not come across to dev.
 - **Drop:** `Loot_DropShard` sets `PL_ALWAYS`. `inc_partyloot` `PL_OnItemAcquired` rolls such an
   item below the party's gp threshold (admin 2026-11-06: a Shard always goes to Need/Greed).
-- **Telemetry:** every reforge is logged to `loot_roll_log` with source `fate`, at any rarity.
+- **Telemetry:** every committed reforge is logged to `loot_roll_log` with source `fate`, at any
+  rarity. Every **attempt**, refusals included, goes to `lootdb` `loot_fate_log` (outcome, the
+  plan's slot and worth numbers, the result) and to the server log as one `LOOT: fate <outcome> ...`
+  line, which is written whether or not `FORGE_DEBUG` is on:
+
+  ```
+  sqlite3 lootdb.sqlite3 "select ts,pc,outcome,item_before,afx,kept,slots,new_max,
+    kept_value,value_max,affix_value from loot_fate_log order by id desc limit 20"
+  ```
 - **Test realms:** the Well of Eru Donations Chest cheat stock (dev and test roles only,
   `SP_CHEAT_CHEST`) keeps **3** Shards of Fate, topped back up on every close - an `EXTRAS` row with
   `copies` 3 in `bin/gen-cheat-chest.py`. Loot Lab's "Grant me a Shard of Fate" is the admin route.
@@ -414,7 +449,7 @@ Three things decide that, and only one of them is rarity:
   `Loot_Budget`, and never adds power when it is under. The Epic budget at 50 is 850k, and the median
   simulated Epic shield is about 300k, so the budget rarely binds at Epic.
 
-That shield also rolled `imm_sonic` (20%), which the bug above dropped (fixed the same day by the donor). The design question
+That shield also rolled `imm_sonic` (20%), which the bug above dropped (the donor fix of the same day did not hold, see above). The design question
 (how far rarity should move the numbers) is roadmap `lo-power-curve`. The player-facing version of
 this section is `Customizations/Loot.html#loot-how-rolled`.
 

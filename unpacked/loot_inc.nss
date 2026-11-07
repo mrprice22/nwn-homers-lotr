@@ -1201,8 +1201,19 @@ const int LOOT_FATE_OK         = 1;
 const int LOOT_FATE_NOT_ROLLED = -1;   // not made by Loot_Roll
 const int LOOT_FATE_NAMED      = -2;   // a named-pool item: nothing random on it
 const int LOOT_FATE_NO_BASE    = -3;   // its base item is not a loot base any more
-const int LOOT_FATE_NO_ROOM    = -4;   // no upside fits the item's bounds
+const int LOOT_FATE_NO_ROOM    = -4;   // no upside fits the item's worth bound
 const int LOOT_FATE_NO_VAULT   = -5;   // the forge vault / blank is missing
+const int LOOT_FATE_NO_SLOT    = -6;   // kept enchantments fill every slot
+
+// The confirm line's custom token (forge block: 6110-6119 strip, 6120 runes).
+const int LOOT_FATE_TOK = 6121;
+
+// Item locals: the high-water marks a reforge is bounded by.  Stamped on every
+// committed reforge with the item's state just before it, never lowered, so an
+// unlucky reforge can never shrink what the next one may roll (the ratchet that
+// once walked items down to "no room left", lo-fate-ratchet).
+const string LOOT_FATE_HW_VALUE = "LOOT_FATE_HW_VALUE";
+const string LOOT_FATE_HW_PROPS = "LOOT_FATE_HW_PROPS";
 
 // The first Shard of Fate oPC carries, or OBJECT_INVALID.
 object Loot_FindShard(object oPC)
@@ -1287,38 +1298,92 @@ void Loot_StripAfx(object oItem)
         if (!bRemoved) break;
     }
 }
+// ---------------------------------------------------------------------------
+// The reforge plan: what a Shard of Fate may do to oItem, before anything is
+// rolled.  Shared by the confirm line (Loot_FateOutlook) and Loot_Reforge, so
+// the smith never promises what the reforge would then refuse.
+//
+// Bounds - an item-mutating path bounds itself (the forge caps ARE the
+// enforcement; see forge_inc):
+//   * the new affixes' own value fits the rarity's budget at LOOT_LVL (the
+//     budget the original roll had), so a reforge never beats a fresh roll;
+//   * the whole item stays at or under max(high-water value, nValueCap);
+//   * counted enchantments stay at or under max(high-water count, nPropCap).
+// The high-water is the largest the item has been when a Shard worked it
+// (LOOT_FATE_HW_*, or its state now when larger or unstamped).  It never
+// exceeds anything the item lawfully held, so it can never mint contraband;
+// it only stops one cheap roll from shrinking every roll after it.
+//
+// Results are LF_* locals on oPlan (the PC):
+//   LF_AFX    random affixes on the item now (all of them, drawbacks included)
+//   LF_KEPTN  non-cosmetic properties that stay (forged, gem, restrictions)
+//   LF_KEPTC  of those, the ones that fill a slot (FORGE_SEL_COUNTED)
+//   LF_COUNT  counted enchantments now        LF_HWP   high-water count
+//   LF_SLOTS  slot bound                       LF_NEW   most new affixes
+//   LF_VALUE  item value now (per unit)        LF_HWV   high-water value
+//   LF_KEPTV  value of a blank + what stays    LF_VMAX  whole-item value bound
+//   LF_UPS    most upsides a reforge could give, LF_BUDGET the rarity budget
+//   LF_TPL    (object) the priced template - Loot_FatePlanEnd destroys it
+//   LF_BLOCK  (string) Loot_TypeSubKey()s no new affix may repeat
+// ---------------------------------------------------------------------------
 
-// Re-roll oItem's random affixes in place (the anvil's "Reforge its fate").
-// Transactional: the new set is chosen and priced on a scratch blank carrying
-// only the properties the item keeps (forged enchantments, gem properties,
-// anything not in LOOT_AFX_*), and oItem is touched only once a set with at
-// least one upside fits.  Bounds - an item-mutating path bounds itself:
-//   * the affix-only value fits the rarity's budget at LOOT_LVL (the budget the
-//     original roll had), so a reforge can never beat what a roll could make;
-//   * the whole item stays at or under max(its value now, nValueCap) - a forge
-//     passes its MODIFY_MAX, so a lawful piece never leaves its forge's cap;
-//   * counted enchantments stay at or under max(its count now, nPropCap).
-// Level, rarity, base, look, sockets, gems and description are unchanged; the
-// name is rebuilt from the new prefix/suffix.  Returns LOOT_FATE_*.
-int Loot_Reforge(object oItem, int nValueCap, int nPropCap, object oPC)
+void Loot_FatePlanEnd(object oPlan)
 {
+    object oTpl = GetLocalObject(oPlan, "LF_TPL");
+    if (GetIsObjectValid(oTpl))
+    {
+        Loot_WorkClear(oTpl);
+        DestroyObject(oTpl);
+    }
+    DeleteLocalObject(oPlan, "LF_TPL");
+    DeleteLocalString(oPlan, "LF_BLOCK");
+}
+
+int Loot_Max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
+// Returns LOOT_FATE_OK with LF_TPL valid (call Loot_FatePlanEnd), or a refusal
+// code.  LOOT_FATE_NO_SLOT is decided here; LOOT_FATE_NO_ROOM only once a roll
+// has been tried, except when what stays already fills the worth bound.
+int Loot_FatePlan(object oItem, int nValueCap, int nPropCap, object oPlan)
+{
+    Loot_FatePlanEnd(oPlan);
+    SetLocalInt(oPlan, "LF_AFX", 0);
+    SetLocalInt(oPlan, "LF_KEPTN", 0);
+    SetLocalInt(oPlan, "LF_KEPTC", 0);
+    SetLocalInt(oPlan, "LF_COUNT", 0);
+    SetLocalInt(oPlan, "LF_HWP", 0);
+    SetLocalInt(oPlan, "LF_SLOTS", 0);
+    SetLocalInt(oPlan, "LF_NEW", 0);
+    SetLocalInt(oPlan, "LF_VALUE", 0);
+    SetLocalInt(oPlan, "LF_HWV", 0);
+    SetLocalInt(oPlan, "LF_KEPTV", 0);
+    SetLocalInt(oPlan, "LF_VMAX", 0);
+    SetLocalInt(oPlan, "LF_UPS", 0);
+    SetLocalInt(oPlan, "LF_BUDGET", 0);
     if (!Loot_IsRolled(oItem)) return LOOT_FATE_NOT_ROLLED;
     if (GetLocalInt(oItem, "LOOT_NAMED")) return LOOT_FATE_NAMED;
     int nBase = GetBaseItemType(oItem);
-    int nCat = LootD_BaseCat(nBase);
-    if (nCat < 0) return LOOT_FATE_NO_BASE;
+    if (LootD_BaseCat(nBase) < 0) return LOOT_FATE_NO_BASE;
     int nLvl = Loot_Clamp(GetLocalInt(oItem, "LOOT_LVL"), 1, LOOTD_MAX_LEVEL);
     int nRarity = Loot_Clamp(GetLocalInt(oItem, "LOOT_RARITY"), 0, LOOTD_RARITY_COUNT - 1);
     object oHolder = ForgeHolder();
     if (!GetIsObjectValid(oHolder)) return LOOT_FATE_NO_VAULT;
+    int nBefore = ForgeItemValue(oItem, TRUE);
+    if (nBefore < 0) return LOOT_FATE_NO_VAULT;
     object oTpl = CreateItemOnObject(ForgeBlankResRef(nBase), oHolder);
     if (!GetIsObjectValid(oTpl)) return LOOT_FATE_NO_VAULT;
+    SetLocalObject(oPlan, "LF_TPL", oTpl);
 
     // The kept properties: onto the template (priced), into the block list
     // (no affix may duplicate one), and counted against the slot bound.
     string sLeft = Loot_AfxSigList(oItem);
     string sBlock = "";
-    int nKeptCounted = 0;
+    int nAfx = 0;
+    int nKeptN = 0;
+    int nKeptC = 0;
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
@@ -1326,40 +1391,244 @@ int Loot_Reforge(object oItem, int nValueCap, int nPropCap, object oPC)
         {
             string sNext = Loot_TakeSig(sLeft, ForgePropSig(ip));
             if (sNext != "")
+            {
                 sLeft = sNext;                       // a random affix: re-rolled
+                nAfx++;
+            }
             else
             {
                 sBlock += Loot_TypeSubKey(GetItemPropertyType(ip), GetItemPropertySubType(ip));
-                if (ForgePropInSet(ip, FORGE_SEL_COUNTED, oItem)) nKeptCounted++;
+                if (ForgePropInSet(ip, FORGE_SEL_COUNTED, oItem)) nKeptC++;
                 if (ForgePropInSet(ip, FORGE_SEL_PRICED))
+                {
+                    nKeptN++;
                     AddItemProperty(DURATION_TYPE_PERMANENT, ip, oTpl);
+                }
             }
         }
         ip = GetNextItemProperty(oItem);
     }
+    SetLocalString(oPlan, "LF_BLOCK", sBlock);
 
-    int nBefore = ForgeItemValue(oItem, TRUE);
-    int nTotalCap = nBefore > nValueCap ? nBefore : nValueCap;
-    int nCountBefore = ForgeCountProps(oItem);
-    int nPropMax = nCountBefore > nPropCap ? nCountBefore : nPropCap;
-    int nMaxNew = nPropMax - nKeptCounted;
-    if (nMaxNew < 0) nMaxNew = 0;
+    int nCount = ForgeCountProps(oItem);
+    int nHwP = Loot_Max(GetLocalInt(oItem, LOOT_FATE_HW_PROPS), nCount);
+    int nSlots = Loot_Max(nHwP, nPropCap);
+    int nNew = Loot_Max(nSlots - nKeptC, 0);
+    int nHwV = Loot_Max(GetLocalInt(oItem, LOOT_FATE_HW_VALUE), nBefore);
+    int nVMax = Loot_Max(nHwV, nValueCap);
+    int nKeptV = GetGoldPieceValue(oTpl);
 
-    int nValue = Loot_RollAffixes(oTpl, nBase, LootD_CatName(nCat), nLvl, nRarity,
-                                  sBlock, nMaxNew, oTpl, nTotalCap);
+    // Most upsides a reforge could give: the rarity's top count, or with a
+    // drawback (which takes a slot of its own) one more than that.
+    int nAffMax = LootD_RarityAffMax(nRarity);
+    int nUps = nNew < nAffMax ? nNew : nAffMax;
+    if (LootD_RarityDownside(nRarity) > 0 && nNew >= 2)
+    {
+        int nWithDown = nNew - 1 < nAffMax + 1 ? nNew - 1 : nAffMax + 1;
+        nUps = Loot_Max(nUps, nWithDown);
+    }
+
+    SetLocalInt(oPlan, "LF_AFX", nAfx);
+    SetLocalInt(oPlan, "LF_KEPTN", nKeptN);
+    SetLocalInt(oPlan, "LF_KEPTC", nKeptC);
+    SetLocalInt(oPlan, "LF_COUNT", nCount);
+    SetLocalInt(oPlan, "LF_HWP", nHwP);
+    SetLocalInt(oPlan, "LF_SLOTS", nSlots);
+    SetLocalInt(oPlan, "LF_NEW", nNew);
+    SetLocalInt(oPlan, "LF_VALUE", nBefore);
+    SetLocalInt(oPlan, "LF_HWV", nHwV);
+    SetLocalInt(oPlan, "LF_KEPTV", nKeptV);
+    SetLocalInt(oPlan, "LF_VMAX", nVMax);
+    SetLocalInt(oPlan, "LF_UPS", nUps);
+    SetLocalInt(oPlan, "LF_BUDGET", Loot_Budget(nRarity, nLvl, FALSE));
+    if (nNew <= 0) return LOOT_FATE_NO_SLOT;
+    if (nKeptV >= nVMax) return LOOT_FATE_NO_ROOM;
+    return LOOT_FATE_OK;
+}
+
+// Re-roll oItem's random affixes in place (the anvil's "Reforge its fate").
+// Transactional: the new set is chosen and priced on the plan's template, and
+// oItem is touched only once a set with at least one upside fits the plan's
+// bounds.  Level, rarity, base, look, sockets, gems and description are
+// unchanged; the name is rebuilt from the new prefix/suffix.  On success the
+// high-water marks are stamped and LF_RESULT (the new affixes' value) is left
+// on oPC with the rest of the plan for Loot_FateRecord.  Returns LOOT_FATE_*.
+int Loot_Reforge(object oItem, int nValueCap, int nPropCap, object oPC)
+{
+    DeleteLocalInt(oPC, "LF_RESULT");
+    int nRes = Loot_FatePlan(oItem, nValueCap, nPropCap, oPC);
+    if (nRes != LOOT_FATE_OK)
+    {
+        Loot_FatePlanEnd(oPC);
+        return nRes;
+    }
+    object oTpl = GetLocalObject(oPC, "LF_TPL");
+    int nBase = GetBaseItemType(oItem);
+    int nLvl = Loot_Clamp(GetLocalInt(oItem, "LOOT_LVL"), 1, LOOTD_MAX_LEVEL);
+    int nRarity = Loot_Clamp(GetLocalInt(oItem, "LOOT_RARITY"), 0, LOOTD_RARITY_COUNT - 1);
+
+    int nValue = Loot_RollAffixes(oTpl, nBase, LootD_CatName(LootD_BaseCat(nBase)), nLvl,
+                                  nRarity, GetLocalString(oPC, "LF_BLOCK"),
+                                  GetLocalInt(oPC, "LF_NEW"), oTpl,
+                                  GetLocalInt(oPC, "LF_VMAX"));
     if (nValue < 0 || Loot_WorkUps(oTpl) <= 0)
     {
-        Loot_WorkClear(oTpl);
-        DestroyObject(oTpl);
+        Loot_FatePlanEnd(oPC);
         return nValue < 0 ? LOOT_FATE_NO_VAULT : LOOT_FATE_NO_ROOM;
     }
 
-    // Commit: strip the old random affixes, apply the new set, re-stamp.
+    // Commit: stamp the high-water (the state just before this reforge, which
+    // the bounds above already allowed for), strip the old random affixes,
+    // apply the new set, re-stamp the affix list.
+    SetLocalInt(oItem, LOOT_FATE_HW_VALUE, GetLocalInt(oPC, "LF_HWV"));
+    SetLocalInt(oItem, LOOT_FATE_HW_PROPS, GetLocalInt(oPC, "LF_HWP"));
     Loot_StripAfx(oItem);
     string sName = Loot_ApplyWork(oItem, oTpl, nRarity, nBase, TRUE);
-    DestroyObject(oTpl);
+    Loot_FatePlanEnd(oPC);
     SetLocalInt(oItem, "LOOT_FATE_N", GetLocalInt(oItem, "LOOT_FATE_N") + 1);
+    SetLocalInt(oPC, "LF_RESULT", nValue);
     Loot_LogRoll("fate", GetLocalString(oItem, "LOOT_PROFILE"), nLvl, nRarity, nBase,
                  sName, nValue, oPC);
     return LOOT_FATE_OK;
+}
+
+// ---------------------------------------------------------------------------
+// What the smith says.  Every number comes from the LF_* plan on oPC, so the
+// confirm line, the refusal and the log all describe the same arithmetic.
+// ---------------------------------------------------------------------------
+
+// "1 enchantment" / "3 enchantments".
+string Loot_Count(int n, string sWord)
+{
+    return IntToString(n) + " " + sWord + (n == 1 ? "" : "s");
+}
+
+// The refusal for nRes, about the item named sName.  Ends "Keep your Shard."
+string Loot_FateRefusal(int nRes, string sName, object oPC)
+{
+    if (nRes == LOOT_FATE_NOT_ROLLED)
+        return "The " + sName + " was made by a smith's hand, not drawn from fate. "
+            + "There is nothing random in it for a Shard to change. Keep your Shard.";
+    if (nRes == LOOT_FATE_NAMED)
+        return "The " + sName + " is a storied piece; its fate was written long ago "
+            + "and a Shard cannot unwrite it. Keep your Shard.";
+    if (nRes == LOOT_FATE_NO_SLOT)
+        return "There is no room in the " + sName + " for fate to work. Its "
+            + Loot_Count(GetLocalInt(oPC, "LF_KEPTC"), "enchantment")
+            + " are your own work and fill all "
+            + IntToString(GetLocalInt(oPC, "LF_SLOTS"))
+            + " places this piece may hold. Have me strike one from it, or take it to "
+            + "a forge that binds more, and fate will have a place to work. Keep your Shard.";
+    if (nRes == LOOT_FATE_NO_ROOM)
+    {
+        int nRoom = GetLocalInt(oPC, "LF_VMAX") - GetLocalInt(oPC, "LF_KEPTV");
+        string s = "There is no room in the " + sName + " for fate to work. What stays "
+            + "in it is worth " + ForgeGold(GetLocalInt(oPC, "LF_KEPTV")) + " of the "
+            + ForgeGold(GetLocalInt(oPC, "LF_VMAX")) + " gold this piece may hold";
+        if (nRoom > 0)
+            s += ", and nothing fate could draw fits in the " + ForgeGold(nRoom)
+                + " that leaves";
+        return s + ". Have me strike an enchantment from it, or take it to a greater "
+            + "forge. Keep your Shard.";
+    }
+    return "Something in the " + sName + " resists the Shard. I will not risk it. "
+        + "Keep your Shard.";
+}
+
+// The confirm line (token LOOT_FATE_TOK) for the item on the anvil: what a
+// reforge would change, what stays and the room fate has - or, when the plan
+// already refuses, that refusal, so the PC knows before saying "Aye".
+string Loot_FateOutlook(object oItem, int nValueCap, int nPropCap, object oPC)
+{
+    string sName = GetName(oItem);
+    int nRes = Loot_FatePlan(oItem, nValueCap, nPropCap, oPC);
+    Loot_FatePlanEnd(oPC);
+    if (nRes != LOOT_FATE_OK)
+        return "Before you break a Shard over it, hear this. "
+            + Loot_FateRefusal(nRes, sName, oPC);
+    int nAfx = GetLocalInt(oPC, "LF_AFX");
+    int nKept = GetLocalInt(oPC, "LF_KEPTN");
+    int nRoom = GetLocalInt(oPC, "LF_VMAX") - GetLocalInt(oPC, "LF_KEPTV");
+    int nBudget = GetLocalInt(oPC, "LF_BUDGET");
+    string s;
+    if (nAfx > 0)
+        s = "Fate gave the " + sName + " " + IntToString(nAfx) + " of its "
+            + Loot_Count(nAfx + nKept, "enchantment")
+            + ". A Shard of Fate would unmake " + (nAfx == 1 ? "it" : "those")
+            + " and draw new ones at the same strength of fate.";
+    else
+        s = "Nothing fate gave the " + sName + " remains in it. A Shard of Fate would "
+            + "draw it new enchantments at the same strength of fate.";
+    if (nKept > 0)
+        s += " The other " + IntToString(nKept) + " stay as they are: what you forged "
+            + "into it, what its gems give, and any limit on who may wield it.";
+    s += " This piece may hold " + Loot_Count(GetLocalInt(oPC, "LF_SLOTS"), "enchantment")
+        + " and " + ForgeGold(GetLocalInt(oPC, "LF_VMAX")) + " gold of worth, so fate "
+        + "may draw up to " + IntToString(GetLocalInt(oPC, "LF_UPS")) + " good ones, worth up to "
+        + ForgeGold(nRoom < nBudget ? nRoom : nBudget) + " gold together.";
+    return s + " There is no undoing it, and the Shard is spent. Shall I?";
+}
+
+// One reforge attempt into the server log (always, unlike FORGE_DEBUG lines)
+// and lootdb.loot_fate_log, refusals included.  Call right after
+// Loot_Reforge: the LF_* plan on oPC is what is recorded.
+void Loot_FateRecord(object oPC, object oItem, string sBefore, int nRes)
+{
+    string sOutcome = "error";
+    if (nRes == LOOT_FATE_OK) sOutcome = "ok";
+    else if (nRes == LOOT_FATE_NOT_ROLLED) sOutcome = "not_rolled";
+    else if (nRes == LOOT_FATE_NAMED) sOutcome = "named";
+    else if (nRes == LOOT_FATE_NO_BASE) sOutcome = "no_base";
+    else if (nRes == LOOT_FATE_NO_ROOM) sOutcome = "no_room";
+    else if (nRes == LOOT_FATE_NO_VAULT) sOutcome = "no_vault";
+    else if (nRes == LOOT_FATE_NO_SLOT) sOutcome = "no_slot";
+    string sAfter = nRes == LOOT_FATE_OK ? GetName(oItem) : "";
+    int nAfter = nRes == LOOT_FATE_OK ? ForgeItemValue(oItem, TRUE) : -1;
+    string sForge = GetTag(GetArea(oPC));
+    WriteTimestampedLogEntry("LOOT: fate " + sOutcome + " PC=" + GetName(oPC)
+        + " forge=" + sForge + " item='" + sBefore + "'"
+        + (sAfter != "" ? " -> '" + sAfter + "'" : "")
+        + " lvl " + IntToString(GetLocalInt(oItem, "LOOT_LVL"))
+        + " rarity " + IntToString(GetLocalInt(oItem, "LOOT_RARITY"))
+        + " | slots: " + IntToString(GetLocalInt(oPC, "LF_AFX")) + " fate + "
+        + IntToString(GetLocalInt(oPC, "LF_KEPTC")) + " kept of "
+        + IntToString(GetLocalInt(oPC, "LF_SLOTS")) + " (count "
+        + IntToString(GetLocalInt(oPC, "LF_COUNT")) + ", high-water "
+        + IntToString(GetLocalInt(oPC, "LF_HWP")) + "), up to "
+        + IntToString(GetLocalInt(oPC, "LF_NEW")) + " new"
+        + " | worth: " + IntToString(GetLocalInt(oPC, "LF_VALUE")) + " now, "
+        + IntToString(GetLocalInt(oPC, "LF_KEPTV")) + " kept, bound "
+        + IntToString(GetLocalInt(oPC, "LF_VMAX")) + " (high-water "
+        + IntToString(GetLocalInt(oPC, "LF_HWV")) + ", budget "
+        + IntToString(GetLocalInt(oPC, "LF_BUDGET")) + ")"
+        + (nRes == LOOT_FATE_OK ? ", new affixes " + IntToString(GetLocalInt(oPC, "LF_RESULT"))
+                                  + ", item now " + IntToString(nAfter) : ""));
+    sqlquery q = SqlPrepareQueryCampaign(LOOT_DB,
+        "INSERT INTO loot_fate_log (uuid, pc, forge, outcome, lvl, rarity, base, "
+        + "item_before, item_after, afx, kept, slots, hw_props, new_max, value_before, "
+        + "kept_value, value_max, hw_value, budget, affix_value, value_after) VALUES "
+        + "(@u, @pc, @f, @o, @l, @r, @b, @ib, @ia, @afx, @k, @s, @hwp, @n, @vb, @kv, "
+        + "@vm, @hwv, @bu, @av, @va)");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    SqlBindString(q, "@pc", GetName(oPC));
+    SqlBindString(q, "@f", sForge);
+    SqlBindString(q, "@o", sOutcome);
+    SqlBindInt(q, "@l", GetLocalInt(oItem, "LOOT_LVL"));
+    SqlBindInt(q, "@r", GetLocalInt(oItem, "LOOT_RARITY"));
+    SqlBindInt(q, "@b", GetBaseItemType(oItem));
+    SqlBindString(q, "@ib", sBefore);
+    SqlBindString(q, "@ia", sAfter);
+    SqlBindInt(q, "@afx", GetLocalInt(oPC, "LF_AFX"));
+    SqlBindInt(q, "@k", GetLocalInt(oPC, "LF_KEPTC"));
+    SqlBindInt(q, "@s", GetLocalInt(oPC, "LF_SLOTS"));
+    SqlBindInt(q, "@hwp", GetLocalInt(oPC, "LF_HWP"));
+    SqlBindInt(q, "@n", GetLocalInt(oPC, "LF_NEW"));
+    SqlBindInt(q, "@vb", GetLocalInt(oPC, "LF_VALUE"));
+    SqlBindInt(q, "@kv", GetLocalInt(oPC, "LF_KEPTV"));
+    SqlBindInt(q, "@vm", GetLocalInt(oPC, "LF_VMAX"));
+    SqlBindInt(q, "@hwv", GetLocalInt(oPC, "LF_HWV"));
+    SqlBindInt(q, "@bu", GetLocalInt(oPC, "LF_BUDGET"));
+    SqlBindInt(q, "@av", nRes == LOOT_FATE_OK ? GetLocalInt(oPC, "LF_RESULT") : -1);
+    SqlBindInt(q, "@va", nAfter);
+    SqlStep(q);
 }

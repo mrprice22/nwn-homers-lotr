@@ -613,6 +613,78 @@ def reforge_report(data, spec, n, seed):
               % (over, dup, none))
 
 
+def _chain(data, item, kept, kept_counted, vcap, pcap, n, rng, model, high_water):
+    """n reforges in a row of one item at one forge.  high_water=False is the
+    pre-lo-fate-ratchet rule (bounds from the item's state now)."""
+    ab = lm.affix_by_id(data)
+    afx = [(ab[i]["type"], ab[i].get("sub") or 0, c) for i, c in item["affixes"]]
+    counted = lambda props: kept_counted + sum(
+        1 for i, _c in props if ab[i]["role"] == "upside")
+    cur_ids = list(item["affixes"])
+    hwv = hwp = 0
+    ups, refused_at = [], None
+    for k in range(n):
+        value_now = model.item_value(item["base"], kept + afx)
+        count_now = counted(cur_ids)
+        if high_water:
+            vmax, smax, nhwv, nhwp = lm.fate_bounds(value_now, count_now, vcap, pcap, hwv, hwp)
+        else:
+            vmax, smax = max(value_now, vcap), max(count_now, pcap)
+        f = lm.reforge(data, item["base"], item["level"], item["rarity"], kept, rng, model,
+                       value_cap=vmax, prop_cap=smax, kept_counted=kept_counted)
+        if f is None:
+            refused_at = k + 1
+            break
+        if high_water:
+            hwv, hwp = nhwv, nhwp
+        cur_ids = list(f["affixes"])
+        afx = [(ab[i]["type"], ab[i].get("sub") or 0, c) for i, c in cur_ids]
+        ups.append(sum(1 for i, _c in cur_ids if ab[i]["role"] == "upside"))
+    return ups, refused_at
+
+
+def ratchet_report(data, spec, n, seed):
+    """lo-fate-ratchet: chains of reforges on an item that is already over its
+    forge's caps (forged enchantments kept), old rule vs the high-water rule."""
+    rng = random.Random(seed)
+    model = lm.CostModel(data["costs"])
+    parts = [int(x) for x in (spec or "46,3").split(",") if x.strip()]
+    lvl = parts[0] if parts else 46
+    rar = parts[1] if len(parts) > 1 else 3
+    ab = lm.affix_by_id(data)
+    # Four forged enchantments that stay, no affix may repeat their type:
+    # Enhancement +5, Regeneration +3, Skill bonus +10, Ability +4.
+    kept = [(6, 0, 5), (51, 0, 3), (52, 0, 10), (0, 0, 4)]
+    tag = ("Tagget", 250000, 4)
+    chains, length = 300, min(n, 40)
+    print("== lo-fate-ratchet: %d chains of up to %d reforges, level %d rarity %d, "
+          "4 forged enchantments kept, at %s's forge (%s gp / %d slots)"
+          % (chains, length, lvl, rar, tag[0], "{:,}".format(tag[1]), tag[2]))
+    for label, hw in (("old rule (bounds from the item now)", False),
+                      ("high-water rule", True)):
+        refused, mean_ups, last_ups = 0, [], []
+        for _c in range(chains):
+            item = None
+            for _ in range(500):
+                r = lm.roll(data, lvl, rar, "lab", rng, model)
+                if r.get("named") is None and r["rarity"] == rar and r["affixes"] \
+                        and r["category"] not in ("melee", "ranged", "caster"):
+                    item = r
+                    break
+            if item is None:
+                continue
+            ups, ref = _chain(data, item, kept, len(kept), tag[1], tag[2], length, rng,
+                              model, hw)
+            refused += ref is not None
+            if ups:
+                mean_ups.append(sum(ups) / len(ups))
+                last_ups.append(ups[-1])
+        mean = lambda xs: sum(xs) / len(xs) if xs else 0
+        print("   %-38s refused (\"no room left\") within %d: %3d%%   good enchantments: "
+              "mean %.2f, after the last reforge %.2f"
+              % (label, length, 100 * refused // max(1, chains), mean(mean_ups), mean(last_ups)))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--n", type=int, default=20000)
@@ -625,6 +697,9 @@ def main():
     ap.add_argument("--chests", action="store_true")
     ap.add_argument("--creatures", action="store_true")
     ap.add_argument("--gems", action="store_true")
+    ap.add_argument("--ratchet", nargs="?", const="", default=None, metavar="LVL,RARITY",
+                    help="lo-fate-ratchet: chained reforges of an over-cap item with forged "
+                         "enchantments kept, old bound rule vs the high-water rule")
     ap.add_argument("--reforge", nargs="?", const="", default=None, metavar="LVL,RARITY[,BASE]",
                     help="Phase 7: Shard of Fate boss drops, and N reforges of one rolled "
                          "item (default 40,3 = level 40, Epic)")
@@ -653,6 +728,9 @@ def main():
         return 1
     if a.chests:
         chests(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)
+        return 0
+    if a.ratchet is not None:
+        ratchet_report(data, a.ratchet, a.n, a.seed)
         return 0
     if a.reforge is not None:
         reforge_report(data, a.reforge, min(a.n, 5000), a.seed)

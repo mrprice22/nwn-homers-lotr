@@ -278,12 +278,12 @@ throws (range +3 to +5, it got +4), arcane spell failure (range &minus;20% to &m
 of 850,000 gp, so the ceiling never came into it.
 </div>
 <div class="warning-box">
-<strong>Fixed on the test realm: lost damage immunities.</strong> Until 7 November, a roll that picked an
-acid, cold, electrical, fire, sonic or negative energy <em>immunity</em> lost it when the item was made,
-so the item arrived one enchantment short. The example shield above lost its sonic immunity this way and
-arrived with only two enchantments. Items rolled since the fix keep their immunity. Items that already
-dropped are unchanged, but a <a href="#fate-token">Shard of Fate</a> reforge rolls their enchantments
-again with the fix in place.
+<strong>Known issue: lost damage immunities.</strong> A roll that picks an acid, cold, electrical,
+fire, sonic or negative energy <em>immunity</em> still loses it when the item is made, so the item
+arrives one enchantment short. The example shield above lost its sonic immunity this way and arrived
+with only two enchantments. A first fix on 7 November did not hold in game, and the issue is still
+being worked on. Until it is fixed, a <a href="#fate-token">Shard of Fate</a> reforge can lose an
+immunity the same way.
 </div>
 
 <h3 id="loot-affixes">Every enchantment and its range</h3>
@@ -697,14 +697,18 @@ drop below a Cut gem where the area allows it.</p>
   rolled at the same loot level and rarity, so the result is never stronger than a fresh drop of that
   rarity could be. The item keeps its base type, look, sockets and description. Enchantments you
   added at a forge yourself, and gems set in its sockets, stay as they are, and the new enchantments
-  never duplicate them. The smith asks you to confirm first, because a reforge cannot be undone.</li>
+  never duplicate them. The smith asks you to confirm first, because a reforge cannot be undone,
+  and tells you before you agree how many of the enchantments fate gave the item, how many stay, and
+  how much room fate has to work with.</li>
   <li><strong>What a reforge refuses.</strong> Items that were not rolled (quest rewards, store stock,
   hand-made gear) and the named items a Legendary roll can award have nothing random to change. An item
   whose forged enchantments already fill it, or that sits at the forge's value limit, may have no room
-  for anything new. In every one of these cases the smith hands the Shard back.</li>
+  for anything new. In every one of these cases the smith hands the Shard back and says which limit is
+  full: the number of enchantments, or the gold the piece may hold.</li>
   <li><strong>The forge's limits still apply.</strong> A reforge never takes an item past the forge's
   value limit or enchantment count, unless the item was already past them before the reforge, and then
-  it never grows.</li>
+  it never grows. Such an item keeps the room it had the first time a Shard worked it: an unlucky
+  reforge never shrinks what the next one may roll.</li>
   <li><strong>A bonus roll on a boss.</strong> When a boss on the Roll of the Fallen dies and you helped
   to kill it, you are in the same area and you carry a Shard, a window asks whether to spend it. If you
   accept, one more item from that boss's loot (Epic rarity or better, at the boss's loot level) goes

@@ -122,6 +122,7 @@ These token numbers are in use module-wide — don't reuse them:
 | 4958 | Family gold balance |
 | 6000–6002 | Bank teller: gold, family gold, XP reserve balances |
 | **6100–6102** | **Colour tokens: red, yellow, close (set in `onmoduleload.nss`)** |
+| 6110–6121 | Forge of Wonders anvil (`forge_inc.nss`): 6110–6119 staged strip, 6120 Rune of Expansion count, 6121 Shard of Fate confirm line (`loot_inc` `LOOT_FATE_TOK`) |
 | 6500–6518 | `graf_inc.nss` — Well of Eru graffiti easel (6500 heading, 6501 page-of, 6502 selection summary, 6510–6518 row labels) |
 | 90001–90002 | `brc_wheel.nss` — prize wheel |
 

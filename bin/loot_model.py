@@ -590,6 +590,23 @@ def roll_affixes(data, cat, level, tier, base_row, rng, model, block=frozenset()
     return chosen, value, budget, has_down
 
 
+def fate_bounds(value_now, count_now, value_cap, prop_cap, hw_value=0, hw_props=0):
+    """The whole-item bounds a Shard of Fate reforge works under (mirrors
+    Loot_FatePlan).  Each bound is the larger of the forge's cap and the item's
+    HIGH-WATER mark - the largest value / counted-enchantment total the item has
+    had when a Shard worked it (LOOT_FATE_HW_VALUE / _PROPS, stamped on every
+    committed reforge and never lowered), or its state now when that is larger.
+    Bounding by the state *now* instead was the lo-fate-ratchet defect: a cheap
+    roll lowered the next reforge's bound, so an over-cap item could only shrink
+    until the smith said "no room left".
+
+    Returns (value_max, slot_max, hw_value, hw_props); the last two are what a
+    committed reforge stamps."""
+    hwv = max(int(hw_value or 0), int(value_now))
+    hwp = max(int(hw_props or 0), int(count_now))
+    return max(hwv, int(value_cap)), max(hwp, int(prop_cap)), hwv, hwp
+
+
 def reforge(data, base_row, level, rarity, kept_props=(), rng=None, model=None,
             value_cap=None, prop_cap=None, kept_counted=None):
     """Phase 7: a Shard of Fate re-roll of a rolled item's random affixes.
