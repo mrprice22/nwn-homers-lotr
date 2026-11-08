@@ -87,7 +87,8 @@
 // is deliberately NOT every roll - a synchronous SQLite commit per chest item
 // would be felt as server lag once Phase 3 puts chests on Loot_Roll.
 // Phase 6 adds loot_wishlist (a character&#x27;s picked base items; the row
-// base = -1 means &quot;Auto off&quot;); Phase 7 (Fate token lockout) adds its table here.
+// base = -1 means &quot;Auto off&quot;); Phase 7 adds loot_fate_lockout (the Shard bonus
+// roll) and loot_fate_log (every anvil reforge attempt, lo-fate-ratchet).
 //
 // Loot_InitDb() is the only DDL and is called from onmoduleload.nss, never
 // from client enter (CLAUDE.md: DDL off the login frame).  Table names avoid
@@ -118,6 +119,21 @@ void Loot_InitDb()
         &quot;CREATE TABLE IF NOT EXISTS loot_fate_lockout (&quot; +
         &quot;uuid TEXT NOT NULL, boss TEXT NOT NULL, at INTEGER NOT NULL,&quot; +
         &quot;PRIMARY KEY (uuid, boss))&quot;);
+    SqlStep(q);
+    // lo-fate-ratchet: every Shard of Fate reforge attempt at an anvil, refusals
+    // included, with the bounds it was judged by (Loot_FateRecord, loot_inc).
+    // outcome: ok / no_slot / no_room / not_rolled / named / no_base / no_vault.
+    // -1 in affix_value / value_after = nothing was committed.
+    q = SqlPrepareQueryCampaign(LOOT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS loot_fate_log (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;ts TEXT DEFAULT CURRENT_TIMESTAMP,&quot; +
+        &quot;uuid TEXT, pc TEXT, forge TEXT, outcome TEXT,&quot; +
+        &quot;lvl INTEGER, rarity INTEGER, base INTEGER,&quot; +
+        &quot;item_before TEXT, item_after TEXT,&quot; +
+        &quot;afx INTEGER, kept INTEGER, slots INTEGER, hw_props INTEGER, new_max INTEGER,&quot; +
+        &quot;value_before INTEGER, kept_value INTEGER, value_max INTEGER, hw_value INTEGER,&quot; +
+        &quot;budget INTEGER, affix_value INTEGER, value_after INTEGER)&quot;);
     SqlStep(q);
 }
 

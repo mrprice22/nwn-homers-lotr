@@ -82,12 +82,14 @@
 // A Shard of Fate re-rolls the random affixes (LOOT_AFX_*) of the rolled item on
 // the anvil: same loot level, rarity, base and look; forged enchantments, gem
 // properties and sockets are kept.  Loot_Reforge (loot_inc) is transactional and
-// bounded - the affixes fit the rarity&#x27;s budget, the whole item stays within
-// max(its value now, this forge&#x27;s MODIFY_MAX) and the counted enchantments
-// within max(its count now, MODIFY_MAX_PROPS).  The Shard is consumed ONLY after
-// a committed reforge; every refusal keeps it.  Modelled on ForgeExpandDo
-// (forge_inc).  The smith (OBJECT_SELF) speaks the outcome; the reply loops
-// back to the forge menu.
+// bounded by the plan Loot_FatePlan draws up: the affixes fit the rarity&#x27;s
+// budget, the whole item stays within max(its high-water value, this forge&#x27;s
+// MODIFY_MAX) and the counted enchantments within max(its high-water count,
+// MODIFY_MAX_PROPS) - the high-water so one unlucky reforge can never shrink
+// the next (lo-fate-ratchet).  The Shard is consumed ONLY after a committed
+// reforge; every refusal keeps it and says which bound refused.  Every attempt
+// is logged (server log + lootdb.loot_fate_log) by Loot_FateRecord.  The smith
+// (OBJECT_SELF) speaks the outcome; the reply loops back to the forge menu.
 #include &quot;loot_inc&quot;
 
 void main()
@@ -109,41 +111,26 @@ void main()
     string sOld = GetName(oItem);
     int nRes = Loot_Reforge(oItem, GetLocalInt(oPC, &quot;MODIFY_MAX&quot;),
                             GetLocalInt(oPC, &quot;MODIFY_MAX_PROPS&quot;), oPC);
-    if (nRes == LOOT_FATE_NOT_ROLLED)
-    {
-        SpeakString(&quot;The &quot; + sOld + &quot; was made by a smith&#x27;s hand, not drawn from fate. &quot;
-            + &quot;There is nothing random in it for a Shard to change. Keep your Shard.&quot;);
-        return;
-    }
-    if (nRes == LOOT_FATE_NAMED)
-    {
-        SpeakString(&quot;The &quot; + sOld + &quot; is a storied piece; its fate was written long ago &quot;
-            + &quot;and a Shard cannot unwrite it. Keep your Shard.&quot;);
-        return;
-    }
-    if (nRes == LOOT_FATE_NO_ROOM)
-    {
-        SpeakString(&quot;I have tried, but there is no room left in the &quot; + sOld + &quot; for &quot;
-            + &quot;fate to work: what you have forged into it fills its weave. Keep your Shard.&quot;);
-        return;
-    }
+    Loot_FateRecord(oPC, oItem, sOld, nRes);
     if (nRes != LOOT_FATE_OK)
     {
-        SpeakString(&quot;Something in the &quot; + sOld + &quot; resists the Shard. I will not risk it. &quot;
-            + &quot;Keep your Shard.&quot;);
-        ForgeLog(&quot;fate: PC=&quot; + GetName(oPC) + &quot; item=&#x27;&quot; + sOld + &quot;&#x27; refused, code &quot;
-            + IntToString(nRes));
+        SpeakString(Loot_FateRefusal(nRes, sOld, oPC));
         return;
     }
     Loot_SpendShard(oPC);
     // The staged-disenchant plan indexes the item&#x27;s properties; they changed.
     ForgeStageClear(oPC);
     DeleteLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;);
-    ForgeLog(&quot;fate: PC=&quot; + GetName(oPC) + &quot; item=&#x27;&quot; + sOld + &quot;&#x27; -&gt; &#x27;&quot; + GetName(oItem) + &quot;&#x27;&quot;);
     ForgeRefreshAnvilContext(oPC);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_MAGBLUE), oPC);
-    SpeakString(&quot;The Shard breaks across the anvil and its light runs into the metal. &quot;
-        + &quot;What was the &quot; + sOld + &quot; is now the &quot; + GetName(oItem) + &quot;.&quot;);
+    int nNow = GetLocalInt(oItem, &quot;LOOT_AFX_N&quot;);
+    int nKept = GetLocalInt(oPC, &quot;LF_KEPTN&quot;);
+    string s = &quot;The Shard breaks across the anvil and its light runs into the metal. &quot;
+        + &quot;What was the &quot; + sOld + &quot; is now the &quot; + GetName(oItem) + &quot;: fate gave it &quot;
+        + Loot_Count(nNow, &quot;new enchantment&quot;);
+    if (nKept &gt; 0)
+        s += &quot;, and the other &quot; + IntToString(nKept) + &quot; are as they were&quot;;
+    SpeakString(s + &quot;.&quot;);
 }
 </code></pre>
   </main>
