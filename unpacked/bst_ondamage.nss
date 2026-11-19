@@ -15,6 +15,11 @@ void main()
 {
     object oCre = OBJECT_SELF;
 
+    // Any damage, attributed or not, cancels a pending boss out-of-combat reset
+    // (roadmap the-rancid-skinner-green-imortal-of-khamul). No-op for anything
+    // that is not a boss damaged this life.
+    ENR_NoteDamage(oCre);
+
     object oDmg = GetLastDamager(oCre);
     // Summons, henchmen, familiars, animal companions -> credit the owning PC.
     while (GetIsObjectValid(GetMaster(oDmg))) oDmg = GetMaster(oDmg);

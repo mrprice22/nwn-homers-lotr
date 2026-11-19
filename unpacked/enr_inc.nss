@@ -60,6 +60,22 @@
 // Any fresh damage bumps enr_gen, which invalidates the pending check - that
 // is how re-engagement cancels a reset with no timestamp arithmetic.
 //
+// A BOSS NEVER RESETS WHILE A PLAYER IS IN ITS AREA (roadmap
+// the-rancid-skinner-green-imortal-of-khamul). The generation bump used to live
+// only in ENR_OnBossDamaged, which bst_ondamage reaches only when the damager
+// resolves to a PC. Damage that did not resolve never cancelled an armed check,
+// so a 30-minute fight that started after the engaged list had once emptied
+// ended with the Skinner shouting, jumping home and resting to full on top of a
+// live player. Two independent fixes, either one sufficient for that case:
+//   * ENR_NoteDamage bumps enr_gen on ANY damage, attributed or not, and
+//   * ENR_ResetCheck refuses outright while any living non-DM PC is in the
+//     boss's area, re-checking every ENR_RECHECK seconds. This one does not
+//     depend on attribution at all - it is the guarantee. Its first deferral
+//     per armed check is logged ("ENR: reset deferred"): a fight the old code
+//     would have reset in the middle of.
+// So a reset needs: BOSS_RESET_SECONDS with no damage from anything, nobody
+// engaged, the boss out of combat, AND no player left in its area.
+//
 // The reset is deliberately IN PLACE rather than "destroy and re-create from
 // the blueprint". A CreateObject copy of one of the spawn_type='encounter'
 // registry bosses is no longer an encounter creature, so its death would arm
@@ -379,6 +395,32 @@ void ENR_DoReset(object oBoss)
         TALKVOLUME_SHOUT));
 }
 
+// Any damage at all, from anyone or anything, called by bst_ondamage BEFORE its
+// PC-only filter. Bumping enr_gen invalidates any pending out-of-combat reset
+// check, so damage the owning-PC walk cannot attribute still proves a fight is
+// on. Only a boss damaged this life carries enr_snap (the only state a reset
+// can come from), so every other creature pays one local read.
+void ENR_NoteDamage(object oCre)
+{
+    if (!GetLocalInt(oCre, "enr_snap")) return;
+    SetLocalInt(oCre, "enr_gen", GetLocalInt(oCre, "enr_gen") + 1);
+}
+
+// The first living, non-DM player in oBoss's area, or OBJECT_INVALID. Same
+// shape as cleanup.nss's CLN_AreaHasPC, the guard on the lair-cleanup reset.
+object ENR_PlayerInArea(object oBoss)
+{
+    object oArea = GetArea(oBoss);
+    object oPC = GetFirstPC();
+    while (GetIsObjectValid(oPC))
+    {
+        if (!GetIsDM(oPC) && !GetIsDead(oPC) && GetArea(oPC) == oArea)
+            return oPC;
+        oPC = GetNextPC();
+    }
+    return OBJECT_INVALID;
+}
+
 // Armed by ENR_Tick once nobody is engaged, for ENR_ResetDelay seconds.
 // nGen is the engagement generation at arming time: any damage in between
 // bumps enr_gen and makes this check a no-op.
@@ -387,6 +429,22 @@ void ENR_ResetCheck(object oBoss, int nGen)
     if (!GetIsObjectValid(oBoss) || GetIsDead(oBoss)) return;
     if (GetLocalInt(oBoss, "enr_gen") != nGen) return;   // re-engaged since
     if (GetLocalInt(oBoss, "enr_n") > 0)      return;    // someone is engaged
+
+    // Never reset on top of a player. Whatever the damage attribution did, a
+    // player still in the boss's area means the fight may be live - wait.
+    object oNear = ENR_PlayerInArea(oBoss);
+    if (GetIsObjectValid(oNear))
+    {
+        if (GetLocalInt(oBoss, "enr_defer_logged") != nGen)
+        {
+            SetLocalInt(oBoss, "enr_defer_logged", nGen);
+            WriteTimestampedLogEntry("ENR: reset deferred for " + GetName(oBoss)
+                + " (" + GetResRef(oBoss) + "), player " + GetName(oNear)
+                + " in area " + GetTag(GetArea(oBoss)));
+        }
+        DelayCommand(ENR_RECHECK, ENR_ResetCheck(oBoss, nGen));
+        return;
+    }
 
     // Still swinging at something - a boss chasing a PC who has stopped
     // hitting back. Wait for the fight to actually end.
