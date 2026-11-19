@@ -1,5 +1,5 @@
 {
-  "_doc": "Rarity tiers, lowest first; the index (0-4) is LOOT_RARITY. weight = relative drop weight. affixes = [min, max] upside affixes. Chances are per-mille ints: downside_chance (a trade-off affix, which grants one extra upside and raises the budget by downside_budget_pct), unidentified_chance, upgrade_one / upgrade_two (bump the rolled tier after the floor is applied), named_chance (top tier only: award a named.json item instead). budget = item value ceiling in gp by loot level, piecewise-linear; the runtime enforces it with the engine's own GetGoldPieceValue on a forge blank. Anchored to obtainable gear (2026-11-05): p50 24k, p75 130k, p90 1.18M, p95 3.24M of the module's 2,900 accessible items. color = a color.nss constant. roll_bias = each upside's ladder step is the best of (1 + roll_bias) rolls inside its level window. sockets = [min, max] gem sockets a rolled item of the tier gets (Phase 5; loot/gems.json, loot/sockets.json max_sockets bounds it).",
+  "_doc": "Rarity tiers, lowest first; the index (0-4) is LOOT_RARITY. weight = relative drop weight. affixes = [min, max] upside affixes. Chances are per-mille ints: downside_chance (a trade-off affix, which grants one extra upside and raises the budget by downside_budget_pct), unidentified_chance, upgrade_one / upgrade_two (bump the rolled tier after the floor is applied), named_chance (top tier only: award a named.json item instead). budget = item value ceiling in gp by loot level, piecewise-linear; the runtime enforces it with the engine's own GetGoldPieceValue on a forge blank. Anchored to obtainable gear (2026-11-05): p50 24k, p75 130k, p90 1.18M, p95 3.24M of the module's 2,900 accessible items. color = a color.nss constant. roll_bias = each upside's ladder step is the best of (1 + roll_bias) rolls inside its level window. window_shift = ladder steps added to both ends of every UPSIDE window by loot level (piecewise-linear, like budget), clamped to the affix's max_step (lo-power-curve, admin 2026-11-18: rarity now raises each enchantment's strength, not only the count). Budgets re-anchored 2026-11-18 so the shifted windows survive the step-down: a Legendary L60 weapon can carry +16 enhancement with 3-4 other enchantments; the top stays under the most valuable obtainable item (20.8M). sockets = [min, max] gem sockets a rolled item of the tier gets (Phase 5; loot/gems.json, loot/sockets.json max_sockets bounds it). augment_steps = [min, max] ladder rungs an augment (lo-augment-originals) raises one existing property of an original item by, capped at the affix's max_step.",
   "tiers": [
     {
       "id": "common",
@@ -18,14 +18,22 @@
       "named_chance": 0,
       "budget": {
         "1": 1500,
-        "20": 5000,
-        "40": 10000,
-        "60": 15000
+        "20": 8000,
+        "40": 40000,
+        "60": 150000
       },
       "roll_bias": 0,
       "sockets": [
         0,
         0
+      ],
+      "window_shift": {
+        "1": 0,
+        "60": 0
+      },
+      "augment_steps": [
+        1,
+        1
       ]
     },
     {
@@ -45,13 +53,21 @@
       "named_chance": 0,
       "budget": {
         "1": 4000,
-        "20": 12000,
-        "40": 20000,
-        "60": 25000
+        "20": 20000,
+        "40": 120000,
+        "60": 400000
       },
       "roll_bias": 0,
       "sockets": [
         0,
+        1
+      ],
+      "window_shift": {
+        "1": 0,
+        "60": 0
+      },
+      "augment_steps": [
+        1,
         1
       ]
     },
@@ -72,14 +88,22 @@
       "named_chance": 0,
       "budget": {
         "1": 10000,
-        "20": 35000,
-        "40": 80000,
-        "60": 130000
+        "20": 60000,
+        "40": 400000,
+        "60": 1500000
       },
       "roll_bias": 1,
       "sockets": [
         1,
         1
+      ],
+      "window_shift": {
+        "1": 0,
+        "60": 1
+      },
+      "augment_steps": [
+        1,
+        2
       ]
     },
     {
@@ -99,13 +123,21 @@
       "named_chance": 0,
       "budget": {
         "1": 30000,
-        "20": 150000,
-        "40": 500000,
-        "60": 1200000
+        "20": 250000,
+        "40": 1800000,
+        "60": 6000000
       },
-      "roll_bias": 1,
+      "roll_bias": 2,
       "sockets": [
         1,
+        2
+      ],
+      "window_shift": {
+        "1": 0,
+        "60": 2
+      },
+      "augment_steps": [
+        2,
         2
       ]
     },
@@ -126,12 +158,20 @@
       "named_chance": 200,
       "budget": {
         "1": 60000,
-        "20": 400000,
-        "40": 1400000,
-        "60": 3200000
+        "20": 600000,
+        "40": 5000000,
+        "60": 15000000
       },
-      "roll_bias": 2,
+      "roll_bias": 3,
       "sockets": [
+        2,
+        3
+      ],
+      "window_shift": {
+        "1": 1,
+        "60": 4
+      },
+      "augment_steps": [
         2,
         3
       ]

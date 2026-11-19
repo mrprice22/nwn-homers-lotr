@@ -77,8 +77,8 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>lootlab_dump</code></h1><pre class="nss-source"><code>// lootlab_dump.nss - Loot Lab: for every rolled or socketed item in the admin&#x27;s
-// pack, print its LOOT_* stamps, its engine value against its rarity&#x27;s budget,
+<h1>Script: <code>lootlab_dump</code></h1><pre class="nss-source"><code>// lootlab_dump.nss - Loot Lab: for every rolled, augmented (lo-augment-originals)
+// or socketed item in the admin&#x27;s pack, print its LOOT_* stamps, its engine value against its rarity&#x27;s budget,
 // and its sockets and gem-touched properties (Phase 5).
 // Roadmap: lo-loot-core. Loot Lab action (emotewand.dlg Entry 19, Admin Options -&gt; [Admin] Loot Lab). See lootlab_inc.nss.
 #include &quot;lootlab_inc&quot;
@@ -92,11 +92,25 @@ void main()
     while (GetIsObjectValid(oItem))
     {
         int nSock = GetLocalInt(oItem, &quot;SOCKET_MAX&quot;);
-        if (Loot_IsRolled(oItem) || nSock &gt; 0)
+        int bAug = GetLocalInt(oItem, &quot;LOOT_AUG&quot;);
+        if (Loot_IsRolled(oItem) || nSock &gt; 0 || bAug)
         {
             string s = Loot_IsRolled(oItem) ? Loot_Describe(oItem)
-                     : GetName(oItem) + &quot; [not rolled] sockets &quot;
+                     : GetName(oItem) + (bAug ? &quot; [augmented]&quot; : &quot; [not rolled]&quot;) + &quot; sockets &quot;
                        + IntToString(GetLocalInt(oItem, &quot;SOCKET_FILLED&quot;)) + &quot;/&quot; + IntToString(nSock);
+            // lo-augment-originals: the augment&#x27;s stamps and its value now.
+            if (bAug)
+            {
+                s += &quot;\n   augment: &quot; + LootD_RarityName(GetLocalInt(oItem, &quot;LOOT_RARITY&quot;))
+                   + &quot; L&quot; + IntToString(GetLocalInt(oItem, &quot;LOOT_LVL&quot;))
+                   + &quot; from &quot; + GetLocalString(oItem, &quot;LOOT_PROFILE&quot;)
+                   + &quot;, value now &quot; + ForgeGold(ForgeItemValue(oItem, TRUE)) + &quot; gp&quot;;
+                int k;
+                for (k = 0; k &lt; GetLocalInt(oItem, &quot;LOOT_AUG_UP_N&quot;); k++)
+                    s += &quot;\n   raised to &quot; + GetLocalString(oItem, &quot;LOOT_AUG_UP_&quot; + IntToString(k));
+                for (k = 0; k &lt; GetLocalInt(oItem, &quot;LOOT_AFX_N&quot;); k++)
+                    s += &quot;\n   added &quot; + GetLocalString(oItem, &quot;LOOT_AFX_&quot; + IntToString(k));
+            }
             // Phase 5: the gems set in it and every property a gem has touched.
             int i;
             for (i = 0; i &lt; GetLocalInt(oItem, &quot;SOCKET_FILLED&quot;); i++)
@@ -110,7 +124,7 @@ void main()
         }
         oItem = GetNextItemInInventory(oPC);
     }
-    SendMessageToPC(oPC, &quot;Loot Lab: &quot; + IntToString(nFound) + &quot; rolled or socketed item(s) in your pack.&quot;);
+    SendMessageToPC(oPC, &quot;Loot Lab: &quot; + IntToString(nFound) + &quot; rolled, augmented or socketed item(s) in your pack.&quot;);
 }
 </code></pre>
   </main>

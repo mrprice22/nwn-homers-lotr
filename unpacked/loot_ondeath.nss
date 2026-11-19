@@ -19,6 +19,13 @@
 // Loot Lab: a contributor carrying LOOT_FORCE_DROPS (lootlab_force) forces the
 // drop chance to 1000 and gets one "LOOT:" line per kill.
 //
+// lo-augment-originals (admin 2026-11-18): first, each droppable item the
+// creature carries or wears - its fixed, hand-made loot - may be augmented with
+// random enchantments (LootD_CreatureAugChance per item, rarity floor
+// LootD_CreatureAugFloor, at the drop's loot level; Loot_Augment in loot_inc).
+// Queued ahead of the rolls, 0.05s apart, from the module; an item someone has
+// already looted by then is left alone.  Forced drops force the augments too.
+//
 // Phase 7 (lo-fate-token): a boss also drops a Shard of Fate at
 // LOOTD_FATE_BOSS_CHANCE (forced drops force it), and every PC contributor in
 // the corpse's area who carries a Shard and is not locked out on this boss is
@@ -81,6 +88,29 @@ void LootO_FateOffers(object oCre, string sRes, int nLvl)
     }
 }
 
+void LootO_Augment(object oItem, object oCre, int nLvl, int nFloor, string sSource, object oBenef)
+{
+    if (GetItemPossessor(oItem) != oCre) return;        // looted already: leave it be
+    Loot_Augment(oItem, nLvl, nFloor, sSource, oBenef);
+}
+
+// Queue an augment of oItem when it is an untouched droppable original and the
+// chance roll passes; returns 1 when one was queued (it takes a 0.05s slot).
+int LootO_QueueAugment(object oItem, object oCre, int nChance, int nLvl, int nFloor,
+                       string sSource, object oBenef, int nQueued)
+{
+    if (!GetIsObjectValid(oItem) || !GetDroppableFlag(oItem)) return 0;
+    if (GetLocalInt(oItem, "LOOT_AUG_SEEN") || Loot_IsRolled(oItem)) return 0;
+    if (Random(1000) >= nChance)
+    {
+        SetLocalInt(oItem, "LOOT_AUG_SEEN", 1);
+        return 0;
+    }
+    AssignCommand(GetModule(), DelayCommand(0.05 * IntToFloat(nQueued),
+        LootO_Augment(oItem, oCre, nLvl, nFloor, sSource, oBenef)));
+    return 1;
+}
+
 string LootO_ClassName(int nClass)
 {
     if (nClass == LOOTD_CLASS_BOSS) return "boss";
@@ -112,6 +142,28 @@ void main()
     string sProfile = LootD_CreatureProfile(nClass);
     object oBenef = GetLocalObject(oCre, "LOOT_BENEF");
 
+    // lo-augment-originals: the creature's own droppable loot first.
+    int nAug = 0;
+    int nAugChance = GetIsObjectValid(oForcer) ? 1000 : LootD_CreatureAugChance(nClass);
+    if (nAugChance > 0)
+    {
+        int nAugFloor = LootD_CreatureAugFloor(nClass);
+        string sAugSrc = LootO_ClassName(nClass);
+        int nSlot;
+        for (nSlot = 0; nSlot <= INVENTORY_SLOT_BOLTS && nAug < LOOTD_AUG_MAX_ITEMS; nSlot++)
+            nAug += LootO_QueueAugment(GetItemInSlot(nSlot, oCre), oCre, nAugChance, nLvl,
+                                       nAugFloor, sAugSrc, oBenef, nAug);
+        object oInv = GetFirstItemInInventory(oCre);
+        while (GetIsObjectValid(oInv) && nAug < LOOTD_AUG_MAX_ITEMS)
+        {
+            nAug += LootO_QueueAugment(oInv, oCre, nAugChance, nLvl, nAugFloor, sAugSrc,
+                                       oBenef, nAug);
+            oInv = GetNextItemInInventory(oCre);
+        }
+    }
+    // The rolled items queue behind the augments.
+    float fT0 = 0.05 * IntToFloat(nAug);
+
     int nMade = 0;
     if (Random(1000) < nChance)
     {
@@ -130,10 +182,10 @@ void main()
         object oMod = GetModule();
         int i;
         for (i = 0; i < nRolls; i++)
-            AssignCommand(oMod, DelayCommand(0.1 * IntToFloat(i),
+            AssignCommand(oMod, DelayCommand(fT0 + 0.1 * IntToFloat(i),
                 LootO_Roll(nLvl, nFloor, sProfile, oBenef, oCre)));
         if (bNamed)
-            AssignCommand(oMod, DelayCommand(0.1 * IntToFloat(nRolls),
+            AssignCommand(oMod, DelayCommand(fT0 + 0.1 * IntToFloat(nRolls),
                 LootO_Named(nLvl, sProfile, oBenef, oCre)));
         nMade = nRolls + bNamed;
     }
@@ -142,7 +194,7 @@ void main()
     // drop forces it too), delivered after the gear; a boss's has a tier floor.
     if (GetIsObjectValid(oForcer) || Random(1000) < LootD_CreatureGemChance(nClass))
     {
-        AssignCommand(GetModule(), DelayCommand(0.1 * IntToFloat(nMade),
+        AssignCommand(GetModule(), DelayCommand(fT0 + 0.1 * IntToFloat(nMade),
             Loot_DropSocketGem(nLvl, bBoss ? LOOTD_GEM_BOSS_FLOOR : 0, oCre)));
         nMade++;
     }
@@ -152,7 +204,7 @@ void main()
     {
         if (GetIsObjectValid(oForcer) || Random(1000) < LOOTD_FATE_BOSS_CHANCE)
         {
-            AssignCommand(GetModule(), DelayCommand(0.1 * IntToFloat(nMade), LootO_Shard(oCre)));
+            AssignCommand(GetModule(), DelayCommand(fT0 + 0.1 * IntToFloat(nMade), LootO_Shard(oCre)));
             nMade++;
         }
         LootO_FateOffers(oCre, sRes, nLvl);
@@ -163,5 +215,5 @@ void main()
             + (bChamp ? " (champion)" : "") + " cr=" + IntToString(FloatToInt(fCR))
             + " lvl=" + IntToString(nLvl)
             + " area=" + IntToString(Loot_AreaLevel(GetArea(oCre)))
-            + " -> " + IntToString(nMade) + " item(s)");
+            + " -> " + IntToString(nMade) + " item(s), " + IntToString(nAug) + " augment(s)");
 }

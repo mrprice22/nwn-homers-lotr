@@ -14,6 +14,14 @@
 // opener's, and holds: rolled gear, gold (sometimes paid as treasure gems) and a
 // few consumables - see Loot_FillContainer in loot_inc.nss.
 //
+// lo-augment-originals (admin 2026-11-18): whatever a container already holds
+// when it is filled - its hand-placed, original loot - is kept and may be
+// augmented with random enchantments (profile aug_chance per item, rarity floor
+// aug_floor, at the container's loot level; Loot_AugmentContents in loot_inc).
+// A respawning chest used to destroy its hand-placed items on the first refill;
+// it now keeps a copy of each in FORGE_VAULT (LOOT_ORIG_N / LOOT_ORIG_<i>) and
+// restores a fresh one on every refill, so each refill rolls its augment anew.
+//
 // Per-placeable locals (set in the toolset):
 //   LOOT_LEVEL  int  pin this container's loot level (overrides the area's)
 //   LOOT_NONE   int  1 = this container never rolls loot (its script still runs)
@@ -37,12 +45,50 @@ object LootChest_Beneficiary()
     return oWho;
 }
 
-// One fill of OBJECT_SELF with profile sProfile at its loot level.
+// One fill of OBJECT_SELF with profile sProfile at its loot level: augment what
+// it already holds, then add the profile's rolled contents.
 void LootChest_Fill(string sProfile)
 {
     if (GetLocalInt(OBJECT_SELF, "LOOT_NONE")) return;
-    Loot_FillContainer(OBJECT_SELF, sProfile, Loot_ContainerLevel(OBJECT_SELF),
-                       LootChest_Beneficiary());
+    int nLvl = Loot_ContainerLevel(OBJECT_SELF);
+    object oBenef = LootChest_Beneficiary();
+    int nProfile = LootD_ProfileIndex(sProfile);
+    if (nProfile >= 0)
+        Loot_AugmentContents(OBJECT_SELF, nLvl, LootD_ProfileAugChance(nProfile),
+                             LootD_ProfileAugFloor(nProfile), sProfile, oBenef);
+    Loot_FillContainer(OBJECT_SELF, sProfile, nLvl, oBenef);
+}
+
+// A respawning chest's hand-placed originals: copied once into FORGE_VAULT on
+// the first refill (never a rolled or augmented item), so every refill can put
+// fresh copies back.  Skipped when the vault is missing - ForgeHolder() would
+// then fall back to the chest itself, whose contents are about to be wiped.
+void LootChest_HoldOriginals()
+{
+    if (GetLocalInt(OBJECT_SELF, "LOOT_ORIG_HELD")) return;
+    SetLocalInt(OBJECT_SELF, "LOOT_ORIG_HELD", 1);
+    object oVault = GetObjectByTag(FORGE_VAULT_TAG);
+    if (!GetIsObjectValid(oVault))
+    {
+        Loot_Warn("FORGE_VAULT missing: " + GetTag(OBJECT_SELF) + "'s originals are not kept");
+        return;
+    }
+    int n = 0;
+    object oItem = GetFirstItemInInventory();
+    while (GetIsObjectValid(oItem) && n < LOOTD_AUG_MAX_ITEMS)
+    {
+        if (!Loot_IsRolled(oItem) && !GetLocalInt(oItem, "LOOT_AUG"))
+        {
+            object oCopy = CopyItem(oItem, oVault, TRUE);
+            if (GetIsObjectValid(oCopy))
+            {
+                SetLocalObject(OBJECT_SELF, "LOOT_ORIG_" + IntToString(n), oCopy);
+                n++;
+            }
+        }
+        oItem = GetNextItemInInventory();
+    }
+    SetLocalInt(OBJECT_SELF, "LOOT_ORIG_N", n);
 }
 
 // The module's respawning chest (OnOpen / OnUsed).  Same timer as the old
@@ -57,11 +103,23 @@ void LootChest_Refill(string sProfile)
         SetLocalInt(OBJECT_SELF, "NW_DO_ONCE", 0);
     if (GetLocalInt(OBJECT_SELF, "NW_DO_ONCE") != 0) return;
 
+    LootChest_HoldOriginals();
+    // DestroyObject is deferred to the end of the script, so the fill below
+    // still sees these: LOOT_AUG_SEEN keeps it from augmenting doomed items.
     object oItem = GetFirstItemInInventory();
     while (GetIsObjectValid(oItem))
     {
+        SetLocalInt(oItem, "LOOT_AUG_SEEN", 1);
         DestroyObject(oItem);
         oItem = GetNextItemInInventory();
+    }
+    int nOrig = GetLocalInt(OBJECT_SELF, "LOOT_ORIG_N");
+    int i;
+    for (i = 0; i < nOrig; i++)
+    {
+        object oOrig = GetLocalObject(OBJECT_SELF, "LOOT_ORIG_" + IntToString(i));
+        if (GetIsObjectValid(oOrig))
+            CopyItem(oOrig, OBJECT_SELF, TRUE);
     }
     LootChest_Fill(sProfile);
     SetLocalInt(OBJECT_SELF, "CS_Opened", GetTimeSecond() + 60 * GetTimeMinute() + 3600 * GetTimeHour());

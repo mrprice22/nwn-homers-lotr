@@ -411,11 +411,21 @@ int Loot_PickAffix(string sCat, int nLvl, int bDown, string sUsed, string sBlock
 }
 
 // A ladder step inside the affix's window: the best of (1 + nBias) rolls.
-int Loot_PickStep(int nAffix, int nLvl, int nBias)
+// nShift (lo-power-curve): the rarity's window shift, added to both ends of the
+// window and clamped to the affix's max step (loot_model.shifted_window).
+int Loot_PickStep(int nAffix, int nLvl, int nBias, int nShift = 0)
 {
     int nLo = LootD_AffixLo(nAffix, nLvl);
     int nHi = LootD_AffixHi(nAffix, nLvl);
     if (nHi < nLo) nHi = nLo;
+    if (nShift > 0 && !LootD_AffixIsDown(nAffix))
+    {
+        int nTop = LootD_AffixMaxStep(nAffix);
+        nLo += nShift;
+        nHi += nShift;
+        if (nLo > nTop) nLo = nTop;
+        if (nHi > nTop) nHi = nTop;
+    }
     int nStep = nLo + Random(nHi - nLo + 1);
     int b;
     for (b = 0; b < nBias; b++)
@@ -526,19 +536,23 @@ int Loot_PriceWorkOn(object oTemplate, object oWork)
 //   nMaxNew    most affixes to add, downside included (a downside needs room
 //              for the extra upside it buys, so it is only rolled when >= 2)
 //   oTemplate  valid: also step down while oTemplate + the affixes is worth
-//              more than nTotalCap (the reforge's whole-item bound)
+//              more than nTotalCap (the reforge's / an augment's whole-item bound)
+//   sUsed0     "|group|group|" exclusion groups the item already holds (an
+//              augment's original properties); "" = none
+//   bAllowDown FALSE = never a drawback (an augment)
 // Returns the affix-only engine value, or -1 when nothing could be priced.
 // LW_DOWN on oWork = a downside was rolled.
 int Loot_RollAffixes(object oWork, int nBase, string sCat, int nLvl, int nRarity,
                      string sBlock = "", int nMaxNew = 99,
-                     object oTemplate = OBJECT_INVALID, int nTotalCap = 0)
+                     object oTemplate = OBJECT_INVALID, int nTotalCap = 0,
+                     string sUsed0 = "", int bAllowDown = TRUE)
 {
     int nUp = LootD_RarityAffMin(nRarity)
             + Random(LootD_RarityAffMax(nRarity) - LootD_RarityAffMin(nRarity) + 1);
-    string sUsed = "|";
+    string sUsed = sUsed0 == "" ? "|" : sUsed0;
     int bDown = FALSE;
     int a;
-    if (Random(1000) < LootD_RarityDownside(nRarity) && nMaxNew >= 2)
+    if (bAllowDown && Random(1000) < LootD_RarityDownside(nRarity) && nMaxNew >= 2)
     {
         a = Loot_PickAffix(sCat, nLvl, TRUE, sUsed, sBlock);
         if (a >= 0)
@@ -550,13 +564,14 @@ int Loot_RollAffixes(object oWork, int nBase, string sCat, int nLvl, int nRarity
         }
     }
     int nBias = LootD_RarityRollBias(nRarity);
+    int nShift = LootD_RarityShift(nRarity, nLvl);
     int u;
     for (u = 0; u < nUp; u++)
     {
         if (GetLocalInt(oWork, "LW_N") >= nMaxNew) break;
         a = Loot_PickAffix(sCat, nLvl, FALSE, sUsed, sBlock);
         if (a < 0) break;
-        Loot_WorkAdd(oWork, a, Loot_PickStep(a, nLvl, nBias));
+        Loot_WorkAdd(oWork, a, Loot_PickStep(a, nLvl, nBias, nShift));
         sUsed += LootD_AffixGroup(a) + "|";
     }
     SetLocalInt(oWork, "LW_DOWN", bDown);
@@ -629,7 +644,10 @@ int Loot_WorkUps(object oWork)
 // bStamp: rewrite LOOT_AFX_N / LOOT_AFX_<i> from the properties added here (the
 // reforge, whose item also carries kept properties).  Loot_Roll passes FALSE
 // and stamps by reading its all-random item back.
-string Loot_ApplyWork(object oItem, object oWork, int nRarity, int nBase, int bStamp)
+// bKeepName (an augmented original): leave the name alone and return the first
+// upside's prefix word instead ("" when none was added).
+string Loot_ApplyWork(object oItem, object oWork, int nRarity, int nBase, int bStamp,
+                      int bKeepName = FALSE)
 {
     string sPrefix = "";
     string sSuffix = "";
@@ -675,6 +693,7 @@ string Loot_ApplyWork(object oItem, object oWork, int nRarity, int nBase, int bS
         SetLocalInt(oItem, "LOOT_AFX_N", nAfx);
     Loot_WorkClear(oWork);
     DeleteLocalInt(oWork, "LW_DOWN");
+    if (bKeepName) return sPrefix;
 
     string sName = LootD_BaseName(nBase);
     if (sPrefix != "") sName = sPrefix + " " + sName;
@@ -1143,7 +1162,7 @@ int Loot_FillContainer(object oBox, string sProfile, int nLvl, object oBeneficia
             if (GetIsObjectValid(Loot_Roll(nLvl, nFloor, sProfile, oBeneficiary, oBox)))
                 nMade++;
 
-    int nMean = LootD_RarityBudget(LOOT_RARITY_COMMON, nLvl) * LootD_ProfileGoldPct(nProfile) / 100;
+    int nMean = LootD_GoldBase(nLvl) * LootD_ProfileGoldPct(nProfile) / 100;
     if (nMean > 0)
     {
         int nGold = nMean / 2 + Random(nMean + 1);
@@ -1631,4 +1650,380 @@ void Loot_FateRecord(object oPC, object oItem, string sBefore, int nRes)
     SqlBindInt(q, "@av", nRes == LOOT_FATE_OK ? GetLocalInt(oPC, "LF_RESULT") : -1);
     SqlBindInt(q, "@va", nAfter);
     SqlStep(q);
+}
+
+// ---------------------------------------------------------------------------
+// Augmented originals (lo-augment-originals, admin 2026-11-18).  The module's
+// own hand-made loot keeps dropping and may gain random enchantments: some of
+// the item's existing ones raised a few rungs, new ones added.  Python mirror:
+// loot_model.augment (change one, change the other); preview with
+// python3 bin/loot-sim.py --augment.  Callers: loot_ondeath (droppable items on
+// a PC-credited kill) and loot_chest_inc (what a container already holds).
+//
+// Bounds (an item-mutating path bounds itself - the forge caps ARE the
+// enforcement): the whole item stays at or under Loot_AugCap(value now, the
+// rarity's budget); no rung passes the affix's max step (+16 enhancement /
+// attack / AC, +12 abilities); no drawback; nothing is removed except the old
+// copy of a property it raises.  It never stamps FORGE_TOUCHED, so a forge's own
+// caps still refuse further enchanting past its limits.
+//
+// Stamps: LOOT_AUG, LOOT_LVL, LOOT_RARITY, LOOT_PROFILE (the source), LOOT_AFX_*
+// (the added affixes), LOOT_AUG_UP_N / LOOT_AUG_UP_<i> (the raised properties'
+// new signatures).  NOT LOOT_VER: Loot_IsRolled stays FALSE, so the item keeps
+// its original socket count (Gem_SocketMax) and the Shard of Fate leaves it
+// alone (roadmap lo-augment-fate).  LOOT_AUG_SEEN on every item considered, so
+// nothing is ever rolled twice.
+// ---------------------------------------------------------------------------
+
+// sName without <cRGB>...</c> colour tokens.
+string Loot_StripColor(string sName)
+{
+    string sOut = "";
+    int nLen = GetStringLength(sName);
+    int i = 0;
+    while (i < nLen)
+    {
+        if (GetSubString(sName, i, 2) == "<c" && GetSubString(sName, i + 5, 1) == ">")
+        {
+            i += 6;
+            continue;
+        }
+        if (GetSubString(sName, i, 4) == "</c>")
+        {
+            i += 4;
+            continue;
+        }
+        sOut += GetSubString(sName, i, 1);
+        i++;
+    }
+    return sOut;
+}
+
+// The whole-item ceiling of an augment: (sqrt(nBefore) + sqrt(nBudget))^2.  The
+// engine prices base + 1000 * (cost units)^2, so "value now + budget" would leave
+// an expensive original no room at all; in cost units this lets an augment add
+// what the budget buys on an empty item, whatever it is added to.  Mirrors
+// loot_model.augment_cap.
+int Loot_AugCap(int nBefore, int nBudget)
+{
+    float f = sqrt(IntToFloat(Loot_Max(nBefore, 0))) + sqrt(IntToFloat(Loot_Max(nBudget, 0)));
+    f = f * f;
+    if (f >= 2000000000.0) return 2000000000;
+    return FloatToInt(f);
+}
+
+// The property upgrade candidate i of oPlan (affix LA_A<i>) at step nStep.
+itemproperty Loot_AugIP(object oPlan, int i, int nStep)
+{
+    int a = GetLocalInt(oPlan, "LA_A" + IntToString(i));
+    return Loot_MakeIP(LootD_AffixType(a), LootD_AffixSub(a), LootD_AffixLadder(a, nStep));
+}
+
+// TRUE when ip is exactly affix a at ladder step nStep (the self-check).
+int Loot_AugIPOk(itemproperty ip, int a, int nStep)
+{
+    int nCost = LootD_AffixLadder(a, nStep);
+    return GetIsItemPropertyValid(ip) && GetItemPropertyType(ip) == LootD_AffixType(a)
+        && (nCost == 0 || GetItemPropertyCostTableValue(ip) == nCost);
+}
+
+// A copy of oBase (the original's priced properties minus the upgrade
+// candidates) with every candidate at its planned step LA_N<i>.  The caller
+// destroys it.
+object Loot_AugTemplate(object oBase)
+{
+    object oTpl = CopyItem(oBase, ForgeHolder(), TRUE);
+    if (!GetIsObjectValid(oTpl)) return OBJECT_INVALID;
+    int n = GetLocalInt(oBase, "LA_C");
+    int i;
+    for (i = 0; i < n; i++)
+        AddItemProperty(DURATION_TYPE_PERMANENT,
+                        Loot_AugIP(oBase, i, GetLocalInt(oBase, "LA_N" + IntToString(i))), oTpl);
+    return oTpl;
+}
+
+// The engine value of oBase with the candidates at their planned steps.
+int Loot_AugPrice(object oBase)
+{
+    object oTpl = Loot_AugTemplate(oBase);
+    if (!GetIsObjectValid(oTpl)) return -1;
+    int nValue = GetGoldPieceValue(oTpl);
+    DestroyObject(oTpl);
+    return nValue;
+}
+
+// Swap upgrade candidates i and j on oPlan.
+void Loot_AugSwap(object oPlan, int i, int j)
+{
+    if (i == j) return;
+    string si = IntToString(i);
+    string sj = IntToString(j);
+    int nA = GetLocalInt(oPlan, "LA_A" + si);
+    int nK = GetLocalInt(oPlan, "LA_K" + si);
+    string sSig = GetLocalString(oPlan, "LA_SIG" + si);
+    SetLocalInt(oPlan, "LA_A" + si, GetLocalInt(oPlan, "LA_A" + sj));
+    SetLocalInt(oPlan, "LA_K" + si, GetLocalInt(oPlan, "LA_K" + sj));
+    SetLocalString(oPlan, "LA_SIG" + si, GetLocalString(oPlan, "LA_SIG" + sj));
+    SetLocalInt(oPlan, "LA_A" + sj, nA);
+    SetLocalInt(oPlan, "LA_K" + sj, nK);
+    SetLocalString(oPlan, "LA_SIG" + sj, sSig);
+    SetLocalInt(oPlan, "LA_N" + si, GetLocalInt(oPlan, "LA_K" + si));
+    SetLocalInt(oPlan, "LA_N" + sj, GetLocalInt(oPlan, "LA_K" + sj));
+}
+
+// Augment one original item in place at loot level nLvl, rarity rolled at
+// nFloor.  sSource ("creature", "boss", "chest_low", ...) is stamped and logged;
+// oBenef is logged.  Returns TRUE when the item changed.
+int Loot_Augment(object oItem, int nLvl, int nFloor, string sSource, object oBenef)
+{
+    if (!GetIsObjectValid(oItem)) return FALSE;
+    if (GetLocalInt(oItem, "LOOT_AUG_SEEN")) return FALSE;
+    SetLocalInt(oItem, "LOOT_AUG_SEEN", 1);
+    if (Loot_IsRolled(oItem) || GetLocalInt(oItem, "LOOT_NAMED") || GetLocalInt(oItem, "LOOT_AUG"))
+        return FALSE;
+    if (GetPlotFlag(oItem) || GetItemCursedFlag(oItem)) return FALSE;
+    if (GetItemStackSize(oItem) > 1 || ForgeIsCreatureItem(oItem)) return FALSE;
+    int nBase = GetBaseItemType(oItem);
+    int nCat = LootD_AugBaseCat(nBase);
+    if (nCat < 0) return FALSE;
+    object oHolder = ForgeHolder();
+    if (!GetIsObjectValid(oHolder)) return FALSE;
+    object oBase = CreateItemOnObject(ForgeBlankResRef(nBase), oHolder);
+    if (!GetIsObjectValid(oBase))
+    {
+        Loot_Warn("augment: no forge blank for base item " + IntToString(nBase));
+        return FALSE;
+    }
+    nLvl = Loot_Clamp(nLvl, 1, LOOTD_MAX_LEVEL);
+    int nRarity = Loot_PickRarity(Loot_Clamp(nFloor, 0, LOOTD_RARITY_COUNT - 1));
+
+    // 1. What the item holds: block keys and exclusion groups for new affixes;
+    // upgrade candidates (on an affix ladder, below its max step, not a gem's,
+    // rebuildable) are kept OFF oBase and priced at their planned step.
+    string sBlock = "";
+    string sUsed = "|";
+    int nCand = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT)
+        {
+            int nType = GetItemPropertyType(ip);
+            int nSub = GetItemPropertySubType(ip);
+            if (nSub < 0 || nSub == 65535) nSub = 0;
+            sBlock += Loot_TypeSubKey(nType, nSub);
+            int a = LootD_AffixForProp(nType, nSub);
+            int bCand = FALSE;
+            if (a >= 0)
+            {
+                sUsed += LootD_AffixGroup(a) + "|";
+                int k = LootD_AffixStepOf(a, GetItemPropertyCostTableValue(ip));
+                if (k >= 0 && k < LootD_AffixMaxStep(a) && !ForgeIsGemProp(oItem, ip)
+                    && ForgePropInSet(ip, FORGE_SEL_PRICED))
+                {
+                    string si = IntToString(nCand);
+                    SetLocalInt(oBase, "LA_A" + si, a);
+                    if (Loot_AugIPOk(Loot_AugIP(oBase, nCand, k), a, k))
+                    {
+                        SetLocalInt(oBase, "LA_K" + si, k);
+                        SetLocalInt(oBase, "LA_N" + si, k);
+                        SetLocalString(oBase, "LA_SIG" + si, ForgePropSig(ip));
+                        nCand++;
+                        bCand = TRUE;
+                    }
+                }
+            }
+            if (!bCand && ForgePropInSet(ip, FORGE_SEL_PRICED))
+                AddItemProperty(DURATION_TYPE_PERMANENT, ip, oBase);
+        }
+        ip = GetNextItemProperty(oItem);
+    }
+    SetLocalInt(oBase, "LA_C", nCand);
+
+    int nBefore = Loot_AugPrice(oBase);
+    if (nBefore < 0)
+    {
+        DestroyObject(oBase);
+        return FALSE;
+    }
+    int nCap = Loot_AugCap(nBefore, Loot_Budget(nRarity, nLvl, FALSE));
+
+    // 2. Slots: the rarity's affix count; each, while a candidate is left, is an
+    // upgrade at LOOTD_AUG_UPGRADE_SHARE, otherwise a new affix.
+    int nSlots = LootD_RarityAffMin(nRarity)
+               + Random(LootD_RarityAffMax(nRarity) - LootD_RarityAffMin(nRarity) + 1);
+    int nUpg = 0;
+    int s;
+    for (s = 0; s < nSlots; s++)
+        if (nCand > nUpg && Random(1000) < LOOTD_AUG_UPGRADE_SHARE)
+            nUpg++;
+    int i;
+    for (i = 0; i < nUpg; i++)
+        Loot_AugSwap(oBase, i, i + Random(nCand - i));
+    int nSMin = LootD_RarityAugMin(nRarity);
+    int nSMax = LootD_RarityAugMax(nRarity);
+    for (i = 0; i < nUpg; i++)
+    {
+        string si = IntToString(i);
+        int a = GetLocalInt(oBase, "LA_A" + si);
+        int nK = GetLocalInt(oBase, "LA_K" + si);
+        int nNew = nK + nSMin + Random(nSMax - nSMin + 1);
+        if (nNew > LootD_AffixMaxStep(a)) nNew = LootD_AffixMaxStep(a);
+        // Self-check the raised property before it is planned at all.
+        if (!Loot_AugIPOk(Loot_AugIP(oBase, i, nNew), a, nNew))
+        {
+            Loot_Warn("augment: affix '" + LootD_AffixId(a) + "' could not build step "
+                      + IntToString(nNew) + " - not raised");
+            nNew = nK;
+        }
+        SetLocalInt(oBase, "LA_N" + si, nNew);
+    }
+
+    // 3. The bound, upgrades first: step the last raised property back a rung
+    // until the item fits (at worst back to what it was, which always fits).
+    int nGuard = 0;
+    while (nGuard < 64 && Loot_AugPrice(oBase) > nCap)
+    {
+        nGuard++;
+        int j = -1;
+        for (i = nUpg - 1; i >= 0; i--)
+            if (GetLocalInt(oBase, "LA_N" + IntToString(i)) > GetLocalInt(oBase, "LA_K" + IntToString(i)))
+            {
+                j = i;
+                break;
+            }
+        if (j < 0) break;
+        SetLocalInt(oBase, "LA_N" + IntToString(j), GetLocalInt(oBase, "LA_N" + IntToString(j)) - 1);
+    }
+    int nUpgEff = 0;
+    for (i = 0; i < nUpg; i++)
+        if (GetLocalInt(oBase, "LA_N" + IntToString(i)) > GetLocalInt(oBase, "LA_K" + IntToString(i)))
+            nUpgEff++;
+
+    // 4. New affixes on the upgraded template, under the same whole-item bound.
+    object oTpl = Loot_AugTemplate(oBase);
+    if (!GetIsObjectValid(oTpl))
+    {
+        DestroyObject(oBase);
+        return FALSE;
+    }
+    int nMaxNew = nSlots - nUpgEff;
+    int nUps = 0;
+    if (nMaxNew > 0)
+    {
+        int nValue = Loot_RollAffixes(oTpl, nBase, LootD_CatName(nCat), nLvl, nRarity, sBlock,
+                                      nMaxNew, oTpl, nCap, sUsed, FALSE);
+        if (nValue < 0)
+        {
+            Loot_WorkClear(oTpl);
+            DestroyObject(oTpl);
+            DestroyObject(oBase);
+            return FALSE;
+        }
+        nUps = Loot_WorkUps(oTpl);
+    }
+    if (nUpgEff == 0 && nUps == 0)
+    {
+        Loot_WorkClear(oTpl);
+        DestroyObject(oTpl);
+        DestroyObject(oBase);
+        return FALSE;
+    }
+
+    // 5. Commit.  Raised properties: remove the old copy (matched by signature,
+    // each once), then add the new one - nothing is read back after a remove.
+    string sLeft = "|";
+    for (i = 0; i < nUpg; i++)
+        if (GetLocalInt(oBase, "LA_N" + IntToString(i)) > GetLocalInt(oBase, "LA_K" + IntToString(i)))
+            sLeft += GetLocalString(oBase, "LA_SIG" + IntToString(i)) + "|";
+    ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip) && sLeft != "|")
+    {
+        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT)
+        {
+            string sNext = Loot_TakeSig(sLeft, ForgePropSig(ip));
+            if (sNext != "")
+            {
+                sLeft = sNext;
+                RemoveItemProperty(oItem, ip);
+            }
+        }
+        ip = GetNextItemProperty(oItem);
+    }
+    int nUpN = 0;
+    for (i = 0; i < nUpg; i++)
+    {
+        string si = IntToString(i);
+        int nN = GetLocalInt(oBase, "LA_N" + si);
+        if (nN <= GetLocalInt(oBase, "LA_K" + si)) continue;
+        itemproperty ipNew = Loot_AugIP(oBase, i, nN);
+        AddItemProperty(DURATION_TYPE_PERMANENT, ipNew, oItem);
+        SetLocalString(oItem, "LOOT_AUG_UP_" + IntToString(nUpN), ForgePropSig(ipNew));
+        nUpN++;
+    }
+    SetLocalInt(oItem, "LOOT_AUG_UP_N", nUpN);
+
+    string sPrefix = "";
+    if (nUps > 0)
+        sPrefix = Loot_ApplyWork(oItem, oTpl, nRarity, nBase, TRUE, TRUE);
+    Loot_WorkClear(oTpl);
+    DestroyObject(oTpl);
+    DestroyObject(oBase);
+
+    // Name: the original's, in the rarity's colour, behind the first new
+    // affix's prefix word.  Description: one line, kept through the socket
+    // line's rebuilds (SOCKET_BASEDESC).
+    string sName = Loot_StripColor(GetName(oItem));
+    if (sPrefix != "") sName = sPrefix + " " + sName;
+    SetName(oItem, ColorString(sName, Loot_RarityColor(nRarity)));
+    string sLine = "Augmented: " + LootD_RarityName(nRarity) + ", loot level "
+                 + IntToString(nLvl) + ".";
+    string sDesc = GetDescription(oItem);
+    SetDescription(oItem, (sDesc == "" ? "" : sDesc + "\n\n") + sLine);
+    if (GetLocalInt(oItem, "SOCKET_DESC_SET"))
+    {
+        string sBaseDesc = GetLocalString(oItem, "SOCKET_BASEDESC");
+        SetLocalString(oItem, "SOCKET_BASEDESC", (sBaseDesc == "" ? "" : sBaseDesc + "\n\n") + sLine);
+    }
+
+    SetLocalInt(oItem, "LOOT_AUG", 1);
+    SetLocalInt(oItem, "LOOT_LVL", nLvl);
+    SetLocalInt(oItem, "LOOT_RARITY", nRarity);
+    SetLocalString(oItem, "LOOT_PROFILE", sSource);
+    if (nRarity >= LOOT_LOG_MIN_RARITY)       // only Epic+ is logged: skip the pricing otherwise
+        Loot_LogRoll("aug", sSource, nLvl, nRarity, nBase, sName, ForgeItemValue(oItem, TRUE), oBenef);
+    return TRUE;
+}
+
+// Augment what oBox already holds (a container, before its fill): each item at
+// nChance per mille, rarity floor nFloor, at most LOOTD_AUG_MAX_ITEMS of them.
+// The candidates are collected before any is touched.  Returns how many changed.
+int Loot_AugmentContents(object oBox, int nLvl, int nChance, int nFloor, string sSource,
+                         object oBenef)
+{
+    if (nChance <= 0) return 0;
+    int n = 0;
+    object oItem = GetFirstItemInInventory(oBox);
+    while (GetIsObjectValid(oItem) && n < LOOTD_AUG_MAX_ITEMS)
+    {
+        if (!GetLocalInt(oItem, "LOOT_AUG_SEEN"))
+        {
+            SetLocalObject(oBox, "LA_ITEM" + IntToString(n), oItem);
+            n++;
+        }
+        oItem = GetNextItemInInventory(oBox);
+    }
+    int nDone = 0;
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        string si = IntToString(i);
+        oItem = GetLocalObject(oBox, "LA_ITEM" + si);
+        DeleteLocalObject(oBox, "LA_ITEM" + si);
+        if (Random(1000) < nChance)
+            nDone += Loot_Augment(oItem, nLvl, nFloor, sSource, oBenef);
+        else if (GetIsObjectValid(oItem))
+            SetLocalInt(oItem, "LOOT_AUG_SEEN", 1);
+    }
+    return nDone;
 }

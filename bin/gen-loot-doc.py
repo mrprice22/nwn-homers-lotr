@@ -146,6 +146,10 @@ def rarity_block(data):
         en = str(lo) if lo == hi else "%d&ndash;%d" % (lo, hi)
         bias = int(t.get("roll_bias", 0))
         rolls = "1 roll" if bias == 0 else "best of %d" % (bias + 1)
+        shift = lm.rarity_shift(t, lm.MAX_LEVEL)
+        if shift:
+            rolls += ", %d step%s stronger by level %d" % (shift, "" if shift == 1 else "s",
+                                                           lm.MAX_LEVEL)
         slo, shi = t.get("sockets", [0, 0])
         so = str(slo) if slo == shi else "%d&ndash;%d" % (slo, shi)
         out.append("    <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>"

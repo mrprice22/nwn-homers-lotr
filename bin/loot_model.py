@@ -26,6 +26,7 @@ Pure stdlib.  Nothing here may import from nwn_manager.
 from __future__ import annotations
 
 import json
+import math
 import random
 from pathlib import Path
 
@@ -56,6 +57,14 @@ CATEGORIES = ("melee", "ranged", "armor", "shield", "jewelry", "wearable",
               "caster")
 
 MAX_LEVEL = 60
+
+# lo-power-curve (admin 2026-11-18): the most a rarity may lift a window, and the
+# hard ceilings no roll, shift or augment upgrade may pass - "a rare chance of up
+# to +16 weapon enchantment and AC, and up to +12 abilities, at the highest
+# levels".  Keyed by item property type; the value is the largest cost-table row
+# (= the bonus) an affix of that type may reach at its max_step.
+MAX_WINDOW_SHIFT = 6
+ROLL_CAPS = {6: 16, 56: 16, 1: 16, 0: 12}
 
 # Item property types loot may roll, and the NWScript constructor for each.
 # {sub} = the affix's subtype row, {cost} = the chosen cost-table row.  The
@@ -210,6 +219,34 @@ def affix_window(aff, level):
     lo = interp_points(sorted([int(k), int(v[0])] for k, v in w.items()), level)
     hi = interp_points(sorted([int(k), int(v[1])] for k, v in w.items()), level)
     return lo, max(lo, hi)
+
+
+def rarity_shift(tier, level):
+    """Ladder steps the tier adds to every UPSIDE window at ``level``
+    (rarity.json window_shift, piecewise-linear like the budget; lo-power-curve,
+    admin 2026-11-18).  Mirrors LootD_RarityShift."""
+    ws = tier.get("window_shift")
+    if not ws:
+        return 0
+    return interp_points(curve(ws), level)
+
+
+def affix_max_step(aff):
+    """Highest ladder index a roll (shift included) or an augment upgrade may
+    reach: affixes.json max_step, else the ladder top.  Mirrors LootD_AffixMaxStep."""
+    top = len(aff["ladder"]) - 1
+    return min(int(aff.get("max_step", top)), top)
+
+
+def shifted_window(aff, level, tier):
+    """(lo, hi) of affix_window() raised by the tier's window_shift (upsides
+    only) and clamped to affix_max_step().  Mirrors Loot_PickStep's window."""
+    lo, hi = affix_window(aff, level)
+    if aff.get("role") != "upside":
+        return lo, hi
+    s = rarity_shift(tier, level)
+    top = affix_max_step(aff)
+    return min(lo + s, top), min(hi + s, top)
 
 
 def rarity_budget(tier, level, downside=False):
@@ -503,7 +540,8 @@ def eligible(aff, cat, level, role, used_groups):
 
 
 def roll_affixes(data, cat, level, tier, base_row, rng, model, block=frozenset(),
-                 max_new=None, total_fn=None, total_cap=None):
+                 max_new=None, total_fn=None, total_cap=None, used_groups=(),
+                 allow_down=True):
     """Pick and budget one item's random affixes.  Mirrors Loot_RollAffixes:
     shared by roll() and reforge() (Phase 7), with the RNG drawn in the same
     order as before the split, so a seeded roll() is unchanged.
@@ -513,20 +551,24 @@ def roll_affixes(data, cat, level, tier, base_row, rng, model, block=frozenset()
     ``max_new`` most affixes this pick may add (downside included), or None.
     ``total_fn(props) -> value`` with ``total_cap``: also step down while the
                 whole item (kept properties + these) is worth more than the cap.
+    ``used_groups`` exclusion groups the item already holds (an augment's
+                original properties): no affix of those groups is eligible.
+    ``allow_down`` False = never a drawback (an augment).
     Returns (chosen [[affix_index, ladder_index]], affix-only value, budget,
     has_downside)."""
     affixes = data["affixes"]["affixes"]
     lo_n, hi_n = tier["affixes"]
     n_up = lo_n + rng.randrange(hi_n - lo_n + 1)
     chosen = []          # [affix_index, ladder_index]
-    used = set()
+    used = set(used_groups)
 
     def ok(a, role):
         return (eligible(a, cat, level, role, used)
                 and (a["type"], a.get("sub") or 0) not in block)
 
     has_down = False
-    if rng.randrange(1000) < tier.get("downside_chance", 0) and (max_new is None or max_new >= 2):
+    if (allow_down and rng.randrange(1000) < tier.get("downside_chance", 0)
+            and (max_new is None or max_new >= 2)):
         pool = [i for i, a in enumerate(affixes) if ok(a, "downside")]
         i = weighted(rng, pool, lambda k: affixes[k]["weight"])
         if i is not None:
@@ -544,8 +586,8 @@ def roll_affixes(data, cat, level, tier, base_row, rng, model, block=frozenset()
         i = weighted(rng, pool, lambda k: affixes[k]["weight"])
         if i is None:
             break
-        lo, hi = affix_window(affixes[i], level)
-        # roll_bias: the best of (1 + bias) rolls inside the window.
+        lo, hi = shifted_window(affixes[i], level, tier)
+        # roll_bias: the best of (1 + bias) rolls inside the (rarity-shifted) window.
         step = lo + rng.randrange(hi - lo + 1)
         for _b in range(bias):
             step = max(step, lo + rng.randrange(hi - lo + 1))
@@ -588,6 +630,142 @@ def roll_affixes(data, cat, level, tier, base_row, rng, model, block=frozenset()
             chosen.pop(ups[-1])
         value = model.item_value(base_row, props())
     return chosen, value, budget, has_down
+
+
+def aug_base_category(data, row):
+    """Loot category an original of base row ``row`` augments as: bases.json,
+    else sockets.json extra_bases (CEP rows).  Mirrors LootD_AugBaseCat."""
+    cat = base_category(data, row)
+    if cat is None:
+        cat = (data.get("sockets") or {}).get("extra_bases", {}).get(str(row))
+    return cat if cat in CATEGORIES else None
+
+
+def prop_affix(data, ptype, sub):
+    """Index of the upside affix that builds (ptype, sub), or None.  Mirrors
+    LootD_AffixForProp (validate_augment keeps the pair unique)."""
+    for i, a in enumerate(data["affixes"]["affixes"]):
+        if a["role"] == "upside" and a["type"] == ptype and (a.get("sub") or 0) == (sub or 0):
+            return i
+    return None
+
+
+def affix_step_of(aff, cost):
+    """Ladder index of cost row ``cost`` on the affix, or None.  Mirrors LootD_AffixStepOf."""
+    try:
+        return aff["ladder"].index(cost)
+    except ValueError:
+        return None
+
+
+AUG_CAP_MAX = 2000000000
+
+
+def augment_cap(value_before, budget):
+    """Whole-item ceiling of an augment: (sqrt(value now) + sqrt(budget))^2.
+
+    The engine prices an item as base + 1000 * (sum of property cost units)^2,
+    so a flat "value now + budget" leaves an expensive original no room at all
+    (Glamdring is ~9M: +95k buys nothing).  In cost units this bound says the
+    enchantment strength an augment adds is what the budget buys on an empty
+    item - the same rule a fresh roll lives under - whatever it is added to.
+    Clamped below 2^31.  Mirrors Loot_AugCap."""
+    v = (math.sqrt(max(0, value_before)) + math.sqrt(max(0, budget))) ** 2
+    return int(min(v, AUG_CAP_MAX))
+
+
+def augment(data, base_row, props, level, floor=0, rng=None, model=None, rarity=None):
+    """lo-augment-originals: random enchantments on one of the module's own
+    items.  Mirrors Loot_Augment in loot_inc.nss (change one, change the other).
+
+    ``props`` = the original's priced properties [(type, sub, cost), ...] (sub
+    0 for none).  The rarity is rolled at ``floor`` (or forced by ``rarity``).
+    It has the tier's affix count of slots: each slot, while an upgradeable
+    property is left, upgrades one at sources.json augment.upgrade_share per mille
+    (augment_steps rungs up its affix ladder, capped at max_step); the rest add
+    new affixes of a group the item does not hold, never a drawback.  The whole
+    item is bounded by augment_cap(value now, the rarity's budget): upgrades step
+    back first, then roll_affixes steps the new affixes down.
+
+    Returns None when the base has no loot category, else a dict: rarity,
+    upgrades [(affix_id, old_cost, new_cost)], affixes [(affix_id, cost)],
+    value_before, value_after, cap, name_prefix, changed."""
+    rng = rng or random.Random()
+    model = model or CostModel(data["costs"])
+    cat = aug_base_category(data, base_row)
+    if cat is None:
+        return None
+    level = max(1, min(MAX_LEVEL, int(level)))
+    tiers = data["rarity"]["tiers"]
+    rar = pick_rarity(data, rng, floor) if rarity is None else rarity
+    tier = tiers[rar]
+    affixes = data["affixes"]["affixes"]
+    cfg = augment_cfg(data)
+    props = [(t, s or 0, c) for t, s, c in props]
+
+    before = model.item_value(base_row, props)
+    cap = augment_cap(before, rarity_budget(tier, level))
+    block = frozenset((t, s) for t, s, _c in props)
+    used = set()
+    cands = []                                   # [prop_index, affix_index, step]
+    for pi, (t, s, c) in enumerate(props):
+        ai = prop_affix(data, t, s)
+        if ai is None:
+            continue
+        used.add(affixes[ai]["group"])
+        k = affix_step_of(affixes[ai], c)
+        if k is not None and k < affix_max_step(affixes[ai]):
+            cands.append([pi, ai, k])
+
+    lo_n, hi_n = tier["affixes"]
+    slots = lo_n + rng.randrange(hi_n - lo_n + 1)
+    n_upg = 0
+    for _ in range(slots):
+        if len(cands) > n_upg and rng.randrange(1000) < cfg.get("upgrade_share", 0):
+            n_upg += 1
+    for i in range(n_upg):                       # partial Fisher-Yates
+        j = i + rng.randrange(len(cands) - i)
+        cands[i], cands[j] = cands[j], cands[i]
+    smin, smax = tier.get("augment_steps", [1, 1])
+    ups = []                                     # [prop_index, affix_index, old_step, new_step]
+    for pi, ai, k in cands[:n_upg]:
+        step = smin + rng.randrange(smax - smin + 1)
+        ups.append([pi, ai, k, min(k + step, affix_max_step(affixes[ai]))])
+
+    def upgraded():
+        out = list(props)
+        for pi, ai, _k, nk in ups:
+            t, s, _c = out[pi]
+            out[pi] = (t, s, affixes[ai]["ladder"][nk])
+        return out
+
+    guard = 0
+    while model.item_value(base_row, upgraded()) > cap and guard < 64:
+        guard += 1
+        j = next((x for x in range(len(ups) - 1, -1, -1) if ups[x][3] > ups[x][2]), None)
+        if j is None:
+            break
+        ups[j][3] -= 1
+    ups = [u for u in ups if u[3] > u[2]]
+
+    chosen = []
+    max_new = slots - len(ups)
+    if max_new > 0:
+        base_props = upgraded()
+        chosen, _v, _b, _d = roll_affixes(
+            data, cat, level, tier, base_row, rng, model, block, max_new,
+            lambda p: model.item_value(base_row, base_props + p), cap, used, False)
+    new_props = [(affixes[i]["type"], affixes[i].get("sub") or 0, affixes[i]["ladder"][k])
+                 for i, k in chosen]
+    after = model.item_value(base_row, upgraded() + new_props)
+    up_aff = [affixes[i] for i, _k in chosen if affixes[i]["role"] == "upside"]
+    return {"rarity": rar, "level": level, "category": cat, "base": base_row,
+            "upgrades": [(affixes[ai]["id"], affixes[ai]["ladder"][k], affixes[ai]["ladder"][nk])
+                         for _pi, ai, k, nk in ups],
+            "affixes": [(affixes[i]["id"], affixes[i]["ladder"][k]) for i, k in chosen],
+            "value_before": before, "value_after": after, "cap": cap,
+            "name_prefix": up_aff[0]["prefix"] if up_aff else "",
+            "changed": bool(ups or chosen)}
 
 
 def fate_bounds(value_now, count_now, value_cap, prop_cap, hw_value=0, hw_props=0):
@@ -907,16 +1085,23 @@ def item_name(base_name, chosen_affixes):
 
 PROFILE_DEFAULTS = {"rolls": 1, "rarity_floor": 0, "gear_chance": 1000,
                     "gold_pct": 0, "gem_chance": 0, "consumables": [0, 0],
-                    "socket_gem_chance": 0}
+                    "socket_gem_chance": 0, "aug_chance": 0, "aug_floor": 0}
 
 
 def prof_get(prof, key):
     return prof.get(key, PROFILE_DEFAULTS[key])
 
 
+def gold_curve(data):
+    """sources.json gold_curve as [[level, gp], ...] (what gold_pct is a share of)."""
+    g = {k: v for k, v in data["sources"].get("gold_curve", {}).items() if k != "_doc"}
+    return curve(g)
+
+
 def gold_mean(data, prof, level):
-    """Mean gold of one fill: gold_pct % of the Common budget at the level."""
-    return rarity_budget(data["rarity"]["tiers"][0], level) * int(prof_get(prof, "gold_pct")) // 100
+    """Mean gold of one fill: gold_pct % of gold_curve at the level (mirrors
+    Loot_FillContainer's LootD_GoldBase)."""
+    return interp_points(gold_curve(data), level) * int(prof_get(prof, "gold_pct")) // 100
 
 
 def pay_gems(data, value, rng):
@@ -951,12 +1136,19 @@ def pick_consumable(data, level, rng):
     return (c["resref"], lo + rng.randrange(hi - lo + 1))
 
 
-def chest_contents(data, level, profile, rng=None, model=None):
-    """One fill of a container with ``profile`` at loot level ``level``."""
+def chest_contents(data, level, profile, rng=None, model=None, held=()):
+    """One fill of a container with ``profile`` at loot level ``level``.
+    ``held`` = what it already holds, as augment_original() pairs (augmented
+    first, into "augmented")."""
     rng = rng or random.Random()
     level = max(1, min(MAX_LEVEL, int(level)))
     prof = data["sources"]["profiles"][profile]
-    out = {"gear": [], "gold": 0, "gems": [], "consumables": [], "socket_gems": []}
+    out = {"gear": [], "gold": 0, "gems": [], "consumables": [], "socket_gems": [],
+           "augmented": []}
+    if held:
+        model = model or CostModel(data["costs"])
+        out["augmented"] = augment_pass(data, held, prof_get(prof, "aug_chance"),
+                                        prof_get(prof, "aug_floor"), level, rng, model)
     for _ in range(int(prof_get(prof, "rolls"))):
         if rng.randrange(1000) < int(prof_get(prof, "gear_chance")):
             out["gear"].append(roll(data, level, int(prof_get(prof, "rarity_floor")),
@@ -990,6 +1182,39 @@ CREATURE_CLASSES = ("normal", "elite", "boss")
 
 def creatures_cfg(data):
     return data["sources"].get("creatures", {})
+
+
+def augment_cfg(data):
+    return data["sources"].get("augment", {})
+
+
+def validate_augment(data):
+    """sources.json "augment" (lo-augment-originals)."""
+    errs = []
+    c = augment_cfg(data)
+    if not c:
+        return ["sources.json: the \"augment\" block (augmented originals) is missing"]
+    for k in set(c) - {"_doc", "upgrade_share", "max_items"}:
+        errs.append("sources.json augment: unknown key %r" % k)
+    v = c.get("upgrade_share")
+    if not isinstance(v, int) or isinstance(v, bool) or not 0 <= v <= 1000:
+        errs.append("sources.json augment: upgrade_share must be an int 0..1000 (per mille)")
+    v = c.get("max_items")
+    if not isinstance(v, int) or isinstance(v, bool) or not 1 <= v <= 64:
+        errs.append("sources.json augment: max_items must be an int 1..64")
+    # Every upside's (type, sub) must name ONE affix, so an existing property maps
+    # onto exactly one ladder (LootD_AffixForProp).
+    seen = {}
+    for a in data["affixes"]["affixes"]:
+        if a.get("role") != "upside":
+            continue
+        key = (a.get("type"), a.get("sub") or 0)
+        if key in seen:
+            errs.append("affixes.json: %s and %s build the same property (type %r sub %r); "
+                        "an augment could not tell which ladder an existing one is on"
+                        % (seen[key], a.get("id"), key[0], key[1]))
+        seen[key] = a.get("id")
+    return errs
 
 
 def boss_resrefs():
@@ -1079,17 +1304,69 @@ def area_champion_chances(data):
     return {a: champion_chance(data, e, n) for a, (e, n) in sorted(tally.items())}
 
 
-def creature_drop(data, cls, cr, level, rng=None, model=None):
+CREATURE_ITEM_BASES = (69, 70, 71, 72, 73)      # forge_inc ForgeIsCreatureItem
+
+
+def augment_original(data, u):
+    """(base_row, priced props) of a .uti an augment may work on, or None
+    (Plot, Cursed, stacked, a creature item, or a base with no loot category) -
+    the eligibility half of Loot_Augment."""
+    if u is None:
+        return None
+    base = int(gff(u, "BaseItem", -1))
+    if gff(u, "Plot", 0) or gff(u, "Cursed", 0) or int(gff(u, "StackSize", 1) or 1) > 1:
+        return None
+    if base in CREATURE_ITEM_BASES or aug_base_category(data, base) is None:
+        return None
+    return base, uti_props(u)
+
+
+def creature_originals(resref):
+    """Item resrefs a creature blueprint carries or wears with Dropable set - the
+    fixed loot loot_ondeath may augment (the blueprint is what a respawn builds)."""
+    p = UNPACKED / (resref + ".utc.json")
+    if not p.exists():
+        return []
+    c = json.loads(p.read_text())
+    out = []
+    for key in ("Equip_ItemList", "ItemList"):
+        for it in gff(c, key, []) or []:
+            if gff(it, "Dropable", 0):
+                rr = gff(it, "EquippedRes") or gff(it, "InventoryRes")
+                if rr:
+                    out.append(rr)
+    return out
+
+
+def augment_pass(data, originals, chance, floor, level, rng, model):
+    """loot_ondeath / Loot_AugmentContents: each original (base, props) at
+    ``chance`` per mille.  Returns the augment() dicts of those that changed."""
+    out = []
+    for base, props in list(originals)[:augment_cfg(data).get("max_items", 24)]:
+        if rng.randrange(1000) < int(chance):
+            a = augment(data, base, props, level, floor, rng, model)
+            if a and a["changed"]:
+                out.append(a)
+    return out
+
+
+def creature_drop(data, cls, cr, level, rng=None, model=None, originals=()):
     """What one kill of a ``cls`` creature leaves on the corpse (a list of
-    roll() dicts, empty when the drop chance misses).  Mirrors loot_ondeath."""
+    roll() dicts, empty when the drop chance misses).  Mirrors loot_ondeath.
+    ``originals`` = its droppable fixed loot as augment_original() pairs; each
+    one augmented comes first, as {"augmented": augment() dict}."""
     rng = rng or random.Random()
     cfg = creatures_cfg(data)["classes"][cls]
     out = []
+    if originals:
+        model = model or CostModel(data["costs"])
+        out = [{"augmented": a} for a in augment_pass(
+            data, originals, cfg.get("aug_chance", 0), cfg.get("aug_floor", 0), level, rng, model)]
     if rng.randrange(1000) < int(cfg["chance"]):
         prof = data["sources"]["profiles"][cfg["profile"]]
         floor = int(prof_get(prof, "rarity_floor"))
-        out = [roll(data, level, floor, cfg["profile"], rng, model)
-               for _ in range(creature_rolls(data, cls, cr))]
+        out += [roll(data, level, floor, cfg["profile"], rng, model)
+                for _ in range(creature_rolls(data, cls, cr))]
         if rng.randrange(1000) < int(cfg.get("named_chance", 0)):
             n = give_named(data, level, len(data["rarity"]["tiers"]) - 1, prof.get("bases"), rng)
             if n:
@@ -1122,16 +1399,20 @@ def validate_creatures(data):
         tag = "sources.json creatures class %s" % name
         if cfg.get("profile") not in profiles:
             errs.append("%s: unknown profile %r" % (tag, cfg.get("profile")))
-        for k in ("chance", "named_chance", "gem_chance"):
+        for k in ("chance", "named_chance", "gem_chance", "aug_chance"):
             v = cfg.get(k, 0)
             if not isinstance(v, int) or not 0 <= v <= 1000:
                 errs.append("%s: %s must be an int 0..1000 (per mille)" % (tag, k))
+        v = cfg.get("aug_floor", 0)
+        if not isinstance(v, int) or not 0 <= v < len(data["rarity"]["tiers"]):
+            errs.append("%s: aug_floor must be a rarity index" % tag)
         v = cfg.get("extra_roll_cr", 0)
         if not isinstance(v, int) or v < 0:
             errs.append("%s: extra_roll_cr must be a non-negative int" % tag)
         if name != "boss" and (cfg.get("named_chance") or cfg.get("extra_roll_cr")):
             errs.append("%s: named_chance and extra_roll_cr are boss-only" % tag)
-        extra = set(cfg) - {"chance", "profile", "named_chance", "extra_roll_cr", "gem_chance"}
+        extra = set(cfg) - {"chance", "profile", "named_chance", "extra_roll_cr", "gem_chance",
+                            "aug_chance", "aug_floor"}
         if extra:
             errs.append("%s: unknown key(s) %s" % (tag, ", ".join(sorted(extra))))
     seen = {}
@@ -1173,6 +1454,23 @@ def validate_creatures(data):
         if not isinstance(lvl, int) or not 1 <= lvl <= MAX_LEVEL:
             errs.append("%s: level must be an int 1..%d" % (tag, MAX_LEVEL))
     return errs
+
+
+COSMETIC_TYPES = (83, 44)      # visual effect, light (forge_inc ForgeIsCosmeticProp)
+
+
+def uti_props(u, priced_only=True):
+    """[(type, sub, cost), ...] of a .uti's properties, sub 65535 read as 0 (the
+    way Loot_TypeSubKey normalises it).  ``priced_only`` drops the cosmetic types
+    ForgePropInSet(FORGE_SEL_PRICED) leaves off an augment's template."""
+    out = []
+    for p in gff(u, "PropertiesList", []) or []:
+        t = int(gff(p, "PropertyName", 0))
+        if priced_only and t in COSMETIC_TYPES:
+            continue
+        sub = int(gff(p, "Subtype", 0) or 0)
+        out.append((t, 0 if sub in (65535,) or sub < 0 else sub, int(gff(p, "CostValue", 0) or 0)))
+    return out
 
 
 def item_facts(data, resref):
@@ -1223,6 +1521,22 @@ def validate(data, item_index=None):
             errs.append("%s: budget curve decreases" % tag)
         if not isinstance(t.get("roll_bias", 0), int) or not 0 <= t.get("roll_bias", 0) <= 3:
             errs.append("%s: roll_bias must be an int 0..3" % tag)
+        st = t.get("augment_steps", [1, 1])
+        if not (isinstance(st, list) and len(st) == 2 and all(isinstance(x, int) for x in st)
+                and 0 <= st[0] <= st[1] <= 5):
+            errs.append("%s: augment_steps must be [min, max] ints, 0..5" % tag)
+        ws = t.get("window_shift")
+        if ws is not None:
+            try:
+                wpts = curve(ws)
+            except (TypeError, ValueError, AttributeError):
+                wpts = None
+            if (not wpts or wpts[0][0] != 1 or wpts[-1][0] != MAX_LEVEL
+                    or any(not isinstance(v, int) or not 0 <= v <= MAX_WINDOW_SHIFT
+                           for _x, v in wpts)
+                    or any(b[1] < a[1] for a, b in zip(wpts, wpts[1:]))):
+                errs.append("%s: window_shift must be a non-decreasing level curve "
+                            "(levels 1..%d) of ints 0..%d" % (tag, MAX_LEVEL, MAX_WINDOW_SHIFT))
         for k in ("weight", "downside_chance", "unidentified_chance",
                   "upgrade_one", "upgrade_two", "named_chance"):
             v = t.get(k, 0)
@@ -1320,6 +1634,19 @@ def validate(data, item_index=None):
         for k, (lo, hi) in w.items():
             if not (0 <= lo <= hi < len(ladder)):
                 errs.append("%s: window %s=%r outside ladder of %d" % (tag, k, [lo, hi], len(ladder)))
+        if ladder:
+            ms = a.get("max_step")
+            if ms is not None and (not isinstance(ms, int) or not 0 <= ms < len(ladder)):
+                errs.append("%s: max_step %r outside ladder of %d" % (tag, ms, len(ladder)))
+            else:
+                top = affix_max_step(a)
+                for k, (lo, hi) in w.items():
+                    if hi > top:
+                        errs.append("%s: window %s=%r reaches past max_step %d" % (tag, k, [lo, hi], top))
+                cap = ROLL_CAPS.get(t)
+                if cap is not None and ladder[top] > cap:
+                    errs.append("%s: reaches %s +%d at max_step %d; the cap is +%d (set max_step)"
+                                % (tag, SUPPORTED_IP[t][0], ladder[top], top, cap))
         if a.get("role") not in ("upside", "downside"):
             errs.append("%s: role must be upside or downside" % tag)
         if (a.get("role") == "downside") != (t in NEGATIVE_TYPES):
@@ -1393,7 +1720,10 @@ def validate(data, item_index=None):
                 errs.append("sources.json %s: bad category weight %r=%r" % (name, c, w))
         if not 0 <= p.get("rarity_floor", 0) < len(tiers):
             errs.append("sources.json %s: rarity_floor out of range" % name)
-        for k in ("rolls", "gear_chance", "gold_pct", "gem_chance", "socket_gem_chance"):
+        if not 0 <= prof_get(p, "aug_floor") < len(tiers):
+            errs.append("sources.json %s: aug_floor out of range" % name)
+        for k in ("rolls", "gear_chance", "gold_pct", "gem_chance", "socket_gem_chance",
+                  "aug_chance"):
             v = prof_get(p, k)
             if not isinstance(v, int) or v < 0 or (k.endswith("chance") and v > 1000):
                 errs.append("sources.json %s: %s must be a non-negative int%s"
@@ -1420,6 +1750,15 @@ def validate(data, item_index=None):
             errs.append("sources.json %s: consumables must be [min, max] ints, 0..10" % name)
     if "lab" not in data["sources"]["profiles"]:
         errs.append("sources.json: the 'lab' profile (Loot Lab) is required")
+    try:
+        gpts = gold_curve(data)
+    except (TypeError, ValueError, AttributeError):
+        gpts = None
+    if (not gpts or gpts[0][0] != 1 or gpts[-1][0] != MAX_LEVEL
+            or any(b[1] < a[1] for a, b in zip(gpts, gpts[1:]))):
+        errs.append("sources.json: gold_curve must be a non-decreasing level curve (levels 1..%d)"
+                    % MAX_LEVEL)
+    errs.extend(validate_augment(data))
     errs.extend(validate_containers(data))
     errs.extend(validate_creatures(data))
     errs.extend(validate_gems(data))

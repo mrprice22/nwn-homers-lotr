@@ -1,5 +1,5 @@
 {
- "_doc": "Affixes. name = the plain player-facing name (bin/gen-loot-doc.py prints it in the wiki's enchantment tables); type = itempropdef row (must be in loot_model.SUPPORTED_IP); sub = subtype row (omit when the property has none); ladder = cost-table rows in ascending power; window = [lowest, highest] ladder index at loot level 1 and 60 (linear between); cats = categories it may roll on; weight = relative pick weight; min_level = lowest loot level; group = exclusion group (an item never carries two affixes of one group, so same-type properties never stack); role = upside or downside (a downside is a trade-off - allowed at any tier, admin 2026-11-05); prefix / suffix name the item '<prefix> <base> of <suffix>' (first two upsides). Banned outright (season3-meta-shakeup, devcrit): Haste, Divine damage, critical-hit immunity.",
+ "_doc": "Affixes. name = the plain player-facing name (bin/gen-loot-doc.py prints it in the wiki's enchantment tables); type = itempropdef row (must be in loot_model.SUPPORTED_IP); sub = subtype row (omit when the property has none); ladder = cost-table rows in ascending power; window = [lowest, highest] ladder index at loot level 1 and 60 (linear between); cats = categories it may roll on; weight = relative pick weight; min_level = lowest loot level; group = exclusion group (an item never carries two affixes of one group, so same-type properties never stack); role = upside or downside (a downside is a trade-off - allowed at any tier, admin 2026-11-05); prefix / suffix name the item '<prefix> <base> of <suffix>' (first two upsides). Banned outright (season3-meta-shakeup, devcrit): Haste, Divine damage, critical-hit immunity. max_step (optional, default the ladder top) = the highest ladder index a roll may reach after its rarity's window_shift, and the cap an augment upgrade may raise an existing property to (2026-11-18: +16 enhancement/attack/AC, +12 abilities).",
  "affixes": [
   {
    "id": "enh",
@@ -33,8 +33,8 @@
      1
     ],
     "60": [
-     6,
-     9
+     8,
+     11
     ]
    },
    "cats": [
@@ -47,7 +47,8 @@
    "group": "hit",
    "prefix": "Honed",
    "suffix": "Sharpness",
-   "note": "Enhancement and Attack Bonus share the 'hit' group: the engine applies only the higher, so an item never rolls both."
+   "note": "Enhancement and Attack Bonus share the 'hit' group: the engine applies only the higher, so an item never rolls both.",
+   "max_step": 15
   },
   {
    "id": "ab",
@@ -81,8 +82,8 @@
      1
     ],
     "60": [
-     6,
-     9
+     8,
+     11
     ]
    },
    "cats": [
@@ -94,7 +95,8 @@
    "role": "upside",
    "group": "hit",
    "prefix": "Precise",
-   "suffix": "Accuracy"
+   "suffix": "Accuracy",
+   "max_step": 15
   },
   {
    "id": "dmg_acid",
@@ -121,7 +123,7 @@
      1
     ],
     "60": [
-     7,
+     8,
      11
     ]
    },
@@ -160,7 +162,7 @@
      1
     ],
     "60": [
-     7,
+     8,
      11
     ]
    },
@@ -199,7 +201,7 @@
      1
     ],
     "60": [
-     7,
+     8,
      11
     ]
    },
@@ -238,7 +240,7 @@
      1
     ],
     "60": [
-     7,
+     8,
      11
     ]
    },
@@ -277,7 +279,7 @@
      1
     ],
     "60": [
-     7,
+     8,
      11
     ]
    },
@@ -316,7 +318,7 @@
      1
     ],
     "60": [
-     7,
+     8,
      11
     ]
    },
@@ -381,8 +383,8 @@
      1
     ],
     "60": [
-     6,
-     10
+     7,
+     11
     ]
    },
    "cats": [
@@ -428,8 +430,8 @@
      1
     ],
     "60": [
-     5,
-     9
+     7,
+     11
     ]
    },
    "cats": [
@@ -440,7 +442,8 @@
    "role": "upside",
    "group": "mighty",
    "prefix": "Mighty",
-   "suffix": "Might"
+   "suffix": "Might",
+   "max_step": 14
   },
   {
    "id": "vampregen",
@@ -474,8 +477,8 @@
      0
     ],
     "60": [
-     2,
-     5
+     3,
+     7
     ]
    },
    "cats": [
@@ -486,7 +489,8 @@
    "role": "upside",
    "group": "vampregen",
    "prefix": "Thirsting",
-   "suffix": "the Leech"
+   "suffix": "the Leech",
+   "max_step": 8
   },
   {
    "id": "ac",
@@ -520,8 +524,8 @@
      1
     ],
     "60": [
-     4,
-     7
+     8,
+     11
     ]
    },
    "cats": [
@@ -535,7 +539,8 @@
    "role": "upside",
    "group": "ac",
    "prefix": "Warded",
-   "suffix": "Warding"
+   "suffix": "Warding",
+   "max_step": 15
   },
   {
    "id": "abil_str",
@@ -562,8 +567,8 @@
      0
     ],
     "60": [
-     3,
-     7
+     5,
+     8
     ]
    },
    "cats": [
@@ -577,7 +582,8 @@
    "role": "upside",
    "group": "abil_str",
    "prefix": "Strong",
-   "suffix": "Strength"
+   "suffix": "Strength",
+   "max_step": 11
   },
   {
    "id": "abil_dex",
@@ -604,8 +610,8 @@
      0
     ],
     "60": [
-     3,
-     7
+     5,
+     8
     ]
    },
    "cats": [
@@ -620,7 +626,8 @@
    "role": "upside",
    "group": "abil_dex",
    "prefix": "Nimble",
-   "suffix": "Grace"
+   "suffix": "Grace",
+   "max_step": 11
   },
   {
    "id": "abil_con",
@@ -647,8 +654,8 @@
      0
     ],
     "60": [
-     3,
-     7
+     5,
+     8
     ]
    },
    "cats": [
@@ -662,7 +669,8 @@
    "role": "upside",
    "group": "abil_con",
    "prefix": "Hardy",
-   "suffix": "Endurance"
+   "suffix": "Endurance",
+   "max_step": 11
   },
   {
    "id": "abil_int",
@@ -689,8 +697,8 @@
      0
     ],
     "60": [
-     3,
-     7
+     5,
+     8
     ]
    },
    "cats": [
@@ -705,7 +713,8 @@
    "role": "upside",
    "group": "abil_int",
    "prefix": "Learned",
-   "suffix": "Lore"
+   "suffix": "Lore",
+   "max_step": 11
   },
   {
    "id": "abil_wis",
@@ -732,8 +741,8 @@
      0
     ],
     "60": [
-     3,
-     7
+     5,
+     8
     ]
    },
    "cats": [
@@ -748,7 +757,8 @@
    "role": "upside",
    "group": "abil_wis",
    "prefix": "Wise",
-   "suffix": "Insight"
+   "suffix": "Insight",
+   "max_step": 11
   },
   {
    "id": "abil_cha",
@@ -775,8 +785,8 @@
      0
     ],
     "60": [
-     3,
-     7
+     5,
+     8
     ]
    },
    "cats": [
@@ -791,7 +801,8 @@
    "role": "upside",
    "group": "abil_cha",
    "prefix": "Noble",
-   "suffix": "Command"
+   "suffix": "Command",
+   "max_step": 11
   },
   {
    "id": "regen",
@@ -825,8 +836,8 @@
      0
     ],
     "60": [
-     2,
-     5
+     3,
+     7
     ]
    },
    "cats": [
@@ -841,7 +852,8 @@
    "role": "upside",
    "group": "regen",
    "prefix": "Mending",
-   "suffix": "Renewal"
+   "suffix": "Renewal",
+   "max_step": 8
   },
   {
    "id": "save_univ",
@@ -876,7 +888,7 @@
      0
     ],
     "60": [
-     3,
+     4,
      6
     ]
    },
@@ -894,7 +906,8 @@
    "group": "save",
    "prefix": "Steadfast",
    "suffix": "Resolve",
-   "note": "The four save affixes share the 'save' group, so an item carries at most one."
+   "note": "The four save affixes share the 'save' group, so an item carries at most one.",
+   "max_step": 9
   },
   {
    "id": "save_fort",
@@ -929,8 +942,8 @@
      1
     ],
     "60": [
-     4,
-     8
+     5,
+     9
     ]
    },
    "cats": [
@@ -946,7 +959,8 @@
    "role": "upside",
    "group": "save",
    "prefix": "Hale",
-   "suffix": "Fortitude"
+   "suffix": "Fortitude",
+   "max_step": 11
   },
   {
    "id": "save_will",
@@ -981,8 +995,8 @@
      1
     ],
     "60": [
-     4,
-     8
+     5,
+     9
     ]
    },
    "cats": [
@@ -998,7 +1012,8 @@
    "role": "upside",
    "group": "save",
    "prefix": "Iron-willed",
-   "suffix": "Will"
+   "suffix": "Will",
+   "max_step": 11
   },
   {
    "id": "save_ref",
@@ -1033,8 +1048,8 @@
      1
     ],
     "60": [
-     4,
-     8
+     5,
+     9
     ]
    },
    "cats": [
@@ -1050,7 +1065,8 @@
    "role": "upside",
    "group": "save",
    "prefix": "Quick",
-   "suffix": "Reflexes"
+   "suffix": "Reflexes",
+   "max_step": 11
   },
   {
    "id": "sr",
@@ -1110,8 +1126,8 @@
      1
     ],
     "60": [
-     8,
-     16
+     10,
+     20
     ]
    },
    "cats": [
@@ -1127,7 +1143,8 @@
    "group": "sr",
    "prefix": "Spellwarded",
    "suffix": "Spell Warding",
-   "note": "season3-meta-shakeup axis: SR is almost unused (best in play SR 16) and cuts against the bard buff stack. Ladder row n = SR 10+2n, so L60 rolls SR 26-42."
+   "note": "season3-meta-shakeup axis: SR is almost unused (best in play SR 16) and cuts against the bard buff stack. Ladder row n = SR 10+2n, so L60 rolls SR 26-42.",
+   "max_step": 24
   },
   {
    "id": "imm_acid",
@@ -1168,7 +1185,8 @@
    "group": "imm_acid",
    "prefix": "Unetched",
    "suffix": "the Alchemist",
-   "note": "season3-meta-shakeup axis: elemental immunity as an amulet alternative to the 25% physical-immunity answer. Physical (0-2,4) is deliberately absent."
+   "note": "season3-meta-shakeup axis: elemental immunity as an amulet alternative to the 25% physical-immunity answer. Physical (0-2,4) is deliberately absent.",
+   "max_step": 7
   },
   {
    "id": "imm_cold",
@@ -1208,7 +1226,8 @@
    "role": "upside",
    "group": "imm_cold",
    "prefix": "Hearth-warm",
-   "suffix": "the Hearth"
+   "suffix": "the Hearth",
+   "max_step": 7
   },
   {
    "id": "imm_elec",
@@ -1248,7 +1267,8 @@
    "role": "upside",
    "group": "imm_elec",
    "prefix": "Grounded",
-   "suffix": "the Lightning-rod"
+   "suffix": "the Lightning-rod",
+   "max_step": 7
   },
   {
    "id": "imm_fire",
@@ -1288,7 +1308,8 @@
    "role": "upside",
    "group": "imm_fire",
    "prefix": "Flame-warded",
-   "suffix": "the Salamander"
+   "suffix": "the Salamander",
+   "max_step": 7
   },
   {
    "id": "imm_sonic",
@@ -1328,7 +1349,8 @@
    "role": "upside",
    "group": "imm_sonic",
    "prefix": "Muffled",
-   "suffix": "Silence"
+   "suffix": "Silence",
+   "max_step": 7
   },
   {
    "id": "imm_neg",
@@ -1368,7 +1390,8 @@
    "role": "upside",
    "group": "imm_neg",
    "prefix": "Hallowed",
-   "suffix": "the Living"
+   "suffix": "the Living",
+   "max_step": 7
   },
   {
    "id": "res_acid",
@@ -1403,8 +1426,8 @@
      0
     ],
     "60": [
-     2,
-     6
+     3,
+     7
     ]
    },
    "cats": [
@@ -1418,7 +1441,8 @@
    "role": "upside",
    "group": "res_acid",
    "prefix": "Acid-proof",
-   "suffix": "Acid Ward"
+   "suffix": "Acid Ward",
+   "max_step": 9
   },
   {
    "id": "res_cold",
@@ -1453,8 +1477,8 @@
      0
     ],
     "60": [
-     2,
-     6
+     3,
+     7
     ]
    },
    "cats": [
@@ -1468,7 +1492,8 @@
    "role": "upside",
    "group": "res_cold",
    "prefix": "Frost-proof",
-   "suffix": "Frost Ward"
+   "suffix": "Frost Ward",
+   "max_step": 9
   },
   {
    "id": "res_elec",
@@ -1503,8 +1528,8 @@
      0
     ],
     "60": [
-     2,
-     6
+     3,
+     7
     ]
    },
    "cats": [
@@ -1518,7 +1543,8 @@
    "role": "upside",
    "group": "res_elec",
    "prefix": "Storm-proof",
-   "suffix": "Storm Ward"
+   "suffix": "Storm Ward",
+   "max_step": 9
   },
   {
    "id": "res_fire",
@@ -1553,8 +1579,8 @@
      0
     ],
     "60": [
-     2,
-     6
+     3,
+     7
     ]
    },
    "cats": [
@@ -1568,7 +1594,8 @@
    "role": "upside",
    "group": "res_fire",
    "prefix": "Fire-proof",
-   "suffix": "Fire Ward"
+   "suffix": "Fire Ward",
+   "max_step": 9
   },
   {
    "id": "res_sonic",
@@ -1603,8 +1630,8 @@
      0
     ],
     "60": [
-     2,
-     6
+     3,
+     7
     ]
    },
    "cats": [
@@ -1618,7 +1645,8 @@
    "role": "upside",
    "group": "res_sonic",
    "prefix": "Deafened",
-   "suffix": "Sound Ward"
+   "suffix": "Sound Ward",
+   "max_step": 9
   },
   {
    "id": "res_neg",
@@ -1653,8 +1681,8 @@
      0
     ],
     "60": [
-     2,
-     6
+     3,
+     7
     ]
    },
    "cats": [
@@ -1668,7 +1696,8 @@
    "role": "upside",
    "group": "res_neg",
    "prefix": "Life-bound",
-   "suffix": "Death Ward"
+   "suffix": "Death Ward",
+   "max_step": 9
   },
   {
    "id": "dr",
@@ -1693,8 +1722,8 @@
      0
     ],
     "60": [
-     1,
-     4
+     2,
+     5
     ]
    },
    "cats": [
@@ -1707,7 +1736,8 @@
    "group": "dr",
    "prefix": "Adamant",
    "suffix": "the Bulwark",
-   "note": "Damage Reduction 5..50 soak vs +5 weapons."
+   "note": "Damage Reduction 5..50 soak vs +5 weapons.",
+   "max_step": 6
   },
   {
    "id": "imm_fear",
@@ -2086,7 +2116,7 @@
      1
     ],
     "60": [
-     5,
+     6,
      9
     ]
    },
@@ -2124,7 +2154,7 @@
      1
     ],
     "60": [
-     5,
+     6,
      9
     ]
    },
@@ -2162,7 +2192,7 @@
      1
     ],
     "60": [
-     5,
+     6,
      9
     ]
    },
@@ -2200,7 +2230,7 @@
      1
     ],
     "60": [
-     5,
+     6,
      9
     ]
    },
@@ -2317,8 +2347,8 @@
      2
     ],
     "60": [
-     8,
-     19
+     10,
+     24
     ]
    },
    "cats": [
@@ -2331,7 +2361,8 @@
    "role": "upside",
    "group": "skill_conc",
    "prefix": "Focused",
-   "suffix": "Focus"
+   "suffix": "Focus",
+   "max_step": 29
   },
   {
    "id": "skill_spellcraft",
@@ -2396,8 +2427,8 @@
      2
     ],
     "60": [
-     8,
-     19
+     10,
+     24
     ]
    },
    "cats": [
@@ -2410,7 +2441,8 @@
    "role": "upside",
    "group": "skill_spellcraft",
    "prefix": "Erudite",
-   "suffix": "Spellcraft"
+   "suffix": "Spellcraft",
+   "max_step": 29
   },
   {
    "id": "skill_disc",
@@ -2475,8 +2507,8 @@
      2
     ],
     "60": [
-     8,
-     19
+     10,
+     24
     ]
    },
    "cats": [
@@ -2489,7 +2521,8 @@
    "role": "upside",
    "group": "skill_disc",
    "prefix": "Disciplined",
-   "suffix": "Discipline"
+   "suffix": "Discipline",
+   "max_step": 29
   },
   {
    "id": "down_ac",

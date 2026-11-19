@@ -338,10 +338,42 @@ def nss_include(data=None):
     tier_fn("UpTwo", "upgrade_two")
     tier_fn("Named", "named_chance")
     tier_fn("RollBias", "roll_bias")
+    # lo-power-curve: ladder steps the tier adds to every upside window, by level.
+    w("// Ladder steps rarity nI adds to every upside window at loot level nLvl")
+    w("// (rarity.json window_shift; loot_model.rarity_shift).")
+    w("int LootD_RarityShift(int nI, int nLvl)")
+    w("{")
+    w("    switch (nI)")
+    w("    {")
+    for i, t in enumerate(tiers):
+        ws = t.get("window_shift")
+        if not ws:
+            continue
+        pts = lm.curve(ws)
+        if len({p[1] for p in pts}) == 1:
+            w("    case %d: return %d;" % (i, pts[0][1]))
+            continue
+        w("    case %d:" % i)
+        L.extend(_interp_body(pts))
+    w("    }")
+    w("    return 0;")
+    w("}")
+    w("")
+    # lo-augment-originals: rungs an augment raises one existing property by.
+    for fn, idx in (("AugMin", 0), ("AugMax", 1)):
+        L.extend(_switch_fn("int LootD_Rarity%s(int nI)" % fn,
+                            [(i, t.get("augment_steps", [1, 1])[idx]) for i, t in enumerate(tiers)],
+                            "1", str))
     # Phase 5: gem sockets a rolled item of the tier gets ([min, max]).
     for fn, idx in (("SockMin", 0), ("SockMax", 1)):
         L.extend(_switch_fn("int LootD_Rarity%s(int nI)" % fn,
                             [(i, t.get("sockets", [0, 0])[idx]) for i, t in enumerate(tiers)], "0", str))
+    w("// The gp a container's gold_pct is a share of, at loot level nLvl (sources.json gold_curve).")
+    w("int LootD_GoldBase(int nLvl)")
+    w("{")
+    L.extend(_interp_body(lm.gold_curve(data), indent="    "))
+    w("}")
+    w("")
     w("// Value budget (gp) for rarity nI at loot level nLvl, before the downside bonus.")
     w("int LootD_RarityBudget(int nI, int nLvl)")
     w("{")
@@ -399,7 +431,8 @@ def nss_include(data=None):
                         [(i, profiles[n].get("rarity_floor", 0)) for i, n in enumerate(pnames)], "0", str))
     for fn, key, dflt in (("GearChance", "gear_chance", "1000"), ("GoldPct", "gold_pct", "0"),
                           ("GemChance", "gem_chance", "0"),
-                          ("SockGemChance", "socket_gem_chance", "0")):
+                          ("SockGemChance", "socket_gem_chance", "0"),
+                          ("AugChance", "aug_chance", "0"), ("AugFloor", "aug_floor", "0")):
         L.extend(_switch_fn("int LootD_Profile%s(int nI)" % fn,
                             [(i, lm.prof_get(profiles[n], key)) for i, n in enumerate(pnames)], dflt, str))
     w("// TRUE when profile nProfile may roll base row nBase (its optional \"bases\" filter).")
@@ -458,6 +491,12 @@ def nss_include(data=None):
     base_rows = sorted((b["base"], cats.index(c)) for c in cats for b in bases[c])
     w("// Loot base item row -> category index (LootD_CatName), -1 = not a loot base.")
     L.extend(_switch_fn("int LootD_BaseCat(int nI)", base_rows, "-1", str))
+    extra = (data.get("sockets") or {}).get("extra_bases", {})
+    aug_rows = list(base_rows) + [(int(r), cats.index(c)) for r, c in sorted(extra.items(), key=lambda x: int(x[0]))
+                                  if c in cats and int(r) not in {b for b, _ in base_rows}]
+    w("// Base row -> category an ORIGINAL item augments as (bases.json + sockets.json")
+    w("// extra_bases; loot_model.aug_base_category), -1 = never augmented.")
+    L.extend(_switch_fn("int LootD_AugBaseCat(int nI)", aug_rows, "-1", str))
     bi = costs["baseitems"]
     def feat_list(row, key):
         return "|" + "".join("%d|" % f for f in bi[str(row)].get(key, []))
@@ -513,6 +552,10 @@ def nss_include(data=None):
     L.extend(_switch_fn("int LootD_CreatureGemChance(int nI)",
                         [(i, classes[n].get("gem_chance", 0)) for i, n in enumerate(lm.CREATURE_CLASSES)],
                         "0", str))
+    for fn, key in (("AugChance", "aug_chance"), ("AugFloor", "aug_floor")):
+        L.extend(_switch_fn("int LootD_Creature%s(int nI)" % fn,
+                            [(i, classes[n].get(key, 0)) for i, n in enumerate(lm.CREATURE_CLASSES)],
+                            "0", str))
     L.extend(_switch_fn("string LootD_CreatureProfile(int nI)",
                         [(i, classes[n]["profile"]) for i, n in enumerate(lm.CREATURE_CLASSES)], '""', _q))
     w("// A creature resref's hand-listing: elite_include / elite_exclude / exclude.")
@@ -649,6 +692,10 @@ def nss_include(data=None):
                         [(i, a.get("suffix", "")) for i, a in A], '""', _q))
     L.extend(_switch_fn("int LootD_AffixLadderLen(int nI)",
                         [(i, len(a["ladder"])) for i, a in A], "0", str))
+    w("// Highest ladder step a roll (rarity shift included) or an augment upgrade")
+    w("// may reach (affixes.json max_step; loot_model.affix_max_step).")
+    L.extend(_switch_fn("int LootD_AffixMaxStep(int nI)",
+                        [(i, lm.affix_max_step(a)) for i, a in A], "0", str))
     w("// Cost-table row at ladder step nStep of affix nAffix (steps ascend in power).")
     w("int LootD_AffixLadder(int nAffix, int nStep)")
     w("{")
@@ -669,6 +716,59 @@ def nss_include(data=None):
     w("    return 0;")
     w("}")
     w("")
+    # -- augmented originals (lo-augment-originals)
+    aug = lm.augment_cfg(data)
+    w("// Augmented originals (loot/sources.json \"augment\"; Loot_Augment in loot_inc).")
+    w("const int LOOTD_AUG_UPGRADE_SHARE = %d;" % aug.get("upgrade_share", 0))
+    w("const int LOOTD_AUG_MAX_ITEMS = %d;" % aug.get("max_items", 24))
+    w("")
+    w("// The upside affix that builds property (nType, nSub) - sub 65535 read as 0 -")
+    w("// or -1 (loot_model.prop_affix; validate_augment keeps the pair unique).")
+    w("int LootD_AffixForProp(int nType, int nSub)")
+    w("{")
+    w("    switch (nType)")
+    w("    {")
+    by_type = {}
+    for i, a in A:
+        if a["role"] == "upside":
+            by_type.setdefault(a["type"], []).append((a.get("sub") or 0, i))
+    for t in sorted(by_type):
+        subs = by_type[t]
+        w("    case %d:" % t)
+        w("        switch (nSub)")
+        w("        {")
+        for sub, i in sorted(subs):
+            w("            case %d: return %d;" % (sub, i))
+        w("        }")
+        w("        break;")
+    w("    }")
+    w("    return -1;")
+    w("}")
+    w("")
+    w("// Ladder step of cost row nCost on affix nAffix, or -1 (loot_model.affix_step_of).")
+    w("int LootD_AffixStepOf(int nAffix, int nCost)")
+    w("{")
+    w("    switch (nAffix)")
+    w("    {")
+    for i, a in A:
+        if a["role"] != "upside":
+            continue
+        w("    case %d:" % i)
+        w("        switch (nCost)")
+        w("        {")
+        seen = set()
+        for k, c in enumerate(a["ladder"]):
+            if c in seen:
+                continue
+            seen.add(c)
+            w("            case %d: return %d;" % (c, k))
+        w("        }")
+        w("        break;")
+    w("    }")
+    w("    return -1;")
+    w("}")
+    w("")
+
     for side, idx in (("Lo", 0), ("Hi", 1)):
         w("// %s ladder step of affix nAffix at loot level nLvl." % ("Lowest" if idx == 0 else "Highest"))
         w("int LootD_Affix%s(int nAffix, int nLvl)" % side)

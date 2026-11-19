@@ -27,6 +27,8 @@ loot_model.py).  In game, Loot Lab's "dump" prints the engine's own value.
                                                   #   are elite, margin sweep, drops per clear
     python3 bin/loot-sim.py --creatures --margin 7   # ...as if elite_margin were 7
     python3 bin/loot-sim.py --creatures --write   # regenerate CLAUDE-loot-creature-audit.md
+    python3 bin/loot-sim.py --power --levels 40,50,60   # strength by rarity (lo-power-curve)
+    python3 bin/loot-sim.py --augment             # augmented originals on the real fixed loot
     python3 bin/loot-sim.py --gems                # sockets and gems (Phase 5): sockets by rarity,
                                                   #   gems per chest open / per kill, gem tier mix
                                                   #   by level, and the merge table (what each gem
@@ -685,6 +687,115 @@ def ratchet_report(data, spec, n, seed):
               % (label, length, 100 * refused // max(1, chains), mean(mean_ups), mean(last_ups)))
 
 
+def power_report(data, levels, n, seed):
+    """lo-power-curve: how strong each rarity's enchantments roll, by level -
+    the enhancement/attack, AC and ability bonus (median / p90 / max) and how
+    often the +16 / +12 ceilings are reached, plus the share of the budget used."""
+    tiers = data["rarity"]["tiers"]
+    model = lm.CostModel(data["costs"])
+    aff = {a["id"]: a for a in data["affixes"]["affixes"]}
+
+    def q(xs):
+        if not xs:
+            return "-"
+        xs = sorted(xs)
+        return "%d / %d / %d" % (xs[len(xs) // 2], xs[int(len(xs) * .9)], xs[-1])
+    print("Strength by rarity: median / p90 / max bonus of each enchantment rolled, and the")
+    print("share of rolls carrying it at the ceiling (+16 hit and AC, +12 ability).\n")
+    print("%-5s %-10s %6s %18s %7s %18s %7s %18s %7s %9s" % (
+        "level", "rarity", "ups", "enh/attack", "@+16", "AC", "@+16", "ability", "@+12", "budget%"))
+    for lvl in levels:
+        for r, t in enumerate(tiers):
+            rng = random.Random(seed + lvl * 10 + r)
+            hit, ac, ab, use, ups = [], [], [], [], []
+            for _ in range(n):
+                it = lm.roll(data, lvl, floor=r, profile="lab", rng=rng, model=model)
+                if it.get("named") or it["rarity"] != r:
+                    continue
+                use.append(100 * it["value"] // max(1, it["budget"]))
+                u = [(i, c) for i, c in it["affixes"] if aff[i]["role"] == "upside"]
+                ups.append(len(u))
+                for i, c in u:
+                    if aff[i]["type"] in (6, 56):
+                        hit.append(c)
+                    elif aff[i]["type"] == 1:
+                        ac.append(c)
+                    elif aff[i]["type"] == 0:
+                        ab.append(c)
+            top = lambda xs, cap: "%.1f%%" % (100.0 * sum(1 for x in xs if x >= cap) / len(xs)) if xs else "-"
+            print("%-5d %-10s %6.2f %18s %7s %18s %7s %18s %7s %9s" % (
+                lvl, t["id"], sum(ups) / max(1, len(ups)), q(hit), top(hit, 16), q(ac), top(ac, 16),
+                q(ab), top(ab, 12), q(use).split(" / ")[0] if use else "-"))
+        print()
+
+
+def augment_report(data, n, seed):
+    """lo-augment-originals on the module's real fixed loot: for each creature
+    class, its slots' droppable originals - how many an augment can work on,
+    how many a kill augments, the rarity mix, what changes and the value."""
+    import boss_index as bi  # noqa: F401  (same import path creature_report uses)
+    model = lm.CostModel(data["costs"])
+    tiers = data["rarity"]["tiers"]
+    cc = lm.creatures_cfg(data)
+    alv = {a: (e.get("level") or 0) for a, e in data["area_levels"]["areas"].items()}
+    bosses = lm.boss_resrefs()
+    pool = {"normal": [], "elite": [], "boss": []}
+    elig_cache = {}
+    total_items = {"normal": 0, "elite": 0, "boss": 0}
+    for sl in lm.creature_slots(also=frozenset(bosses)):
+        rr = sl["resref"]
+        is_boss = rr in bosses
+        cls = lm.creature_class(data, rr, sl["cr"], alv.get(sl["area"], 0), is_boss)
+        if not cls:
+            continue
+        lvl = lm.creature_level(data, rr, sl["cr"], is_boss, bosses)
+        for it in lm.creature_originals(rr):
+            total_items[cls] += 1
+            if it not in elig_cache:
+                elig_cache[it] = lm.augment_original(data, lm.load_uti(it))
+            if elig_cache[it]:
+                pool[cls].append((it, elig_cache[it], lvl))
+    print("Augmented originals: droppable fixed loot on the module's hostile slots")
+    print("(placed + encounter entries), per creature class.\n")
+    print("%-7s %8s %9s %8s %7s  %-44s %20s %20s" % (
+        "class", "items", "eligible", "chance", "floor", "rarity mix of an augment",
+        "value p50 before", "value p50 after"))
+    examples = []
+    for cls in ("normal", "elite", "boss"):
+        cfg = cc["classes"][cls]
+        items = pool[cls]
+        if not items:
+            continue
+        rng = random.Random(seed + len(cls))
+        mix = [0] * len(tiers)
+        before, after, nup, nnew = [], [], 0, 0
+        for _ in range(n):
+            rr, (base, props), lvl = items[rng.randrange(len(items))]
+            a = lm.augment(data, base, props, lvl, cfg.get("aug_floor", 0), rng, model)
+            if not a or not a["changed"]:
+                continue
+            mix[a["rarity"]] += 1
+            before.append(a["value_before"])
+            after.append(a["value_after"])
+            nup += len(a["upgrades"])
+            nnew += len(a["affixes"])
+            examples.append((a["value_after"] - a["value_before"], cls, rr, lvl, a))
+        k = max(1, sum(mix))
+        print("%-7s %8d %8.0f%% %7.1f%% %7s  %-44s %20s %20s" % (
+            cls, total_items[cls], 100.0 * len(items) / max(1, total_items[cls]),
+            cfg.get("aug_chance", 0) / 10.0, tiers[cfg.get("aug_floor", 0)]["name"],
+            " ".join("%s %.0f%%" % (t["name"][:4], 100.0 * mix[i] / k) for i, t in enumerate(tiers)),
+            fmt(sorted(before)[len(before) // 2]) if before else "-",
+            fmt(sorted(after)[len(after) // 2]) if after else "-"))
+        print("%-7s per augment: %.2f raised, %.2f added" % ("", nup / k, nnew / k))
+    print("\nBiggest value gains in the sample:")
+    for gain, cls, rr, lvl, a in sorted(examples, key=lambda e: -e[0])[:8]:
+        print("  %-6s %-18s L%-2d %-9s +%s  raised %s  added %s" % (
+            cls, rr, lvl, tiers[a["rarity"]]["name"], fmt(gain),
+            ", ".join("%s %d->%d" % u for u in a["upgrades"]) or "-",
+            ", ".join("%s %d" % x for x in a["affixes"]) or "-"))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--n", type=int, default=20000)
@@ -697,6 +808,10 @@ def main():
     ap.add_argument("--chests", action="store_true")
     ap.add_argument("--creatures", action="store_true")
     ap.add_argument("--gems", action="store_true")
+    ap.add_argument("--power", action="store_true",
+                    help="enchantment strength by rarity and level (lo-power-curve)")
+    ap.add_argument("--augment", action="store_true",
+                    help="augmented originals on the real droppable loot (lo-augment-originals)")
     ap.add_argument("--ratchet", nargs="?", const="", default=None, metavar="LVL,RARITY",
                     help="lo-fate-ratchet: chained reforges of an over-cap item with forged "
                          "enchantments kept, old bound rule vs the high-water rule")
@@ -734,6 +849,12 @@ def main():
         return 0
     if a.reforge is not None:
         reforge_report(data, a.reforge, min(a.n, 5000), a.seed)
+        return 0
+    if a.power:
+        power_report(data, [int(x) for x in a.levels.split(",")], min(a.n, 4000), a.seed)
+        return 0
+    if a.augment:
+        augment_report(data, min(a.n, 5000), a.seed)
         return 0
     if a.gems:
         gems(data, [int(x) for x in a.levels.split(",")], min(a.n, 5000), a.seed)

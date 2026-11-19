@@ -160,10 +160,60 @@ int LootD_RarityRollBias(int nI)
         case 0: return 0;
         case 1: return 0;
         case 2: return 1;
-        case 3: return 1;
-        case 4: return 2;
+        case 3: return 2;
+        case 4: return 3;
     }
     return 0;
+}
+
+// Ladder steps rarity nI adds to every upside window at loot level nLvl
+// (rarity.json window_shift; loot_model.rarity_shift).
+int LootD_RarityShift(int nI, int nLvl)
+{
+    switch (nI)
+    {
+    case 0: return 0;
+    case 1: return 0;
+    case 2:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (1 * (nLvl - 1)) / 59;
+        return 1;
+    case 3:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
+    case 4:
+        if (nLvl <= 1) return 1;
+        if (nLvl <= 60) return 1 + (3 * (nLvl - 1)) / 59;
+        return 4;
+    }
+    return 0;
+}
+
+int LootD_RarityAugMin(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 1;
+        case 2: return 1;
+        case 3: return 2;
+        case 4: return 2;
+    }
+    return 1;
+}
+
+int LootD_RarityAugMax(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 1;
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 2;
+        case 4: return 3;
+    }
+    return 1;
 }
 
 int LootD_RaritySockMin(int nI)
@@ -192,6 +242,16 @@ int LootD_RaritySockMax(int nI)
     return 0;
 }
 
+// The gp a container's gold_pct is a share of, at loot level nLvl (sources.json gold_curve).
+int LootD_GoldBase(int nLvl)
+{
+    if (nLvl <= 1) return 1500;
+    if (nLvl <= 20) return 1500 + (3500 * (nLvl - 1)) / 19;
+    if (nLvl <= 40) return 5000 + (5000 * (nLvl - 20)) / 20;
+    if (nLvl <= 60) return 10000 + (5000 * (nLvl - 40)) / 20;
+    return 15000;
+}
+
 // Value budget (gp) for rarity nI at loot level nLvl, before the downside bonus.
 int LootD_RarityBudget(int nI, int nLvl)
 {
@@ -199,34 +259,34 @@ int LootD_RarityBudget(int nI, int nLvl)
     {
     case 0:
         if (nLvl <= 1) return 1500;
-        if (nLvl <= 20) return 1500 + (3500 * (nLvl - 1)) / 19;
-        if (nLvl <= 40) return 5000 + (5000 * (nLvl - 20)) / 20;
-        if (nLvl <= 60) return 10000 + (5000 * (nLvl - 40)) / 20;
-        return 15000;
+        if (nLvl <= 20) return 1500 + (6500 * (nLvl - 1)) / 19;
+        if (nLvl <= 40) return 8000 + (32000 * (nLvl - 20)) / 20;
+        if (nLvl <= 60) return 40000 + (110000 * (nLvl - 40)) / 20;
+        return 150000;
     case 1:
         if (nLvl <= 1) return 4000;
-        if (nLvl <= 20) return 4000 + (8000 * (nLvl - 1)) / 19;
-        if (nLvl <= 40) return 12000 + (8000 * (nLvl - 20)) / 20;
-        if (nLvl <= 60) return 20000 + (5000 * (nLvl - 40)) / 20;
-        return 25000;
+        if (nLvl <= 20) return 4000 + (16000 * (nLvl - 1)) / 19;
+        if (nLvl <= 40) return 20000 + (100000 * (nLvl - 20)) / 20;
+        if (nLvl <= 60) return 120000 + (280000 * (nLvl - 40)) / 20;
+        return 400000;
     case 2:
         if (nLvl <= 1) return 10000;
-        if (nLvl <= 20) return 10000 + (25000 * (nLvl - 1)) / 19;
-        if (nLvl <= 40) return 35000 + (45000 * (nLvl - 20)) / 20;
-        if (nLvl <= 60) return 80000 + (50000 * (nLvl - 40)) / 20;
-        return 130000;
+        if (nLvl <= 20) return 10000 + (50000 * (nLvl - 1)) / 19;
+        if (nLvl <= 40) return 60000 + (340000 * (nLvl - 20)) / 20;
+        if (nLvl <= 60) return 400000 + (1100000 * (nLvl - 40)) / 20;
+        return 1500000;
     case 3:
         if (nLvl <= 1) return 30000;
-        if (nLvl <= 20) return 30000 + (120000 * (nLvl - 1)) / 19;
-        if (nLvl <= 40) return 150000 + (350000 * (nLvl - 20)) / 20;
-        if (nLvl <= 60) return 500000 + (700000 * (nLvl - 40)) / 20;
-        return 1200000;
+        if (nLvl <= 20) return 30000 + (220000 * (nLvl - 1)) / 19;
+        if (nLvl <= 40) return 250000 + (1550000 * (nLvl - 20)) / 20;
+        if (nLvl <= 60) return 1800000 + (4200000 * (nLvl - 40)) / 20;
+        return 6000000;
     case 4:
         if (nLvl <= 1) return 60000;
-        if (nLvl <= 20) return 60000 + (340000 * (nLvl - 1)) / 19;
-        if (nLvl <= 40) return 400000 + (1000000 * (nLvl - 20)) / 20;
-        if (nLvl <= 60) return 1400000 + (1800000 * (nLvl - 40)) / 20;
-        return 3200000;
+        if (nLvl <= 20) return 60000 + (540000 * (nLvl - 1)) / 19;
+        if (nLvl <= 40) return 600000 + (4400000 * (nLvl - 20)) / 20;
+        if (nLvl <= 60) return 5000000 + (10000000 * (nLvl - 40)) / 20;
+        return 15000000;
     }
     return 0;
 }
@@ -453,6 +513,44 @@ int LootD_ProfileSockGemChance(int nI)
         case 3: return 200;
         case 4: return 100;
         case 5: return 100;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
+int LootD_ProfileAugChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 300;
+        case 2: return 500;
+        case 3: return 800;
+        case 4: return 600;
+        case 5: return 600;
+        case 6: return 0;
+        case 7: return 0;
+        case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+    }
+    return 0;
+}
+
+int LootD_ProfileAugFloor(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 1;
+        case 4: return 1;
+        case 5: return 1;
         case 6: return 0;
         case 7: return 0;
         case 8: return 0;
@@ -844,6 +942,78 @@ int LootD_BaseCat(int nI)
     return -1;
 }
 
+// Base row -> category an ORIGINAL item augments as (bases.json + sockets.json
+// extra_bases; loot_model.aug_base_category), -1 = never augmented.
+int LootD_AugBaseCat(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 0;
+        case 2: return 0;
+        case 3: return 0;
+        case 4: return 0;
+        case 5: return 0;
+        case 6: return 1;
+        case 7: return 1;
+        case 8: return 1;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 1;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 3;
+        case 16: return 2;
+        case 17: return 5;
+        case 18: return 0;
+        case 19: return 4;
+        case 21: return 5;
+        case 22: return 0;
+        case 26: return 5;
+        case 28: return 0;
+        case 32: return 0;
+        case 33: return 0;
+        case 35: return 0;
+        case 36: return 5;
+        case 37: return 0;
+        case 38: return 0;
+        case 40: return 0;
+        case 41: return 0;
+        case 42: return 0;
+        case 45: return 6;
+        case 47: return 0;
+        case 50: return 0;
+        case 51: return 0;
+        case 52: return 4;
+        case 53: return 0;
+        case 55: return 0;
+        case 56: return 3;
+        case 57: return 3;
+        case 58: return 0;
+        case 60: return 0;
+        case 61: return 1;
+        case 78: return 5;
+        case 80: return 5;
+        case 108: return 0;
+        case 111: return 0;
+        case 300: return 0;
+        case 301: return 0;
+        case 302: return 0;
+        case 303: return 0;
+        case 304: return 0;
+        case 316: return 0;
+        case 318: return 0;
+        case 309: return 0;
+        case 312: return 0;
+        case 313: return 0;
+        case 320: return 0;
+        case 321: return 0;
+        case 323: return 0;
+        case 324: return 0;
+    }
+    return -1;
+}
+
 // Weapon-focus family feats of a loot base ('|feat|feat|', baseitems.2da
 // WeaponFocusFeat .. WeaponOfChoiceFeat) - wishlist Auto tier 1.
 string LootD_BaseFocusFeats(int nI)
@@ -972,7 +1142,7 @@ const int LOOTD_CLASS_NORMAL = 0;
 const int LOOTD_CLASS_ELITE = 1;
 const int LOOTD_CLASS_BOSS = 2;
 const int LOOTD_ELITE_MARGIN = 5;
-const int LOOTD_BOSS_EXTRA_CR = 1000;
+const int LOOTD_BOSS_EXTRA_CR = 500;
 const int LOOTD_BOSS_NAMED = 100;
 // A boss's socket gem has this tier floor (loot/gems.json boss_floor, Phase 5).
 const int LOOTD_GEM_BOSS_FLOOR = 2;
@@ -993,8 +1163,8 @@ int LootD_CreatureChance(int nI)
 {
     switch (nI)
     {
-        case 0: return 40;
-        case 1: return 250;
+        case 0: return 80;
+        case 1: return 400;
         case 2: return 1000;
     }
     return 0;
@@ -1007,6 +1177,28 @@ int LootD_CreatureGemChance(int nI)
         case 0: return 20;
         case 1: return 150;
         case 2: return 1000;
+    }
+    return 0;
+}
+
+int LootD_CreatureAugChance(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 200;
+        case 1: return 500;
+        case 2: return 1000;
+    }
+    return 0;
+}
+
+int LootD_CreatureAugFloor(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 2;
     }
     return 0;
 }
@@ -3406,6 +3598,84 @@ int LootD_AffixLadderLen(int nI)
     return 0;
 }
 
+// Highest ladder step a roll (rarity shift included) or an augment upgrade
+// may reach (affixes.json max_step; loot_model.affix_max_step).
+int LootD_AffixMaxStep(int nI)
+{
+    switch (nI)
+    {
+        case 0: return 15;
+        case 1: return 15;
+        case 2: return 11;
+        case 3: return 11;
+        case 4: return 11;
+        case 5: return 11;
+        case 6: return 11;
+        case 7: return 11;
+        case 8: return 0;
+        case 9: return 11;
+        case 10: return 14;
+        case 11: return 8;
+        case 12: return 15;
+        case 13: return 11;
+        case 14: return 11;
+        case 15: return 11;
+        case 16: return 11;
+        case 17: return 11;
+        case 18: return 11;
+        case 19: return 8;
+        case 20: return 9;
+        case 21: return 11;
+        case 22: return 11;
+        case 23: return 11;
+        case 24: return 24;
+        case 25: return 7;
+        case 26: return 7;
+        case 27: return 7;
+        case 28: return 7;
+        case 29: return 7;
+        case 30: return 7;
+        case 31: return 9;
+        case 32: return 9;
+        case 33: return 9;
+        case 34: return 9;
+        case 35: return 9;
+        case 36: return 9;
+        case 37: return 6;
+        case 38: return 0;
+        case 39: return 0;
+        case 40: return 0;
+        case 41: return 0;
+        case 42: return 0;
+        case 43: return 0;
+        case 44: return 0;
+        case 45: return 0;
+        case 46: return 0;
+        case 47: return 0;
+        case 48: return 0;
+        case 49: return 0;
+        case 50: return 9;
+        case 51: return 9;
+        case 52: return 9;
+        case 53: return 9;
+        case 54: return 9;
+        case 55: return 29;
+        case 56: return 29;
+        case 57: return 29;
+        case 58: return 4;
+        case 59: return 9;
+        case 60: return 9;
+        case 61: return 9;
+        case 62: return 4;
+        case 63: return 2;
+        case 64: return 2;
+        case 65: return 2;
+        case 66: return 2;
+        case 67: return 4;
+    }
+    return 0;
+}
+
 // Cost-table row at ladder step nStep of affix nAffix (steps ascend in power).
 int LootD_AffixLadder(int nAffix, int nStep)
 {
@@ -4552,6 +4822,1302 @@ int LootD_AffixLadder(int nAffix, int nStep)
     return 0;
 }
 
+// Augmented originals (loot/sources.json "augment"; Loot_Augment in loot_inc).
+const int LOOTD_AUG_UPGRADE_SHARE = 500;
+const int LOOTD_AUG_MAX_ITEMS = 24;
+
+// The upside affix that builds property (nType, nSub) - sub 65535 read as 0 -
+// or -1 (loot_model.prop_affix; validate_augment keeps the pair unique).
+int LootD_AffixForProp(int nType, int nSub)
+{
+    switch (nType)
+    {
+    case 0:
+        switch (nSub)
+        {
+            case 0: return 13;
+            case 1: return 14;
+            case 2: return 15;
+            case 3: return 16;
+            case 4: return 17;
+            case 5: return 18;
+        }
+        break;
+    case 1:
+        switch (nSub)
+        {
+            case 0: return 12;
+        }
+        break;
+    case 6:
+        switch (nSub)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 13:
+        switch (nSub)
+        {
+            case 2: return 52;
+            case 3: return 53;
+            case 9: return 51;
+            case 10: return 50;
+        }
+        break;
+    case 16:
+        switch (nSub)
+        {
+            case 6: return 2;
+            case 7: return 3;
+            case 9: return 4;
+            case 10: return 5;
+            case 11: return 7;
+            case 13: return 6;
+        }
+        break;
+    case 20:
+        switch (nSub)
+        {
+            case 6: return 25;
+            case 7: return 26;
+            case 9: return 27;
+            case 10: return 28;
+            case 11: return 30;
+            case 13: return 29;
+        }
+        break;
+    case 22:
+        switch (nSub)
+        {
+            case 4: return 37;
+        }
+        break;
+    case 23:
+        switch (nSub)
+        {
+            case 6: return 31;
+            case 7: return 32;
+            case 9: return 33;
+            case 10: return 34;
+            case 11: return 36;
+            case 13: return 35;
+        }
+        break;
+    case 26:
+        switch (nSub)
+        {
+            case 0: return 48;
+        }
+        break;
+    case 37:
+        switch (nSub)
+        {
+            case 1: return 42;
+            case 2: return 43;
+            case 3: return 40;
+            case 4: return 39;
+            case 5: return 38;
+            case 6: return 44;
+            case 7: return 41;
+            case 9: return 45;
+        }
+        break;
+    case 38:
+        switch (nSub)
+        {
+            case 0: return 49;
+        }
+        break;
+    case 39:
+        switch (nSub)
+        {
+            case 0: return 24;
+        }
+        break;
+    case 40:
+        switch (nSub)
+        {
+            case 0: return 20;
+        }
+        break;
+    case 41:
+        switch (nSub)
+        {
+            case 1: return 21;
+            case 2: return 22;
+            case 3: return 23;
+        }
+        break;
+    case 43:
+        switch (nSub)
+        {
+            case 0: return 8;
+        }
+        break;
+    case 45:
+        switch (nSub)
+        {
+            case 0: return 10;
+        }
+        break;
+    case 51:
+        switch (nSub)
+        {
+            case 0: return 19;
+        }
+        break;
+    case 52:
+        switch (nSub)
+        {
+            case 1: return 55;
+            case 3: return 57;
+            case 16: return 56;
+        }
+        break;
+    case 56:
+        switch (nSub)
+        {
+            case 0: return 1;
+        }
+        break;
+    case 67:
+        switch (nSub)
+        {
+            case 0: return 11;
+        }
+        break;
+    case 71:
+        switch (nSub)
+        {
+            case 0: return 47;
+        }
+        break;
+    case 74:
+        switch (nSub)
+        {
+            case 0: return 9;
+        }
+        break;
+    case 75:
+        switch (nSub)
+        {
+            case 0: return 46;
+        }
+        break;
+    case 84:
+        switch (nSub)
+        {
+            case 0: return 54;
+        }
+        break;
+    }
+    return -1;
+}
+
+// Ladder step of cost row nCost on affix nAffix, or -1 (loot_model.affix_step_of).
+int LootD_AffixStepOf(int nAffix, int nCost)
+{
+    switch (nAffix)
+    {
+    case 0:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 1:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 2:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 7: return 5;
+            case 8: return 6;
+            case 9: return 7;
+            case 10: return 8;
+            case 11: return 9;
+            case 13: return 10;
+            case 15: return 11;
+        }
+        break;
+    case 3:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 7: return 5;
+            case 8: return 6;
+            case 9: return 7;
+            case 10: return 8;
+            case 11: return 9;
+            case 13: return 10;
+            case 15: return 11;
+        }
+        break;
+    case 4:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 7: return 5;
+            case 8: return 6;
+            case 9: return 7;
+            case 10: return 8;
+            case 11: return 9;
+            case 13: return 10;
+            case 15: return 11;
+        }
+        break;
+    case 5:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 7: return 5;
+            case 8: return 6;
+            case 9: return 7;
+            case 10: return 8;
+            case 11: return 9;
+            case 13: return 10;
+            case 15: return 11;
+        }
+        break;
+    case 6:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 7: return 5;
+            case 8: return 6;
+            case 9: return 7;
+            case 10: return 8;
+            case 11: return 9;
+            case 13: return 10;
+            case 15: return 11;
+        }
+        break;
+    case 7:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 7: return 5;
+            case 8: return 6;
+            case 9: return 7;
+            case 10: return 8;
+            case 11: return 9;
+            case 13: return 10;
+            case 15: return 11;
+        }
+        break;
+    case 8:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 9:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 7: return 5;
+            case 8: return 6;
+            case 9: return 7;
+            case 10: return 8;
+            case 11: return 9;
+            case 13: return 10;
+            case 15: return 11;
+        }
+        break;
+    case 10:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 11:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 12:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 13:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+        }
+        break;
+    case 14:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+        }
+        break;
+    case 15:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+        }
+        break;
+    case 16:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+        }
+        break;
+    case 17:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+        }
+        break;
+    case 18:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+        }
+        break;
+    case 19:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 20:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 21:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 22:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 23:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 24:
+        switch (nCost)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+            case 10: return 10;
+            case 11: return 11;
+            case 12: return 12;
+            case 13: return 13;
+            case 14: return 14;
+            case 15: return 15;
+            case 16: return 16;
+            case 17: return 17;
+            case 18: return 18;
+            case 19: return 19;
+            case 20: return 20;
+            case 21: return 21;
+            case 22: return 22;
+            case 23: return 23;
+            case 24: return 24;
+            case 25: return 25;
+            case 26: return 26;
+            case 27: return 27;
+            case 28: return 28;
+            case 29: return 29;
+            case 30: return 30;
+            case 31: return 31;
+            case 32: return 32;
+            case 33: return 33;
+            case 34: return 34;
+            case 35: return 35;
+            case 36: return 36;
+            case 37: return 37;
+            case 38: return 38;
+            case 39: return 39;
+            case 40: return 40;
+            case 41: return 41;
+            case 42: return 42;
+            case 43: return 43;
+            case 44: return 44;
+            case 45: return 45;
+        }
+        break;
+    case 25:
+        switch (nCost)
+        {
+            case 55: return 0;
+            case 60: return 1;
+            case 65: return 2;
+            case 70: return 3;
+            case 75: return 4;
+            case 80: return 5;
+            case 85: return 6;
+            case 90: return 7;
+            case 95: return 8;
+            case 100: return 9;
+        }
+        break;
+    case 26:
+        switch (nCost)
+        {
+            case 55: return 0;
+            case 60: return 1;
+            case 65: return 2;
+            case 70: return 3;
+            case 75: return 4;
+            case 80: return 5;
+            case 85: return 6;
+            case 90: return 7;
+            case 95: return 8;
+            case 100: return 9;
+        }
+        break;
+    case 27:
+        switch (nCost)
+        {
+            case 55: return 0;
+            case 60: return 1;
+            case 65: return 2;
+            case 70: return 3;
+            case 75: return 4;
+            case 80: return 5;
+            case 85: return 6;
+            case 90: return 7;
+            case 95: return 8;
+            case 100: return 9;
+        }
+        break;
+    case 28:
+        switch (nCost)
+        {
+            case 55: return 0;
+            case 60: return 1;
+            case 65: return 2;
+            case 70: return 3;
+            case 75: return 4;
+            case 80: return 5;
+            case 85: return 6;
+            case 90: return 7;
+            case 95: return 8;
+            case 100: return 9;
+        }
+        break;
+    case 29:
+        switch (nCost)
+        {
+            case 55: return 0;
+            case 60: return 1;
+            case 65: return 2;
+            case 70: return 3;
+            case 75: return 4;
+            case 80: return 5;
+            case 85: return 6;
+            case 90: return 7;
+            case 95: return 8;
+            case 100: return 9;
+        }
+        break;
+    case 30:
+        switch (nCost)
+        {
+            case 55: return 0;
+            case 60: return 1;
+            case 65: return 2;
+            case 70: return 3;
+            case 75: return 4;
+            case 80: return 5;
+            case 85: return 6;
+            case 90: return 7;
+            case 95: return 8;
+            case 100: return 9;
+        }
+        break;
+    case 31:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 32:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 33:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 34:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 35:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 36:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+        }
+        break;
+    case 37:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+        }
+        break;
+    case 38:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 39:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 40:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 41:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 42:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 43:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 44:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 45:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 46:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 47:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 48:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 49:
+        switch (nCost)
+        {
+            case 0: return 0;
+        }
+        break;
+    case 50:
+        switch (nCost)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 51:
+        switch (nCost)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 52:
+        switch (nCost)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 53:
+        switch (nCost)
+        {
+            case 0: return 0;
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 6;
+            case 7: return 7;
+            case 8: return 8;
+            case 9: return 9;
+        }
+        break;
+    case 54:
+        switch (nCost)
+        {
+            case 9: return 0;
+            case 8: return 1;
+            case 7: return 2;
+            case 6: return 3;
+            case 5: return 4;
+            case 4: return 5;
+            case 3: return 6;
+            case 2: return 7;
+            case 1: return 8;
+            case 0: return 9;
+        }
+        break;
+    case 55:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+            case 21: return 20;
+            case 22: return 21;
+            case 23: return 22;
+            case 24: return 23;
+            case 25: return 24;
+            case 26: return 25;
+            case 27: return 26;
+            case 28: return 27;
+            case 29: return 28;
+            case 30: return 29;
+            case 31: return 30;
+            case 32: return 31;
+            case 33: return 32;
+            case 34: return 33;
+            case 35: return 34;
+            case 36: return 35;
+            case 37: return 36;
+            case 38: return 37;
+            case 39: return 38;
+            case 40: return 39;
+            case 41: return 40;
+            case 42: return 41;
+            case 43: return 42;
+            case 44: return 43;
+            case 45: return 44;
+            case 46: return 45;
+            case 47: return 46;
+            case 48: return 47;
+            case 49: return 48;
+            case 50: return 49;
+        }
+        break;
+    case 56:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+            case 21: return 20;
+            case 22: return 21;
+            case 23: return 22;
+            case 24: return 23;
+            case 25: return 24;
+            case 26: return 25;
+            case 27: return 26;
+            case 28: return 27;
+            case 29: return 28;
+            case 30: return 29;
+            case 31: return 30;
+            case 32: return 31;
+            case 33: return 32;
+            case 34: return 33;
+            case 35: return 34;
+            case 36: return 35;
+            case 37: return 36;
+            case 38: return 37;
+            case 39: return 38;
+            case 40: return 39;
+            case 41: return 40;
+            case 42: return 41;
+            case 43: return 42;
+            case 44: return 43;
+            case 45: return 44;
+            case 46: return 45;
+            case 47: return 46;
+            case 48: return 47;
+            case 49: return 48;
+            case 50: return 49;
+        }
+        break;
+    case 57:
+        switch (nCost)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 3;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            case 8: return 7;
+            case 9: return 8;
+            case 10: return 9;
+            case 11: return 10;
+            case 12: return 11;
+            case 13: return 12;
+            case 14: return 13;
+            case 15: return 14;
+            case 16: return 15;
+            case 17: return 16;
+            case 18: return 17;
+            case 19: return 18;
+            case 20: return 19;
+            case 21: return 20;
+            case 22: return 21;
+            case 23: return 22;
+            case 24: return 23;
+            case 25: return 24;
+            case 26: return 25;
+            case 27: return 26;
+            case 28: return 27;
+            case 29: return 28;
+            case 30: return 29;
+            case 31: return 30;
+            case 32: return 31;
+            case 33: return 32;
+            case 34: return 33;
+            case 35: return 34;
+            case 36: return 35;
+            case 37: return 36;
+            case 38: return 37;
+            case 39: return 38;
+            case 40: return 39;
+            case 41: return 40;
+            case 42: return 41;
+            case 43: return 42;
+            case 44: return 43;
+            case 45: return 44;
+            case 46: return 45;
+            case 47: return 46;
+            case 48: return 47;
+            case 49: return 48;
+            case 50: return 49;
+        }
+        break;
+    }
+    return -1;
+}
+
 // Lowest ladder step of affix nAffix at loot level nLvl.
 int LootD_AffixLo(int nAffix, int nLvl)
 {
@@ -4559,101 +6125,101 @@ int LootD_AffixLo(int nAffix, int nLvl)
     {
     case 0:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
     case 1:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
-    case 2:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
-    case 3:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
-    case 4:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
-    case 5:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
-    case 6:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
-    case 7:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
-    case 8: return 0;
-    case 9:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
-    case 10:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
-        return 5;
-    case 11:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
-    case 12:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (4 * (nLvl - 1)) / 59;
-        return 4;
-    case 13:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
-        return 3;
-    case 14:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
-        return 3;
-    case 15:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
-        return 3;
-    case 16:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
-        return 3;
-    case 17:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
-        return 3;
-    case 18:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
-        return 3;
-    case 19:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
-    case 20:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
-        return 3;
-    case 21:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (4 * (nLvl - 1)) / 59;
-        return 4;
-    case 22:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (4 * (nLvl - 1)) / 59;
-        return 4;
-    case 23:
-        if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (4 * (nLvl - 1)) / 59;
-        return 4;
-    case 24:
         if (nLvl <= 1) return 0;
         if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
         return 8;
+    case 2:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 3:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 4:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 5:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 6:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 7:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 8: return 0;
+    case 9:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 10:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
+    case 11:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 12:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
+    case 13:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 14:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 15:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 16:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 17:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 18:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 19:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
+    case 20:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (4 * (nLvl - 1)) / 59;
+        return 4;
+    case 21:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 22:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 23:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
+    case 24:
+        if (nLvl <= 1) return 0;
+        if (nLvl <= 60) return 0 + (10 * (nLvl - 1)) / 59;
+        return 10;
     case 25:
         if (nLvl <= 1) return 0;
         if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
@@ -4680,32 +6246,32 @@ int LootD_AffixLo(int nAffix, int nLvl)
         return 3;
     case 31:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
     case 32:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
     case 33:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
     case 34:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
     case 35:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
     case 36:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
-        return 2;
+        if (nLvl <= 60) return 0 + (3 * (nLvl - 1)) / 59;
+        return 3;
     case 37:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (1 * (nLvl - 1)) / 59;
-        return 1;
+        if (nLvl <= 60) return 0 + (2 * (nLvl - 1)) / 59;
+        return 2;
     case 38: return 0;
     case 39: return 0;
     case 40: return 0;
@@ -4720,36 +6286,36 @@ int LootD_AffixLo(int nAffix, int nLvl)
     case 49: return 0;
     case 50:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
-        return 5;
+        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
     case 51:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
-        return 5;
+        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
     case 52:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
-        return 5;
+        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
     case 53:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
-        return 5;
+        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
+        return 6;
     case 54:
         if (nLvl <= 1) return 0;
         if (nLvl <= 60) return 0 + (4 * (nLvl - 1)) / 59;
         return 4;
     case 55:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
-        return 8;
+        if (nLvl <= 60) return 0 + (10 * (nLvl - 1)) / 59;
+        return 10;
     case 56:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
-        return 8;
+        if (nLvl <= 60) return 0 + (10 * (nLvl - 1)) / 59;
+        return 10;
     case 57:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
-        return 8;
+        if (nLvl <= 60) return 0 + (10 * (nLvl - 1)) / 59;
+        return 10;
     case 58:
         if (nLvl <= 1) return 0;
         if (nLvl <= 60) return 0 + (1 * (nLvl - 1)) / 59;
@@ -4801,12 +6367,12 @@ int LootD_AffixHi(int nAffix, int nLvl)
     {
     case 0:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (8 * (nLvl - 1)) / 59;
-        return 9;
+        if (nLvl <= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
     case 1:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (8 * (nLvl - 1)) / 59;
-        return 9;
+        if (nLvl <= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
     case 2:
         if (nLvl <= 1) return 1;
         if (nLvl <= 60) return 1 + (10 * (nLvl - 1)) / 59;
@@ -4834,68 +6400,68 @@ int LootD_AffixHi(int nAffix, int nLvl)
     case 8: return 0;
     case 9:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (9 * (nLvl - 1)) / 59;
-        return 10;
+        if (nLvl <= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
     case 10:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (8 * (nLvl - 1)) / 59;
-        return 9;
+        if (nLvl <= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
     case 11:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
-        return 5;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 12:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (6 * (nLvl - 1)) / 59;
-        return 7;
+        if (nLvl <= 60) return 1 + (10 * (nLvl - 1)) / 59;
+        return 11;
     case 13:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
     case 14:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
     case 15:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
     case 16:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
     case 17:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
     case 18:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
-        return 7;
+        if (nLvl <= 60) return 0 + (8 * (nLvl - 1)) / 59;
+        return 8;
     case 19:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
-        return 5;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 20:
         if (nLvl <= 1) return 0;
         if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
         return 6;
     case 21:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (7 * (nLvl - 1)) / 59;
-        return 8;
+        if (nLvl <= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
     case 22:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (7 * (nLvl - 1)) / 59;
-        return 8;
+        if (nLvl <= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
     case 23:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (7 * (nLvl - 1)) / 59;
-        return 8;
+        if (nLvl <= 60) return 1 + (8 * (nLvl - 1)) / 59;
+        return 9;
     case 24:
         if (nLvl <= 1) return 1;
-        if (nLvl <= 60) return 1 + (15 * (nLvl - 1)) / 59;
-        return 16;
+        if (nLvl <= 60) return 1 + (19 * (nLvl - 1)) / 59;
+        return 20;
     case 25:
         if (nLvl <= 1) return 0;
         if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
@@ -4922,32 +6488,32 @@ int LootD_AffixHi(int nAffix, int nLvl)
         return 7;
     case 31:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 32:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 33:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 34:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 35:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 36:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (6 * (nLvl - 1)) / 59;
-        return 6;
+        if (nLvl <= 60) return 0 + (7 * (nLvl - 1)) / 59;
+        return 7;
     case 37:
         if (nLvl <= 1) return 0;
-        if (nLvl <= 60) return 0 + (4 * (nLvl - 1)) / 59;
-        return 4;
+        if (nLvl <= 60) return 0 + (5 * (nLvl - 1)) / 59;
+        return 5;
     case 38: return 0;
     case 39: return 0;
     case 40: return 0;
@@ -4982,16 +6548,16 @@ int LootD_AffixHi(int nAffix, int nLvl)
         return 9;
     case 55:
         if (nLvl <= 1) return 2;
-        if (nLvl <= 60) return 2 + (17 * (nLvl - 1)) / 59;
-        return 19;
+        if (nLvl <= 60) return 2 + (22 * (nLvl - 1)) / 59;
+        return 24;
     case 56:
         if (nLvl <= 1) return 2;
-        if (nLvl <= 60) return 2 + (17 * (nLvl - 1)) / 59;
-        return 19;
+        if (nLvl <= 60) return 2 + (22 * (nLvl - 1)) / 59;
+        return 24;
     case 57:
         if (nLvl <= 1) return 2;
-        if (nLvl <= 60) return 2 + (17 * (nLvl - 1)) / 59;
-        return 19;
+        if (nLvl <= 60) return 2 + (22 * (nLvl - 1)) / 59;
+        return 24;
     case 58:
         if (nLvl <= 1) return 1;
         if (nLvl <= 60) return 1 + (3 * (nLvl - 1)) / 59;

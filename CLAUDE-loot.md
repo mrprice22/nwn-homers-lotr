@@ -23,12 +23,12 @@ loot/*.json ──► bin/loot_model.py ──┬─► bin/gen-loot-tables.py �
 
 | File | Holds |
 |---|---|
-| `loot/rarity.json` | 5 tiers (index = `LOOT_RARITY`): weight, affix count, per-mille chances (downside, unidentified, upgrades, named), `roll_bias`, value budget curve by loot level |
+| `loot/rarity.json` | 5 tiers (index = `LOOT_RARITY`): weight, affix count, per-mille chances (downside, unidentified, upgrades, named), `roll_bias`, `window_shift` (level curve), `augment_steps`, value budget curve by loot level |
 | `loot/levels.json` | CR → loot level 1–60 (`cr_points`, piecewise-linear); `boss_overrides` for Phase 4 |
 | `loot/bases.json` | 7 categories → base-item rows, weights, appearance donors |
-| `loot/affixes.json` | 68 affixes: type/sub, cost **ladder** (rows in ascending power), level **window** into the ladder, categories, weight, exclusion **group**, role, name words |
+| `loot/affixes.json` | 68 affixes: type/sub, cost **ladder** (rows in ascending power), level **window** into the ladder, `max_step` (hard top after the rarity shift), categories, weight, exclusion **group**, role, name words |
 | `loot/named.json` | curated existing items a top-tier roll may award (draft, admin review pending) |
-| `loot/sources.json` | profiles (`lab`, `chest_*`, `creature`, `boss`): category weights, roll count, rarity floor, and for containers `gear_chance` / `gold_pct` / `gem_chance` / `consumables`; `scripts` (container script → profile); `area_overrides` |
+| `loot/sources.json` | profiles (`lab`, `chest_*`, `creature`, `boss`): category weights, roll count, rarity floor, and for containers `gear_chance` / `gold_pct` / `gem_chance` / `consumables` / `aug_chance` / `aug_floor`; `scripts` (container script → profile); `area_overrides`; `gold_curve`; `augment` |
 | `loot/area_levels.json` | **generated** by `bin/gen-area-loot-levels.py`: every area's loot level |
 | `loot/consumables.json` | consumables a container may hold: resref, level window, weight, stack range (drafted by `bin/gen-loot-consumables.py --draft`, admin-reviewed) |
 | `loot/treasure.json` | plain valuable gems a container may pay its gold in |
@@ -171,7 +171,9 @@ loot/sources.json "scripts" ─► gen-loot-tables.py --apply ─► unpacked/<s
   rolls, each at `gear_chance` per mille, at the profile floor; then gold, mean `gold_pct` % of
   the Common budget at the level, paid 50–150% of the mean, as up to 3 treasure gems at
   `gem_chance` (`Loot_PayGems`) with the rest in gold; then `consumables` [min, max] picks from
-  the consumables pool, weighted, inside each entry's level window.
+  the consumables pool, weighted, inside each entry's level window. Before any of that, what the
+  container already holds is augmented (`aug_chance`, "Augmented originals"). Gold reads
+  `sources.json` `gold_curve`, not the Common budget (see "The power curve").
 - **The consumables pool is packed into fixed-width string chunks** in `loot_data_inc`
   (`LootD_ConsChunk`), not a switch: NWScript compiles a switch to a linear compare chain, and a
   391-case switch inside a weighted-pick loop is TMI territory.
@@ -199,11 +201,13 @@ regenerates the review report **`CLAUDE-loot-creature-audit.md`** (the gate only
 is stale).
 
 - **Classes.** `boss` = in the Roll of the Fallen registry (`LootD_IsBoss`, generated from the
-  `brd_db.nss` block) - 100%, the `boss` profile (2 Epic+ rolls, +1 at CR >= `extra_roll_cr`), plus a
+  `brd_db.nss` block) - 100%, the `boss` profile (2 Epic+ rolls, +1 at CR >= `extra_roll_cr` = 500), plus a
   separate named-pool roll at `named_chance`. `elite` = a champion, `elite_include`, or **CR loot
-  level >= area loot level + `elite_margin`** (5) unless `elite_exclude` - 25%. `normal` - 4%.
+  level >= area loot level + `elite_margin`** (5) unless `elite_exclude` - 40%. `normal` - 8%.
   `exclude` never drops. Normal and elite need a hostile faction (`LootD_IsHostileFaction`, the same
   rule as the area levels); bosses drop whatever their faction (six are placed as Commoners).
+  Since 2026-11-18 normal is **8%** and elite **40%** (were 4% / 25%), and each class also augments the
+  creature's own droppable loot - see "Augmented originals".
 - **Area loot level = the median hostile CR** (`levels.json` `area_percentile` 50). The 75th
   percentile was tried and reverted: it barely moved towns, and a creature that is a quarter of its
   area's hostiles then sets the level itself, so no buff can make it elite there.
@@ -433,7 +437,85 @@ in `bin/season-profile.py`'s wiring check. It can:
   (`lootlab_fateclr`, Phase 7), so the boss bonus roll can be tested more than once a day. The
   force-drops switch forces a boss's Shard too, and the dump shows how often an item was reforged.
 
+## The power curve (lo-power-curve, 2026-11-18)
+
+Admin decision: rarity raises each enchantment's strength, not only the count, with "a rare chance of
+up to +16 weapon enchantment and AC, and up to +12 abilities, at the highest levels".
+
+- **`window_shift`** (rarity.json, a level curve like `budget`): ladder steps added to both ends of
+  every **upside** window (`loot_model.shifted_window` / `Loot_PickStep(..., nShift)` via
+  `LootD_RarityShift`). Common 0, Uncommon 0, Rare 0→1, Epic 0→2, Legendary 1→4 (L1→L60).
+- **`max_step`** (affixes.json): the highest ladder index any roll, shift included, or any augment
+  upgrade may reach (`LootD_AffixMaxStep`). The gate's `ROLL_CAPS` fails any affix whose `max_step`
+  rung passes +16 Enhancement / Attack / AC or +12 Ability; immunities stay capped where they were.
+- **L60 windows raised** (enh/ab/AC [8,11], abilities [5,8], others about +2 steps); L1 unchanged.
+- **`roll_bias`** Rare 1, Epic 2, Legendary 3. Legendary stays 4 affixes: 5 + a downside is 7
+  properties, over `FORGE_LEGAL_MAX_PROPS`.
+- **Budgets re-anchored** (Common L60 15k → 150k ... Legendary 3.2M → 15M) so shifted rolls survive
+  the step-down. The top stays under the most valuable obtainable item (20.8M; gate-checked).
+- **`gold_curve`** (sources.json): chest gold used to be `gold_pct` of the *Common budget*; raising the
+  budget would have multiplied gold 8x at L50, so gold now reads its own curve, the old Common budget.
+- `python3 bin/loot-sim.py --power --levels 40,50,60` prints median / p90 / max by tier and how often
+  the ceilings are hit. At L60 the median enhancement is Common +6, Uncommon +8, Rare +10, Epic +13,
+  Legendary +16 (Legendary hits +16 about 69% of the time; Epic never passes +14).
+
+## Augmented originals (lo-augment-originals, 2026-11-18)
+
+Admin decision: keep all the original (S2) loot, augment it with random enchantments, and keep the
+rolled items as an extra chance on top. Research found nothing original had been removed from
+creatures (2,440 droppable blueprint items, every boss's named gear, the stock spawn treasure); chests
+had their stock BioWare tables replaced, which is not worth restoring, but `LootChest_Refill` wiped
+hand-placed contents on its first refill.
+
+```
+loot_ondeath ─► LootO_QueueAugment (each droppable item, aug_chance) ─► LootO_Augment (0.05 s apart,
+                                                                         still on the corpse?) ─► Loot_Augment
+LootChest_Fill ─► Loot_AugmentContents (what the box holds, profile aug_chance) ─► Loot_Augment
+LootChest_Refill ─► LootChest_HoldOriginals (first refill: copies into FORGE_VAULT, LOOT_ORIG_*) ─► restore copies
+```
+
+`Loot_Augment(oItem, nLvl, nFloor, sSource, oBenef)` (end of `loot_inc.nss`; Python mirror
+`loot_model.augment`, **change one, change the other**):
+
+- **Eligible:** not rolled / named / already augmented, not Plot / Cursed / stacked / a creature item,
+  base in `LootD_AugBaseCat` (bases.json + `sockets.json` `extra_bases`). `LOOT_AUG_SEEN` is stamped on
+  every item *considered*, chance miss included, so nothing is ever re-rolled.
+- **Slots** = the rarity's affix count. Each, while an upgrade candidate is left, is an **upgrade** at
+  `augment.upgrade_share` (500‰): one existing property on an affix ladder (`LootD_AffixForProp` +
+  `LootD_AffixStepOf`; `validate_augment` keeps (type, sub) → affix unique), not gem-touched, below
+  `max_step`, raised `augment_steps` rungs. The rest **add** new affixes through `Loot_RollAffixes` with
+  `sUsed0` (the item's existing exclusion groups) and `bAllowDown = FALSE`.
+- **Bound:** `Loot_AugCap(value now, budget)` = (√value + √budget)². A flat "value + budget" left an
+  expensive original nothing (Glamdring ~9M: +95k buys no rung, because value is quadratic in cost
+  units); in cost units this adds what the budget buys on an empty item. Upgrades step back first, then
+  the new affixes step down against the same whole-item cap. Template = forge blank + the item's PRICED
+  properties (a `CopyItem` would carry a Cost override), candidates priced at their planned step.
+- **Commit:** remove the raised properties' old copies by signature, add the new ones, `Loot_ApplyWork(...,
+  bStamp=TRUE, bKeepName=TRUE)` (returns the prefix word). Name = original, colour-stripped
+  (`Loot_StripColor`), in the rarity colour, behind that prefix. Description gets an
+  "Augmented: <Rarity>, loot level N." line (also into `SOCKET_BASEDESC` when set).
+- **Stamps:** `LOOT_AUG`, `LOOT_LVL`, `LOOT_RARITY`, `LOOT_PROFILE` (the source), `LOOT_AFX_*` (added),
+  `LOOT_AUG_UP_N` / `_<i>` (new sigs of raised ones). **Not `LOOT_VER`:** `Loot_IsRolled` stays FALSE, so
+  `Gem_SocketMax` keeps the original socket count and the Shard of Fate refuses it (follow-up
+  `lo-augment-fate`). Epic+ logs to `loot_roll_log` with source `aug`.
+- **Numbers** (`sources.json`): creature classes `aug_chance` / `aug_floor` normal 200‰/Common, elite
+  500‰/Uncommon, boss 1000‰/Rare; container profiles chest_low 300, chest_med 500, chest_high 800 (floor
+  Uncommon), chest_melee/ranged 600; `augment.max_items` 24 per creature or box. Forced drops (Loot Lab)
+  force the augments too, and the per-kill `LOOT:` line counts them.
+- **Timing:** augments queue at 0.05 s steps ahead of the rolled items. One looted before its turn
+  (`GetItemPossessor != corpse`) is left plain.
+- **Chests:** `LootChest_Refill` keeps a copy of each hand-placed original in `FORGE_VAULT` on the first
+  refill and restores fresh copies every refill (each rolls its augment anew); it refuses to hold them
+  when the vault is missing, because `ForgeHolder()` would fall back to the chest itself. Wiped items are
+  stamped `LOOT_AUG_SEEN` first, since `DestroyObject` is deferred and the fill would still see them.
+- `python3 bin/loot-sim.py --augment` runs it over every hostile slot's real droppable originals: share
+  eligible, rarity mix, raised/added per augment, value before/after, and the biggest gains.
+
 ## Why an Epic can look weak: windows, bias, budget
+
+> **Superseded 2026-11-18** by the power curve above: rarity now shifts the window. The analysis below
+> is the report that led to it.
+
 
 Admin report 2026-11-07: an Angmar boss Epic at loot level 50 was a tower shield with +4 universal
 saves and -30% ASF (`loot_roll_log` row: `Steadfast Tower Shield of Ease`, engine value 107,740 gp).
