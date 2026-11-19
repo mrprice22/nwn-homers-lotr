@@ -762,7 +762,7 @@ int LootD_SockBaseCat(int nI)
 // Module items whose socket count is not the eligible default, packed by the
 // resref's first character into parts of at most 900 characters: '|<resref>:<n>|...'.
 // Gem_SocketMax searches them with FindSubString; an empty string ends a character's parts.
-const int LOOTD_SOCK_EXCEPTIONS = 481;
+const int LOOTD_SOCK_EXCEPTIONS = 482;
 string LootD_SockList(string sFirst, int nPart)
 {
     if (sFirst == "0")
@@ -882,7 +882,7 @@ string LootD_SockList(string sFirst, int nPart)
     }
     if (sFirst == "w")
     {
-        if (nPart == 0) return "|warhammerofeog:2|warhammerofthest:2|warthslick001:2|wave4:2|waxmbt005:2|waxmbt009:2|wblmml005:2|wblmml006:2|wblmml008:2|wblmml009:2|wbwmln0082:2|whipoffire:2|whipoffire001:2|wiltedstaff003:2|wiltedtouch001:2|woodlandwasp:2|wplmsc005:2|wplsc0022:2|wplsc005:2|wrapofthecurs002:2|wspmku011:2|wswmdg004:2|wswmdg007:2|wswmgs007:2|wswmgs008:2|wswmls007:2|wswmls008:2|wswmrp005:2|wswmrp006:2|wswmrp008:2|wtop_royal_blade:2|wtop_royal_crown:2|wtop_royal_staff:2|wtop_royal_torc:2|";
+        if (nPart == 0) return "|warhammerofeog:2|warhammerofthest:2|warthslick001:2|wave4:2|waxmbt005:2|waxmbt009:2|wblmml005:2|wblmml006:2|wblmml008:2|wblmml009:2|wbwmln0082:2|whipoffire:2|whipoffire001:2|whitehandscythe:2|wiltedstaff003:2|wiltedtouch001:2|woodlandwasp:2|wplmsc005:2|wplsc0022:2|wplsc005:2|wrapofthecurs002:2|wspmku011:2|wswmdg004:2|wswmdg007:2|wswmgs007:2|wswmgs008:2|wswmls007:2|wswmls008:2|wswmrp005:2|wswmrp006:2|wswmrp008:2|wtop_royal_blade:2|wtop_royal_crown:2|wtop_royal_staff:2|wtop_royal_torc:2|";
         return "";
     }
     if (sFirst == "z")

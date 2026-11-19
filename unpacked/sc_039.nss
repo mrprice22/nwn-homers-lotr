@@ -1,16 +1,18 @@
 //::///////////////////////////////////////////////
 //:: FileName sc_039
+//:: Oliah the Mystic: quest accepted and not yet finished.
+//::
+//:: Quest state is per character in questcddb (quest_cd_inc) - a local int
+//:: cleared on every reboot and made the reward farmable
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 11/9/2002 4:30:08 PM
-//:://////////////////////////////////////////////
+#include "quest_cd_inc"
+
 int StartingConditional()
 {
-
-	// Inspect local variables
-	if(!(GetLocalInt(GetPCSpeaker(), "mystichelp") == 1))
-		return FALSE;
-
-	return TRUE;
+    object oPC = GetPCSpeaker();
+    if (QCD_TimesDone(oPC, "mystic_heirloom_done") > 0)
+        return FALSE;
+    return GetLocalInt(oPC, "mystichelp") == 1
+        || QCD_TimesDone(oPC, "mystic_heirloom_accepted") > 0;
 }

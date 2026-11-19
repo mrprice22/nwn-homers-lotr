@@ -38,6 +38,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: creature combat-start gear re-arm…"
+if python3 "$HERE/check_creature_combat_gear.py"; then
+  echo "ok: creature combat-start gear re-arm"
+else
+  echo "fail: creature combat-start gear re-arm"
+  rc=1
+fi
+
 echo "[smoke-test] running: encounter CR/Difficulty caches…"
 if python3 "$HERE/check_encounter_crs.py"; then
   echo "ok: encounter CR/Difficulty caches"

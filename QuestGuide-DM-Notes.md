@@ -656,18 +656,27 @@ Both files should be updated in the same commit whenever a quest ships or change
   quest had **no journal at all**, so it never appeared on the wiki's quest list.
 - **Giver:** *Oliah The Mystic* (`oilahthemystic.utc`, conversation `mystics.dlg`), placed in
   `area006` (Esgaroth / Lake Town). Players also spell her "Olira".
-- **Flow:** accept R7 (`at_066`, `mystichelp=1`, journal 1). Refusing sets `mystichelp=10`
-  (`at_065`, start `sc_038` = sent away). Turn-in R8 is gated by `sc_041` (has `AnaraliasEye`).
-  `at_069` takes the Eye, and E9 runs `at_068` (100,000 gp + `themysticheirloo`) and writes
-  journal 2 (End). Its line R8 said "heart" until 2026-09-24; the item has always been
-  *Anaralia's Eye* (`anaraliasheart.uti`, tag `AnaraliasEye`).
+- **Flow:** accept R7 (`at_066`, `mystichelp=1` + questcddb stamp `mystic_heirloom_accepted`,
+  journal 1). Refusing sets `mystichelp=10` (`at_065`, start `sc_038` = sent away; a local on
+  purpose, since a refusal is harmless to forget). Turn-in R8 is gated by `sc_041` (has
+  `AnaraliasEye`). `at_069` re-checks the Eye at click time, takes it, stamps
+  `mystic_heirloom_done` and sets the local `MYSTIC_PAID`. E9's `at_068` pays 100,000 gp +
+  `themysticheirloo` **only** when `MYSTIC_PAID` is set, and writes journal 2 (End). Its line R8
+  said "heart" until 2026-09-24; the item has always been *Anaralia's Eye*
+  (`anaraliasheart.uti`, tag `AnaraliasEye`).
+- **Start nodes:** E11 `sc_038` (refused) / E8 `sc_039` (accepted, by local or stamp, and not
+  done) / E7 `sc_040` (`mystic_heirloom_done` stamped) / E0 intro.
 - **Target:** `anaraliathewidow` (CR 198) in `mirkwoodcentrale`, carrying the Eye.
 - **The heirloom** (tag `TheMysticHeirloom`) is what `sc_042` checks on `relicmaster.dlg`, the
   Relic Master in `thesilvermountai`, who lets its keeper through via `mtnpass`. The check is
   party-wide (`CheckPartyForItem`).
-- **Open point — farmable:** all quest state is a plain `SetLocalInt` on the PC, which is not
-  persistent. After a reboot Oliah starts over, so the 100k gp and the heirloom can be earned again
-  every time Anaralia respawns. Filed as a hidden roadmap idea (`mystic-theoden-quest-state`).
+- **Once per character** since 2026-11-19 (roadmap `mystic-theoden-quest-state`). Until then all
+  state was a plain `SetLocalInt` that cleared on every reboot, so the 100k gp and the heirloom
+  could be earned again whenever Anaralia respawned. Two edge cases: a character who finished
+  before the change has no stamp and can finish once more; and the old `at_068` paid
+  unconditionally, so a player who dropped the Eye before clicking R8 was paid **and** kept it.
+  Inspect or reset a character with `sqlite3 database/questcddb.sqlite3 "select * from quest_cd
+  where quest like 'mystic_heirloom%'"`.
 
 ### The White Hand Blockade
 
@@ -676,16 +685,26 @@ Both files should be updated in the same commit whenever a quest ships or change
   dropped both writes silently. The category was added 2026-09-24 under the exact tag, with no
   dialog change. `tests/check_journal_refs.py` now fails the repack on any write to a missing tag.
 - **Giver:** *Theoden* (`theoden002.utc`, conversation `theoden.dlg`) in `theodenshall`.
-- **Flow:** accept R8 (`at_035`, `theodenq=1`). Turn-in start E10 needs `sc_020` (`theodenq==1`).
-  R11 needs `sc_021` (has `NW_WPLMSC004`). `at_036` takes the scythe and pays `RewardPartyGP(10000)`
-  + `RewardPartyXP(2000)`. E11 (`at_040`, `theodenq=3`) offers the choice: `at_037` spear,
-  `at_038` helm, `at_039` shield. After that the start `sc_023` greets you as done.
+- **Flow:** accept R8 (`at_035`, `theodenq=1` + stamp `theoden_blockade_accepted`). Turn-in start
+  E10 needs `sc_020` (accepted, by local or stamp, and `theoden_blockade_done` not stamped). R11
+  needs `sc_021` (has tag `WhiteHandScythe`). `at_036` re-checks the scythe at click time, takes
+  it, stamps `theoden_blockade_done`, pays `RewardPartyGP(10000)` + `RewardPartyXP(2000)` and sets
+  the local `THEODEN_CHOICE`. E11 (`at_040`, `theodenq=3`) offers the choice: `at_037` spear,
+  `at_038` helm, `at_039` shield. Each pays only while `THEODEN_CHOICE` is set and clears it, so
+  one turn-in buys one item. Before 2026-11-19 the dialog reached the item choice even when
+  `at_036` refused, so the item could be had without the proof. After that the start `sc_023`
+  greets you as done (stamp only).
 - **Target:** *The White Hand Destroyer* (`urukai010`, CR 374) in `isengardouterrim`. The proof is
-  equipped as droppable `wplmsc005` with tag `NW_WPLMSC004`.
-- **Open point — bypassable and farmable:** Tagget's *Weapon and Armor Store*
-  (`taggetssmithshop`) sells stock `nw_wplmsc004`, which has the **same tag**, so the kill can be
-  skipped with a purchase. The same non-persistent local-int state also makes the rewards
-  repeatable after a reboot. Both are in the same hidden roadmap idea.
+  his own blueprint since 2026-11-19: droppable `whitehandscythe` (*Death's Handmaiden*, tag
+  `WhiteHandScythe`), minted from his placed copy, on both the `.utc` and the placement. Before
+  that he equipped `wplmsc005`, and his **placed** copy carried the stock tag `NW_WPLMSC004`, while
+  the `wplmsc005` blueprint carries `AncientScythe`. So the first kill after a reboot dropped a
+  scythe Theoden accepted, every respawn dropped one he did not, and Tagget's *Weapon and Armor
+  Store* (`taggetssmithshop`) sold stock `nw_wplmsc004` with the accepted tag. The boss could be
+  skipped with a purchase, and could not be used at all after his first death each day.
+- **Once per character** since 2026-11-19 (roadmap `mystic-theoden-quest-state`), in questcddb.
+  The edge cases are the same as for the Mystic's Heirloom, plus: an old `NW_WPLMSC004` *Death's
+  Handmaiden* still in a pack is no longer accepted.
 
 ### Goblins of the South Greenway (rumour only)
 

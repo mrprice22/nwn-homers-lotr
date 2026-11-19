@@ -1,16 +1,18 @@
 //::///////////////////////////////////////////////
 //:: FileName sc_020
+//:: King Theoden: blockade quest accepted and not yet finished.
+//::
+//:: Quest state is per character in questcddb (quest_cd_inc) - a local int
+//:: cleared on every reboot and made the reward farmable
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 10/12/2002 10:44:23 PM
-//:://////////////////////////////////////////////
+#include "quest_cd_inc"
+
 int StartingConditional()
 {
-
-	// Inspect local variables
-	if(!(GetLocalInt(GetPCSpeaker(), "theodenq") == 1))
-		return FALSE;
-
-	return TRUE;
+    object oPC = GetPCSpeaker();
+    if (QCD_TimesDone(oPC, "theoden_blockade_done") > 0)
+        return FALSE;
+    return GetLocalInt(oPC, "theodenq") == 1
+        || QCD_TimesDone(oPC, "theoden_blockade_accepted") > 0;
 }

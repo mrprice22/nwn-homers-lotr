@@ -1,16 +1,20 @@
 //::///////////////////////////////////////////////
 //:: FileName at_068
+//:: Oliah the Mystic: the reward. Pays only after a verified turn-in in at_069.
+//::
+//:: Quest state is per character in questcddb (quest_cd_inc) - a local int
+//:: cleared on every reboot and made the reward farmable
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 11/9/2002 4:39:04 PM
-//:://////////////////////////////////////////////
+#include "quest_cd_inc"
+
 void main()
 {
-	// Give the speaker some gold
-	GiveGoldToCreature(GetPCSpeaker(), 100000);
+    object oPC = GetPCSpeaker();
+    if (!GetLocalInt(oPC, "MYSTIC_PAID"))
+        return;
+    DeleteLocalInt(oPC, "MYSTIC_PAID");
 
-	// Give the speaker the items
-	CreateItemOnObject("themysticheirloo", GetPCSpeaker(), 1);
-
+    GiveGoldToCreature(oPC, 100000);
+    CreateItemOnObject("themysticheirloo", oPC, 1);
 }

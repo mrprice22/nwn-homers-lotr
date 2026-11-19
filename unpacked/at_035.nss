@@ -1,13 +1,17 @@
 //::///////////////////////////////////////////////
 //:: FileName at_035
+//:: King Theoden: the PC agrees to break the White Hand blockade.
+//::
+//:: Quest state is per character in questcddb (quest_cd_inc) - a local int
+//:: cleared on every reboot and made the reward farmable
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 10/12/2002 10:32:15 PM
-//:://////////////////////////////////////////////
+#include "quest_cd_inc"
+
 void main()
 {
-	// Set the variables
-	SetLocalInt(GetPCSpeaker(), "theodenq", 1);
-
+    object oPC = GetPCSpeaker();
+    SetLocalInt(oPC, "theodenq", 1);
+    if (QCD_TimesDone(oPC, "theoden_blockade_accepted") == 0)
+        QCD_Stamp(oPC, "theoden_blockade_accepted");
 }

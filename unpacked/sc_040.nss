@@ -1,16 +1,14 @@
 //::///////////////////////////////////////////////
 //:: FileName sc_040
+//:: Oliah the Mystic: this character already finished the quest.
+//::
+//:: Quest state is per character in questcddb (quest_cd_inc) - a local int
+//:: cleared on every reboot and made the reward farmable
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 11/9/2002 4:34:42 PM
-//:://////////////////////////////////////////////
+#include "quest_cd_inc"
+
 int StartingConditional()
 {
-
-	// Inspect local variables
-	if(!(GetLocalInt(GetPCSpeaker(), "mystichelp") == 2))
-		return FALSE;
-
-	return TRUE;
+    return QCD_TimesDone(GetPCSpeaker(), "mystic_heirloom_done") > 0;
 }

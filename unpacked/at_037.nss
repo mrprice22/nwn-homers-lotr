@@ -1,13 +1,15 @@
 //::///////////////////////////////////////////////
 //:: FileName at_037
-//:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 10/12/2002 10:42:50 PM
+//:: King Theoden: the Spear reward. Only after a verified turn-in (at_036
+//:: sets THEODEN_CHOICE), and only one pick per turn-in
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
 void main()
 {
-	// Give the speaker the items
-	CreateItemOnObject("spearoftherohiri", GetPCSpeaker(), 1);
+    object oPC = GetPCSpeaker();
+    if (!GetLocalInt(oPC, "THEODEN_CHOICE"))
+        return;
+    DeleteLocalInt(oPC, "THEODEN_CHOICE");
 
+    CreateItemOnObject("spearoftherohiri", oPC, 1);
 }
