@@ -334,12 +334,18 @@ ideas:
   - id: anaralia-spider-queen-second-drop
     title: "Anaralia (spider queen) second drop"
     group: items-gear
-    status: confirmed
+    status: design
     type: Defect
     player: "Fugdish (Try_this)"
-    date: "2026-09-02"
+    date: "2026-11-19"
+    commit: 890d8e4b0f5
     discord: {'thread_id': '1544444430625280151', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1544444430625280151'}
-    notes: "<span>Seems after you kill Anaralia the second time she drops a better robe? Not that I’m complaining, if I made a caster I might just wear that one…</span><span><img src=\"https://discord.com/assets/86678b041d9087e0.svg\" alt=\"🤘\"></span><br><div><br></div><div>DM note: this should have been caught/fixed by blueprint out of sync with instances build gate\n\n</div>"
+    notes: "<span>Seems after you kill Anaralia the second time she drops a better robe? Not that I’m complaining, if I made a caster I might just wear that one…</span><span><img src=\"https://discord.com/assets/86678b041d9087e0.svg\" alt=\"🤘\"></span><br><div><br></div><div>DM note: this should have been caught/fixed by blueprint out of sync with instances build gate\n\n</div><div><b>Cause found (2026-11-19):</b> a creature placed in an area carries its own copy of every item, separate from the item itself. Until she first dies after a reboot, Anaralia wears and drops those placed copies; every respawn after that gets the item as it is defined today, and that is also what the wiki shows. Her placed robe is an old, much weaker copy; the respawned one is the Arch-Robe Radagast wears. The same thing affects about 200 creatures, so the fix is being decided item by item.</div>"
+    impl_notes: "<div><b>Root cause.</b> A placement in <code>&lt;area&gt;.git.json</code> embeds a full item struct per item; the <code>.utc</code> names items by resref; <code>se_respawn_inc</code> recreates from the <code>.utc</code>, so a respawn builds every item from its <code>.uti</code>. Anaralia (<code>anaraliathewidow</code>, mirkwoodcentrale): placed <code>lesserrobe3or004</code> values 57,867 on the NWN cost formula, the <code>.uti</code> (Radagast's Arch-Robe) 8,855,004. Card Mennard's renamed sword and the White Hand Destroyer's quest scythe were the same bug.</div><div><b>Why the gate missed it.</b> <code>tests/check_divergent_creatures.py</code> compared gear by slot + resref + <code>Dropable</code> and never opened the embedded item, so the earlier drift passes fixed everything it could see. Not a regression: none of the stats drift was caused in this repo (no pair was in sync at the first import <code>e1fc8e2f249</code> and drifted after). It is inherited from the toolset era: items edited inside a placed creature's inventory (instance-only copies, often a <code>...2</code> tag) and numeric resrefs later reused for different items. 725 of the description-only differences ARE ours: the 2026-08-24 LLM description pass rewrote <code>.uti</code> text and not the placed copies.</div><div><b>Real size</b> (Subtype 0/65535 and NWN:EE <code>xModelPart*</code>/<code>xArmorPart_*</code> normalised; <code>Cost</code> ignored as derived): 867 creature/item pairs on 197 creature blueprints, 3,139 placed copies. 44 are a different item entirely (e.g. 18 bosses' placed \"Boss Immune to Stone Ring\" <code>044</code> vs <code>044.uti</code> = Arrow of the Orc Defender, so they lose stone immunity on respawn; Beorn's Sickle <code>057</code> vs Shaklar's Lightning Tip), 138 different stats, 13 tag/name only, 672 cosmetic. 272 rows sit on split blueprints whose <code>.utc</code> embeds a full item struct (see <code>split-blueprint-embedded-items</code>).</div><div><b>Shipped in 890d8e4b0f5:</b> <code>bin/audit-embedded-item-drift.py --write</code> writes <code>tests/embedded_item_drift.json</code> (decision file, one row per line, strongest-copy recommendation: 75 placed / 792 blueprint) and <code>CLAUDE-embedded-item-drift-audit.md</code>. <code>bin/fix-embedded-item-drift.py</code> (dry run by default; refuses rows changed since the audit, and any mint that would gain crit immunity its <code>.uti</code> lacks; always rewrites split-blueprint <code>.utc</code> entries in canonical resref form). A full <code>--accept-recommended --apply</code> on a scratch copy left 0 drifting pairs and passed the identity/loot gate; 42 mints, 3 crit-immune but all from <code>*_ci</code> sources that already are. <code>check_divergent_creatures.py</code> now fails on any drift not recorded in the decision file. <b>No item has been changed yet</b>: this waits on the decisions.</div>"
+    design_questions:
+      - question: "Decide each row of tests/embedded_item_drift.json (worklist: CLAUDE-embedded-item-drift-audit.md). Proposal: accept the recommendations (the stronger copy wins; \"placed\" where the blueprint cannot be worn in that slot or a script tests the placed tag; cosmetic rows and ties resync to the blueprint) with python3 bin/fix-embedded-item-drift.py --accept-recommended --apply, after overriding any row you disagree with. Worth a look first: the 44 different-item rows and the 31 stats rows recommended \"placed\", because those change what a creature drops all day. The cosmetic rows alone can go with --class cosmetic."
+        status: open
+        answer: null
     comments:
       - author: "Sync Bot"
         date: "2026-09-14"
@@ -8701,14 +8707,14 @@ ideas:
   - id: card-mennard-carrying-elronds-blade
     title: "Card Mennard carrying Elrond's blade"
     group: items-gear
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Rajmund (Ray)"
-    date: "2026-10-30"
+    date: "2026-11-19"
     commit: dc8e1a85a9a
     discord: {'thread_id': '1546974113938149508', 'channel_id': '1544082381076561930', 'url': 'https://discord.com/channels/514343293761486848/1546974113938149508'}
-    notes: "<div>Card Mennard is carrying Elrond's blade.</div><div><strong>Fixed:</strong> Card Mennard in Edoras now carries a Rohirrim Longsword of the Elite instead of the Longsword of Elrond, both as placed and after he respawns.<br><br>(10/30/26, Ray: Better, but still not fixed. See comment below for more info)</div>"
-    impl_notes: "arohirrimsold006.utc Equip slot 16 handofpaladine -&gt; rohirrimlongswor, and the embedded struct of his edoras.git.json instance replaced with the rohirrimlongswor struct arohirrimsold004 already carries (Dropable kept 1). His House of Healing twin (arohirrimsold0_2) already carried the Spear of the Ridermark. check_divergent_creatures OK."
+    notes: "<div>Card Mennard is carrying Elrond's blade.</div><div><strong>Fixed:</strong> Card Mennard in Edoras now carries a Rohirrim Longsword of the Elite instead of the Longsword of Elrond, both as placed and after he respawns.<br><br>(10/30/26, Ray: Better, but still not fixed. See comment below for more info)</div><div><b>The two swords (11/19):</b> Ray's first kill on 10/30 was the copy of Card placed in Edoras before the fix reached the realm, which carried a renamed copy of Elrond's blade called \"Blade of the Golden Hall\". The second kill was the fixed Card. Both now carry the Rohirrim Longsword of the Elite, before and after a respawn. The same root cause turned up on about 200 other creatures and is being worked through under <a href=\"#idea-anaralia-spider-queen-second-drop\">Anaralia (spider queen) second drop</a>.</div>"
+    impl_notes: "arohirrimsold006.utc Equip slot 16 handofpaladine -&gt; rohirrimlongswor, and the embedded struct of his edoras.git.json instance replaced with the rohirrimlongswor struct arohirrimsold004 already carries (Dropable kept 1). His House of Healing twin (arohirrimsold0_2) already carried the Spear of the Ridermark. check_divergent_creatures OK. 2026-11-19: verified in source on dev, S2 and S3 (rohirrimlongswor on the .utc, no \"Blade of the Golden Hall\" left in edoras.git.json). The renamed copy was the pre-dc8e1a85a9a placed struct, i.e. embedded-item drift (anaralia-spider-queen-second-drop); Card has no row in tests/embedded_item_drift.json, so he is in sync."
     manual_steps:
       - step: "Edoras: examine or defeat Card Mennard - he wields a Rohirrim Longsword of the Elite, not the Longsword of Elrond, and still does after he respawns."
         status: open
@@ -11049,22 +11055,55 @@ ideas:
     title: "Build gate: creature gear the engine/AI changes at spawn"
     group: bosses
     epic: difficulty-increase
-    status: confirmed
+    status: implemented
     hidden: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-09-23"
-    notes: "<div>Split out of wiki-ac-calc-off-balorg-of-moria-example. A build gate over every creature blueprint that flags (a) items equipped on the blueprint that the engine unequips because the creature lacks the required proficiency feat, and (b) items in inventory the stock AI will equip at combat start (weapons/shields it is proficient with) while the blueprint leaves them unequipped. Both make the wiki show stats the creature does not fight with. The Balrog of Moria was case (b): Shield of the Fleet Elf.</div>"
+    date: "2026-11-19"
+    commit: 890d8e4b0f5
+    notes: "<div>Split out of wiki-ac-calc-off-balorg-of-moria-example. A build gate over every creature blueprint that flags (a) items equipped on the blueprint that the engine unequips because the creature lacks the required proficiency feat, and (b) items in inventory the stock AI will equip at combat start (weapons/shields it is proficient with) while the blueprint leaves them unequipped. Both make the wiki show stats the creature does not fight with. The Balrog of Moria was case (b): Shield of the Fleet Elf.</div><div><b>Built (11/19).</b> Reading the AI showed that half (a) does not happen: the stock combat AI never unequips anything for lack of proficiency. What it does do is re-arm a creature from its pack when a fight starts: a one-handed weapon in its pack replaces what it holds, and with shield proficiency a shield in its pack goes on as well. The gate now catches every creature that fights with different gear than it shows, and the 58 found today are listed for clean-up.</div>"
+    impl_notes: "<div><code>tests/check_creature_combat_gear.py</code> (wired into tests/smoke-test) replays <code>x0_i0_equip.nss</code> <code>bkEquipMelee</code>, reached from WrapperActionAttack, per <code>.utc</code>: already dual-wielding single-handers, nothing; inventory single-hander + inventory shield + feat 32 (including an item Bonus Feat, iprp 35) and the right hand not a shield, first single-hander right and the LAST shield left; else 2+ single-handers + Ambidexterity + TWF, second right and first left; else any single-hander replaces the right hand (the second if there are two). Single-handed/shield = the x0_i0_match base-item lists. Skipped: a ranged weapon in hand (kept until melee range, where switching is intended), the 6 Jasperre creatures (j_ai_*), and creatures with no OnEndCombatRound script. Stock item bases come from <code>tests/stock_item_bases.json</code> (<code>bin/gen-stock-item-bases.py</code>, 423 entries). Burn-down: <code>tests/known_combat_gear.json</code>, 58 entries (52 right-hand, 3 shield, 3 dual); a new or changed re-arm fails, a resolved one is a note. Replaying the pre-017d7fe253d Balrog flags him. The routine picks the LAST inventory shield, which was Spellcaster's Choice (tower shield), not the Shield of the Fleet Elf the original report named. Notable entries: the Witch King swaps his Scythe for Grond + Shield of the Unholy; Théoden, Samwise, Hareth, the High Wizard of Gondor and the Weathertop Queen drop an {EPIC} weapon for the plain copy in their pack. Follow-up: creature-combat-gear-burndown.</div>"
+    manual_steps:
+      - step: "Fight the Witch King (Leader of The Nine) on dev and examine him once combat starts: he should hold Grond with the Shield of the Unholy, not his Scythe. That is the gate's model of the AI; if he keeps the Scythe, the model is wrong."
+        status: open
+        kind: uat
+        tester: "level 60 party"
   - id: mystic-theoden-quest-state
     title: "Mystic's Heirloom and White Hand Blockade: quest state resets on reboot (farmable rewards)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     hidden: true
     type: Exploit
     player: "HomelessSon (Server Admin)"
-    date: "2026-09-24"
-    notes: "<div>Found while fixing <a href=\"#idea-anaralias-what\">Anaralia's what</a>. Oliah the Mystic's quest (100,000 gp + The Mystic Heirloom) and King Théoden's quest (10,000 gp + 2,000 XP + a Rohan spear, helm or shield) track progress on a temporary character variable, which clears on every server reboot. After a reboot both quest-givers start over, so a character can repeat the quest and collect the rewards again whenever the boss has respawned.</div><div>Separately, Théoden accepts any item tagged like the White Hand Destroyer's scythe, and Tagget's Weapon and Armor Store sells one, so the boss can be skipped with a purchase.</div>"
-    impl_notes: "<div>State: <code>mystichelp</code> (at_065/066/067, sc_038/039/040) and <code>theodenq</code> (at_035/040, sc_020/023) are plain <code>SetLocalInt</code> on the PC. Proposed fix: stamp completion in <code>questcddb</code> via <code>quest_cd_inc</code> (<code>QCD_Stamp</code>, one-time key) and gate the start and turn-in conditionals on it. Scythe: the Destroyer (<code>urukai010</code>, isengardouterrim) carries <code>wplmsc005</code> with tag <code>NW_WPLMSC004</code>, which is the same tag as stock <code>nw_wplmsc004</code> sold in the taggetssmithshop store instance. Retag the drop to a unique quest tag (blueprint + instance) and update <code>sc_021</code> / <code>at_036</code>.</div><div><b>Design call for the admin:</b> should these become one-time-per-character quests, or repeatable on a cooldown like the dailies?</div>"
+    date: "2026-11-19"
+    commit: 890d8e4b0f5
+    notes: "<div>Found while fixing <a href=\"#idea-anaralias-what\">Anaralia's what</a>. Oliah the Mystic's quest (100,000 gp + The Mystic Heirloom) and King Théoden's quest (10,000 gp + 2,000 XP + a Rohan spear, helm or shield) track progress on a temporary character variable, which clears on every server reboot. After a reboot both quest-givers start over, so a character can repeat the quest and collect the rewards again whenever the boss has respawned.</div><div>Separately, Théoden accepts any item tagged like the White Hand Destroyer's scythe, and Tagget's Weapon and Armor Store sells one, so the boss can be skipped with a purchase.</div><div><b>Fixed:</b> both quests are now once per character, and stay finished through reboots. Théoden only accepts the White Hand Destroyer's own scythe, Death's Handmaiden, so a shop-bought scythe no longer works, and a Destroyer who has respawned now drops one he will take. See <a href=\"QuestGuide.html#mystic-heirloom\">The Mystic's Heirloom</a> and <a href=\"QuestGuide.html#white-hand-blockade\">The White Hand Blockade</a>.</div>"
+    impl_notes: "<div>State: <code>mystichelp</code> (at_065/066/067, sc_038/039/040) and <code>theodenq</code> (at_035/040, sc_020/023) are plain <code>SetLocalInt</code> on the PC. Proposed fix: stamp completion in <code>questcddb</code> via <code>quest_cd_inc</code> (<code>QCD_Stamp</code>, one-time key) and gate the start and turn-in conditionals on it. Scythe: the Destroyer (<code>urukai010</code>, isengardouterrim) carries <code>wplmsc005</code> with tag <code>NW_WPLMSC004</code>, which is the same tag as stock <code>nw_wplmsc004</code> sold in the taggetssmithshop store instance. Retag the drop to a unique quest tag (blueprint + instance) and update <code>sc_021</code> / <code>at_036</code>.</div><div><b>Shipped 890d8e4b0f5 (once per character, admin decision 2026-11-19).</b> questcddb keys <code>mystic_heirloom_accepted/_done</code> and <code>theoden_blockade_accepted/_done</code> (QCD_Stamp / QCD_TimesDone; QCD_InitDb already runs in onmoduleload). Mystic: at_066 stamps accepted; at_069 (reply) re-checks the Eye, takes it, stamps done and sets the local MYSTIC_PAID; at_068 (entry) pays only on MYSTIC_PAID. Before, at_068 paid unconditionally, so dropping the Eye before clicking paid out and kept the Eye. sc_039 = accepted and not done; sc_040 = done. Théoden: at_035 stamps accepted; at_036 guards on done, re-checks the scythe, stamps done, pays and sets THEODEN_CHOICE; at_037/038/039 hand over one item only while THEODEN_CHOICE is set (the dialog reached the item choice even when at_036 refused); sc_020/sc_023 read the stamps. Scythe: new <code>whitehandscythe.uti</code> (Death's Handmaiden, tag WhiteHandScythe) minted from the Destroyer's placed copy, on both <code>urukai010.utc</code> and his isengardouterrim placement. The <b>placed</b> copy of wplmsc005 carried NW_WPLMSC004 while <code>wplmsc005.uti</code> carries AncientScythe, so every respawned Destroyer dropped a scythe Théoden refused (embedded-item drift, see anaralia-spider-queen-second-drop). Its redundant AB +10 was collapsed into its Enh +10 by bin/ab-enhance-apply.py; socket_data_inc regenerated (gem_activate and gem_scan_step .ncs verified to carry the new row, so no clean repack was needed). Edge cases: a character who finished before this has no stamp and can finish once more; an old NW_WPLMSC004 Death's Handmaiden already in a pack is refused. Reset a character with sqlite3 on database/questcddb.sqlite3.</div>"
+    design_questions:
+      - question: "Once per character, or repeatable on a cooldown like the dailies?"
+        status: answered
+        answer: "Once per character (admin, 2026-11-19)."
+    manual_steps:
+      - step: "Mystic's Heirloom: accept from Oliah in Lake Town, kill Anaralia, turn in the Eye. You get 100,000 gp + The Mystic Heirloom once, and the journal closes."
+        status: open
+        kind: uat
+        tester: "level 40+"
+      - step: "After the next reboot, talk to Oliah with the same character: she greets you as done and offers no quest, even with a second Anaralia's Eye in your pack."
+        status: open
+        kind: uat
+        tester: "same character as the step above"
+      - step: "Mystic exploit check: reach the turn-in line with the Eye, drop the Eye, then click \"The deed is done...\". No gold and no heirloom, and the Eye stays on the ground."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "White Hand Blockade: accept from Théoden, then buy the stock scythe from Tagget's Weapon and Armor Store. Théoden does not offer the turn-in line."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Kill the White Hand Destroyer (Isengard outer rim) AFTER he has respawned once, and take Death's Handmaiden to Théoden: 10,000 gp + 2,000 XP + one spear/helm/shield, once. After a reboot he greets you as done."
+        status: open
+        kind: uat
+        tester: "level 60 party"
   - id: it-looks-like-the-bard-cant-take-spells-at-higher-levels
     title: "It looks like the bard can't take spells at higher levels :/"
     group: combat-classes
@@ -11833,3 +11872,33 @@ ideas:
     date: "2026-11-18"
     notes: "<div>Let a Shard of Fate re-roll the random enchantments an augment added to an original item, keeping the item's own enchantments.</div>"
     impl_notes: "<div>Follow-up to lo-augment-originals. Augmented originals carry LOOT_AUG, not LOOT_VER, so Loot_FatePlan refuses them as not rolled. To support it: accept LOOT_AUG in Loot_FatePlan; keep the name (Loot_ApplyWork bKeepName) instead of the base-name rebuild; decide whether the raised properties (LOOT_AUG_UP_*) are re-rolled or kept; and bound by Loot_AugCap on the pre-augment value rather than the fate high-water.</div>"
+  - id: split-blueprint-embedded-items
+    title: "Split creature blueprints carry full item copies: verify what a respawn gets"
+    group: bosses
+    status: planned
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-19"
+    notes: "<div>Found while auditing embedded-item drift (anaralia-spider-queen-second-drop). About 170 creature blueprints made by bin/split-divergent-creatures.py store a full item struct in the .utc (TemplateResRef, no EquippedRes/InventoryRes) instead of naming the item. Nothing has verified how the engine builds a respawn from that: from the struct (as the split tool assumed), from its TemplateResRef's .uti, or not at all. If not at all, those creatures (including the Gandalf, Elrond, Thranduil and Radagast split variants) respawn without that gear.</div>"
+    impl_notes: "<div>Rows in tests/embedded_item_drift.json carry utc_form = \"embedded\" (272 rows; 252 hold exactly the placed copy). bin/fix-embedded-item-drift.py rewrites every entry it touches in canonical resref form, which is correct under every answer. Once the check below answers the question: if the engine honours the struct, nothing is broken today and canonicalising is tidiness; if it does not, canonicalise every split blueprint's item entries now (a small extension of the fixer that mints or reuses a .uti per struct), independently of the drift decisions.</div>"
+    manual_steps:
+      - step: "Helm's Deep: Keep (area008): note what one of Eowyn's Personal Guards (helmsdeepguar0_2) wields and wears (placed: Blade of the Guard + Plate of Eowyn's Guard). Get him killed (Good faction, so an Evil-allegiance character) and examine the respawn 15 minutes later. Same gear = the engine reads the struct. Bare-handed and unarmoured = it reads the .uti (053/052 are a cloak and a shield) or nothing. Report which."
+        status: open
+        kind: uat
+        tester: "Evil allegiance, level 40+"
+  - id: creature-combat-gear-burndown
+    title: "58 creatures fight with different gear than they show (combat-start re-arm)"
+    group: bosses
+    epic: difficulty-increase
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-11-19"
+    notes: "<div>Burn-down for the creature combat-gear gate (tests/known_combat_gear.json). Each listed creature has a one-handed weapon (sometimes a shield too) in its pack that the AI equips the moment combat starts, so the wiki shows gear it does not fight with. Examples: the Witch King swaps his Scythe for Grond + Shield of the Unholy; Théoden, Samwise, Hareth, the High Wizard of Gondor and the Weathertop Queen trade an {EPIC} weapon for the plain one in their pack.</div>"
+    impl_notes: "<div>Per creature, pick one: move the inventory item into the slot the AI moves it to (the wiki then tells the truth and today's combat behaviour is kept), or remove what triggers the swap (the pack weapon, or feat 32 for a shield swap) so it fights with what it shows. Delete the entry from tests/known_combat_gear.json as each is fixed; python3 tests/check_creature_combat_gear.py --report lists them all. Boss changes need blueprint + placement both (divergence gate) and a CR re-check (CLAUDE-creature-cr.md).</div>"
+    design_questions:
+      - question: "Default per creature? Proposal: for bosses, keep what they fight with today (move the pack weapon/shield into the equipped slot) so difficulty does not change; and where an {EPIC} weapon is being swapped out for its own weaker copy, drop the plain duplicate instead, since that one is a builder slip and the EPIC is what the wiki promises."
+        status: open
+        answer: null
