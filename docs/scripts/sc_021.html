@@ -79,21 +79,15 @@
   <main>
 <h1>Script: <code>sc_021</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
 //:: FileName sc_021
-//:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 10/12/2002 10:46:47 PM
+//:: King Theoden: the PC carries the White Hand Destroyer&#x27;s scythe.
+//:: Tag WhiteHandScythe (whitehandscythe.uti), not the stock NW_WPLMSC004
+//:: that Tagget&#x27;s store sells (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
 #include &quot;nw_i0_tool&quot;
 
 int StartingConditional()
 {
-
-    // Make sure the PC speaker has these items in their inventory
-    if(!CheckPlayerForItem(GetPCSpeaker(), &quot;NW_WPLMSC004&quot;))
-        return FALSE;
-
-    return TRUE;
+    return CheckPlayerForItem(GetPCSpeaker(), &quot;WhiteHandScythe&quot;);
 }
 </code></pre>
   </main>

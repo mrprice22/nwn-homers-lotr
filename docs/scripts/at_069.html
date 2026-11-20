@@ -79,19 +79,37 @@
   <main>
 <h1>Script: <code>at_069</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
 //:: FileName at_069
+//:: Oliah the Mystic: turn in Anaralia&#x27;s Eye (reply action, runs before at_068).
+//::
+//:: Quest state is per character in questcddb (quest_cd_inc) - a local int
+//:: cleared on every reboot and made the reward farmable
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 11/9/2002 11:29:34 PM
-//:://////////////////////////////////////////////
+#include &quot;quest_cd_inc&quot;
+
+// The take, the possession re-check and the once-per-character stamp all
+// happen HERE. at_068 (the next entry) only pays when this script hands it
+// MYSTIC_PAID - otherwise dropping the eye before clicking paid out and kept
+// the eye.
 void main()
 {
+    object oPC = GetPCSpeaker();
+    DeleteLocalInt(oPC, &quot;MYSTIC_PAID&quot;);
 
-	// Remove items from the player&#x27;s inventory
-	object oItemToTake;
-	oItemToTake = GetItemPossessedBy(GetPCSpeaker(), &quot;AnaraliasEye&quot;);
-	if(GetIsObjectValid(oItemToTake) != 0)
-		DestroyObject(oItemToTake);
+    if (QCD_TimesDone(oPC, &quot;mystic_heirloom_done&quot;) &gt; 0)
+        return;
+
+    object oEye = GetItemPossessedBy(oPC, &quot;AnaraliasEye&quot;);
+    if (!GetIsObjectValid(oEye))
+    {
+        FloatingTextStringOnCreature(
+            &quot;You must have Anaralia&#x27;s Eye in your possession.&quot;, oPC, FALSE);
+        return;
+    }
+
+    DestroyObject(oEye);
+    QCD_Stamp(oPC, &quot;mystic_heirloom_done&quot;);
+    SetLocalInt(oPC, &quot;MYSTIC_PAID&quot;, 1);
 }
 </code></pre>
   </main>

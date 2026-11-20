@@ -79,16 +79,18 @@
   <main>
 <h1>Script: <code>at_039</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
 //:: FileName at_039
-//:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 10/12/2002 10:43:40 PM
+//:: King Theoden: the Shield reward. Only after a verified turn-in (at_036
+//:: sets THEODEN_CHOICE), and only one pick per turn-in
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
 void main()
 {
-	// Give the speaker the items
-	CreateItemOnObject(&quot;shieldoftherohan&quot;, GetPCSpeaker(), 1);
+    object oPC = GetPCSpeaker();
+    if (!GetLocalInt(oPC, &quot;THEODEN_CHOICE&quot;))
+        return;
+    DeleteLocalInt(oPC, &quot;THEODEN_CHOICE&quot;);
 
+    CreateItemOnObject(&quot;shieldoftherohan&quot;, oPC, 1);
 }
 </code></pre>
   </main>

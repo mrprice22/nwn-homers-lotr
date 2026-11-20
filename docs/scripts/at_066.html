@@ -79,16 +79,20 @@
   <main>
 <h1>Script: <code>at_066</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
 //:: FileName at_066
+//:: Oliah the Mystic: the PC agrees to put Anaralia to rest.
+//::
+//:: Quest state is per character in questcddb (quest_cd_inc) - a local int
+//:: cleared on every reboot and made the reward farmable
+//:: (roadmap: mystic-theoden-quest-state).
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 11/9/2002 4:25:04 PM
-//:://////////////////////////////////////////////
+#include &quot;quest_cd_inc&quot;
+
 void main()
 {
-	// Set the variables
-	SetLocalInt(GetPCSpeaker(), &quot;mystichelp&quot;, 1);
-
+    object oPC = GetPCSpeaker();
+    SetLocalInt(oPC, &quot;mystichelp&quot;, 1);
+    if (QCD_TimesDone(oPC, &quot;mystic_heirloom_accepted&quot;) == 0)
+        QCD_Stamp(oPC, &quot;mystic_heirloom_accepted&quot;);
 }
 </code></pre>
   </main>
